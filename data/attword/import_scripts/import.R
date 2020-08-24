@@ -24,9 +24,14 @@ stims_to_keep_chars <- c("_")
 # trial_file_name <- "reflook_tests.csv"
 # participant_file_name <- "reflook_v1_demographics.csv"
 
-
-# Specify file
-file_name <- "ATT_WORD_2013_03_06_01_2931 Samples.txt"
+files <- osf_retrieve_node("pr6wu") %>%
+  osf_ls_files() %>%
+  dplyr::filter(name == dataset_name) %>%
+  osf_ls_files() %>%
+  dplyr::filter(name == "experiment_info")
+  
+osf_retrieve_file("https://api.osf.io/v2/files/5f44020fbacde8021b33bfbb/") %>%
+  osf_download()
 
 #### define directory ####
 # Define root path
