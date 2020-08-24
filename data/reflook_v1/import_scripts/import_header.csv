@@ -1,0 +1,15 @@
+table,format,raw_column,mapped_column
+xy_data,tobii,ParticipantName,sub_id
+xy_data,tobii,GazePointX..ADCSpx.,x
+xy_data,tobii,GazePointY..ADCSpx.,y
+xy_data,tobii,EyeTrackerTimestamp,t
+xy_data,tobii,StudioTestName,tria_id
+aoi_data,tobii,ParticipantName,sub_id
+aoi_data,tobii,EyeTrackerTimestamp,t
+aoi_data,tobii,IRMarkerID,aoi
+aoi_data,tobii,StudioTestName,trial_id
+participants,tobii,ParticipantName,sub_id
+participants,tobii,age,age
+participants,tobii,sex,sex
+xy_data,smi,Time,
+xy_data,smi,,
