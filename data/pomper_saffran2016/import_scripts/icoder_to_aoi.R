@@ -6,11 +6,13 @@ remove_repeat_headers <- function(d, idx_var) {
 }
 sampling_rate_hz <- 30 
 sampling_rate_ms <- 33 
-read_path <- "data/peekds_icoder/raw_data"
-write_path <- "data/peekds_icoder/processed_data"
+#monitor_size <- # e.g. "1920x1200" # pixels  
+dataset_name = "pomper_saffran2016"
+read_path <- here("data",dataset_name,"full_dataset")
+write_path <- here("data",dataset_name, "processed_data")
 
 # read raw icoder files (is it one file per participant or aggregated?)
-d_raw <- readr::read_delim(here(read_path, "pomper_saffran_2016_raw_datawiz.txt"),
+d_raw <- readr::read_delim(fs::path(read_path, "/pomper_saffran_2016_raw_datawiz.txt"),
                            delim = "\t")
 
 # remove any column with all NAs (these are columns
