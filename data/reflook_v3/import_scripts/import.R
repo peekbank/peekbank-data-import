@@ -5,6 +5,7 @@ library(reader)
 library(fs)
 library(feather)
 library(tidyverse)
+library(peekds)
 
 #### general parameters ####
 dataset_name <- "refword_v3"
@@ -31,12 +32,12 @@ file_name <- "2011_0426_042412_01_1105_Samples.txt"
 #Define root path
 project_root <- here::here()
 #build directory path
-dir_path <- fs::path(project_root,"data","etds_smi_raw","reflook_v3", "raw_data","full_dataset")
-exp_info_path <- fs::path(project_root,"data","etds_smi_raw","reflook_v3", "raw_data","experiment_info")
-aoi_path <- fs::path(project_root,"data","etds_smi_raw","reflook_v3", "raw_data","test_aois")
+dir_path <- fs::path(project_root,"data", "reflook_v3", "raw_data","full_dataset")
+exp_info_path <- fs::path(project_root,"data", "reflook_v3", "raw_data","experiment_info")
+aoi_path <- fs::path(project_root,"data", "reflook_v3", "raw_data","test_aois")
 
 #output path
-output_path <- fs::path(project_root,"data","etds_smi_raw","reflook_v3","processed_data")
+output_path <- fs::path(project_root,"data","reflook_v3","processed_data")
 
 
 #### generic functions ###
@@ -336,11 +337,11 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   #process aoi regions
   aoi.data <- process_smi_aoi(trial_file_name, exp_info_path)%>%
-    mutate(aoi_region_id = seq(0,length(stimulus_name)-1))
+    mutate(aoi_region_set_id = seq(0,length(stimulus_name)-1))
   
   #create table of aoi region ids and stimulus name
   aoi_ids <- aoi.data %>%
-    distinct(stimulus_name,aoi_region_id)
+    distinct(stimulus_name,aoi_region_set_id)
   
   # #clean up aoi.data
   aoi.data <- aoi.data %>%
@@ -376,7 +377,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   trials.data <- trials.data %>%
     left_join(aoi_ids) %>%
     distinct(trial_id, lab_trial_id, dataset, target_image, distractor_image, target_side, 
-             target_label, aoi_region_id, distractor_label, full_phrase, stimulus_name, point_of_disambiguation)%>% #selecting distinct rows because of joining duplication
+             target_label, aoi_region_set_id, distractor_label, full_phrase, stimulus_name, point_of_disambiguation)%>% #selecting distinct rows because of joining duplication
     dplyr::select(-stimulus_name)
   
   #create dataset data
@@ -391,7 +392,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   write_csv(subjects.data,path=paste0(output_path,"/","subjects.csv"))
   write_csv(trials.data,path=paste0(output_path,"/","trials.csv"))
   write_csv(dataset.data,path=paste0(output_path,"/","dataset.csv"))
-  write_csv(aoi.data,path=paste0(output_path,"/","aoi_regions.csv"))
+  write_csv(aoi.data,path=paste0(output_path,"/","aoi_region_sets.csv"))
   
   
   
