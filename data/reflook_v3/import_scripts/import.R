@@ -8,7 +8,7 @@ library(tidyverse)
 library(peekds)
 
 #### general parameters ####
-dataset_name <- "refword_v3"
+dataset_name <- "reflook_v3"
 dataset_id <- 0
 max_lines_search <- 40 #maybe change this value?
 subid_name <- "Subject"
@@ -91,8 +91,8 @@ process_smi_trial_info <- function(file_path) {
     mutate(stimulus_name = str_remove(str_remove(Stimulus,".jpg"), "s1_")) %>%
     separate(stimulus_name, into=c("left_image","right_image"),sep="_",remove=F)%>%
     mutate(left_image = ifelse(left_image == "b", "bosa",
-                        ifelse(left_image == "m", "manu", left_image)), 
-           right_image = ifelse(right_image == "b", "bosa", 
+                        ifelse(left_image == "m", "manu", left_image)),
+           right_image = ifelse(right_image == "b", "bosa",
                                 ifelse(right_image == "m", "manu", right_image)))
   
   #convert onset to ms
@@ -121,42 +121,76 @@ process_smi_trial_info <- function(file_path) {
   #extract relevant columns
   #keeping type and Stimulus for now for cross-checking with raw eyetracking
   trial_data <- trial_data %>%
-    dplyr::rename("lab_trial_id" = "trial")%>%
-    dplyr::select(trial_id,lab_trial_id, dataset,target_image,distractor_image,target_side,target_label,distractor_label,full_phrase,stimulus_name,point_of_disambiguation)
+    dplyr::rename("lab_trial_id" = "trial", 
+                  "dataset_id" = "dataset")%>%
+    mutate(full_phrase_language = "English")%>%
+    dplyr::select(trial_id,
+                  full_phrase, 
+                  full_phrase_language, 
+                  point_of_disambiguation, 
+                  target_side, 
+                  lab_trial_id, 
+                  dataset_id, 
+                  target_label, ##keeping target and distrator labels so we can match them up with stimulus id in process_smi
+                  distractor_label, 
+                  stimulus_name)
   
   return(trial_data)
-  
 }
 
 
-#### Table 4: Dataset ####
+#### Table 4: Stimuli ####
 
-process_smi_dataset <- function(file_path,lab_dataset_id=dataset_name) {
+process_smi_stimuli <- function(file_path) {
   
-  # #read in lines to extract smi info
-  monitor_size <- extract_smi_info(file_path,monitor_size)
-  sample_rate <- extract_smi_info(file_path,sample_rate)
+  #guess delimiter
+  sep <- get.delim(file_path, delims=possible_delims)
+  
+  #read in data
+  stimuli_data <-  
+    read_delim(
+      file_path,
+      delim=sep
+    )
+  
+  #separate stimulus name for individual images (target and distracter)
+  stimuli_data <- stimuli_data %>%
+    mutate(stimulus_name = str_remove(str_remove(Stimulus,".jpg"), "s1_")) %>%
+    separate(stimulus_name, into=c("left_image","right_image"),sep="_",remove=F)%>%
+    mutate(left_image = ifelse(left_image == "b", "bosa",
+                               ifelse(left_image == "m", "manu", left_image)), 
+           right_image = ifelse(right_image == "b", "bosa", 
+                                ifelse(right_image == "m", "manu", right_image)))%>%
+    dplyr::select(type, left_image, right_image)%>%
+    pivot_longer(c("left_image", "right_image"), 
+                 names_to = "side", 
+                 values_to = "stimulus_label")%>%
+    mutate(dataset = dataset_id, 
+           stimulus_image_path = NA, 
+           lab_stimulus_id = NA)%>%
+    rename("stimulus_novelty" = "type")%>%
+    distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, stimulus_label, dataset)
+  
+  return(stimuli_data)
+}
 
-  #get maximum x-y coordinates on screen
-  screen_xy <- str_split(monitor_size,"x") %>%
-    unlist()
-  x.max <- as.numeric(as.character(screen_xy[1]))
-  y.max <- as.numeric(as.character(screen_xy[2]))
-  # 
+#### Table 5: Dataset ####
+
+process_smi_dataset <- function(lab_dataset_id=dataset_name) {
+  
   ##Make dataset table
   dataset.data <- data.frame(
     dataset_id = dataset_id, #hard code data set id for now
     lab_dataset_id = lab_dataset_id, 
-    tracker = "SMI", 
-    monitor_size_x = x.max,
-    monitor_size_y = y.max,
-    sample_rate = sample_rate
+    dataset_name = lab_dataset_id,
+    cite = "?", ##what is the full citation on this?
+    shortcite = "?"
   )
   
   return(dataset.data)
 }
 
-#### Table 5: AOI regions ####
+#### Table 6: AOI regions ####
 
 process_smi_aoi <- function(file_name, exp_info_path) {
   
@@ -195,7 +229,7 @@ process_smi_aoi <- function(file_name, exp_info_path) {
 }
 
 
-#### Table 6: Administration Data ####
+#### Table 7: Administration Data ####
 process_administration_info <- function(file_path_exp_info, file_path_exp) {
     ##dataset_id
     ##subject
@@ -378,13 +412,17 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   #create table of aoi region ids and stimulus name
   aoi_ids <- aoi.data %>%
-    distinct(stimulus_name,aoi_region_set_id)
+    distinct(stimulus_name,aoi_region_set_id) ##to-do: match aoi_region_set_id with trials from stimulus
   
   # #clean up aoi.data
   aoi.data <- aoi.data %>%
     dplyr::select(-stimulus_name)
   
   #### generate all data objects ####
+  
+  ##create stimuli data
+  stimuli.data <- process_smi_stimuli(trial_file_path)%>%
+    mutate(stimulus_id = seq(0,length(stimulus_label)-1))
   
   #create timepoint data
   timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file) %>%
@@ -409,7 +447,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   subjects.data <- process_subjects_info(participant_file_path) %>%
     left_join(participant_id_table,by="lab_subject_id") %>%
     filter(!is.na(subject_id)) %>%
-    dplyr::select(subject_id,lab_subject_id,age,sex)
+    dplyr::select(subject_id,sex, lab_subject_id)
 
   
   #create administration data 
@@ -417,24 +455,29 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
                                                      all_file_paths[1])%>%
     left_join(participant_id_table, by = "lab_subject_id")%>%
     dplyr::select(-lab_subject_id)%>%
-    mutate(administration_id = seq(0,length(subject_id)-1))
+    mutate(administration_id = seq(0,length(subject_id)-1))%>%
+    dplyr::select(administration_id, dataset_id, subject_id, age, lab_age, lab_age_units, 
+                  monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method)
   
   #clean up xy_data for xy_timepoints
   xy.data <- xy.data %>%
     dplyr::select(-lab_subject_id,-t_norm)
   
-  #create trials data
-  trials.data <- process_smi_trial_info(trial_file_path)
-  
-  #join with aoi.data to match aoi region id
-  trials.data <- trials.data %>%
-    left_join(aoi_ids) %>%
-    distinct(trial_id, lab_trial_id, dataset, target_image, distractor_image, target_side, 
-             target_label, aoi_region_set_id, distractor_label, full_phrase, stimulus_name, point_of_disambiguation)%>% #selecting distinct rows because of joining duplication
-    dplyr::select(-stimulus_name)
+  #create trials data and match with stimulus id and aoi_region_set_id
+  trials.data <- process_smi_trial_info(trial_file_path)%>%
+    left_join(stimuli.data %>% select(stimulus_id, stimulus_label), by=c("distractor_label"="stimulus_label")) %>%
+    rename(distractor_id = stimulus_id) %>%
+    left_join(stimuli.data %>% select(stimulus_id, stimulus_label), by=c("target_label"="stimulus_label")) %>%
+    rename(target_id = stimulus_id)%>%
+    left_join(aoi_ids, by="stimulus_name")%>%
+    mutate(trial_id = seq(0,length(stimulus_name)-1))%>%
+    dplyr::select(trial_id, full_phrase, full_phrase_language, 
+                  point_of_disambiguation, target_side, 
+                  lab_trial_id, aoi_region_set_id, dataset_id, 
+                  distractor_id, target_id)
   
   #create dataset data
-  dataset.data <- process_smi_dataset(all_file_paths[1])
+  dataset.data <- process_smi_dataset()
   
   
   #write all data
@@ -442,6 +485,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   #write_feather(xy.data,path=paste0(output_path,"/","xy_data.feather"))
   
   write_csv(xy.data,path=paste0(output_path,"/","xy_timepoints.csv"))
+  write_csv(stimuli.data, path = paste0(output_path, "/", "stimuli.csv"))
   write_csv(administration.data, path = paste0(output_path, "/", "administrations.csv"))
   write_csv(subjects.data,path=paste0(output_path,"/","subjects.csv"))
   write_csv(trials.data,path=paste0(output_path,"/","trials.csv"))
