@@ -31,12 +31,12 @@ file_name <- "2011_0426_042412_01_1105_Samples.txt"
 #Define root path
 project_root <- here::here()
 #build directory path
-dir_path <- fs::path(project_root,"data","etds_smi_raw","reflook_v3", "raw_data","full_dataset")
-exp_info_path <- fs::path(project_root,"data","etds_smi_raw","reflook_v3", "raw_data","experiment_info")
-aoi_path <- fs::path(project_root,"data","etds_smi_raw","reflook_v3", "raw_data","test_aois")
+dir_path <- fs::path(project_root,"data", "reflook_v3", "raw_data","full_dataset")
+exp_info_path <- fs::path(project_root,"data", "reflook_v3", "raw_data","experiment_info")
+aoi_path <- fs::path(project_root,"data", "reflook_v3", "raw_data","test_aois")
 
 #output path
-output_path <- fs::path(project_root,"data","etds_smi_raw","reflook_v3","processed_data")
+output_path <- fs::path(project_root,"data","reflook_v3","processed_data")
 
 
 #### generic functions ###
