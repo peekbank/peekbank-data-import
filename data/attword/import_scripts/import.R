@@ -24,14 +24,18 @@ stims_to_keep_chars <- c("_")
 # trial_file_name <- "reflook_tests.csv"
 # participant_file_name <- "reflook_v1_demographics.csv"
 
-files <- osf_retrieve_node("pr6wu") %>%
-  osf_ls_files() %>%
-  dplyr::filter(name == dataset_name) %>%
-  osf_ls_files() %>%
-  dplyr::filter(name == "experiment_info")
-  
-osf_retrieve_file("https://api.osf.io/v2/files/5f44020fbacde8021b33bfbb/") %>%
-  osf_download()
+
+
+#this gets subfolders of the osf data directory. 
+# write a function that creates 
+# files <- osf_retrieve_node("pr6wu") %>%
+#   osf_ls_files() %>%
+#   dplyr::filter(name == dataset_name) %>%
+#   osf_ls_files() %>%
+#   dplyr::filter(name == "experiment_info")
+#   
+# osf_retrieve_file("https://api.osf.io/v2/files/5f44020fbacde8021b33bfbb/") %>%
+#   osf_download()
 
 #### define directory ####
 # Define root path
@@ -42,11 +46,9 @@ dir_path <-
   fs::path(
     project_root,
     "data",
-    "etds_smi_raw",
     dataset_name,
     "raw_data",
-    "full_dataset",
-    "v1"
+    "full_dataset"
   )
 
 # path to experiment info directory
@@ -54,7 +56,6 @@ exp_info_path <-
   fs::path(
     project_root,
     "data",
-    "etds_smi_raw",
     dataset_name,
     "raw_data",
     "experiment_info"
@@ -65,24 +66,20 @@ aoi_path <-
   fs::path(
     project_root,
     "data",
-    "etds_smi_raw",
     dataset_name,
-    "raw_data", "aois"
+    "raw_data", 
+    "aois"
   )
+
 
 # output path
 output_path <-
   fs::path(
     project_root,
     "data",
-    "etds_smi_raw",
     dataset_name,
     "processed_data"
   )
-
-
-#### generic functions ###
-
 
 # function for extracting information from SMI header/ comments
 extract_smi_info <- function(file_path, parameter_name) {
@@ -95,6 +92,89 @@ extract_smi_info <- function(file_path, parameter_name) {
   
   return(info_object)
 }
+
+process_smi_dataset <- function(file_path, lab_datasetid = dataset_name) {
+  
+  # read in lines to extract smi info
+  monitor_size <- extract_smi_info(file_path, monitor_size)
+  sample_rate <- extract_smi_info(file_path, sample_rate)
+  subject <- extract_smi_info(file_path, subid_name)
+  
+  # get maximum x-y coordinates on screen
+  screen_xy <- str_split(monitor_size, "x") %>%
+    unlist()
+  x.max <- as.numeric(as.character(screen_xy[1]))
+  y.max <- as.numeric(as.character(screen_xy[2]))
+  
+  ## Make dataset table
+  tibble(
+    dataset_id = dataset_id, # hard code data set id for now
+    lab_dataset_id = lab_datasetid,
+    tracker = "SMI",
+    monitor_size_x = x.max,
+    monitor_size_y = y.max,
+    sample_rate = sample_rate,
+    lab_subject_id = subject
+  )
+}
+
+
+process_subjects_info <- function(file_path) {
+  data <- read_delim(file_path, delim = "\t") %>%
+    dplyr::select(SID, DOT, gender) %>%
+    dplyr::rename(
+      "lab_subject_id" = "SID",
+      "sex" = "gender",
+      "age" = "DOT"
+    ) %>%
+    mutate(
+      sex = factor(sex, labels = c(NA, "Male", "Female")), # this is pulled from yurovsky processing code
+      age = if_else(age == "NaN", NA_real_, round(age * 365))
+    )
+  
+  return(data)
+}
+
+
+### read tracker data
+smi_files <- list.files(dir_path, full.names = TRUE, recursive = TRUE, 
+                        include.dirs = FALSE)
+
+
+tracker_data <- map_dfr(smi_files, process_smi_dataset) %>%
+  mutate(administration_id = as.numeric(factor(lab_subject_id, 
+                                        levels = unique(lab_subject_id))) - 1)
+
+### read demographic data
+demographic_files <- list.files(exp_info_path, full.names = TRUE, 
+                                pattern = "*.txt")
+demographic_data <- map_dfr(demographic_files, process_subjects_info) %>%
+  mutate(subject_id = as.numeric(factor(lab_subject_id, 
+                                        levels = unique(lab_subject_id))) - 1,
+         age = as.integer(age))
+
+
+eyetracker_data <- map_dfr(exp_files, ~read_csv(.x) %>% 
+                             mutate(condition = .x)) %>%
+  mutate(condition = str_split(condition, "/") %>% unlist() %>% last(),
+         condition = str_remove(condition, ".csv"))
+
+## subjects table
+demographic_data %>%
+  select(-age) %>%
+  write_csv(glue::glue("{output_path}/subject_table.csv"))
+
+## administrations table
+tracker_data %>%
+  left_join(demographic_data, by = "lab_subject_id") %>%
+  select(-lab_subject_id) %>%
+  mutate(coding_method = "eyetracking",
+         lab_age = age,
+         lab_age_units = "days") %>%
+  write_csv(glue::glue("{output_path}/administrations_table.csv"))
+
+
+#### generic functions ###
 
 create_zero_index <- function(data, id_column_name = "lab_subject_id") {
   data <- data %>%
@@ -392,7 +472,6 @@ process_smi_eyetracking_file <-
     return(xy.data)
   }
 
-
 #### Main Processing Function ####
 
 process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
@@ -404,15 +483,12 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   all_files <- list.files(
     path = dir,
     pattern = paste0("*", file_ext),
-    all.files = FALSE
+    all.files = FALSE,
+    recursive = TRUE,
   )
   
   # create file paths
   all_file_paths <- paste0(dir, "/", all_files, sep = "")
-  
-  # create participant file path
-  # demographics already in raw data
-  #participant_file_path <- paste0(exp_info_dir, "/", participant_file_name)
   
   # create trial info file path
   # trial information already in raw data
@@ -428,10 +504,10 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   # all aoi paths
   # all_aoi_paths <- paste0(aoi_path,"/",all_aois)
   # separate aois for each participant?
-  aoi_data <- purr:::map_dfr(all_aois, 
+  aoi_data <- purrr:::map_dfr(all_aois, 
                              ~process_smi_aoi(.x ,aoi_path = aoi_path, 
                                               xy_file_path = all_file_paths[1])) %>%
-    dplyr::mutate(aoi_region_id = 0:(n()-1))
+    dplyr::mutate(aoi_region_set_id = 0:(n()-1))
   
   # create table of aoi region ids and stimulus name
   aoi_ids <- aoi_data %>%
@@ -451,24 +527,29 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
     dplyr::select(xy_data_id, subject_id, lab_subject_id, x, y, t, trial_id)
   
   # extract unique participant ids from eyetracking data (in order to filter participant demographic file)
-  participant_id_table <- xy.data %>%
+  participant_id_table <- xy_data %>%
     distinct(lab_subject_id, subject_id)
   
   # create participant data
-  subjects.data <- process_subjects_info(participant_file_path) %>%
+  subject_info_files <- list.files(exp_info_path, pattern = "*.txt")
+  demographic_data <- map_dfr(demographic_files, process_subjects_info)
+  
+  subjects_data <- map_dfr(subject_info_files, 
+                           ~process_subjects_info(
+                             glue::glue("{exp_info_dir}/{.x}"))) %>%
     left_join(participant_id_table, by = "lab_subject_id") %>%
     filter(!is.na(subject_id)) %>%
     dplyr::select(subject_id, lab_subject_id, age, sex)
   
   # clean up xy_data
-  xy.data <- xy.data %>%
+  xy_data <- xy_data %>%
     dplyr::select(-lab_subject_id)
   
   # create trials data
-  trials.data <- process_smi_trial_info(trial_file_path)
+  trials_data <- process_smi_trial_info(trial_file_path)
   
   # join with aoi.data to match aoi region id
-  trials.data <- trials.data %>%
+  trials_data <- trials_data %>%
     left_join(aoi_ids) %>%
     dplyr::select(-stimulus_name)
   
