@@ -437,7 +437,11 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   #create xy data
   xy.data <- timepoint.data %>%
-    dplyr::select(xy_timepoint_id,subject_id,lab_subject_id,x,y,t,t_norm,trial_id)
+    dplyr::select(xy_timepoint_id,x,y,t,trial_id) ##RMS: note sure whether t is right here, but I removed t_norm
+    
+  # #clean up xy_data for xy_timepoints
+  # xy.data <- xy.data %>%
+  #   dplyr::select(-lab_subject_id,-t_norm)
   
   #extract unique participant ids from eyetracking data (in order to filter participant demographic file)
   participant_id_table <- xy.data %>%
@@ -458,10 +462,6 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     dplyr::select(administration_id, dataset_id, subject_id, age, lab_age, lab_age_units, 
                   monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method)%>%
     mutate(administration_id = seq(0,length(subject_id)-1))
-  
-  #clean up xy_data for xy_timepoints
-  xy.data <- xy.data %>%
-    dplyr::select(-lab_subject_id,-t_norm)
   
   #create trials data and match with stimulus id and aoi_region_set_id
   trials.data <- process_smi_trial_info(trial_file_path)%>%
