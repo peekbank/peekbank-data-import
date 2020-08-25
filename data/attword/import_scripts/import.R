@@ -6,6 +6,7 @@ library(fs)
 library(feather)
 library(tidyverse)
 library(peekds)
+library(osfr)
 
 #### general parameters ####
 dataset_name <- "attword"
@@ -23,15 +24,31 @@ stims_to_remove_chars <- c(".avi")
 stims_to_keep_chars <- c("_")
 # trial_file_name <- "reflook_tests.csv"
 # participant_file_name <- "reflook_v1_demographics.csv"
+data_download_dir <- here("/data/attword/raw_data")
+dir.create(data_download_dir)
+
 
 files <- osf_retrieve_node("pr6wu") %>%
   osf_ls_files() %>%
   dplyr::filter(name == dataset_name) %>%
-  osf_ls_files() %>%
-  dplyr::filter(name == "experiment_info")
-  
-osf_retrieve_file("https://api.osf.io/v2/files/5f44020fbacde8021b33bfbb/") %>%
-  osf_download()
+  osf_ls_files() %>% 
+  dplyr::filter(name == "full_dataset")
+
+# find an automatic way to do this??
+#experiment info 
+# #osf_retrieve_file("https://api.osf.io/v2/files/5f44020fbacde8021b33bfbb/") %>%
+#   osf_download(path = data_download_dir)
+# 
+# #aois 
+# osf_retrieve_file("https://api.osf.io/v2/files/5f440208746a81020d1a1ea4/") %>%
+#   osf_download(path = data_download_dir)
+# 
+# #full_dataset <- too large? 
+# osf_retrieve_file("https://api.osf.io/v2/files/5f440215bacde8021b33bfcd/") %>%
+#   osf_download(path = data_download_dir)
+
+
+
 
 #### define directory ####
 # Define root path
@@ -42,7 +59,7 @@ dir_path <-
   fs::path(
     project_root,
     "data",
-    "etds_smi_raw",
+    #"etds_smi_raw",
     dataset_name,
     "raw_data",
     "full_dataset",
@@ -54,7 +71,7 @@ exp_info_path <-
   fs::path(
     project_root,
     "data",
-    "etds_smi_raw",
+    #"etds_smi_raw",
     dataset_name,
     "raw_data",
     "experiment_info"
@@ -65,7 +82,7 @@ aoi_path <-
   fs::path(
     project_root,
     "data",
-    "etds_smi_raw",
+    #"etds_smi_raw",
     dataset_name,
     "raw_data", "aois"
   )
@@ -75,7 +92,7 @@ output_path <-
   fs::path(
     project_root,
     "data",
-    "etds_smi_raw",
+    #"etds_smi_raw",
     dataset_name,
     "processed_data"
   )
@@ -96,6 +113,7 @@ extract_smi_info <- function(file_path, parameter_name) {
   return(info_object)
 }
 
+#this function is not called anywhere
 create_zero_index <- function(data, id_column_name = "lab_subject_id") {
   data <- data %>%
     mutate(
@@ -428,7 +446,7 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   # all aoi paths
   # all_aoi_paths <- paste0(aoi_path,"/",all_aois)
   # separate aois for each participant?
-  aoi_data <- purr:::map_dfr(all_aois, 
+  aoi_data <- purrr:::map_dfr(all_aois, 
                              ~process_smi_aoi(.x ,aoi_path = aoi_path, 
                                               xy_file_path = all_file_paths[1])) %>%
     dplyr::mutate(aoi_region_id = 0:(n()-1))
@@ -451,26 +469,37 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
     dplyr::select(xy_data_id, subject_id, lab_subject_id, x, y, t, trial_id)
   
   # extract unique participant ids from eyetracking data (in order to filter participant demographic file)
-  participant_id_table <- xy.data %>%
+  # ac: xy.data is no where to befound 
+  # participant_id_table <- xy.data %>%
+  #   distinct(lab_subject_id, subject_id)
+  
+  participant_id_table <- xy_data %>%
     distinct(lab_subject_id, subject_id)
   
+  
   # create participant data
-  subjects.data <- process_subjects_info(participant_file_path) %>%
-    left_join(participant_id_table, by = "lab_subject_id") %>%
-    filter(!is.na(subject_id)) %>%
-    dplyr::select(subject_id, lab_subject_id, age, sex)
+  # ac: maybe this one is useless; participant_file_path commented out? 
+  # subjects.data <- process_subjects_info(participant_file_path) %>%
+  #   left_join(participant_id_table, by = "lab_subject_id") %>%
+  #   filter(!is.na(subject_id)) %>%
+  #   dplyr::select(subject_id, lab_subject_id, age, sex)
   
   # clean up xy_data
-  xy.data <- xy.data %>%
+  # ac: i can't find xy.data
+  # xy.data <- xy.data %>%
+  #   dplyr::select(-lab_subject_id)
+  
+  xy_data <- xy_data %>% 
     dplyr::select(-lab_subject_id)
   
   # create trials data
-  trials.data <- process_smi_trial_info(trial_file_path)
+  # ac: also useless? trial_file_path commented out? 
+  # trials.data <- process_smi_trial_info(trial_file_path)
   
   # join with aoi.data to match aoi region id
-  trials.data <- trials.data %>%
-    left_join(aoi_ids) %>%
-    dplyr::select(-stimulus_name)
+  # trials.data <- trials.data %>%
+  #   left_join(aoi_ids) %>%
+  #   dplyr::select(-stimulus_name)
   
   # create dataset data
   dataset.data <- process_smi_dataset(all_file_paths[1])
@@ -480,11 +509,13 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   # write_feather(dataset.data,path=paste0(output_path,"/","dataset_data.feather"))
   # write_feather(xy.data,path=paste0(output_path,"/","xy_data.feather"))
   
-  write_csv(xy.data, path = paste0(output_path, "/", "xy_data.csv"))
-  write_csv(subjects.data, path = paste0(output_path, "/", "subjects.csv"))
-  write_csv(trials.data, path = paste0(output_path, "/", "trials.csv"))
+  write_csv(xy_data, path = paste0(output_path, "/", "xy_data.csv"))
+  #write_csv(subjects.data, path = paste0(output_path, "/", "subjects.csv"))
+  #write_csv(trials.data, path = paste0(output_path, "/", "trials.csv"))
   write_csv(dataset.data, path = paste0(output_path, "/", "datasets.csv"))
-  write_csv(aoi.data, path = paste0(output_path, "/", "aoi_regions.csv"))
+  #write_csv(aoi.data, path = paste0(output_path, "/", "aoi_regions.csv"))
+  write_csv(aoi_data, path = paste0(output_path, "/", "aoi_regions.csv"))
+  
 }
 
 
