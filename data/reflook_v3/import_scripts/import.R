@@ -336,8 +336,8 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
     #set time to zero at the beginning of each trial
     data <- data %>%
       group_by(trial_id) %>%
-      mutate(t = timestamp - min(timestamp)) %>%
-      mutate(t_norm = t) %>% #fix this
+      mutate(t = timestamp - min(timestamp),
+             t_norm = t) %>% #fix this
       ungroup()
   }
   
@@ -386,21 +386,6 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   #### generate all data objects ####
   
-  #create timepoint data
-  timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file) %>%
-    bind_rows() %>%
-    mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
-    mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1)
-  
-  #create aoi timepoint data
-  aoi.timepoint.data <- timepoint.data %>%
-    dplyr::select(xy_timepoint_id,trial_id,t_norm) %>% #still need to get aoi name 
-    dplyr::rename(aoi_timepoint_id = xy_timepoint_id)
-  
-  #create xy data
-  xy.data <- timepoint.data %>%
-    dplyr::select(xy_timepoint_id,subject_id,lab_subject_id,x,y,t,t_norm,trial_id)
-  
   #extract unique participant ids from eyetracking data (in order to filter participant demographic file)
   participant_id_table <- xy.data %>%
     distinct(lab_subject_id, subject_id)
@@ -410,18 +395,12 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     left_join(participant_id_table,by="lab_subject_id") %>%
     filter(!is.na(subject_id)) %>%
     dplyr::select(subject_id,lab_subject_id,age,sex)
-
   
   #create administration data 
   administration.data <- process_administration_info(participant_file_path, 
                                                      all_file_paths[1])%>%
     left_join(participant_id_table, by = "lab_subject_id")%>%
-    dplyr::select(-lab_subject_id)%>%
     mutate(administration_id = seq(0,length(subject_id)-1))
-  
-  #clean up xy_data for xy_timepoints
-  xy.data <- xy.data %>%
-    dplyr::select(-lab_subject_id,-t_norm)
   
   #create trials data
   trials.data <- process_smi_trial_info(trial_file_path)
@@ -432,6 +411,30 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     distinct(trial_id, lab_trial_id, dataset, target_image, distractor_image, target_side, 
              target_label, aoi_region_set_id, distractor_label, full_phrase, stimulus_name, point_of_disambiguation)%>% #selecting distinct rows because of joining duplication
     dplyr::select(-stimulus_name)
+  
+  #create timepoint data
+  timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file) %>%
+    bind_rows() %>%
+    mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
+    mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1) %>%
+    left_join(administration.data %>% select(lab_subject_id, administration_id), by = "lab_subject_id")
+  
+  #create xy data
+  xy.data <- timepoint.data %>%
+    dplyr::select(xy_timepoint_id,subject_id,lab_subject_id,x,y,t,t_norm,trial_id, administration_id)
+  
+  #create aoi timepoint data
+  aoi.timepoint.data <- timepoint.data %>%
+    dplyr::select(administration_id,xy_timepoint_id,trial_id,t_norm) %>%  
+    dplyr::rename(aoi_timepoint_id = xy_timepoint_id)
+  
+  #clean up xy_data for xy_timepoints
+  xy.data <- xy.data %>%
+    dplyr::select(-lab_subject_id,-t_norm)
+  
+  #clean up administration data
+  administration.data <- administration.data %>%
+    dplyr::select(-lab_subject_id) 
   
   #create dataset data
   dataset.data <- process_smi_dataset(all_file_paths[1])
