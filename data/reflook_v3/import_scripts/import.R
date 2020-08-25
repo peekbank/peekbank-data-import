@@ -306,7 +306,7 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
   
   #extract final columns
   xy.data <- data %>%
-    dplyr::select(lab_subject_id,x,y,t,trial_id)
+    dplyr::select(lab_subject_id,x,y,t,t_norm,trial_id)
   
   
   return(xy.data)
@@ -349,12 +349,20 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   #### generate all data objects ####
   
-  #create xy data
-  xy.data <- lapply(all_file_paths,process_smi_eyetracking_file) %>%
+  #create timepoint data
+  timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file) %>%
     bind_rows() %>%
-    mutate(xy_data_id = seq(0,length(lab_subject_id)-1)) %>%
-    mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1) %>%
-    dplyr::select(xy_data_id,subject_id,lab_subject_id,x,y,t,trial_id)
+    mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
+    mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1)
+  
+  #create aoi timepoint data
+  aoi.timepoint.data <- timepoint.data %>%
+    dplyr::select(xy_timepoint_id,trial_id,t_norm) %>% #still need to get aoi name 
+    dplyr::rename(aoi_timepoint_id = xy_timepoint_id)
+  
+  #create xy data
+  xy.data <- timepoint.data %>%
+    dplyr::select(xy_timepoint_id,subject_id,lab_subject_id,x,y,t,t_norm,trial_id)
   
   #extract unique participant ids from eyetracking data (in order to filter participant demographic file)
   participant_id_table <- xy.data %>%
@@ -365,10 +373,11 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     left_join(participant_id_table,by="lab_subject_id") %>%
     filter(!is.na(subject_id)) %>%
     dplyr::select(subject_id,lab_subject_id,age,sex)
+
   
-  #clean up xy_data
+  #clean up xy_data for xy_timepoints
   xy.data <- xy.data %>%
-    dplyr::select(-lab_subject_id)
+    dplyr::select(-lab_subject_id,-t_norm)
   
   #create trials data
   trials.data <- process_smi_trial_info(trial_file_path)
@@ -388,11 +397,12 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   #write_feather(dataset.data,path=paste0(output_path,"/","dataset_data.feather"))
   #write_feather(xy.data,path=paste0(output_path,"/","xy_data.feather"))
   
-  write_csv(xy.data,path=paste0(output_path,"/","xy_data.csv"))
+  write_csv(xy.data,path=paste0(output_path,"/","xy_timepoints.csv"))
   write_csv(subjects.data,path=paste0(output_path,"/","subjects.csv"))
   write_csv(trials.data,path=paste0(output_path,"/","trials.csv"))
   write_csv(dataset.data,path=paste0(output_path,"/","dataset.csv"))
   write_csv(aoi.data,path=paste0(output_path,"/","aoi_region_sets.csv"))
+  write_csv(aoi.timepoint.data,path=paste0(output_path,"/","aoi_timepoints.csv"))
   
   
   
