@@ -420,31 +420,21 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   #### generate all data objects ####
   
+  #create dataset data
+  dataset.data <- process_smi_dataset()
+  
   ##create stimuli data
   stimuli.data <- process_smi_stimuli(trial_file_path)%>%
-    mutate(stimulus_id = seq(0,length(stimulus_label)-1))
+    mutate(stimulus_id = seq(0,length(stimulus_label)-1)) 
   
-  #create timepoint data
-  timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file) %>%
+  ## create timepoint data so we have a list of participants for whom we actually have data
+  timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file)%>%
     bind_rows() %>%
     mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
     mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1)
   
-  #create aoi timepoint data
-  aoi.timepoint.data <- timepoint.data %>%
-    dplyr::select(xy_timepoint_id,trial_id,t_norm) %>% #still need to get aoi name 
-    dplyr::rename(aoi_timepoint_id = xy_timepoint_id)
-  
-  #create xy data
-  xy.data <- timepoint.data %>%
-    dplyr::select(xy_timepoint_id,x,y,t,trial_id) ##RMS: note sure whether t is right here, but I removed t_norm
-    
-  # #clean up xy_data for xy_timepoints
-  # xy.data <- xy.data %>%
-  #   dplyr::select(-lab_subject_id,-t_norm)
-  
-  #extract unique participant ids from eyetracking data (in order to filter participant demographic file)
-  participant_id_table <- xy.data %>%
+  ##extract unique participant ids from eyetracking data (in order to filter participant demographic file)
+  participant_id_table <- timepoint.data %>%
     distinct(lab_subject_id, subject_id)
   
   #create participant data
@@ -458,10 +448,9 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
                                                      all_file_paths[1])%>%
     left_join(participant_id_table, by = "lab_subject_id")%>%
     dplyr::select(-lab_subject_id)%>%
-    mutate(administration_id = seq(0,length(subject_id)-1))%>%
-    dplyr::select(administration_id, dataset_id, subject_id, age, lab_age, lab_age_units, 
+    dplyr::select(dataset_id, subject_id, age, lab_age, lab_age_units, 
                   monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method)%>%
-    mutate(administration_id = seq(0,length(subject_id)-1))
+    mutate(administration_id = seq(0,length(subject_id)-1)) 
   
   #create trials data and match with stimulus id and aoi_region_set_id
   trials.data <- process_smi_trial_info(trial_file_path)%>%
@@ -476,47 +465,31 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
                   lab_trial_id, aoi_region_set_id, dataset_id, 
                   distractor_id, target_id)
   
-  #create timepoint data
-  timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file) %>%
-    bind_rows() %>%
-    mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
-    mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1) %>%
-    left_join(administration.data %>% select(lab_subject_id, administration_id), by = "lab_subject_id")
-  
   #create xy data
   xy.data <- timepoint.data %>%
-    dplyr::select(xy_timepoint_id,subject_id,lab_subject_id,x,y,t,t_norm,trial_id, administration_id)
+    left_join(administration.data %>% select(subject_id, administration_id), by = "subject_id")%>%
+    dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id) ##RMS: note sure whether t is right here, but I removed t_norm
   
-  #create aoi timepoint data
-  aoi.timepoint.data <- timepoint.data %>%
-    dplyr::select(administration_id,xy_timepoint_id,trial_id,t_norm) %>%  
-    dplyr::rename(aoi_timepoint_id = xy_timepoint_id)
-  
-  #clean up xy_data for xy_timepoints
-  xy.data <- xy.data %>%
-    dplyr::select(-lab_subject_id,-t_norm)
-  
-  #clean up administration data
-  administration.data <- administration.data %>%
-    dplyr::select(-lab_subject_id) 
-  
-  #create dataset data
-  dataset.data <- process_smi_dataset()
-  
+  #create aoi timepoint data; get aois and t_norm
+  aoi.timepoint.data <- xy.data %>%
+    left_join(trials.data %>% select(trial_id, point_of_disambiguation), by = "trial_id") %>%
+    mutate(t_norm = t-point_of_disambiguation, 
+           aoi = "?")%>%
+    dplyr::select(xy_timepoint_id,trial_id,t_norm, administration_id) %>%  
+    dplyr::rename(aoi_timepoint_id = xy_timepoint_id) ##need to figure out aoi target/distractor/other/missing
   
   #write all data
   #write_feather(dataset.data,path=paste0(output_path,"/","dataset_data.feather"))
   #write_feather(xy.data,path=paste0(output_path,"/","xy_data.feather"))
   
   write_csv(xy.data,path=paste0(output_path,"/","xy_timepoints.csv"))
+  write_csv(aoi.timepoint.data, path=paste0(output_path, "/", "aoi_timepoints.csv"))
   write_csv(stimuli.data, path = paste0(output_path, "/", "stimuli.csv"))
   write_csv(administration.data, path = paste0(output_path, "/", "administrations.csv"))
   write_csv(subjects.data,path=paste0(output_path,"/","subjects.csv"))
   write_csv(trials.data,path=paste0(output_path,"/","trials.csv"))
   write_csv(dataset.data,path=paste0(output_path,"/","dataset.csv"))
   write_csv(aoi.data,path=paste0(output_path,"/","aoi_region_sets.csv"))
-  write_csv(aoi.timepoint.data,path=paste0(output_path,"/","aoi_timepoints.csv"))
-
 }
 
 
