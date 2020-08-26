@@ -22,15 +22,11 @@ left_y_col_name <- "L POR Y [px]"
 right_y_col_name <- "R POR Y [px]"
 stims_to_remove_chars <- c(".avi")
 stims_to_keep_chars <- c("_")
-trial_file_name <- "reflook_tests.csv"
-participant_file_name <- "reflook_v1_demographics.csv"
+
+osf_token <- read_lines(here("osf_token.txt"))
 
 ## download raw data 
 peekds::get_raw_data(dataset_name, path = here("data/attword/raw_data/"))
-
-# experiment info (pre-processed data)
-osf_retrieve_file("https://api.osf.io/v2/files/5f44020fbacde8021b33bfbb/") %>%
-  osf_download(path = data_download_dir)
 
 #### define directory ####
 # Define root path
@@ -147,70 +143,6 @@ process_subjects_info <- function(file_path) {
     )
   
   return(data)
-}
-
-# function for ...?
-# file_path:???
-
-process_smi_trial_info <- function(file_path) {
-  
-  # guess delimiter
-  sep <- get.delim(file_path, delims = possible_delims)
-  
-  # read in data
-  trial_data <- read_delim(file_path, delim = sep)
-  
-  # separate stimulus name for individual images (target and distractor)
-  trial_data <- trial_data %>%
-    mutate(stimulus_name = str_remove(Stimulus, ".jpg")) %>%
-    separate(
-      stimulus_name,
-      into = c("target_info", "left_image", "right_image"),
-      sep = "_",
-      remove = F
-    )
-  
-  # convert onset to ms
-  trial_data <- trial_data %>%
-    mutate(point_of_disambiguation = onset * 1000)
-  
-  # add target/ distractor info
-  trial_data <- trial_data %>%
-    mutate(
-      target_image = case_when(
-        target_info == "o" ~ right_image,
-        target_info == "t" ~ left_image
-      ),
-      distractor_image = case_when(
-        target_info == "o" ~ left_image,
-        target_info == "t" ~ right_image
-      )
-    ) %>%
-    rename(target_side = target) %>%
-    mutate(
-      target_label = target_image,
-      distractor_label = distractor_image
-    )
-  
-  # rename and create some additional filler columns
-  trial_data <- trial_data %>%
-    mutate(trial_id = trial - 1) %>%
-    mutate(
-      dataset_id = dataset_id # choose specific dataset id for now
-    ) %>%
-    mutate(lab_trial_id = trial)
-  
-  # full phrase? currently unknown for refword
-  trial_data$full_phrase <- NA
-  
-  # extract relevant columns
-  # keeping type and Stimulus for now for cross-checking with raw eyetracking
-  trial_data <- trial_data %>%
-    dplyr::select(trial_id, lab_trial_id, dataset_id, target_image, 
-                  distractor_image, target_side, target_label, distractor_label,
-                  full_phrase, stimulus_name, point_of_disambiguation)
-  
-  return(trial_data)
 }
 
 
@@ -509,7 +441,7 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
                                 labels = c("left", "right")),
            distractor = if_else(target == left, right, left),
            full_phrase = NA,
-           point_of_disambiguation = 2.65, #get this out of individual files
+           point_of_disambiguation = 2.65 * 1000, #get this out of individual files
            full_phrase_language = "eng",
            lab_trial_id = 1:n(),
            trial_id = 0:(n()-1),
@@ -533,7 +465,7 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   write_csv(administrations_table_data, path = paste0(output_path, "/", "administrations.csv"))
   write_csv(subject_table_data, path = paste0(output_path, "/", "subjects.csv"))
   write_csv(xy_timepoints_table_data, path = paste0(output_path, "/", "xy_timepoints.csv"))
-  write_csv(aoi_region_sets_table_data, path = paste0(output_path, "/", "aoi_regions.csv"))
+  write_csv(aoi_region_sets_table_data, path = paste0(output_path, "/", "aoi_region_sets.csv"))
   write_csv(dataset_table, path = paste0(output_path, "/", "datasets.csv"))
   write_csv(stimulus_table, path = paste0(output_path, "/", "stimuli.csv"))
   write_csv(trials_table, path = paste0(output_path, "/", "trials.csv"))
@@ -545,6 +477,12 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
 #### Run SMI ####
 
 process_smi(dir = dir_path, exp_info_dir = exp_info_path)
-peekds::generate_aoi(dir = output_path)
+
+aois_timepoints <- peekds::generate_aoi(dir = output_path)
 
 peekds::validate_for_db_import(dir_csv = output_path, dataset_type = "automated")
+
+### Output processed data
+put_processed_data(osf_token, dataset_name, path = glue::glue("{output_path}/"))
+
+                   
