@@ -22,31 +22,11 @@ left_y_col_name <- "L POR Y [px]"
 right_y_col_name <- "R POR Y [px]"
 stims_to_remove_chars <- c(".avi")
 stims_to_keep_chars <- c("_")
-trial_file_name <- "reflook_tests.csv"
-participant_file_name <- "reflook_v1_demographics.csv"
 
+osf_token <- read_lines(here("osf_token.txt"))
 
-# Not sure if still necessary; script to down load files from osf 
-files <- osf_retrieve_node("pr6wu") %>%
-  osf_ls_files() %>%
-  dplyr::filter(name == dataset_name) %>%
-  osf_ls_files() %>% 
-  dplyr::filter(name == "full_dataset")
-
-# experiment info (pre-processed data)
-osf_retrieve_file("https://api.osf.io/v2/files/5f44020fbacde8021b33bfbb/") %>%
-  osf_download(path = data_download_dir)
-
-#aois
-osf_retrieve_file("https://api.osf.io/v2/files/5f440208746a81020d1a1ea4/") %>%
-  osf_download(path = data_download_dir)
-
-#full_dataset (raw dataset, might be too large to load)
-osf_retrieve_file("https://api.osf.io/v2/files/5f440215bacde8021b33bfcd/") %>%
-  osf_download(path = data_download_dir)
-
-
-
+## download raw data 
+peekds::get_raw_data(dataset_name, path = here("data/attword/raw_data/"))
 
 #### define directory ####
 # Define root path
@@ -163,70 +143,6 @@ process_subjects_info <- function(file_path) {
     )
   
   return(data)
-}
-
-# function for ...?
-# file_path:???
-
-process_smi_trial_info <- function(file_path) {
-  
-  # guess delimiter
-  sep <- get.delim(file_path, delims = possible_delims)
-  
-  # read in data
-  trial_data <- read_delim(file_path, delim = sep)
-  
-  # separate stimulus name for individual images (target and distractor)
-  trial_data <- trial_data %>%
-    mutate(stimulus_name = str_remove(Stimulus, ".jpg")) %>%
-    separate(
-      stimulus_name,
-      into = c("target_info", "left_image", "right_image"),
-      sep = "_",
-      remove = F
-    )
-  
-  # convert onset to ms
-  trial_data <- trial_data %>%
-    mutate(point_of_disambiguation = onset * 1000)
-  
-  # add target/ distractor info
-  trial_data <- trial_data %>%
-    mutate(
-      target_image = case_when(
-        target_info == "o" ~ right_image,
-        target_info == "t" ~ left_image
-      ),
-      distractor_image = case_when(
-        target_info == "o" ~ left_image,
-        target_info == "t" ~ right_image
-      )
-    ) %>%
-    rename(target_side = target) %>%
-    mutate(
-      target_label = target_image,
-      distractor_label = distractor_image
-    )
-  
-  # rename and create some additional filler columns
-  trial_data <- trial_data %>%
-    mutate(trial_id = trial - 1) %>%
-    mutate(
-      dataset_id = dataset_id # choose specific dataset id for now
-    ) %>%
-    mutate(lab_trial_id = trial)
-  
-  # full phrase? currently unknown for refword
-  trial_data$full_phrase <- NA
-  
-  # extract relevant columns
-  # keeping type and Stimulus for now for cross-checking with raw eyetracking
-  trial_data <- trial_data %>%
-    dplyr::select(trial_id, lab_trial_id, dataset_id, target_image, 
-                  distractor_image, target_side, target_label, distractor_label,
-                  full_phrase, stimulus_name, point_of_disambiguation)
-  
-  return(trial_data)
 }
 
 
@@ -426,16 +342,17 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   smi_files <- list.files(dir_path, full.names = TRUE, recursive = TRUE, 
                         include.dirs = FALSE)
   # create all demographic file path (not working now)
-  demographic_files <- list.files(exp_info_path, full.names = TRUE, 
+  
+  demographic_files <- list.files(glue::glue("{exp_info_dir}/demographics"), 
+                                             full.names = TRUE, 
                                 pattern = "*.txt")
+  
   # create all aois file path 
   all_aois <- list.files(
     path = aoi_path,
     pattern = paste0("*", ".xml"),
     all.files = FALSE
   )
-  
-  
   
   #### read in data  ####
   
@@ -459,20 +376,35 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   # read aoi_data for trials' table?
   # warning about raw_t
   aoi_data <- map_dfr(all_aois, 
-                      ~process_smi_aoi(.x ,aoi_path = aoi_path, 
-                                           xy_file_path = smi_files[1])) 
+                      ~process_smi_aoi(.x, aoi_path = aoi_path, 
+                                           xy_file_path = smi_files[1]))
 
   # read xy_data for xy_timepoints table 
-  xy_data <- lapply(smi_files, process_smi_eyetracking_file) %>% bind_rows() 
+  xy_data <- suppressMessages(map_dfr(smi_files, process_smi_eyetracking_file))
   
+  # read stimulus data
+  stimuli <- read_csv(glue::glue("{exp_info_dir}/design/attword_stimuli.csv"))
   
-  # create table of aoi region ids and stimulus name
-  aoi_ids <- aoi_data %>%
-    distinct(stimulus_name, aoi_region_id)
+  stimulus_table <- stimuli %>%
+    mutate(stimulus_id = 0:(n()-1),
+           stimulus_image_path = NA,
+           lab_stimulus_id = stimulus_id,
+           dataset_id = dataset_id)
   
-  
+  # read design data
+  design <- read_delim(glue::glue("{exp_info_dir}/design/design.txt"), "\t") %>%
+    janitor::clean_names() %>%
+    filter(trial_type %in% c("easy", "hard", "new", "me")) %>%
+    select(-type, -x3) 
   
   #### generate all data objects ####
+  
+  # dataset table
+  dataset_table <- tibble(dataset_id = dataset_id,
+                          lab_dataset_id = dataset_name,
+                          dataset_name = dataset_name,
+                          shortcite = "yurovskyetal.unpublished.",
+                          cite = "Yurovsky, D., Wade, A., Kraus, A. M., Gengoux, Hardan, A. Y., & Frank, M. C. Developmental change in the speed of social attention and its relation to early word learning. unpublished.")
   
   # subject table data 
   subject_table_data <- demographic_data %>% select(-age) 
@@ -489,9 +421,9 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   # xy_timepoints_table_data : lab_subject_id, subject_id, x, y, t, trial_id, xy_data_id
   # rename xy_data_id to xy_timepoint_id? 
   xy_timepoints_table_data <- xy_data %>%
-                              mutate(xy_data_id = seq(0, length(lab_subject_id) - 1)) %>%
-                              mutate(subject_id = as.numeric(factor(lab_subject_id, levels = unique(lab_subject_id))) - 1) %>%
-                              select(xy_data_id, subject_id, lab_subject_id, x, y, t, trial_id)
+    mutate(xy_timepoint_id = seq(0, length(lab_subject_id) - 1)) %>%
+    mutate(administration_id = as.numeric(factor(lab_subject_id, levels = unique(lab_subject_id))) - 1) %>%
+    select(xy_timepoint_id, x, y, t, administration_id, trial_id)
   
   
   # aoi_region_sets table data 
@@ -499,15 +431,32 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   aoi_region_sets_table_data <- aoi_data %>% 
                                 mutate(aoi_region_set_id = 0:(n()-1)) %>% 
                                 select(-stimulus_name)
-
-    
+  
+  
   # trials table data 
-  # below is old code, no longer works 
-  # # join with aoi.data to match aoi region id
-  # trials_data <- process_smi_trial_info(trial_file_path)
-  # trials.data <- trials.data %>%
-  #   left_join(aoi_ids) %>%
-  #   dplyr::select(-stimulus_name)
+  trials_table <- design %>%
+    mutate(name = str_remove(name, ".jpg")) %>%
+    separate(name, into = c("left", "right"), sep = "_") %>%
+    mutate(target_side = factor(target_screen_side, levels = c(1, 2), 
+                                labels = c("left", "right")),
+           distractor = if_else(target == left, right, left),
+           full_phrase = NA,
+           point_of_disambiguation = 2.65 * 1000, #get this out of individual files
+           full_phrase_language = "eng",
+           lab_trial_id = 1:n(),
+           trial_id = 0:(n()-1),
+           dataset_id = dataset_id) %>%
+    left_join(stimulus_table %>% select(stimulus_id, stimulus_label),
+              by = c("target" = "stimulus_label")) %>%
+    rename(target_id = stimulus_id) %>%
+    left_join(stimulus_table %>% select(stimulus_id, stimulus_label),
+              by = c("distractor" = "stimulus_label")) %>%
+    rename(distrator_id = stimulus_id) %>%
+    select(-left, -right, -trial_type, -target, -distractor, 
+           -target_screen_side) %>%
+    mutate(aoi_region_set_id = aoi_region_sets_table_data %>% 
+             pull(aoi_region_set_id) %>% 
+             first())
 
 
   
@@ -517,12 +466,10 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   write_csv(subject_table_data, path = paste0(output_path, "/", "subjects.csv"))
   write_csv(xy_timepoints_table_data, path = paste0(output_path, "/", "xy_timepoints.csv"))
   write_csv(aoi_region_sets_table_data, path = paste0(output_path, "/", "aoi_region_sets.csv"))
-  #write_csv(???, path = paste0(output_path, "/", "datasets.csv"))
-  #write_csv(???, path = paste0(output_path, "/", "stimuli.csv"))
-  #write_csv(??, path = paste0(output_path, "/", "trials.csv"))
-  #write_csv(??, path = paste0(output_path, "/", "aoi_timepoints.csv"))
-  
-  
+  write_csv(dataset_table, path = paste0(output_path, "/", "datasets.csv"))
+  write_csv(stimulus_table, path = paste0(output_path, "/", "stimuli.csv"))
+  write_csv(trials_table, path = paste0(output_path, "/", "trials.csv"))
+ 
 }
 
 
@@ -530,6 +477,12 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
 #### Run SMI ####
 
 process_smi(dir = dir_path, exp_info_dir = exp_info_path)
-peekds::generate_aoi(dir = output_path)
+
+aois_timepoints <- peekds::generate_aoi(dir = output_path)
 
 peekds::validate_for_db_import(dir_csv = output_path, dataset_type = "automated")
+
+### Output processed data
+put_processed_data(osf_token, dataset_name, path = glue::glue("{output_path}/"))
+
+                   
