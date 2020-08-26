@@ -304,7 +304,9 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
     filter(Type=="SMP", #remove anything that isn't actually collecting ET data
            Stimulus != "-", #remove calibration
            !grepl(paste(stims_to_remove_chars,collapse="|"), Stimulus),  #remove anything that isn't actually a trial; .avis are training or attention getters
-           grepl(paste(stims_to_keep_chars,collapse="|"), Stimulus)) %>% #from here, keep only trials, which have format o_name1_name2_.jpg;
+           grepl(paste(stims_to_keep_chars,collapse="|"), Stimulus), #from here, keep only trials, which have format o_name1_name2_.jpg;
+           Stimulus != "elmo_slide.jpg")%>% # get rid of elmo
+             
     dplyr::select(
       raw_t = "Time",
       lx = left_x_col_name,
@@ -415,16 +417,19 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   trial_file_path <- paste0(exp_info_dir, "/",trial_file_name)
   
   #process aoi regions
-  aoi.data <- process_smi_aoi(trial_file_name, exp_info_path)%>%
-    mutate(aoi_region_set_id = seq(0,length(stimulus_name)-1))
+  aoi.data.all <- process_smi_aoi(trial_file_name, exp_info_path) 
+
+  # #clean up aoi.data
+  aoi.data <- aoi.data.all %>%
+    dplyr::select(-stimulus_name) %>%
+    distinct() %>%
+    mutate(aoi_region_set_id = seq(0,length(l_x_min)-1))
   
   #create table of aoi region ids and stimulus name
-  aoi_ids <- aoi.data %>%
-    distinct(stimulus_name,aoi_region_set_id) ##to-do: match aoi_region_set_id with trials from stimulus
-  
-  # #clean up aoi.data
-  aoi.data <- aoi.data %>%
-    dplyr::select(-stimulus_name)
+  aoi_ids <- aoi.data.all %>%
+    left_join(aoi.data, by = c("l_x_min", "l_x_max", "l_y_min", "l_y_max", "r_x_min", "r_x_max", "r_y_min", "r_y_max")) %>%
+    distinct(stimulus_name,aoi_region_set_id)  ##to-do: match aoi_region_set_id with trials from stimulus
+    
   
   #### generate all data objects ####
   
@@ -483,7 +488,6 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   #clean trials data
   trials.data <- trials.data %>%
-    mutate(trial_id = seq(0,length(stimulus_name)-1))%>%
     dplyr::select(trial_id, full_phrase, full_phrase_language, 
                   point_of_disambiguation, target_side, 
                   lab_trial_id, aoi_region_set_id, dataset_id, 
