@@ -28,7 +28,7 @@ participant_file_name <- "reflook_v3_demographics.csv"
 dir_path <- fs::path(here::here("data", dataset_name, "raw_data"))
 
 ##only download if it's not on your machine
-if(length(paste0(dir_path, "/full_dataset")) && length(paste0(dir_path, "/experiment_info")) == 0) {
+if(length(list.files(paste0(dir_path, "/full_dataset"))) == 0 && length(list.files(paste0(dir_path, "/experiment_info"))) == 0) {
   get_raw_data(lab_dataset_id = "reflook_v3", path = dir_path, osf_address = "pr6wu")
 }
 
@@ -510,6 +510,8 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
 process_smi(dir=dir_path,exp_info_dir=exp_info_path)
 
 aois_timepoints <- peekds::generate_aoi(dir = output_path)
+
+write_csv(aois_timepoints, path = paste0(output_path, "/", "aois_timepoints.csv"))
 
 peekds::validate_for_db_import(dir_csv=output_path, dataset_type = "automated")
 
