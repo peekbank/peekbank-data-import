@@ -245,8 +245,13 @@ process_administration_info <- function(file_path_exp_info, file_path_exp) {
 
 #### Table 1A: XY Data ####
 
+
 process_smi_eyetracking_file <- function(file_path, delim_options = possible_delims,stimulus_coding="stim_column") {
   
+  file_path <- paste0(dir_path,"/", file_name)
+  delim_options = possible_delims
+  stimulus_coding="stim_column"
+    
   #guess delimiter
   sep <- get.delim(file_path, comment="#", delims=delim_options,skip = max_lines_search)
   
@@ -369,7 +374,9 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
 
 process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
-  
+  dir <- dir_path
+  exp_info_dir <- exp_info_path  
+  file_ext=".txt"
   #### generate all file paths ####
   
   #list files in directory
@@ -396,7 +403,8 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   # #clean up aoi.data
   aoi.data <- aoi.data %>%
-    dplyr::select(-stimulus_name)
+    dplyr::select(-stimulus_name) %>% 
+    select(aoi_region_set_id, everything())
   
   #### generate all data objects ####
   
@@ -407,6 +415,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   stimuli.data <- process_smi_stimuli(trial_file_path)%>%
     mutate(stimulus_id = seq(0,length(stimulus_label)-1)) 
   
+  all_file_paths <- all_file_paths[1:2]
   ## create timepoint data so we have a list of participants for whom we actually have data
   timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file)%>%
     bind_rows() %>%
