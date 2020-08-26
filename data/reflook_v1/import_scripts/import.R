@@ -64,7 +64,7 @@ create_zero_index<- function(data, id_column_name="lab_subject_id") {
 }
 
 
-#### subjects: Participant Info/ Demographics ####
+#### Table 2: Participant Info/ Demographics ####
 
 process_subjects_info <- function(file_path) {
   data <- read.csv(file_path)%>%
@@ -79,7 +79,7 @@ process_subjects_info <- function(file_path) {
 }
 
 
-#### trials: Trial Info ####
+#### Table 3: Trial Info ####
 
 process_smi_trial_info <- function(file_path) {
   
