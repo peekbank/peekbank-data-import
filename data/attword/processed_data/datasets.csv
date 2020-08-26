@@ -1,2 +1,2 @@
-dataset_id,lab_dataset_id,tracker,monitor_size_x,monitor_size_y,sample_rate,lab_subject_id
-0,attword,SMI,1680,1050,120,2013_03_06_01
+dataset_id,lab_dataset_id,dataset_name,shortcite,cite
+0,attword,attword,yurovskyetal.unpublished.,"Yurovsky, D., Wade, A., Kraus, A. M., Gengoux, Hardan, A. Y., & Frank, M. C. Developmental change in the speed of social attention and its relation to early word learning. unpublished."
