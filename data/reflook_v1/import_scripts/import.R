@@ -32,12 +32,12 @@ file_name <- "Reflook4_2 (3)_080212_02_1825 Samples.txt"
 #Define root path
 project_root <- here::here()
 #build directory path
-dir_path <- fs::path(project_root,"data","etds_smi_raw",dataset_name,"raw_data","full_dataset")
-exp_info_path <- fs::path(project_root,"data","etds_smi_raw",dataset_name,"raw_data","experiment_info")
-aoi_path <- fs::path(project_root,"data","etds_smi_raw",dataset_name,"raw_data","test_aois")
+dir_path <- fs::path(project_root,"data", dataset_name,"raw_data","full_dataset")
+exp_info_path <- fs::path(project_root,"data", dataset_name,"raw_data","experiment_info")
+aoi_path <- fs::path(project_root,"data",dataset_name,"raw_data","test_aois")
 
 #output path
-output_path <- fs::path(project_root,"data","etds_smi_raw",dataset_name,"processed_data")
+output_path <- fs::path(project_root,"data",dataset_name,"processed_data")
 
 
 #### generic functions ###

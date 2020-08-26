@@ -1,16 +1,29 @@
 library(here); library(janitor); library(tidyverse)
 library(peekds)
 
+# write Dataset table
+data_tab <- tibble(
+  dataset_id = 0,
+  lab_dataset_id = "pomper_saffran_2016",
+  shortname = "pomper_saffran_2016",
+  cite = "Pomper, R., & Saffran, J. R. (2016). Roses Are Red, Socks Are Blue: Switching Dimensions Disrupts Young Children’s Language Comprehension. Plos one, 11(6), e0158459.
+Chicago",
+  shortcite = "Pomper & Saffran (2016)"
+) %>% 
+  write_csv(fs::path(write_path, "datasets.csv"))
+
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
 sampling_rate_hz <- 30 
 sampling_rate_ms <- 33 
-read_path <- "data/peekds_icoder/raw_data"
-write_path <- "data/peekds_icoder/processed_data"
+#monitor_size <- # e.g. "1920x1200" # pixels  
+dataset_name = "pomper_saffran2016"
+read_path <- here("data",dataset_name,"full_dataset")
+write_path <- here("data",dataset_name, "processed_data")
 
 # read raw icoder files (is it one file per participant or aggregated?)
-d_raw <- readr::read_delim(here(read_path, "pomper_saffran_2016_raw_datawiz.txt"),
+d_raw <- readr::read_delim(fs::path(read_path, "/pomper_saffran_2016_raw_datawiz.txt"),
                            delim = "\t")
 
 # remove any column with all NAs (these are columns
@@ -52,7 +65,7 @@ d_tidy <- d_tidy %>%
     aoi == "0.5" ~ "center",
     aoi == "." ~ "other",
     aoi == "-" ~ "other"
-  ))
+  )) 
 
 # code distracter image
 d_tidy <- d_tidy %>%
@@ -79,50 +92,95 @@ d_trial_ids <- d_tidy %>%
   mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
 
 # joins
-d_tidy_final <- d_tidy %>% 
+d_tidy_semifinal <- d_tidy %>% 
   mutate(aoi_data_id = seq(0, nrow(d_tidy) - 1)) %>%
   left_join(d_subject_ids, by = "sub_num") %>% 
   left_join(d_trial_ids)
 
 # add some more variables to match schema
-d_tidy_final <- d_tidy_final %>% 
+d_tidy_final <- d_tidy_semifinal %>% 
   mutate(distractor_label = distractor_image,
          dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
          target_label = target_image,
          lab_trial_id = paste(order, tr_num, sep = "-"),
          full_phrase = NA,
-         aoi_region_id = NA,
-         monitor_size_x = NA, 
-         monitor_size_y = NA) %>% 
+         administration_id = 0,
+         aoi_region_set_id = NA, # was aoi_region_id
+         monitor_size_x = NA, # 140cm .. diagonal?
+         monitor_size_y = NA, 
+         lab_age_units = "months",
+         age = as.numeric(months)*30.44 # days
+         ) %>% 
   rename(lab_subject_id = sub_num,
-         age = months,
+         lab_age = months,
          point_of_disambiguation = crit_on_set)
 
 #  write AOI table
 d_tidy_final %>%
   select(aoi_data_id, subject_id, t, aoi, trial_id) %>%
-  write_csv(here(write_path, "aoi_data.csv"))
+  mutate(aoi_timepoint_id = 0:(n()-1)) %>%
+  write_csv(fs::path(write_path, "aoi_data.csv")) 
+# t_norm?
 
 # write subjects table
 d_tidy_final %>%
-  distinct(subject_id, lab_subject_id, age, sex) %>%
-  write_csv(here(write_path, "subjects.csv"))
+  distinct(subject_id, lab_subject_id, sex) %>%
+  write_csv(fs::path(write_path, "subjects.csv"))
+
+# split out administrations table
+d_tidy_final %>%
+  distinct(subject_id, lab_subject_id, administration_id, age, lab_age, lab_age_units, monitor_size_x, monitor_size_y, sample_rate, tracker) %>%
+  write_csv(fs::path(write_path, "administrations.csv"))
+
+
+
+# stimulus set table - define some of these above
+
+stimuli_image <- unique(c(d_tidy_final$target_image, d_tidy_final$distractor_image))
+stimuli_label <- unique(c(d_tidy_final$target_label, d_tidy_final$distractor_label))
+stim_tab <- tibble(stimulus_label = stimuli_label, 
+                   stimulus_image = stimuli_image,
+                   lab_stimulus_id = NA,
+                   stimulus_set_id = 0:(length(stimuli_label)-1),
+                   dataset_id = 0)
+stim_tab %>% 
+  write_csv(fs::path(write_path, "stimulus_sets.csv"))
+
+d_tidy_final %>% 
+  distinct()
+  left_join(stim_tab, by=c("distractor_label"="stimulus_label")) %>%
 
 # write Trials table
 d_tidy_final %>%
-  distinct(trial_id, lab_trial_id, dataset_id, target_image, 
-         distractor_image, target_side, aoi_region_id,
-         target_label, distractor_label, full_phrase,
-         point_of_disambiguation) %>%
-  write_csv(here(write_path, "trials.csv"))
+  distinct(trial_id, lab_trial_id, dataset_id, 
+           distractor_label, target_label, # drop these later
+         target_side, aoi_region_set_id, # target_label,
+         full_phrase, point_of_disambiguation) %>%
+    left_join(stim_tab %>% select(stimulus_set_id, stimulus_label), by=c("distractor_label"="stimulus_label")) %>%
+    rename(distractor_id = stimulus_set_id) %>%
+    left_join(stim_tab %>% select(stimulus_set_id, stimulus_label), by=c("target_label"="stimulus_label")) %>%
+    rename(target_id = stimulus_set_id) %>%
+    select(-distractor_label, -target_label) %>%
+      write_csv(fs::path(write_path, "trials.csv"))
 
-# write Dataset table
-d_tidy_final %>%
-  distinct(dataset_id, lab_dataset_id, tracker, monitor_size_x, 
-         monitor_size_y, sample_rate) %>%
-  write_csv(here(write_path, "datasets.csv"))
 
-# don't need to write aoi_coordinates.csv because they don't exist
+# create empty other files aoi_region_sets.csv and xy_timepoints
+tibble(aoi_region_set_id=NA,
+       l_x_max=NA ,
+       l_x_min=NA ,
+       l_y_max=NA ,
+       l_y_min=NA ,
+       r_x_max=NA ,
+       r_x_min=NA , 
+       r_y_max=NA , 
+       r_y_min=NA ) %>% 
+  write_csv(fs::path(write_path, "aoi_region_sets.csv"))
+
+
+d_tidy_final %>% distinct(trial_id, administration_id) %>% 
+  mutate(x = NA, y=NA, xy_timepoint_id = 0:(n()-1)) %>%
+  write_csv(fs::path(write_path, "xy_timepoints.csv"))
+  # t?
 
 # validation check ----------------------------------------------------------
 
