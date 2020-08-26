@@ -106,7 +106,6 @@ process_smi_trial_info <- function(file_path) {
   
   #word onset is hard-coded from https://github.com/langcog/tablet/blob/master/eye_tracking/MATLAB/CONSTANTS_TAB_COMP.m
   trial_data$point_of_disambiguation <- 179.4
-  trial_data$aoi_region_set_id <- 0 #everything had the same aois
   trial_data$dataset_id <- dataset_id 
   trial_data$full_phrase <- NA #don't have carrier phrase
   trial_data$full_phrase_language <- "eng"
@@ -136,7 +135,7 @@ process_smi_trial_info <- function(file_path) {
 }
 
 #### Table 4: Stimuli ####
-
+#updated
 process_smi_stimuli <- function(file_path) {
   
   #guess delimiter
@@ -150,28 +149,24 @@ process_smi_stimuli <- function(file_path) {
     )
   
   #separate stimulus name for individual images (target and distracter)
-  stimuli_data <- stimuli_data %>%
-    mutate(stimulus_name = str_remove(str_remove(Stimulus,".jpg"), "s1_")) %>%
-    separate(stimulus_name, into=c("left_image","right_image"),sep="_",remove=F)%>%
-    mutate(left_image = ifelse(left_image == "b", "bosa",
-                               ifelse(left_image == "m", "manu", left_image)), 
-           right_image = ifelse(right_image == "b", "bosa", 
-                                ifelse(right_image == "m", "manu", right_image)))%>%
-    dplyr::select(type, left_image, right_image)%>%
-    pivot_longer(c("left_image", "right_image"), 
-                 names_to = "side", 
-                 values_to = "stimulus_label")%>%
-    mutate(dataset = dataset_id, 
-           stimulus_image_path = NA, 
-           lab_stimulus_id = NA)%>%
-    rename("stimulus_novelty" = "type")%>%
-    distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, stimulus_label, dataset)
-  
+  stimuli_data <- stimuli_data %>% 
+    mutate(stimulus_label=word,
+           stimulus_novelty=case_when(
+             word.type %in% c("Familiar-Familiar","Familiar-Novel") ~"familiar",
+             word.type %in% c("Novel-Familiar") ~"novel"
+           ),
+           stimulus_image_path=str_c("images/",stimulus_label, ".png"),
+           lab_stimulus_id=stimulus_label,
+           dataset_id=dataset_id) %>% 
+    distinct(stimulus_label,stimulus_novelty, stimulus_image_path, lab_stimulus_id, dataset_id) %>% 
+    mutate(stimulus_id=row_number()-1) %>% 
+    select(stimulus_id,stimulus_label, stimulus_novelty, stimulus_image_path, lab_stimulus_id, dataset_id)
+    
   return(stimuli_data)
 }
 
 #### Table 5: Dataset ####
-
+#updated
 process_smi_dataset <- function(lab_dataset_id=dataset_name) {
   
   ##Make dataset table
@@ -179,29 +174,27 @@ process_smi_dataset <- function(lab_dataset_id=dataset_name) {
     dataset_id = dataset_id, #hard code data set id for now
     lab_dataset_id = lab_dataset_id, 
     dataset_name = lab_dataset_id,
-    cite = "?", ##what is the full citation on this?
-    shortcite = "?"
+    cite="Frank, M. C., Sugarman, E., Horowitz, A. C., Lewis, M. L., & Yurovsky, D. (2016). Using tablets to collect data from young children. Journal of Cognition and Development, 17(1), 1-17.",
+    shortcite="Frank et al. (2016)"
   )
   
   return(dataset.data)
 }
 
 #### Table 6: AOI regions ####
-
+#updated
 process_smi_aoi <- function(file_name, exp_info_path, left_aoi, right_aoi) {
   
   ##NB: AOI coordinates are hard-coded for this experiment. 
-  #Link to relevant file is here: https://github.com/dyurovsky/refword/blob/master/R/loading_helpers/load_aois_socword.R
-  
   #instead of xml files, this will be run over the names of jpgs in the trial_info file!
   #note that exp_info path instead of aoi_path is used here
   #get distinct stimulus name here
   stim_name_df <- read.csv(fs::path(exp_info_path, file_name))%>%
-    dplyr::select("Stimulus")
-  
+    dplyr::select("word")
+  # 
   #now just repeat these for every stimulus  
   max_min_info <- stim_name_df %>%
-    mutate(stimulus_name = str_remove(str_remove(str_replace(stim_name_df$Stimulus, " \\(_.*\\)", ""),".jpg"), "s1_"), 
+    mutate(stimulus_name = word, 
            l_x_min = left_aoi$l_x_min, 
            l_x_max = left_aoi$l_x_max, 
            l_y_min = left_aoi$l_y_min, 
@@ -210,13 +203,13 @@ process_smi_aoi <- function(file_name, exp_info_path, left_aoi, right_aoi) {
            r_x_max = right_aoi$r_x_max, 
            r_y_min = right_aoi$r_y_min, 
            r_y_max = right_aoi$r_y_max)%>% 
-    dplyr::select(-Stimulus)
+    dplyr::select(-word)
   
   return(max_min_info)
 }
 
-
 #### Table 7: Administration Data ####
+#not updated, but probably? fine as is
 process_administration_info <- function(file_path_exp_info, file_path_exp) {
     ##dataset_id
     ##subject
@@ -485,8 +478,8 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
 
 process_smi(dir=dir_path,exp_info_dir=exp_info_path)
 
-peekds::generate_aoi(dir=output_path)
+#peekds::generate_aoi(dir=output_path)
 
-peekds::validate_for_db_import(dir_csv=output_path, dataset_type = "automated")
+#peekds::validate_for_db_import(dir_csv=output_path, dataset_type = "automated")
 
 
