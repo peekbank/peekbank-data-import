@@ -6,6 +6,7 @@ library(fs)
 library(feather)
 library(tidyverse)
 library(peekds)
+library(osfr)
 
 #### general parameters ####
 dataset_name <- "attword"
@@ -21,21 +22,15 @@ left_y_col_name <- "L POR Y [px]"
 right_y_col_name <- "R POR Y [px]"
 stims_to_remove_chars <- c(".avi")
 stims_to_keep_chars <- c("_")
-# trial_file_name <- "reflook_tests.csv"
-# participant_file_name <- "reflook_v1_demographics.csv"
+trial_file_name <- "reflook_tests.csv"
+participant_file_name <- "reflook_v1_demographics.csv"
 
+## download raw data 
+peekds::get_raw_data(dataset_name, path = here("data/attword/raw_data/"))
 
-
-#this gets subfolders of the osf data directory. 
-# write a function that creates 
-# files <- osf_retrieve_node("pr6wu") %>%
-#   osf_ls_files() %>%
-#   dplyr::filter(name == dataset_name) %>%
-#   osf_ls_files() %>%
-#   dplyr::filter(name == "experiment_info")
-#   
-# osf_retrieve_file("https://api.osf.io/v2/files/5f44020fbacde8021b33bfbb/") %>%
-#   osf_download()
+# experiment info (pre-processed data)
+osf_retrieve_file("https://api.osf.io/v2/files/5f44020fbacde8021b33bfbb/") %>%
+  osf_download(path = data_download_dir)
 
 #### define directory ####
 # Define root path
@@ -81,7 +76,12 @@ output_path <-
     "processed_data"
   )
 
-# function for extracting information from SMI header/ comments
+#### helper functions ####
+
+
+# function for extracting information from raw data's SMI header/ comments
+# file_path: path to a raw data file in raw_data/full_dataset/../[file_name].txt
+# parameter_name: the information extracted. Options: monitor_size, sample_rate, subid_name
 extract_smi_info <- function(file_path, parameter_name) {
   info_object <-
     read_lines(file_path, n_max = max_lines_search) %>%
@@ -89,10 +89,23 @@ extract_smi_info <- function(file_path, parameter_name) {
     str_extract(paste("(?<=", parameter_name, ":\\t).*", sep = "")) %>%
     trimws() %>%
     str_replace("\t", "x")
-  
   return(info_object)
 }
 
+# unclear?
+create_zero_index <- function(data, id_column_name = "lab_subject_id") {
+  data <- data %>%
+    mutate(
+      stim_lag = lag(Stimulus),
+      temp = ifelse(Stimulus != stim_lag, 1, 0),
+      temp_id = cumsum(c(0, temp[!is.na(temp)])),
+      trial_id = temp_id
+    )
+}
+
+# function for processing raw data and generate information for administrations table
+# file_path:path to a raw data file in raw_data/full_dataset/../[file_name].txt
+# lab_datsetid: datset_name, assigned constant  
 process_smi_dataset <- function(file_path, lab_datasetid = dataset_name) {
   
   # read in lines to extract smi info
@@ -118,7 +131,8 @@ process_smi_dataset <- function(file_path, lab_datasetid = dataset_name) {
   )
 }
 
-
+# function for processing raw subjects file
+# file_path: ....??
 process_subjects_info <- function(file_path) {
   data <- read_delim(file_path, delim = "\t") %>%
     dplyr::select(SID, DOT, gender) %>%
@@ -135,77 +149,8 @@ process_subjects_info <- function(file_path) {
   return(data)
 }
 
-
-### read tracker data
-smi_files <- list.files(dir_path, full.names = TRUE, recursive = TRUE, 
-                        include.dirs = FALSE)
-
-
-tracker_data <- map_dfr(smi_files, process_smi_dataset) %>%
-  mutate(administration_id = as.numeric(factor(lab_subject_id, 
-                                        levels = unique(lab_subject_id))) - 1)
-
-### read demographic data
-demographic_files <- list.files(exp_info_path, full.names = TRUE, 
-                                pattern = "*.txt")
-demographic_data <- map_dfr(demographic_files, process_subjects_info) %>%
-  mutate(subject_id = as.numeric(factor(lab_subject_id, 
-                                        levels = unique(lab_subject_id))) - 1,
-         age = as.integer(age))
-
-
-eyetracker_data <- map_dfr(exp_files, ~read_csv(.x) %>% 
-                             mutate(condition = .x)) %>%
-  mutate(condition = str_split(condition, "/") %>% unlist() %>% last(),
-         condition = str_remove(condition, ".csv"))
-
-## subjects table
-demographic_data %>%
-  select(-age) %>%
-  write_csv(glue::glue("{output_path}/subject_table.csv"))
-
-## administrations table
-tracker_data %>%
-  left_join(demographic_data, by = "lab_subject_id") %>%
-  select(-lab_subject_id) %>%
-  mutate(coding_method = "eyetracking",
-         lab_age = age,
-         lab_age_units = "days") %>%
-  write_csv(glue::glue("{output_path}/administrations_table.csv"))
-
-
-#### generic functions ###
-
-create_zero_index <- function(data, id_column_name = "lab_subject_id") {
-  data <- data %>%
-    mutate(
-      stim_lag = lag(Stimulus),
-      temp = ifelse(Stimulus != stim_lag, 1, 0),
-      temp_id = cumsum(c(0, temp[!is.na(temp)])),
-      trial_id = temp_id
-    )
-}
-
-
-#### Table 2: Participant Info/ Demographics ####
-
-process_subjects_info <- function(file_path) {
-  data <- read_csv(file_path) %>%
-    dplyr::select(subid, age, gender) %>%
-    dplyr::rename(
-      "lab_subject_id" = "subid",
-      "sex" = "gender"
-    ) %>%
-    mutate(
-      sex = factor(sex, labels = c("Male", "Female", NA)), # this is pulled from yurovsky processing code
-      age = if_else(age == "NaN", NA, age)
-    )
-  
-  return(data)
-}
-
-
-#### Table 3: Trial Info ####
+# function for ...?
+# file_path:???
 
 process_smi_trial_info <- function(file_path) {
   
@@ -269,32 +214,10 @@ process_smi_trial_info <- function(file_path) {
 }
 
 
-#### Table 4: Dataset ####
-
-process_smi_dataset <- function(file_path, lab_datasetid = dataset_name) {
-  
-  # read in lines to extract smi info
-  monitor_size <- extract_smi_info(file_path, monitor_size)
-  sample_rate <- extract_smi_info(file_path, sample_rate)
-  
-  # get maximum x-y coordinates on screen
-  screen_xy <- str_split(monitor_size, "x") %>%
-    unlist()
-  x.max <- as.numeric(as.character(screen_xy[1]))
-  y.max <- as.numeric(as.character(screen_xy[2]))
-  
-  ## Make dataset table
-  tibble(
-    dataset_id = dataset_id, # hard code data set id for now
-    lab_dataset_id = lab_datasetid,
-    tracker = "SMI",
-    monitor_size_x = x.max,
-    monitor_size_y = y.max,
-    sample_rate = sample_rate
-  )
-}
-
-#### Table 5: AOI regions ####
+# function for reading aoi data for aoi_region_sets table
+# file_name: file names for xml file in raw_data/aois/*.xml
+# aoi_path: directory to the xml files 
+# xy_file_path: file path to one single raw data file in raw_data/full_dataset/../*.txt
 
 process_smi_aoi <- function(file_name, aoi_path, xy_file_path) {
   
@@ -348,7 +271,10 @@ process_smi_aoi <- function(file_name, aoi_path, xy_file_path) {
 }
 
 
-#### Table 1A: XY Data ####
+# function for processing raw data file for xy_timepoints table
+# file_path: path to a raw data file in raw_data/full_dataset/../[file_name].txt
+# delim_options: possible_delims = c("\t", ",")
+# stimulus_coding:  "stim_column" <- not quite sure 
 
 process_smi_eyetracking_file <-
   function(file_path, delim_options = possible_delims, stimulus_coding = "stim_column") {
@@ -472,100 +398,146 @@ process_smi_eyetracking_file <-
     return(xy.data)
   }
 
+
 #### Main Processing Function ####
 
 process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   
   
-  #### generate all file paths ####
+  #### generate file paths ####
   
-  # list files in directory
-  all_files <- list.files(
-    path = dir,
-    pattern = paste0("*", file_ext),
-    all.files = FALSE,
-    recursive = TRUE,
-  )
+  # create all raw data smi file path 
+  smi_files <- list.files(dir_path, full.names = TRUE, recursive = TRUE, 
+                        include.dirs = FALSE)
+  # create all demographic file path (not working now)
   
-  # create file paths
-  all_file_paths <- paste0(dir, "/", all_files, sep = "")
+  demographic_files <- list.files(glue::glue("{exp_info_dir}/demographics"), 
+                                             full.names = TRUE, 
+                                pattern = "*.txt")
   
-  # create trial info file path
-  # trial information already in raw data
-  #trial_file_path <- paste0(exp_info_dir, "/", trial_file_name)
-  
-  # create aoi paths
+  # create all aois file path 
   all_aois <- list.files(
     path = aoi_path,
     pattern = paste0("*", ".xml"),
     all.files = FALSE
   )
   
-  # all aoi paths
-  # all_aoi_paths <- paste0(aoi_path,"/",all_aois)
-  # separate aois for each participant?
-  aoi_data <- purrr:::map_dfr(all_aois, 
-                             ~process_smi_aoi(.x ,aoi_path = aoi_path, 
-                                              xy_file_path = all_file_paths[1])) %>%
-    dplyr::mutate(aoi_region_set_id = 0:(n()-1))
+  #### read in data  ####
   
-  # create table of aoi region ids and stimulus name
-  aoi_ids <- aoi_data %>%
-    distinct(stimulus_name, aoi_region_id)
+  # read tracker data for administrations table
+  # tracker_data : datset_id, lab_datset_id, tracker, 
+  #                monitor_size_x, monitor_size_y, sample_rate, 
+  #                lab_subject_id, administration, id
+
+  tracker_data <- map_dfr(smi_files, process_smi_dataset) %>%
+                mutate(administration_id = as.numeric(factor(lab_subject_id, 
+                                                      levels = unique(lab_subject_id))) - 1)
+
+  # read demographic data for administrations table
+  # currently not working 
+   
+  demographic_data <- map_dfr(demographic_files, process_subjects_info) %>%
+                    mutate(subject_id = as.numeric(factor(lab_subject_id, 
+                                                    levels = unique(lab_subject_id))) - 1,
+                           age = as.integer(age))
   
-  # clean up aoi.data
-  aoi_data <- aoi_data %>%
-    dplyr::select(-stimulus_name)
+  # read aoi_data for trials' table?
+  # warning about raw_t
+  aoi_data <- map_dfr(all_aois, 
+                      ~process_smi_aoi(.x, aoi_path = aoi_path, 
+                                           xy_file_path = smi_files[1]))
+
+  # read xy_data for xy_timepoints table 
+  xy_data <- suppressMessages(map_dfr(smi_files, process_smi_eyetracking_file))
+  
+  # read stimulus data
+  stimuli <- read_csv(glue::glue("{exp_info_dir}/design/attword_stimuli.csv"))
+  
+  stimulus_table <- stimuli %>%
+    mutate(stimulus_id = 0:(n()-1),
+           stimulus_image_path = NA,
+           lab_stimulus_id = stimulus_id,
+           dataset_id = dataset_id)
+  
+  # read design data
+  design <- read_delim(glue::glue("{exp_info_dir}/design/design.txt"), "\t") %>%
+    janitor::clean_names() %>%
+    filter(trial_type %in% c("easy", "hard", "new", "me")) %>%
+    select(-type, -x3) 
   
   #### generate all data objects ####
   
-  # create xy data
-  xy_data <- lapply(all_file_paths, process_smi_eyetracking_file) %>%
-    bind_rows() %>%
-    mutate(xy_data_id = seq(0, length(lab_subject_id) - 1)) %>%
-    mutate(subject_id = as.numeric(factor(lab_subject_id, levels = unique(lab_subject_id))) - 1) %>%
-    dplyr::select(xy_data_id, subject_id, lab_subject_id, x, y, t, trial_id)
+  # dataset table
+  dataset_table <- tibble(dataset_id = dataset_id,
+                          lab_dataset_id = dataset_name,
+                          dataset_name = dataset_name,
+                          shortcite = "yurovskyetal.unpublished.",
+                          cite = "Yurovsky, D., Wade, A., Kraus, A. M., Gengoux, Hardan, A. Y., & Frank, M. C. Developmental change in the speed of social attention and its relation to early word learning. unpublished.")
   
-  # extract unique participant ids from eyetracking data (in order to filter participant demographic file)
-  participant_id_table <- xy_data %>%
-    distinct(lab_subject_id, subject_id)
+  # subject table data 
+  subject_table_data <- demographic_data %>% select(-age) 
   
-  # create participant data
-  subject_info_files <- list.files(exp_info_path, pattern = "*.txt")
-  demographic_data <- map_dfr(demographic_files, process_subjects_info)
+  # administration table data 
+  administrations_table_data <- tracker_data %>%
+                                left_join(demographic_data, by = "lab_subject_id") %>%
+                                select(-lab_subject_id) %>%
+                                mutate(coding_method = "eyetracking",
+                                       lab_age = age,
+                                       lab_age_units = "days")
   
-  subjects_data <- map_dfr(subject_info_files, 
-                           ~process_subjects_info(
-                             glue::glue("{exp_info_dir}/{.x}"))) %>%
-    left_join(participant_id_table, by = "lab_subject_id") %>%
-    filter(!is.na(subject_id)) %>%
-    dplyr::select(subject_id, lab_subject_id, age, sex)
-  
-  # clean up xy_data
-  xy_data <- xy_data %>%
-    dplyr::select(-lab_subject_id)
-  
-  # create trials data
-  trials_data <- process_smi_trial_info(trial_file_path)
-  
-  # join with aoi.data to match aoi region id
-  trials_data <- trials_data %>%
-    left_join(aoi_ids) %>%
-    dplyr::select(-stimulus_name)
-  
-  # create dataset data
-  dataset.data <- process_smi_dataset(all_file_paths[1])
+  # xy_timepoints table data 
+  # xy_timepoints_table_data : lab_subject_id, subject_id, x, y, t, trial_id, xy_data_id
+  # rename xy_data_id to xy_timepoint_id? 
+  xy_timepoints_table_data <- xy_data %>%
+    mutate(xy_timepoint_id = seq(0, length(lab_subject_id) - 1)) %>%
+    mutate(administration_id = as.numeric(factor(lab_subject_id, levels = unique(lab_subject_id))) - 1) %>%
+    select(xy_timepoint_id, x, y, t, administration_id, trial_id)
   
   
-  # write all data
-  # write_feather(dataset.data,path=paste0(output_path,"/","dataset_data.feather"))
-  # write_feather(xy.data,path=paste0(output_path,"/","xy_data.feather"))
+  # aoi_region_sets table data 
+  #
+  aoi_region_sets_table_data <- aoi_data %>% 
+                                mutate(aoi_region_set_id = 0:(n()-1)) %>% 
+                                select(-stimulus_name)
   
-  write_csv(xy.data, path = paste0(output_path, "/", "xy_data.csv"))
-  write_csv(subjects.data, path = paste0(output_path, "/", "subjects.csv"))
-  write_csv(trials.data, path = paste0(output_path, "/", "trials.csv"))
-  write_csv(dataset.data, path = paste0(output_path, "/", "datasets.csv"))
-  write_csv(aoi.data, path = paste0(output_path, "/", "aoi_regions.csv"))
+  
+  # trials table data 
+  trials_table <- design %>%
+    mutate(name = str_remove(name, ".jpg")) %>%
+    separate(name, into = c("left", "right"), sep = "_") %>%
+    mutate(target_side = factor(target_screen_side, levels = c(1, 2), 
+                                labels = c("left", "right")),
+           distractor = if_else(target == left, right, left),
+           full_phrase = NA,
+           point_of_disambiguation = 2.65, #get this out of individual files
+           full_phrase_language = "eng",
+           lab_trial_id = 1:n(),
+           trial_id = 0:(n()-1),
+           dataset_id = dataset_id) %>%
+    left_join(stimulus_table %>% select(stimulus_id, stimulus_label),
+              by = c("target" = "stimulus_label")) %>%
+    rename(target_id = stimulus_id) %>%
+    left_join(stimulus_table %>% select(stimulus_id, stimulus_label),
+              by = c("distractor" = "stimulus_label")) %>%
+    rename(distrator_id = stimulus_id) %>%
+    select(-left, -right, -trial_type, -target, -distractor, 
+           -target_screen_side) %>%
+    mutate(aoi_region_set_id = aoi_region_sets_table_data %>% 
+             pull(aoi_region_set_id) %>% 
+             first())
+
+
+  
+  #### write files ####
+
+  write_csv(administrations_table_data, path = paste0(output_path, "/", "administrations.csv"))
+  write_csv(subject_table_data, path = paste0(output_path, "/", "subjects.csv"))
+  write_csv(xy_timepoints_table_data, path = paste0(output_path, "/", "xy_timepoints.csv"))
+  write_csv(aoi_region_sets_table_data, path = paste0(output_path, "/", "aoi_regions.csv"))
+  write_csv(dataset_table, path = paste0(output_path, "/", "datasets.csv"))
+  write_csv(stimulus_table, path = paste0(output_path, "/", "stimuli.csv"))
+  write_csv(trials_table, path = paste0(output_path, "/", "trials.csv"))
+ 
 }
 
 

@@ -1,4 +1,8 @@
-# peekbank-hack
+# peekbank-data-import
+
+This repo contains `import.R` scripts for various datasets, allowing them to be preprocessed into the `peekds` format. 
+
+## quick reference for other repositories
 
 [peekds](https://github.com/langcog/peekds) - readers for processing raw data
 
@@ -10,4 +14,3 @@
 
 [peekbank-website](https://github.com/langcog/peekbank-website) - website
 
-thx mika

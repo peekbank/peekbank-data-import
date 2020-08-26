@@ -1,11 +1,18 @@
 library(here); library(janitor); library(tidyverse)
-library(peekds)
+#library(peekds)
+
+sampling_rate_hz <- 30 
+sampling_rate_ms <- 33 
+#monitor_size <- # e.g. "1920x1200" # pixels  
+dataset_name = "pomper_saffran2016"
+read_path <- here("data",dataset_name,"full_dataset")
+write_path <- here("data",dataset_name, "processed_data")
 
 # write Dataset table
 data_tab <- tibble(
-  dataset_id = 0,
-  lab_dataset_id = "pomper_saffran_2016",
-  shortname = "pomper_saffran_2016",
+  dataset_id = 0, # doesn't matter (leave as 0 for all)
+  dataset_name = "pomper_saffran_2016", 
+  lab_dataset_id = "SwitchingCues", # internal name from the lab (if known)
   cite = "Pomper, R., & Saffran, J. R. (2016). Roses Are Red, Socks Are Blue: Switching Dimensions Disrupts Young Children’s Language Comprehension. Plos one, 11(6), e0158459.
 Chicago",
   shortcite = "Pomper & Saffran (2016)"
@@ -15,12 +22,7 @@ Chicago",
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
-sampling_rate_hz <- 30 
-sampling_rate_ms <- 33 
-#monitor_size <- # e.g. "1920x1200" # pixels  
-dataset_name = "pomper_saffran2016"
-read_path <- here("data",dataset_name,"full_dataset")
-write_path <- here("data",dataset_name, "processed_data")
+
 
 # read raw icoder files (is it one file per participant or aggregated?)
 d_raw <- readr::read_delim(fs::path(read_path, "/pomper_saffran_2016_raw_datawiz.txt"),
@@ -116,11 +118,12 @@ d_tidy_final <- d_tidy_semifinal %>%
          point_of_disambiguation = crit_on_set)
 
 #  write AOI table
-d_tidy_final %>%
+tmp <- d_tidy_final %>%
   select(aoi_data_id, subject_id, t, aoi, trial_id) %>%
-  mutate(aoi_timepoint_id = 0:(n()-1)) %>%
-  write_csv(fs::path(write_path, "aoi_data.csv")) 
-# t_norm?
+  rename(aoi_timepoint_id = aoi_data_id,
+         t_norm = t) %>% # original data had columns from -990ms to 6867ms...presumably centered at disambiguation per trial?
+  write_csv(fs::path(write_path, "aoi_timepoints.csv")) 
+# t_norm is supposed to be 0-centered on point of disambiguation, but we only have word onset info
 
 # write subjects table
 d_tidy_final %>%
@@ -129,7 +132,17 @@ d_tidy_final %>%
 
 # split out administrations table
 d_tidy_final %>%
-  distinct(subject_id, lab_subject_id, administration_id, age, lab_age, lab_age_units, monitor_size_x, monitor_size_y, sample_rate, tracker) %>%
+  distinct(administration_id,
+           dataset_id,
+           subject_id, 
+           age,
+           lab_age,
+           lab_age_units,
+           monitor_size_x, 
+           monitor_size_y, 
+           sample_rate, 
+           tracker) %>%
+  mutate(coding_method = "manual gaze coding") %>%
   write_csv(fs::path(write_path, "administrations.csv"))
 
 
@@ -138,28 +151,32 @@ d_tidy_final %>%
 
 stimuli_image <- unique(c(d_tidy_final$target_image, d_tidy_final$distractor_image))
 stimuli_label <- unique(c(d_tidy_final$target_label, d_tidy_final$distractor_label))
-stim_tab <- tibble(stimulus_label = stimuli_label, 
-                   stimulus_image = stimuli_image,
+stim_tab <- tibble(stimulus_id = 0:(length(stimuli_label)-1),
+                   stimulus_novelty = NA, # all of ours are familiar
+                   stimulus_label = stimuli_label, 
+                   stimulus_image_path = NA, # maybe Martin can get actual stimuli
                    lab_stimulus_id = NA,
-                   stimulus_set_id = 0:(length(stimuli_label)-1),
                    dataset_id = 0)
 stim_tab %>% 
-  write_csv(fs::path(write_path, "stimulus_sets.csv"))
+  write_csv(fs::path(write_path, "stimuli.csv"))
 
-d_tidy_final %>% 
-  distinct()
-  left_join(stim_tab, by=c("distractor_label"="stimulus_label")) %>%
 
 # write Trials table
 d_tidy_final %>%
-  distinct(trial_id, lab_trial_id, dataset_id, 
-           distractor_label, target_label, # drop these later
-         target_side, aoi_region_set_id, # target_label,
-         full_phrase, point_of_disambiguation) %>%
-    left_join(stim_tab %>% select(stimulus_set_id, stimulus_label), by=c("distractor_label"="stimulus_label")) %>%
-    rename(distractor_id = stimulus_set_id) %>%
-    left_join(stim_tab %>% select(stimulus_set_id, stimulus_label), by=c("target_label"="stimulus_label")) %>%
-    rename(target_id = stimulus_set_id) %>%
+  distinct(trial_id, 
+           full_phrase, # from Bria
+           point_of_disambiguation,
+           target_side,
+           lab_trial_id, 
+           aoi_region_set_id,
+           dataset_id, 
+           distractor_label, 
+           target_label) %>%
+    mutate(full_phrase_language = "eng") %>%
+    left_join(stim_tab %>% select(stimulus_id, stimulus_label), by=c("distractor_label"="stimulus_label")) %>%
+    rename(distractor_id = stimulus_id) %>%
+    left_join(stim_tab %>% select(stimulus_id, stimulus_label), by=c("target_label"="stimulus_label")) %>%
+    rename(target_id = stimulus_id) %>%
     select(-distractor_label, -target_label) %>%
       write_csv(fs::path(write_path, "trials.csv"))
 
@@ -178,7 +195,10 @@ tibble(aoi_region_set_id=NA,
 
 
 d_tidy_final %>% distinct(trial_id, administration_id) %>% 
-  mutate(x = NA, y=NA, xy_timepoint_id = 0:(n()-1)) %>%
+  mutate(x = NA, 
+         y = NA, 
+         t = NA,
+         xy_timepoint_id = 0:(n()-1)) %>%
   write_csv(fs::path(write_path, "xy_timepoints.csv"))
   # t?
 
