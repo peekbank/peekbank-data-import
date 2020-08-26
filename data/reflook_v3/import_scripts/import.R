@@ -131,6 +131,7 @@ process_smi_trial_info <- function(file_path) {
                   target_side, 
                   lab_trial_id, 
                   dataset_id, 
+                  object_type,
                   target_label, ##keeping target and distrator labels so we can match them up with stimulus id in process_smi
                   distractor_label, 
                   stimulus_name)
@@ -370,14 +371,13 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
     #set time to zero at the beginning of each trial
     data <- data %>%
       group_by(trial_id) %>%
-      mutate(t = timestamp - min(timestamp),
-             t_norm = t) %>% #fix this
+      mutate(t = timestamp - min(timestamp)) %>%
       ungroup()
   }
   
   #extract final columns
   xy.data <- data %>%
-    dplyr::select(lab_subject_id,x,y,t,t_norm,trial_id)
+    dplyr::select(lab_subject_id,x,y,t,trial_id)
   
   
   return(xy.data)
@@ -424,7 +424,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   dataset.data <- process_smi_dataset()
   
   ##create stimuli data
-  stimuli.data <- process_smi_stimuli(trial_file_path)%>%
+  stimuli.data <- process_smi_stimuli(trial_file_path) %>%
     mutate(stimulus_id = seq(0,length(stimulus_label)-1)) 
   
   ## create timepoint data so we have a list of participants for whom we actually have data
@@ -458,17 +458,12 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     rename(distractor_id = stimulus_id) %>%
     left_join(stimuli.data %>% select(stimulus_id, stimulus_label), by=c("target_label"="stimulus_label")) %>%
     rename(target_id = stimulus_id)%>%
-    left_join(aoi_ids, by="stimulus_name")%>%
-    mutate(trial_id = seq(0,length(stimulus_name)-1))%>%
-    dplyr::select(trial_id, full_phrase, full_phrase_language, 
-                  point_of_disambiguation, target_side, 
-                  lab_trial_id, aoi_region_set_id, dataset_id, 
-                  distractor_id, target_id)
+    left_join(aoi_ids, by="stimulus_name")
   
   #create xy data
   xy.data <- timepoint.data %>%
     left_join(administration.data %>% select(subject_id, administration_id), by = "subject_id")%>%
-    dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id) ##RMS: note sure whether t is right here, but I removed t_norm
+    dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id)
   
   #create aoi timepoint data; get aois and t_norm
   aoi.timepoint.data <- xy.data %>%
@@ -477,6 +472,14 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
            aoi = "?")%>%
     dplyr::select(xy_timepoint_id,trial_id,t_norm, administration_id) %>%  
     dplyr::rename(aoi_timepoint_id = xy_timepoint_id) ##need to figure out aoi target/distractor/other/missing
+  
+  #clean trials data
+  trials.data <- trials.data %>%
+    mutate(trial_id = seq(0,length(stimulus_name)-1))%>%
+    dplyr::select(trial_id, full_phrase, full_phrase_language, 
+                  point_of_disambiguation, target_side, 
+                  lab_trial_id, aoi_region_set_id, dataset_id, 
+                  distractor_id, target_id)
   
   #write all data
   #write_feather(dataset.data,path=paste0(output_path,"/","dataset_data.feather"))
