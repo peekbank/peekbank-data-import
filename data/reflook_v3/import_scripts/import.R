@@ -24,6 +24,14 @@ stims_to_keep_chars <- c("_")
 trial_file_name <- "reflook_v3_tests.csv"
 participant_file_name <- "reflook_v3_demographics.csv"
 
+#### Pull in data from OSF ####
+dir_path <- fs::path(here::here("data", dataset_name, "raw_data"))
+
+##only download if it's not on your machine
+if(length(paste0(dir_path, "/full_dataset")) && length(paste0(dir_path, "/experiment_info")) == 0) {
+  get_raw_data(lab_dataset_id = "reflook_v3", path = dir_path, osf_address = "pr6wu")
+}
+
 
 #Specify file 
 file_name <- "2011_0426_042412_01_1105_Samples.txt"
@@ -470,13 +478,13 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     left_join(administration.data %>% select(subject_id, administration_id), by = "subject_id")%>%
     dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id)
   
-  #create aoi timepoint data; get aois and t_norm
-  aoi.timepoint.data <- xy.data %>%
-    left_join(trials.data %>% select(trial_id, point_of_disambiguation), by = "trial_id") %>%
-    mutate(t_norm = t-point_of_disambiguation, 
-           aoi = "?")%>%
-    dplyr::select(xy_timepoint_id,trial_id,t_norm, administration_id) %>%  
-    dplyr::rename(aoi_timepoint_id = xy_timepoint_id) ##need to figure out aoi target/distractor/other/missing
+  # #create aoi timepoint data; get aois and t_norm
+  # aoi.timepoint.data <- xy.data %>%
+  #   left_join(trials.data %>% select(trial_id, point_of_disambiguation), by = "trial_id") %>%
+  #   mutate(t_norm = t-point_of_disambiguation, 
+  #          aoi = "?")%>%
+  #   dplyr::select(xy_timepoint_id,trial_id,t_norm, administration_id) %>%  
+  #   dplyr::rename(aoi_timepoint_id = xy_timepoint_id)
   
   #clean trials data
   trials.data <- trials.data %>%
@@ -490,7 +498,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   #write_feather(xy.data,path=paste0(output_path,"/","xy_data.feather"))
   
   write_csv(xy.data,path=paste0(output_path,"/","xy_timepoints.csv"))
-  write_csv(aoi.timepoint.data, path=paste0(output_path, "/", "aoi_timepoints.csv"))
+  # write_csv(aoi.timepoint.data, path=paste0(output_path, "/", "aoi_timepoints.csv"))
   write_csv(stimuli.data, path = paste0(output_path, "/", "stimuli.csv"))
   write_csv(administration.data, path = paste0(output_path, "/", "administrations.csv"))
   write_csv(subjects.data,path=paste0(output_path,"/","subjects.csv"))
@@ -505,7 +513,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
 
 process_smi(dir=dir_path,exp_info_dir=exp_info_path)
 
-peekds::generate_aoi(dir=output_path)
+aois_timepoints <- peekds::generate_aoi(dir = output_path)
 
 peekds::validate_for_db_import(dir_csv=output_path, dataset_type = "automated")
 
