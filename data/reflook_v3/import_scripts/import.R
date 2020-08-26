@@ -33,8 +33,6 @@ if(length(paste0(dir_path, "/full_dataset")) && length(paste0(dir_path, "/experi
 }
 
 
-
-
 #Specify file 
 file_name <- "2011_0426_042412_01_1105_Samples.txt"
 
