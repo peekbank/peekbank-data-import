@@ -264,6 +264,8 @@ d_tidy_final %>%
            lab_trial_id,
            aoi_region_set_id,
            dataset_id,
+           target_id,
+           distractor_id, 
            distractor_label,
            target_label) %>%
     mutate(full_phrase_language = "eng") %>%
