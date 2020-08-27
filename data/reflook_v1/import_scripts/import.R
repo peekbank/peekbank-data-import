@@ -96,32 +96,20 @@ process_smi_trial_info <- function(file_path) {
       delim=sep
     )
   
-  # #separate stimulus name for individual images (target and distractor)
-  # trial_data <- trial_data %>%
-  #   mutate(stimulus_name = str_remove(Stimulus,".jpg")) %>%
-  #   separate(stimulus_name, into=c("target_info","left_image","right_image"),sep="_",remove=F)
-  
+  #separate stimulus name for individual images (target and distractor)
+  #then separate into target and distractor
+  trial_data <- trial_data %>%
+    mutate(stimulus_name = str_remove_all(Stimulus,".jpg|o_|t_")) %>%
+    rename("target_side" = "target") %>%
+    separate(stimulus_name, into=c("left_image","right_image"),sep="_",remove=F) %>%
+    mutate(target_image = ifelse(target_side == "left", left_image, right_image), 
+           distractor_image = ifelse(target_side == "left", right_image, left_image), 
+           target_label = target_image, 
+           distractor_label = distractor_image)
+    
   #convert onset to ms
   trial_data <- trial_data %>%
     mutate(point_of_disambiguation=onset *1000)
-  
-  # #add target/ distractor info
-  trial_data <- trial_data %>%
-    mutate(
-      target_image = case_when(
-        target_info == "o" ~ right_image,
-        target_info == "t" ~ left_image
-      ),
-      distractor_image = case_when(
-        target_info == "o" ~ left_image,
-        target_info == "t" ~ right_image
-      )
-    ) %>%
-    rename(target_side = target) %>%
-    mutate(
-      target_label = target_image,
-      distractor_label = distractor_image
-    )
   
   # rename and create some additional filler columns
   trial_data <- trial_data %>%
