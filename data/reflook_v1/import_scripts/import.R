@@ -63,16 +63,20 @@ extract_smi_info <- function(file_path,parameter_name) {
   return(info_object)
 }
 
+
 #### Table 2: Participant Info/ Demographics ####
 
 process_subjects_info <- function(file_path) {
   data <- read.csv(file_path)%>%
     dplyr::select(subid, age, gender)%>%
-    dplyr::mutate(age = round(age * 365.25,0))%>% #convert age to days
     dplyr::rename("lab_subject_id" = "subid", 
-                  "sex" = "gender")%>%
+                  "sex" = "gender",
+                  "lab_age" = "age")%>%
+    dplyr::mutate(age = round(lab_age * 365.25,0), #convert age to days
+                  lab_age_units = "years") %>%
     mutate(sex = factor(sex, labels = c("Male", "Female", NA)), #this is pulled from yurovsky processing code
-           age = ifelse(age == "NaN", NA, age)) 
+           age = ifelse(age == "NaN", NA, age),
+           lab_age = ifelse(lab_age == "NaN", NA, lab_age)) 
   
   return(data)
 }
@@ -92,32 +96,20 @@ process_smi_trial_info <- function(file_path) {
       delim=sep
     )
   
-  # #separate stimulus name for individual images (target and distractor)
-  # trial_data <- trial_data %>%
-  #   mutate(stimulus_name = str_remove(Stimulus,".jpg")) %>%
-  #   separate(stimulus_name, into=c("target_info","left_image","right_image"),sep="_",remove=F)
-  
+  #separate stimulus name for individual images (target and distractor)
+  #then separate into target and distractor
+  trial_data <- trial_data %>%
+    mutate(stimulus_name = str_remove_all(Stimulus,".jpg|o_|t_")) %>%
+    rename("target_side" = "target") %>%
+    separate(stimulus_name, into=c("left_image","right_image"),sep="_",remove=F) %>%
+    mutate(target_image = ifelse(target_side == "left", left_image, right_image), 
+           distractor_image = ifelse(target_side == "left", right_image, left_image), 
+           target_label = target_image, 
+           distractor_label = distractor_image)
+    
   #convert onset to ms
   trial_data <- trial_data %>%
     mutate(point_of_disambiguation=onset *1000)
-  
-  # #add target/ distractor info
-  trial_data <- trial_data %>%
-    mutate(
-      target_image = case_when(
-        target_info == "o" ~ right_image,
-        target_info == "t" ~ left_image
-      ),
-      distractor_image = case_when(
-        target_info == "o" ~ left_image,
-        target_info == "t" ~ right_image
-      )
-    ) %>%
-    rename(target_side = target) %>%
-    mutate(
-      target_label = target_image,
-      distractor_label = distractor_image
-    )
   
   # rename and create some additional filler columns
   trial_data <- trial_data %>%
@@ -248,6 +240,34 @@ process_smi_aoi <- function(file_name, aoi_path, xy_file_path) {
   return(max_min_info)
 }
   
+#### Table 6: Administration Data ####
+process_administration_info <- function(file_path_exp_info, file_path_exp) {
+  
+  ##subject id - lab subject id, and age
+  subject_info <- process_subjects_info(file_path_exp_info) %>%
+    dplyr::select(lab_subject_id, age, lab_age, lab_age_units)
+  
+  #read in lines to extract smi info
+  monitor_size <- extract_smi_info(file_path_exp,monitor_size)
+  sample_rate <- extract_smi_info(file_path_exp,sample_rate)
+  
+  #get maximum x-y coordinates on screen
+  screen_xy <- str_split(monitor_size,"x") %>%
+    unlist()
+  x.max <- as.numeric(as.character(screen_xy[1]))
+  y.max <- as.numeric(as.character(screen_xy[2]))
+  
+  ##create a data frame by adding above to subject info
+  administration.data <- subject_info %>%
+    mutate(dataset_id = dataset_id, #hard code data set id for now
+           tracker = "SMI", 
+           monitor_size_x = x.max,
+           monitor_size_y = y.max,
+           sample_rate = sample_rate, 
+           coding_method = "eyetracking")
+  
+  return(administration.data)
+}
 
 #### Table 1A: XY Data ####
 
@@ -469,13 +489,9 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
 #### Run SMI ####
 
 process_smi(dir=dir_path,exp_info_dir=exp_info_path)
-<<<<<<< HEAD:data/etds_smi_raw/import_scripts/import.R
-peekds::generate_aoi(dir=dir)
 
-=======
 peekds::generate_aoi(dir=output_path)
 
 peekds::validate_for_db_import(dir_csv=output_path, dataset_type="automated")
->>>>>>> c4226af3871207a25a4eb467022b06163d6630d0:data/etds_smi_raw/reflook_v1/import_scripts/import.R
 
 
