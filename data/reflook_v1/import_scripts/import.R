@@ -53,7 +53,7 @@ output_path <- fs::path(project_root,"data",dataset_name,"processed_data")
 
 #function for extracting information from SMI header/ comments
 extract_smi_info <- function(file_path,parameter_name) {
-
+  
   info_object <- read_lines(file_path, n_max=max_lines_search) %>%
     str_subset(parameter_name) %>% 
     str_extract(paste("(?<=",parameter_name,":\\t).*",sep="")) %>%
@@ -216,7 +216,7 @@ process_smi_aoi <- function(file_name, aoi_path, xy_file_path) {
   
   #make the xml object that we will extract information from
   xml_obj <- 
-    xmlParse(aoi_file_path) %>% 
+    xmlParse(aoi_file_path[1]) %>% 
     xmlToList(simplify = FALSE)
   
   #this is using x coordinates to determine which item in xml is left and right; 
@@ -242,7 +242,8 @@ process_smi_aoi <- function(file_name, aoi_path, xy_file_path) {
                "l_y_min" = y_max - as.numeric(xml_obj$Left$Points[[2]]$Y)) #y_min for right
   #then bind the cols together, first for left, then for right
   max_min_info <- bind_cols(max_min_info_left, max_min_info_right)%>%
-    mutate(stimulus_name = str_remove(str_replace(file_name, " \\(.*\\)", ""),".xml"))
+    mutate(stimulus_name = str_remove(str_replace(file_name, " \\(.*\\)", ""),".xml")) 
+            
   
   return(max_min_info)
 }
@@ -400,7 +401,11 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   aoi.data <- lapply(all_aois,process_smi_aoi,aoi_path=aoi_path,xy_file_path=all_file_paths[1]) %>%
     bind_rows() %>%
-    mutate(aoi_region_id = seq(0,length(stimulus_name)-1))
+    mutate(l_x_min = ifelse(l_x_min < 0, 0, as.numeric(l_x_min)))%>% #getting rid of negative vals
+    distinct(l_x_min, l_x_max, l_y_min, l_y_max, 
+             r_x_min, r_x_max, r_y_min, r_y_max, 
+             stimulus_name)%>%
+    mutate(aoi_region_set_id = seq(0,length(stimulus_name)-1))
   
   #create table of aoi region ids and stimulus name
   aoi_ids <- aoi.data %>%
