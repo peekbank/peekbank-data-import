@@ -166,11 +166,12 @@ get_distractor_id = function (trial_type, distractor_image, table){
 d_tidy <- d_tidy %>%
   select(-prescreen_notes, -l_image, -c_image, -r_image, -target_side) %>%
   left_join(all_orders_cleaned, by=c('condition','tr_num', 'target_image','order')) %>%
-  left_join(stimulus_table, by = c('lab_stimulus_id', 'stimulus_label'))
+  left_join(stimulus_table, by = c('lab_stimulus_id', 'stimulus_label')) %>%
+  mutate(target_side = factor(target_side, levels = c('L','R'), labels = c('left','right')))
 
 ##
 d_tidy <- d_tidy %>%
-  mutate(distractor_image = case_when(target_side == "R" ~ LeftFile,
+  mutate(distractor_image = case_when(target_side == "right" ~ LeftFile,
                                    TRUE ~ RightFile)) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
