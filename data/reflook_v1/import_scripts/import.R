@@ -5,7 +5,8 @@ library(reader)
 library(fs)
 library(feather)
 library(tidyverse)
-library(peekds)
+library(peekds) 
+library(osfr)
 
 #### general parameters ####
 dataset_name <- "reflook_v1"
@@ -31,7 +32,6 @@ dir_path <- fs::path(here::here("data", dataset_name, "raw_data"))
 if(length(list.files(paste0(dir_path, "/full_dataset"))) == 0 && length(list.files(paste0(dir_path, "/experiment_info"))) == 0) {
   get_raw_data(lab_dataset_id = "reflook_v1", path = dir_path, osf_address = "pr6wu")
 }
-
 
 #Specify file 
 file_name <- "Reflook4_2 (3)_080212_02_1825 Samples.txt"
@@ -72,9 +72,9 @@ process_subjects_info <- function(file_path) {
     dplyr::rename("lab_subject_id" = "subid", 
                   "sex" = "gender",
                   "lab_age" = "age")%>%
-    dplyr::mutate(age = round(lab_age * 365.25,0), #convert age to days
+    dplyr::mutate(age = round(lab_age * 12,0), #convert age to months
                   lab_age_units = "years") %>%
-    mutate(sex = factor(sex, labels = c("Male", "Female", NA)), #this is pulled from yurovsky processing code
+    mutate(sex = factor(sex, labels = c("male", "female", "missing")), #this is pulled from yurovsky processing code
            age = ifelse(age == "NaN", NA, age),
            lab_age = ifelse(lab_age == "NaN", NA, lab_age)) 
   
@@ -154,10 +154,10 @@ process_smi_stimuli <- function(file_path) {
                  names_to = "side", 
                  values_to = "stimulus_label")%>%
     mutate(dataset = dataset_id, 
-           stimulus_image_path = NA, 
+           stimulus_image = NA, 
            lab_stimulus_id = NA)%>%
     rename("stimulus_novelty" = "type")%>%
-    distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, stimulus_label, dataset)
+    distinct(stimulus_novelty, stimulus_image, lab_stimulus_id, stimulus_label, dataset)
   
   return(stimuli_data)
 }
@@ -165,26 +165,15 @@ process_smi_stimuli <- function(file_path) {
 
 #### Table 5: Dataset ####
 
-process_smi_dataset <- function(file_path,lab_datasetid=dataset_name) {
-  
-  #read in lines to extract smi info
-  monitor_size <- extract_smi_info(file_path,monitor_size)
-  sample_rate <- extract_smi_info(file_path,sample_rate)
-  
-  #get maximum x-y coordinates on screen
-  screen_xy <- str_split(monitor_size,"x") %>%
-    unlist()
-  x.max <- as.numeric(as.character(screen_xy[1]))
-  y.max <- as.numeric(as.character(screen_xy[2]))
+process_smi_dataset <- function(lab_dataset_id=dataset_name) {
   
   ##Make dataset table
   dataset.data <- data.frame(
     dataset_id = dataset_id, #hard code data set id for now
-    lab_dataset_id = lab_datasetid, 
-    tracker = "SMI", 
-    monitor_size_x = x.max,
-    monitor_size_y = y.max,
-    sample_rate = sample_rate
+    lab_dataset_id = lab_dataset_id,
+    name = lab_dataset_id, 
+    shortcite = "?", 
+    cite = "?"
     )
   
   return(dataset.data)
@@ -240,7 +229,7 @@ process_smi_aoi <- function(file_name, aoi_path, xy_file_path) {
   return(max_min_info)
 }
   
-#### Table 6: Administration Data ####
+#### Table 7: Administration Data ####
 process_administration_info <- function(file_path_exp_info, file_path_exp) {
   
   ##subject id - lab subject id, and age
@@ -416,26 +405,43 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
                           pattern = paste0('*','.xml'),
                           all.files = FALSE)
   
-  #all aoi paths
-  #all_aoi_paths <- paste0(aoi_path,"/",all_aois)
-  
-  aoi.data <- lapply(all_aois,process_smi_aoi,aoi_path=aoi_path,xy_file_path=all_file_paths[1]) %>%
+  #process aois
+  #process aoi regions
+  aoi.data.all <- lapply(all_aois,process_smi_aoi,aoi_path=aoi_path,xy_file_path=all_file_paths[1]) %>%
     bind_rows() %>%
-    mutate(l_x_min = ifelse(l_x_min < 0, 0, as.numeric(l_x_min)))%>% #getting rid of negative vals
+    mutate(l_x_min = ifelse(l_x_min < 0, 0, as.numeric(l_x_min)))%>% #setting negative vals to 0
     distinct(l_x_min, l_x_max, l_y_min, l_y_max, 
              r_x_min, r_x_max, r_y_min, r_y_max, 
              stimulus_name)%>%
     mutate(aoi_region_set_id = seq(0,length(stimulus_name)-1))
   
-  #create table of aoi region ids and stimulus name
-  aoi_ids <- aoi.data %>%
-    distinct(stimulus_name,aoi_region_id)
-  
-  #clean up aoi.data
-  aoi.data <- aoi.data %>%
+  # #clean up aoi.data
+  aoi.data <- aoi.data.all %>%
     dplyr::select(-stimulus_name)
   
+  #create table of aoi region ids and stimulus name
+  aoi_ids <- aoi.data.all %>%
+    distinct(stimulus_name,aoi_region_set_id)  
+  
   #### generate all data objects ####
+  
+  #create dataset data
+  dataset.data <- process_smi_dataset()
+  
+  ##create stimuli data
+  stimuli.data <- process_smi_stimuli(trial_file_path) %>%
+    mutate(stimulus_id = seq(0,length(stimulus_label)-1)) 
+  
+  ## create timepoint data so we have a list of participants for whom we actually have data
+  ###there's an error here saying we can't subset elements that don't exist?
+  timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file)%>%
+    bind_rows() %>%
+    mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
+    mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1)
+  
+  
+  
+  ###----below has not been changed###
   
   #create xy data
   xy.data <- lapply(all_file_paths,process_smi_eyetracking_file) %>%
@@ -452,7 +458,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   subjects.data <- process_subjects_info(participant_file_path) %>%
     left_join(participant_id_table,by="lab_subject_id") %>%
     filter(!is.na(subject_id)) %>%
-    dplyr::select(subject_id,lab_subject_id,age,sex)
+    dplyr::select(subject_id,lab_subject_id, sex)
   
   #clean up xy_data
   xy.data <- xy.data %>%
