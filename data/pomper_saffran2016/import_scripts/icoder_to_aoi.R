@@ -1,5 +1,7 @@
-library(here); library(janitor); library(tidyverse)
+library(here); library(janitor); library(tidyverse); library(readxl)
 #library(peekds)
+# library(osfr)
+
 
 sampling_rate_hz <- 30 
 sampling_rate_ms <- 33 
@@ -25,6 +27,7 @@ remove_repeat_headers <- function(d, idx_var) {
 
 
 # read raw icoder files (is it one file per participant or aggregated?)
+## OSF INTEGRATION ###
 d_raw <- readr::read_delim(fs::path(read_path, "/pomper_saffran_2016_raw_datawiz.txt"),
                            delim = "\t")
 
@@ -64,16 +67,106 @@ d_tidy <- d_tidy %>%
   mutate(aoi = case_when(
     aoi == "0" ~ "distractor",
     aoi == "1" ~ "target",
-    aoi == "0.5" ~ "center",
-    aoi == "." ~ "other",
-    aoi == "-" ~ "other"
+    aoi == "0.5" ~ "other",
+    aoi == "." ~ "missing",
+    aoi == "-" ~ "missing"
   )) 
 
-# code distracter image
+# Go through counterbalancing files, tidy, and concatanate into one structure ----------------------------------------
+
+## OSF INTEGRATION ###
+order_read_path <- here("data",dataset_name,"full_dataset", "orders")
+order_files = dir(order_read_path)
+count_files = 0
+for (o in order_files) {
+  count_files = count_files+1
+  
+  # get order name from filename and make match the name in the  icoder file
+  order_name = str_split_fixed(str_split_fixed(o, '-',2)[,2],'_',2)[,1]
+  order_name = str_remove(order_name, '-')
+  
+  this_order = read_excel(fs::path(order_read_path, o))  %>%
+    mutate(order = paste0('SwitchingCues-',order_name)) # to make icoder data for merging below
+  
+  if (count_files == 1){
+    all_orders = this_order 
+  }
+  else {
+    all_orders <- all_orders %>%
+      full_join(this_order)
+  }
+}
+
+## clean up resulting dataframe and add easier names
+all_orders_cleaned <- all_orders %>%
+  rename('tr_num' = 'Tr. Num', 'condition' = 'Condition', 'target_side' = 'Target Side', 'target_image' = `Target Object`) %>%
+  select(-`...10`, -`...5`, -`...11`, -Duration) %>%
+  mutate(tr_num = as.character(tr_num))  
+
+# Get carrier phrases
+
+## Carrier phrases were inconsistent and produced erorrs when joining; not including.
+## Get color carrier phrases from audio file
+# colors = c('Orange', 'Red','Yellow','White','Black','Brown','Blue','Green')
+# color_carrier_phrases = all_orders_cleaned %>%
+#   mutate(target_word = str_split_fixed(SoundStimulus, '_', 2)[,1]) %>%
+#   filter(target_word %in% colors) %>%
+#   mutate(carrier_try = str_split_fixed(SoundStimulus, '_', 3)[,2]) %>%
+#   mutate(carrier_try = factor(carrier_try, levels=c('Find','Where','Look'), labels = c("Find the", "Where is the", "Look at the"))) %>%
+#   mutate(full_phrase = paste0(carrier_try,' ', target_word, ' one')) %>%
+#   select(target_word, target_image, carrier_try, full_phrase, SoundStimulus) %>%
+#   distinct(target_word, target_image, carrier_try, full_phrase, SoundStimulus)
+
+# ## Load noun carrier phrases from .csv
+# all_carrier_phrases <- read_csv(here("data",dataset_name,"full_dataset", "carrier_phrases.csv")) %>% # only has nouns
+#   mutate(target_word = lab_stimulus_id, target_image = lab_stimulus_id,  full_phrase = paste0(carrier_phrase,' ', lab_stimulus_id)) %>% 
+#   select(target_word, target_image, full_phrase) %>%
+#   full_join(color_carrier_phrases) %>%
+#   mutate(target_word = tolower(target_word), target_image = tolower(target_image))
+
+# Get stimulus table for saving out with right datafields
+## get every combination of word and color
+stimulus_table <-  all_orders_cleaned %>%
+  mutate(target_word = str_split_fixed(SoundStimulus, '_', 2)[,1]) %>%
+  distinct(target_word, target_image) %>%
+  mutate(target_word = tolower(target_word)) %>% # make same case
+  filter(!target_image=='NA') %>% # intro/end trials
+  filter(target_image != target_word) %>% # lets get object/color combinations so we have the full table, please!
+  rename('color' = target_word) %>%
+  mutate(stimulus_image_path = paste0('raw_data/stimuli/images/', target_image, '.jpg')) %>%
+  mutate(lab_stimulus_id = target_image, stimulus_novelty = 'familiar', dataset_id = 0) %>%
+  gather(key="trial_type", value = "stimulus_label", color, target_image) %>%
+  mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1)) %>%
+  mutate(target_image = lab_stimulus_id, target_word = stimulus_label) 
+
+## join in carrier phrases with counterbalancing orders
+all_orders_cleaned <- all_orders_cleaned  %>%
+  mutate(target_word = tolower(str_split_fixed(all_orders_cleaned$SoundStimulus, '_', 2)[,1])) %>%
+  # left_join(all_carrier_phrases, by = c('target_image','target_word')) %>% # not including because produced errors
+  mutate(lab_stimulus_id = target_image, stimulus_label = target_word) 
+
+# Join back CB/trial info with tidy'd dataframes ----------------------------------------
+get_distractor_id = function (trial_type, distractor_image, table){
+  dist_id = table %>%
+    filter(lab_stimulus_id==distractor_image & trial_type==trial_type) 
+
+  return(dist_id$stimulus_id)
+}
+
 d_tidy <- d_tidy %>%
-  mutate(distractor_image = ifelse(target_side == "r",
-                                   l_image,
-                                   r_image))
+  select(-prescreen_notes, -l_image, -c_image, -r_image, -target_side) %>%
+  left_join(all_orders_cleaned, by=c('condition','tr_num', 'target_image','order')) %>%
+  left_join(stimulus_table, by = c('lab_stimulus_id', 'stimulus_label'))
+
+##
+d_tidy <- d_tidy %>%
+  mutate(distractor_image = case_when(target_side == "R" ~ LeftFile,
+                                   TRUE ~ RightFile)) %>%
+  mutate(target_id = stimulus_id) %>%
+  select(-stimulus_id) %>%
+  left_join(stimulus_table %>% select(trial_type, lab_stimulus_id, stimulus_id), by=c('trial_type' = 'trial_type', 'distractor_image' = 'lab_stimulus_id')) %>%
+  mutate(distractor_id = stimulus_id) %>%
+  select(-stimulus_id) 
 
 # create dataset variables
 d_tidy <- d_tidy %>%
@@ -90,20 +183,21 @@ d_subject_ids <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>% 
-  distinct(order, tr_num, target_image, distractor_image, target_side) %>% 
+  distinct(order, tr_num, target_id, distractor_id, target_side) %>% 
   mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
 
 # joins
 d_tidy_semifinal <- d_tidy %>% 
   mutate(aoi_data_id = seq(0, nrow(d_tidy) - 1)) %>%
   left_join(d_subject_ids, by = "sub_num") %>% 
-  left_join(d_trial_ids)
+  left_join(d_trial_ids) %>%
+  select(-target_image.y, -target_word.y) # duplicate values
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>% 
   mutate(distractor_label = distractor_image,
          dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
-         target_label = target_image,
+         target_label = target_image.x,
          lab_trial_id = paste(order, tr_num, sep = "-"),
          full_phrase = NA,
          administration_id = 0,
@@ -111,11 +205,12 @@ d_tidy_final <- d_tidy_semifinal %>%
          monitor_size_x = NA, # 140cm .. diagonal?
          monitor_size_y = NA, 
          lab_age_units = "months",
-         age = as.numeric(months)*30.44 # days
+         age = as.numeric(months), # months
+         point_of_disambiguation = 0 # unsure what 1024 was?
          ) %>% 
   rename(lab_subject_id = sub_num,
-         lab_age = months,
-         point_of_disambiguation = crit_on_set)
+         lab_age = months
+         ) 
 
 #  write AOI table
 tmp <- d_tidy_final %>%
@@ -128,6 +223,7 @@ tmp <- d_tidy_final %>%
 # write subjects table
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id, sex) %>%
+  mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female'))) %>%
   write_csv(fs::path(write_path, "subjects.csv"))
 
 # split out administrations table
@@ -146,25 +242,15 @@ d_tidy_final %>%
   write_csv(fs::path(write_path, "administrations.csv"))
 
 
-
-# stimulus set table - define some of these above
-
-stimuli_image <- unique(c(d_tidy_final$target_image, d_tidy_final$distractor_image))
-stimuli_label <- unique(c(d_tidy_final$target_label, d_tidy_final$distractor_label))
-stim_tab <- tibble(stimulus_id = 0:(length(stimuli_label)-1),
-                   stimulus_novelty = NA, # all of ours are familiar
-                   stimulus_label = stimuli_label, 
-                   stimulus_image_path = NA, # maybe Martin can get actual stimuli
-                   lab_stimulus_id = NA,
-                   dataset_id = 0)
-stim_tab %>% 
+stimulus_table %>% 
+  select(-trial_type, -target_word, -target_image) %>%
   write_csv(fs::path(write_path, "stimuli.csv"))
 
 
 # write Trials table
 d_tidy_final %>%
   distinct(trial_id, 
-           full_phrase, # from Bria
+           full_phrase, 
            point_of_disambiguation,
            target_side,
            lab_trial_id, 
@@ -173,10 +259,6 @@ d_tidy_final %>%
            distractor_label, 
            target_label) %>%
     mutate(full_phrase_language = "eng") %>%
-    left_join(stim_tab %>% select(stimulus_id, stimulus_label), by=c("distractor_label"="stimulus_label")) %>%
-    rename(distractor_id = stimulus_id) %>%
-    left_join(stim_tab %>% select(stimulus_id, stimulus_label), by=c("target_label"="stimulus_label")) %>%
-    rename(target_id = stimulus_id) %>%
     select(-distractor_label, -target_label) %>%
       write_csv(fs::path(write_path, "trials.csv"))
 
@@ -204,4 +286,5 @@ d_tidy_final %>% distinct(trial_id, administration_id) %>%
 
 # validation check ----------------------------------------------------------
 
-validate_for_db_import(dir_csv = "data/peekds_icoder/processed_data/")
+# validate_for_db_import(dir_csv = "data/peekds_icoder/processed_data/")
+
