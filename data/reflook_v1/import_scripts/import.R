@@ -444,7 +444,6 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1)
   
   
-  
   ###----below has not been changed###
   
   #create xy data
@@ -464,6 +463,17 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     filter(!is.na(subject_id)) %>%
     dplyr::select(subject_id,lab_subject_id, sex)
   
+  #create administration data 
+  administration.data <- process_administration_info(participant_file_path, 
+                                                     all_file_paths[1])
+  
+  administration.data <- participant_id_table %>%
+    left_join(administration.data, by = "lab_subject_id")%>%
+    dplyr::select(-lab_subject_id)%>%
+    dplyr::select(dataset_id, subject_id, age, lab_age, lab_age_units, 
+                  monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method)%>%
+    mutate(administration_id = seq(0,length(subject_id)-1)) 
+  
   #clean up xy_data
   xy.data <- xy.data %>%
     dplyr::select(-lab_subject_id)
@@ -477,14 +487,14 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     dplyr::select(-stimulus_name)
   
   #create dataset data
-  dataset.data <- process_smi_dataset(all_file_paths[1])
+  dataset.data <- process_smi_dataset()
     
   
   #write all data
   #write_feather(dataset.data,path=paste0(output_path,"/","dataset_data.feather"))
   #write_feather(xy.data,path=paste0(output_path,"/","xy_data.feather"))
   
-  write_feather(xy.data,path=paste0(output_path,"/","xy_data.feather"))
+  write_feather(xy.data,path=paste0(output_path,"/","xy_data.csv"))
   write_csv(subjects.data,path=paste0(output_path,"/","subjects.csv"))
   write_csv(trials.data,path=paste0(output_path,"/","trials.csv"))
   write_csv(dataset.data,path=paste0(output_path,"/","datasets.csv"))
