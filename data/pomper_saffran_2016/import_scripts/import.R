@@ -224,7 +224,7 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
-  select(aoi_data_id, subject_id, t, aoi, trial_id) %>%
+  select(aoi_data_id, subject_id, t, aoi, trial_id, administration_id) %>%
   rename(aoi_timepoint_id = aoi_data_id,
          t_norm = t) %>% # original data had columns from -990ms to 6867ms...presumably centered at disambiguation per trial?
   write_csv(fs::path(write_path, aoi_table_filename))
@@ -274,7 +274,8 @@ d_tidy_final %>%
 
 ##### AOI REGIONS TABLE ####
 # create empty other files aoi_region_sets.csv and xy_timepoints
-tibble(aoi_region_set_id=NA,
+tibble(administration_id = d_tidy_final$administration_id[1],
+      aoi_region_set_id=NA,
        l_x_max=NA ,
        l_x_min=NA ,
        l_y_max=NA ,
@@ -307,8 +308,7 @@ Chicago",
 
 
 # validation check ----------------------------------------------------------
-
-validate_for_db_import(dir_csv = write_path, dataset_type = "automated")
+validate_for_db_import(dir_csv = write_path)
 
 ## OSF INTEGRATION ###
 put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
