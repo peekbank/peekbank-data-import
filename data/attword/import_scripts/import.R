@@ -107,7 +107,8 @@ process_smi_dataset <- function(file_path, lab_datasetid = dataset_name) {
   # read in lines to extract smi info
   monitor_size <- extract_smi_info(file_path, monitor_size)
   sample_rate <- extract_smi_info(file_path, sample_rate)
-  subject <- extract_smi_info(file_path, subid_name)
+  subject <- str_split(file_path, "/") %>% unlist() %>% last() %>%
+    str_split("-") %>% unlist() %>% first()
   
   # get maximum x-y coordinates on screen
   screen_xy <- str_split(monitor_size, "x") %>%
@@ -123,7 +124,7 @@ process_smi_dataset <- function(file_path, lab_datasetid = dataset_name) {
     monitor_size_x = x.max,
     monitor_size_y = y.max,
     sample_rate = sample_rate,
-    lab_subject_id = subject
+    lab_subject_id = subject,
   )
 }
 
@@ -139,7 +140,8 @@ process_subjects_info <- function(file_path) {
     ) %>%
     mutate(
       sex = factor(sex, labels = c(NA, "Male", "Female")), # this is pulled from yurovsky processing code
-      age = if_else(age == "NaN", NA_real_, round(age * 365))
+      lab_age = if_else(age == "NaN", NA_real_, round(age * 365)),
+      age = lab_age * (12/365.25)
     )
   
   return(data)
@@ -339,7 +341,7 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   #### generate file paths ####
   
   # create all raw data smi file path 
-  smi_files <- list.files(dir_path, full.names = TRUE, recursive = TRUE, 
+  smi_files <- list.files(dir, full.names = TRUE, recursive = TRUE, 
                         include.dirs = FALSE)
   # create all demographic file path (not working now)
   
@@ -370,8 +372,7 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
    
   demographic_data <- map_dfr(demographic_files, process_subjects_info) %>%
                     mutate(subject_id = as.numeric(factor(lab_subject_id, 
-                                                    levels = unique(lab_subject_id))) - 1,
-                           age = as.integer(age))
+                                                    levels = unique(lab_subject_id))) - 1)
   
   # read aoi_data for trials' table?
   # warning about raw_t
@@ -414,7 +415,6 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
                                 left_join(demographic_data, by = "lab_subject_id") %>%
                                 select(-lab_subject_id) %>%
                                 mutate(coding_method = "eyetracking",
-                                       lab_age = age,
                                        lab_age_units = "days")
   
   # xy_timepoints table data 
@@ -484,5 +484,4 @@ peekds::validate_for_db_import(dir_csv = output_path, dataset_type = "automated"
 
 ### Output processed data
 put_processed_data(osf_token, dataset_name, path = glue::glue("{output_path}/"))
-
                    
