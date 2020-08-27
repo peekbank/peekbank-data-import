@@ -139,7 +139,7 @@ process_subjects_info <- function(file_path) {
       "age" = "DOT"
     ) %>%
     mutate(
-      sex = factor(sex, labels = c(NA, "Male", "Female")), # this is pulled from yurovsky processing code
+      sex = factor(sex, labels = c("unspecified", "male", "female")), # this is pulled from yurovsky processing code
       lab_age = if_else(age == "NaN", NA_real_, round(age * 365)),
       age = lab_age * (12/365.25)
     )
@@ -478,7 +478,9 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
 
 process_smi(dir = dir_path, exp_info_dir = exp_info_path)
 
-aois_timepoints <- peekds::generate_aoi(dir = output_path)
+aoi_timepoints <- peekds::generate_aoi(dir = output_path)
+write_csv(aoi_timepoints, path = paste0(output_path, "/", "aoi_timepoints.csv"))
+
 
 peekds::validate_for_db_import(dir_csv = output_path, dataset_type = "automated")
 
