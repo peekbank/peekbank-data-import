@@ -63,15 +63,6 @@ extract_smi_info <- function(file_path,parameter_name) {
   return(info_object)
 }
 
-create_zero_index<- function(data, id_column_name="lab_subject_id") {
-  data <- data %>%
-  mutate(stim_lag = lag(Stimulus), 
-         temp = ifelse(Stimulus != stim_lag, 1, 0), 
-         temp_id = cumsum(c(0, temp[!is.na(temp)])), 
-         trial_id = temp_id)
-}
-
-
 #### Table 2: Participant Info/ Demographics ####
 
 process_subjects_info <- function(file_path) {
@@ -101,16 +92,16 @@ process_smi_trial_info <- function(file_path) {
       delim=sep
     )
   
-  #separate stimulus name for individual images (target and distractor)
-  trial_data <- trial_data %>%
-    mutate(stimulus_name = str_remove(Stimulus,".jpg")) %>%
-    separate(stimulus_name, into=c("target_info","left_image","right_image"),sep="_",remove=F)
+  # #separate stimulus name for individual images (target and distractor)
+  # trial_data <- trial_data %>%
+  #   mutate(stimulus_name = str_remove(Stimulus,".jpg")) %>%
+  #   separate(stimulus_name, into=c("target_info","left_image","right_image"),sep="_",remove=F)
   
   #convert onset to ms
   trial_data <- trial_data %>%
     mutate(point_of_disambiguation=onset *1000)
   
-  #add target/ distractor info
+  # #add target/ distractor info
   trial_data <- trial_data %>%
     mutate(
       target_image = case_when(
@@ -148,8 +139,39 @@ process_smi_trial_info <- function(file_path) {
   
 }
 
+#### Table 4: Stimuli ####
 
-#### Table 4: Dataset ####
+process_smi_stimuli <- function(file_path) {
+  
+  #guess delimiter
+  sep <- get.delim(file_path, delims=possible_delims)
+  
+  #read in data
+  stimuli_data <-  
+    read_delim(
+      file_path,
+      delim=sep
+    )
+  
+  #separate stimulus name for individual images (target and distracter)
+  stimuli_data <- stimuli_data %>%
+      mutate(stimulus_name = str_remove(Stimulus,".jpg")) %>%
+      separate(stimulus_name, into=c("target_info","left_image","right_image"),sep="_",remove=F) %>%
+    dplyr::select(type, left_image, right_image)%>%
+    pivot_longer(c("left_image", "right_image"), 
+                 names_to = "side", 
+                 values_to = "stimulus_label")%>%
+    mutate(dataset = dataset_id, 
+           stimulus_image_path = NA, 
+           lab_stimulus_id = NA)%>%
+    rename("stimulus_novelty" = "type")%>%
+    distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, stimulus_label, dataset)
+  
+  return(stimuli_data)
+}
+
+
+#### Table 5: Dataset ####
 
 process_smi_dataset <- function(file_path,lab_datasetid=dataset_name) {
   
@@ -176,7 +198,7 @@ process_smi_dataset <- function(file_path,lab_datasetid=dataset_name) {
   return(dataset.data)
 }
 
-#### Table 5: AOI regions ####
+#### Table 6: AOI regions ####
 
 process_smi_aoi <- function(file_name, aoi_path, xy_file_path) {
   
