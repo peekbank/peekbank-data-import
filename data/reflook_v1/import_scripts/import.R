@@ -305,6 +305,10 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
   data <- data %>%
     mutate(lab_subject_id=lab_subject_id)
   
+  if (dim(data)[1] == 0) { 
+   return()
+  } 
+  
   #Remove out of range looks
   data <- 
     data %>% 
