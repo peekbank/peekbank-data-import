@@ -274,25 +274,26 @@ d_tidy_final %>%
 
 ##### AOI REGIONS TABLE ####
 # create empty other files aoi_region_sets.csv and xy_timepoints
-tibble(administration_id = d_tidy_final$administration_id[1],
-      aoi_region_set_id=NA,
-       l_x_max=NA ,
-       l_x_min=NA ,
-       l_y_max=NA ,
-       l_y_min=NA ,
-       r_x_max=NA ,
-       r_x_min=NA ,
-       r_y_max=NA ,
-       r_y_min=NA ) %>%
-  write_csv(fs::path(write_path, aoi_regions_table_filename))
+# don't need 
+# tibble(administration_id = d_tidy_final$administration_id[1],
+#       aoi_region_set_id=NA,
+#        l_x_max=NA ,
+#        l_x_min=NA ,
+#        l_y_max=NA ,
+#        l_y_min=NA ,
+#        r_x_max=NA ,
+#        r_x_min=NA ,
+#        r_y_max=NA ,
+#        r_y_min=NA ) %>%
+#   write_csv(fs::path(write_path, aoi_regions_table_filename))
 
 ##### XY TIMEPOINTS TABLE ####
-d_tidy_final %>% distinct(trial_id, administration_id) %>%
-  mutate(x = NA,
-         y = NA,
-         t = NA,
-         xy_timepoint_id = 0:(n()-1)) %>%
-  write_csv(fs::path(write_path, xy_table_filename))
+# d_tidy_final %>% distinct(trial_id, administration_id) %>%
+#   mutate(x = NA,
+#          y = NA,
+#          t = NA,
+#          xy_timepoint_id = 0:(n()-1)) %>%
+#   write_csv(fs::path(write_path, xy_table_filename))
 
 ##### DATASETS TABLE ####
 # write Dataset table
