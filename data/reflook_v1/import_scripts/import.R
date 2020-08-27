@@ -24,6 +24,14 @@ stims_to_keep_chars <- c("_")
 trial_file_name <- "reflook_tests.csv"
 participant_file_name <- "reflook_v1_demographics.csv"
 
+#### Pull in data from OSF ####
+dir_path <- fs::path(here::here("data", dataset_name, "raw_data"))
+
+##only download if it's not on your machine
+if(length(list.files(paste0(dir_path, "/full_dataset"))) == 0 && length(list.files(paste0(dir_path, "/experiment_info"))) == 0) {
+  get_raw_data(lab_dataset_id = "reflook_v1", path = dir_path, osf_address = "pr6wu")
+}
+
 
 #Specify file 
 file_name <- "Reflook4_2 (3)_080212_02_1825 Samples.txt"
