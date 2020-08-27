@@ -240,12 +240,7 @@ process_smi_aoi <- function(file_name, exp_info_path) {
 
 #### Table 7: Administration Data ####
 process_administration_info <- function(file_path_exp_info, file_path_exp) {
-    ##dataset_id
-    ##subject
-    ##age
-    ## tracker
-    ## administration id (will be assigned at process_smi)
-  
+
   ##subject id - lab subject id, and age
   subject_info <- process_subjects_info(file_path_exp_info) %>%
     dplyr::select(lab_subject_id, age, lab_age, lab_age_units)
@@ -458,8 +453,10 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   #create administration data 
   administration.data <- process_administration_info(participant_file_path, 
-                                                     all_file_paths[1])%>%
-    left_join(participant_id_table, by = "lab_subject_id")%>%
+                                                     all_file_paths[1])
+  
+  administration.data <- participant_id_table %>%
+    left_join(administration.data, by = "lab_subject_id")%>%
     dplyr::select(-lab_subject_id)%>%
     dplyr::select(dataset_id, subject_id, age, lab_age, lab_age_units, 
                   monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method)%>%
@@ -515,8 +512,8 @@ process_smi(dir=dir_path,exp_info_dir=exp_info_path)
 
 aois_timepoints <- peekds::generate_aoi(dir = output_path)
 
-write_csv(aois_timepoints, path = paste0(output_path, "/", "aois_timepoints.csv"))
+write_csv(aois_timepoints, path = paste0(output_path, "/", "aoi_timepoints.csv"))
 
-peekds::validate_for_db_import(dir_csv=output_path, dataset_type = "automated")
+# peekds::validate_for_db_import(dir_csv=output_path, dataset_type = "automated")
 
 
