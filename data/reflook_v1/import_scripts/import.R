@@ -169,7 +169,7 @@ process_smi_stimuli <- function(file_path) {
     mutate(dataset_id = dataset_id, 
            stimulus_image_path = NA, 
            lab_stimulus_id = NA,
-           type = to_lower(type))%>%
+           type = str_to_lower(type))%>%
     rename("stimulus_novelty" = "type")%>%
     distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, stimulus_label, dataset_id)
   
@@ -384,7 +384,7 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
     #set time to zero at the beginning of each trial
     data <- data %>%
       group_by(trial_id) %>%
-      mutate(t = timestamp - min(timestamp)) %>%
+      mutate(t = round(timestamp - min(timestamp))) %>%
       ungroup()
   }
   
@@ -505,53 +505,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
                   lab_trial_id, aoi_region_set_id, dataset_id, 
                   distractor_id, target_id)
   
-  
-  
-  
-  ###----below has not been changed###
-  
-  # #create xy data
-  # xy.data <- lapply(all_file_paths,process_smi_eyetracking_file) %>%
-  #   bind_rows() %>%
-  #   mutate(xy_data_id = seq(0,length(lab_subject_id)-1)) %>%
-  #   mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1) %>%
-  #   dplyr::select(xy_data_id,subject_id,lab_subject_id,x,y,t,trial_id)
-  # 
-  # #extract unique participant ids from eyetracking data (in order to filter participant demographic file)
-  # participant_id_table <- xy.data %>%
-  #   distinct(lab_subject_id, subject_id)
-  # 
-  # #create participant data
-  # subjects.data <- process_subjects_info(participant_file_path) %>%
-  #   left_join(participant_id_table,by="lab_subject_id") %>%
-  #   filter(!is.na(subject_id)) %>%
-  #   dplyr::select(subject_id,lab_subject_id, sex)
-  # 
-  # #create administration data 
-  # administration.data <- process_administration_info(participant_file_path, 
-  #                                                    all_file_paths[1])
-  # 
-  # administration.data <- participant_id_table %>%
-  #   left_join(administration.data, by = "lab_subject_id")%>%
-  #   dplyr::select(-lab_subject_id)%>%
-  #   dplyr::select(dataset_id, subject_id, age, lab_age, lab_age_units, 
-  #                 monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method)%>%
-  #   mutate(administration_id = seq(0,length(subject_id)-1)) 
-  
-  # #clean up xy_data
-  # xy.data <- xy.data %>%
-  #   dplyr::select(-lab_subject_id)
-  
-  # #create stimuli data
-  # stimuli.data <- process_smi_stimuli(trial_file_path) %>%
-  #   mutate(stimulus_id = seq(0,length(stimulus_label)-1)) 
-
-    
-  
-  #write all data
-  #write_feather(dataset.data,path=paste0(output_path,"/","dataset_data.feather"))
-  #write_feather(xy.data,path=paste0(output_path,"/","xy_data.feather"))
-  
+  #write all files
   write_csv(xy.data,path=paste0(output_path,"/","xy_timepoints.csv"))
   write_csv(subjects.data,path=paste0(output_path,"/","subjects.csv"))
   write_csv(stimuli.data, path = paste0(output_path, "/", "stimuli.csv"))
