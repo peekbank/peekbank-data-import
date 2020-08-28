@@ -4,14 +4,17 @@ library(tidyverse)
 library(peekds)
 library(dplyr)
 library(stringr)
+library(osfr)
 
 ### general params. ###
 lab_dataset_id = "casillas_tseltal_2015"
-sample_rate = 40
+sample_rate = 25
 dataset_id = 0 #does this need to be hardcoded?
 point_of_disambiguation = 3155
 ### get raw data ###
-peekds::get_raw_data(lab_dataset_id, path = here("data", lab_dataset_id, "import_scripts", "raw_data"), osf_address = "pr6wu")
+osf_token <- read_lines(here("data", lab_dataset_id, "import_scripts","osf_token.txt"))
+peekds::get_raw_data(lab_dataset_id, path = here("data", lab_dataset_id, "import_scripts", "raw_data"), 
+                     osf_address = "pr6wu")
 
 #for now processing from my local project folder, change to work with osf once that gets pushed
 read_path = here("data", lab_dataset_id,"import_scripts","raw_data")
@@ -22,8 +25,11 @@ write_path = here("data", lab_dataset_id,"import_scripts","processed_data")
 stim_data_raw = readr::read_csv(fs::path(read_path, "metadata", "tseltal_2015-trial_info.csv"))
 sub_data_raw = readr::read_csv(fs::path(read_path, "metadata", "raw_participant.csv"))
 participant_coder_table = readr::read_csv(fs::path(read_path, "metadata/file_primary_coder_data.csv"))
+eaf_to_log = readr::read_csv(fs::path(read_path, "metadata/log-eaf-correspondence.csv"))
+#read in new file eaf to log [x]
 
-#add fix for new trial randomization map by participant (:
+
+#add fix for new trial randomization map by participant 
 
 #first read in all the file names as a column in a tibble
 part_trial_conv = tibble("file_name" = list.files(path = fs::path(read_path,"LOG_original"),
@@ -37,24 +43,35 @@ convert_png_to_lab_id <- function(png_lwl){
   new_name = paste0(c("LWL", num), collapse="")
   return(new_name)
 }
+# do this using the eaf to log file
+#drop any log files without a corr .txt
+eaf_to_log = eaf_to_log %>% 
+  filter(across(everything(),
+                ~ !is.na(.))) %>% mutate(file = gsub("\\.eaf","\\.txt", eaf.filename))
 
-part_trial_conv = part_trial_conv %>% rowwise() %>% mutate(participant_name = convert_file_to_part(file_name))
+eaf_to_log = merge(eaf_to_log, participant_coder_table, by="file")
+
+eaf_to_log = eaf_to_log %>% 
+  filter_at(.vars = vars(one_of(c("primary_coder"))), ~ !is.na(.))
+
+part_trial_conv = eaf_to_log %>% select("log.filename", "participant") %>% 
+  rename("file_name" = "log.filename",
+         "participant_name"="participant")
 #any participants in the participant table who arent in the log table, we should drop them
 
-part_trial_conv = filter(part_trial_conv, participant_name %in% participant_coder_table$participant)
-df = read.csv(fs::path(read_path,"LOG_original", "P43-36moM-19plusmonths.log"), skip =3, sep = "\t")
+#df = read.csv(fs::path(read_path,"LOG_original", "P43-36moM-19plusmonths.log"), skip =3, sep = "\t")
+#
+##filter to just the lwl designs
+#df = df %>% rowwise()%>%
+#  mutate(Code = unlist(strsplit(Code, "\\."))[1]) %>% 
+#  mutate(task_type = gsub('[0-9]+', '',Code)) %>% 
+#  filter(task_type == "lwl")
 
-#filter to just the lwl designs
-df = df %>% rowwise()%>%
-  mutate(Code = unlist(strsplit(Code, "\\."))[1]) %>% 
-  mutate(task_type = gsub('[0-9]+', '',Code)) %>% 
-  filter(task_type == "lwl")
+#df = df %>% rowwise()%>% mutate(Code = convert_png_to_lab_id(Code)) %>% select("Subject", "Trial", "Code")
 
-df = df %>% rowwise()%>% mutate(Code = convert_png_to_lab_id(Code)) %>% select("Subject", "Trial", "Code")
-
-df = filter(df, Code %in% stim_data_raw$trialname_eaf)
-df = df[order(df$Trial),]
-df$trial_index = seq.int(1,nrow(df))
+#df = filter(df, Code %in% stim_data_raw$trialname_eaf)
+#df = df[order(df$Trial),]
+#df$trial_index = seq.int(1,nrow(df))
 
 get_trial_order <- function(file_name){
   path = fs::path(read_path,"LOG_original", file_name)
@@ -130,7 +147,7 @@ stimuli_table <- tibble("stimulus_id" = seq.int(0, n_distinct(stimuli_vec)-1),
                          "stimulus_image_path"=NA,
                          "lab_stimulus_path"=NA,
                          "dataset_id" = dataset_id)
-
+# add image paths []
 #we can add the stimulus path by merging across stimulus name? Not sure if we have the individual stimuli or the trials as images
 stimuli_table %>% write_csv(fs::path(write_path, "stimuli.csv"))
 
@@ -151,14 +168,12 @@ aoi_region_sets %>% write_csv(fs::path(write_path, "aoi_region_sets.csv"))
 ### ADMINISTRATIONS TABLE ### - this is where it gets complicated
 
 #restrict to participants with lwl task
-participant_coder_table <- participant_coder_table %>% 
-  filter_at(.vars = vars(one_of(c("primary_coder"))), ~ !is.na(.))
 
 administrations_table = tibble("administration_id" = seq.int(0, nrow(participant_coder_table)-1),
                          "dataset_id" = dataset_id,
                          "monitor_size_x" = 1366,
                          "monitor_size_y" = 768,
-                         "sample_rate"=40,
+                         "sample_rate"=sample_rate,
                          "tracker" = NA,
                          "coding_method" = "manual gaze coding",
                          "lab_subject_id" = participant_coder_table$participant,
@@ -181,7 +196,7 @@ administrations_table <- administrations_table[c("administration_id", "dataset_i
                                                  "age","lab_age","lab_age_units",
                                                  "monitor_size_x", "monitor_size_y", 
                                                  "sample_rate", "tracker", "coding_method")]
-
+administrations_table$coding_method <- as.character(administrations_table$coding_method)
 administrations_table %>% write_csv(fs::path(write_path, "administrations.csv"))
 
 ### TRIALS ### 
@@ -237,7 +252,7 @@ test_get_aoi <- function(target_lwl, trial){
     lwl_task = filter(target_lwl, primary_coder == task)
     
     #start creating the tibble for this task+admin pair :)
-    df = tibble("timepoint_ms" = seq.int(0, trial_end, 25))
+    df = tibble("timepoint_ms" = seq.int(0, trial_end, 1000/sample_rate))
     df$administration_id = administration
     df$trial = trial
     get_aoi <- function(timepoint_ms, lwl_df = lwl_task){
@@ -320,7 +335,11 @@ final_timepoints_table = full_aoi_data[c("aoi_timepoint_id", "trial_id", "aoi",
                                                 "t_norm", "administration_id")]
 
 final_timepoints_table %>% write_csv(fs::path(write_path, "aoi_timepoints.csv"))
+#full_aoi_data %>% write_csv(fs::path(write_path, "full_aoi_timepoints.csv"))
 
 ### Write to OSF ###
 # need osf token
-#put_processed_data(osf_token, dataset_name, path = glue::glue("{output_path}/"))
+#this is broken :(
+peekds::validate_for_db_import("manual gaze coding", dir_csv = glue::glue("{write_path}/"))
+peekds::put_processed_data(osf_token, lab_dataset_id, path = glue::glue("{write_path}/"))
+
