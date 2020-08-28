@@ -379,7 +379,7 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
     #set time to zero at the beginning of each trial
     data <- data %>%
       group_by(trial_id) %>%
-      mutate(t = timestamp - min(timestamp)) %>%
+      mutate(t = round(timestamp - min(timestamp))) %>%
       ungroup()
   }
   
