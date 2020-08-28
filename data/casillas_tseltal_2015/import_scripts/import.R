@@ -12,7 +12,7 @@ sample_rate = 25
 dataset_id = 0 #does this need to be hardcoded?
 point_of_disambiguation = 3155
 ### get raw data ###
-osf_token <- read_lines(here("data", lab_dataset_id, "import_scripts","osf_token.txt"))
+osf_token <- read_lines(here("osf_token.txt"))
 
 #for now processing from my local project folder, change to work with osf once that gets pushed
 read_path <- here("data",lab_dataset_id, "raw_data/")
@@ -124,12 +124,19 @@ stimuli_vec = stim_data_raw$target_word
 
 stimuli_table <- tibble("stimulus_id" = seq.int(0, n_distinct(stimuli_vec)-1),
                          "stimulus_label" = stimuli_vec,
-                         "stimulus_novelty"=NA,
-                         "stimulus_image_path"=NA,
-                         "lab_stimulus_path"=NA,
+                         "stimulus_novelty"="familiar",
                          "dataset_id" = dataset_id)
-# add image paths []
-#we can add the stimulus path by merging across stimulus name? Not sure if we have the individual stimuli or the trials as images
+#lab stimulus_id will be the translation...
+stimuli_table = merge(stimuli_table, stim_data_raw %>% 
+                                        select("target_word", "target_word_english","target_image") %>%
+                                        rename("stimulus_label" = "target_word", 
+                                                "lab_stimulus_id" = "target_word_english",
+                                                "stimulus_image_path" = "target_image") %>%
+                                          mutate(stimulus_image_path = 
+                                                 glue::glue("original_images/{stimulus_image_path}")),
+                      by = "stimulus_label")
+
+# add image paths [x]
 
 ### AOI_REGION_SETS TABLE ###
 aoi_region_sets <- tibble("aoi_region_set_id"=0, #only one set of aoi regions for this study
@@ -311,21 +318,74 @@ full_aoi_data$aoi_timepoint_id = seq.int(0,nrow(full_aoi_data)-1)
 final_timepoints_table = full_aoi_data[c("aoi_timepoint_id", "trial_id", "aoi",
                                                 "t_norm", "administration_id")]
 
-### write to files
-datasets_table %>% write_csv(fs::path(write_path, "datasets.csv"))
-subjects_table %>% write_csv(fs::path(write_path, "subjects.csv"))
-stimuli_table %>% write_csv(fs::path(write_path, "stimuli.csv"))
-aoi_region_sets %>% write_csv(fs::path(write_path, "aoi_region_sets.csv"))
+### check datatypes and write to files
+administrations_table <- administrations_table %>% mutate(dataset_id = as.integer(dataset_id),
+                                 age = as.numeric(age),
+                                 lab_age = as.numeric(lab_age),
+                                 lab_age_units = as.character(lab_age_units),
+                                 monitor_size_x  = as.numeric(monitor_size_x),
+                                 monitor_size_y = as.numeric(monitor_size_y),
+                                 sample_rate = as.numeric(sample_rate),
+                                 tracker = as.character(tracker),
+                                 coding_method = as.character(coding_method)) 
 administrations_table %>% write_csv(fs::path(write_path, "administrations.csv"))
+
+datasets_table <- datasets_table %>% mutate(dataset_id = as.integer(dataset_id),
+                                            lab_dataset_id = as.character(lab_dataset_id),
+                                            dataset_name= as.character(dataset_name),
+                                            cite= as.character(cite),
+                                            shortcite= as.character(shortcite))
+datasets_table %>% write_csv(fs::path(write_path, "datasets.csv"))
+
+subjects_table <- subjects_table %>% mutate(subject_id = as.integer(subject_id),
+                                            sex = as.character(sex),
+                                            lab_subject_id = as.character(lab_subject_id))
+subjects_table %>% write_csv(fs::path(write_path, "subjects.csv"))
+
+trials_table <- trials_table %>% mutate(trial_id = as.integer(trial_id),
+                                        full_phrase = as.character(full_phrase),
+                                        full_phrase_language = as.character(full_phrase_language),
+                                        point_of_disambiguation = as.integer(point_of_disambiguation),
+                                        target_side = as.character(target_side),
+                                        lab_trial_id  = as.character(lab_trial_id),
+                                        aoi_region_set_id = as.integer(aoi_region_set_id),
+                                        dataset_id = as.integer(dataset_id),
+                                        distractor_id = as.integer(distractor_id),
+                                        target_id = as.integer(target_id))
 trials_table %>% write_csv(fs::path(write_path, "trials.csv"))
-final_timepoints_table %>% write_csv(fs::path(write_path, "aoi_timepoints.csv"))
+
+aoi_timepoints_table <- final_timepoints_table %>% mutate(aoi_timepoint_id = as.integer(aoi_timepoint_id),
+                                                          trial_id = as.integer(trial_id),
+                                                          aoi = as.character(aoi),
+                                                          t_norm = as.integer(t_norm),
+                                                          administration_id = as.integer(administration_id))
+aoi_timepoints_table %>% write_csv(fs::path(write_path, "aoi_timepoints.csv"))
+
+aoi_region_sets_table <- aoi_region_sets %>% mutate(aoi_region_set_id = as.integer(aoi_region_set_id),
+                                                    l_x_max = as.integer(l_x_max),
+                                                    l_x_min = as.integer(l_x_min),
+                                                    l_y_max = as.integer(l_y_max),
+                                                    l_y_min = as.integer(l_y_min),
+                                                    r_x_max = as.integer(r_x_max),
+                                                    r_x_min = as.integer(r_x_min),
+                                                    r_y_max = as.integer(r_y_max),
+                                                    r_y_min = as.integer(r_y_min))
+aoi_region_sets_table %>% write_csv(fs::path(write_path, "aoi_region_sets.csv"))
+
+stimuli_table <- stimuli_table %>% mutate(stimulus_id = as.integer(stimulus_id),
+                                          stimulus_label = as.character(stimulus_label),
+                                          stimulus_novelty = as.character(stimulus_novelty),
+                                          stimulus_image_path = as.character(stimulus_image_path),
+                                          lab_stimulus_id = as.character(lab_stimulus_id),
+                                          dataset_id = as.integer(dataset_id))
+stimuli_table %>% write_csv(fs::path(write_path, "stimuli.csv"))
 #full_aoi_data %>% write_csv(fs::path(write_path, "full_aoi_timepoints.csv"))
 
 ### Write to OSF ###
 # need osf token
 #this is broken :(
-peekds::validate_for_db_import("manual gaze coding", dir_csv = here("data",lab_dataset_id, "processed_data/"))
+peekds::validate_for_db_import(glue::glue("{write_path}/"))
 #but this works?
-read.csv(here("data",lab_dataset_id, "processed_data/administrations.csv"))
+#read.csv(here("data",lab_dataset_id, "processed_data/administrations.csv"))
 peekds::put_processed_data(osf_token, lab_dataset_id, path = glue::glue("{write_path}/"))
 
