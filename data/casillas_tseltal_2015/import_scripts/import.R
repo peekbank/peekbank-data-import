@@ -13,12 +13,11 @@ dataset_id = 0 #does this need to be hardcoded?
 point_of_disambiguation = 3155
 ### get raw data ###
 osf_token <- read_lines(here("data", lab_dataset_id, "import_scripts","osf_token.txt"))
-peekds::get_raw_data(lab_dataset_id, path = here("data", lab_dataset_id, "import_scripts", "raw_data"), 
-                     osf_address = "pr6wu")
 
 #for now processing from my local project folder, change to work with osf once that gets pushed
-read_path = here("data", lab_dataset_id,"import_scripts","raw_data")
-write_path = here("data", lab_dataset_id,"import_scripts","processed_data")
+read_path <- here("data",lab_dataset_id, "raw_data/")
+write_path <- here("data",lab_dataset_id, "processed_data/")
+peekds::get_raw_data(lab_dataset_id, path = read_path)
 
 ### Read Metadata ###
 
@@ -57,21 +56,6 @@ eaf_to_log = eaf_to_log %>%
 part_trial_conv = eaf_to_log %>% select("log.filename", "participant") %>% 
   rename("file_name" = "log.filename",
          "participant_name"="participant")
-#any participants in the participant table who arent in the log table, we should drop them
-
-#df = read.csv(fs::path(read_path,"LOG_original", "P43-36moM-19plusmonths.log"), skip =3, sep = "\t")
-#
-##filter to just the lwl designs
-#df = df %>% rowwise()%>%
-#  mutate(Code = unlist(strsplit(Code, "\\."))[1]) %>% 
-#  mutate(task_type = gsub('[0-9]+', '',Code)) %>% 
-#  filter(task_type == "lwl")
-
-#df = df %>% rowwise()%>% mutate(Code = convert_png_to_lab_id(Code)) %>% select("Subject", "Trial", "Code")
-
-#df = filter(df, Code %in% stim_data_raw$trialname_eaf)
-#df = df[order(df$Trial),]
-#df$trial_index = seq.int(1,nrow(df))
 
 get_trial_order <- function(file_name){
   path = fs::path(read_path,"LOG_original", file_name)
@@ -111,8 +95,6 @@ datasets_table = tibble(
   shortcite = "Casillas et al. (2017)"
 )
 
-datasets_table %>% write_csv(fs::path(write_path, "datasets.csv"))
-
 ### subjects table ###
 
 sub_data_raw$AgeInMonths <- as.integer(sub_data_raw$AgeInMonths )
@@ -135,7 +117,6 @@ subjects_table$subject_id <- seq.int(0,nrow(subjects_table)-1)
 #reordering probably doesn't matter, but easier to check work
 subjects_table <- subjects_table[c("subject_id", "sex", "lab_subject_id")]
 
-subjects_table %>% write_csv(fs::path(write_path, "subjects.csv"))
 
 ### stimulus table ###
 
@@ -149,7 +130,6 @@ stimuli_table <- tibble("stimulus_id" = seq.int(0, n_distinct(stimuli_vec)-1),
                          "dataset_id" = dataset_id)
 # add image paths []
 #we can add the stimulus path by merging across stimulus name? Not sure if we have the individual stimuli or the trials as images
-stimuli_table %>% write_csv(fs::path(write_path, "stimuli.csv"))
 
 ### AOI_REGION_SETS TABLE ###
 aoi_region_sets <- tibble("aoi_region_set_id"=0, #only one set of aoi regions for this study
@@ -162,7 +142,6 @@ aoi_region_sets <- tibble("aoi_region_set_id"=0, #only one set of aoi regions fo
                           "r_y_max" = 754,
                           "r_y_min" = 359)
 
-aoi_region_sets %>% write_csv(fs::path(write_path, "aoi_region_sets.csv"))
 
 
 ### ADMINISTRATIONS TABLE ### - this is where it gets complicated
@@ -197,7 +176,6 @@ administrations_table <- administrations_table[c("administration_id", "dataset_i
                                                  "monitor_size_x", "monitor_size_y", 
                                                  "sample_rate", "tracker", "coding_method")]
 administrations_table$coding_method <- as.character(administrations_table$coding_method)
-administrations_table %>% write_csv(fs::path(write_path, "administrations.csv"))
 
 ### TRIALS ### 
 #get language code
@@ -236,7 +214,6 @@ trials_table = trials_table[c("trial_id", "full_phrase", "full_phrase_language",
                               "point_of_disambiguation", "target_side", "lab_trial_id", 
                               "aoi_region_set_id", "dataset_id", "distractor_id", "target_id")]
 
-trials_table %>% write_csv(fs::path(write_path, "trials.csv"))
 
 ### AOI_TIMEPOINTS TABLE ###
 
@@ -334,12 +311,21 @@ full_aoi_data$aoi_timepoint_id = seq.int(0,nrow(full_aoi_data)-1)
 final_timepoints_table = full_aoi_data[c("aoi_timepoint_id", "trial_id", "aoi",
                                                 "t_norm", "administration_id")]
 
+### write to files
+datasets_table %>% write_csv(fs::path(write_path, "datasets.csv"))
+subjects_table %>% write_csv(fs::path(write_path, "subjects.csv"))
+stimuli_table %>% write_csv(fs::path(write_path, "stimuli.csv"))
+aoi_region_sets %>% write_csv(fs::path(write_path, "aoi_region_sets.csv"))
+administrations_table %>% write_csv(fs::path(write_path, "administrations.csv"))
+trials_table %>% write_csv(fs::path(write_path, "trials.csv"))
 final_timepoints_table %>% write_csv(fs::path(write_path, "aoi_timepoints.csv"))
 #full_aoi_data %>% write_csv(fs::path(write_path, "full_aoi_timepoints.csv"))
 
 ### Write to OSF ###
 # need osf token
 #this is broken :(
-peekds::validate_for_db_import("manual gaze coding", dir_csv = glue::glue("{write_path}/"))
+peekds::validate_for_db_import("manual gaze coding", dir_csv = here("data",lab_dataset_id, "processed_data/"))
+#but this works?
+read.csv(here("data",lab_dataset_id, "processed_data/administrations.csv"))
 peekds::put_processed_data(osf_token, lab_dataset_id, path = glue::glue("{write_path}/"))
 
