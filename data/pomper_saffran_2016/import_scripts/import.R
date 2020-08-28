@@ -206,12 +206,12 @@ d_tidy_semifinal <- d_tidy %>%
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
-  mutate(distractor_label = distractor_image,
+  mutate(administration_id = subject_id,
+         distractor_label = distractor_image,
          dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
          target_label = target_image.x,
          lab_trial_id = paste(order, tr_num, sep = "-"),
          full_phrase = NA,
-         administration_id = 0,
          aoi_region_set_id = NA, # was aoi_region_id
          monitor_size_x = NA, # 140cm .. diagonal?
          monitor_size_y = NA,
@@ -225,7 +225,7 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
-  select(aoi_data_id, subject_id, t, aoi, trial_id, administration_id) %>%
+  select(aoi_data_id, t, aoi, trial_id, administration_id) %>%
   rename(aoi_timepoint_id = aoi_data_id,
          t_norm = t) %>% # original data had columns from -990ms to 6867ms...presumably centered at disambiguation per trial?
   write_csv(fs::path(write_path, aoi_table_filename))
