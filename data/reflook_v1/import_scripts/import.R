@@ -75,7 +75,7 @@ process_subjects_info <- function(file_path) {
     dplyr::mutate(age = round(lab_age * 12,0), #convert age to months
                   lab_age_units = "years") %>%
     mutate(sex = factor(sex, labels = c("male", "female", "unspecified")), #this is pulled from yurovsky processing code
-           age = ifelse(age == "NaN", "unspecified", age),
+           age = ifelse(age == "NaN", NA, age),
            lab_age = ifelse(lab_age == "NaN", NA, lab_age)) 
   
   return(data)
