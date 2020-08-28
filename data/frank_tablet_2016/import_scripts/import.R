@@ -26,6 +26,13 @@ stims_to_keep_chars <- c("_")
 trial_file_name <- "trial.codes.csv"
 participant_file_name <- "eye.tracking.csv"
 
+#### OSF Integration ####
+dir_path <- fs::path(here::here("data", dataset_name, "raw_data"))
+
+##only download if it's not on your machine
+if(length(list.files(paste0(dir_path, "/full_dataset"))) == 0 && length(list.files(paste0(dir_path, "/experiment_info"))) == 0) {
+  get_raw_data(lab_dataset_id = "frank_tablet_2016", path = dir_path, osf_address = "pr6wu")
+}
 
 #Specify file 
 file_name <- "2014_07_03_01-eye_data Samples_fixed.txt"
@@ -35,7 +42,7 @@ file_name <- "2014_07_03_01-eye_data Samples_fixed.txt"
 project_root <- here::here()
 #build directory path
 dir_path <- fs::path(project_root,"data", dataset_name,"raw_data","full_dataset")
-exp_info_path <- fs::path(project_root,"data", dataset_name,"raw_data")
+exp_info_path <- fs::path(project_root,"data", dataset_name,"raw_data", "experiment_info")
 #aoi_path <- fs::path(project_root,"data",dataset_name,"raw_data","test_aois")
 
 #output path
@@ -55,7 +62,7 @@ right_aoi <- data.frame(aoi_name = "right", r_x_min = 1067,
 
 ##hard-coded target distractor pairs
 # taken from the image file names of https://github.com/langcog/tablet/tree/master/image_pairs
-target_distractor_pairs <- read_delim(fs::path(project_root, "data", dataset_name, "raw_data", "target_distractor.txt"), delim="\t")
+target_distractor_pairs <- read_delim(fs::path(project_root, "data", dataset_name, "raw_data", "experiment_info", "target_distractor.txt"), delim="\t")
 
 #### generic functions ###
 
@@ -81,10 +88,10 @@ process_subjects_info <- function(file_path) {
     dplyr::rename("lab_subject_id" = "sid", 
                   "sex" = "gender")%>%
     mutate(sex = factor(sex, levels = c("Male", "Female", "NaN"),
-                        labels = c("Male", "Female", NA)),
+                        labels = c("male", "female", "unspecified")),
            lab_age = age, 
            lab_age_units = "years",
-           age = round(365.25*(ifelse(age == "NaN", NA, age)))) #converting age from years to days
+           age = round(12*(ifelse(age == "NaN", NA, age)))) #converting age from years to days
   
   return(data)
 }
@@ -109,7 +116,6 @@ process_smi_trial_info <- function(file_path) {
   trial_data$dataset_id <- dataset_id 
   trial_data$full_phrase <- NA #don't have carrier phrase
   trial_data$full_phrase_language <- "eng"
-  
   
   #separate stimulus name for individual images (target and distracter)
   trial_data <- trial_data %>%
