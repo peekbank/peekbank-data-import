@@ -133,7 +133,7 @@ process_smi_trial_info <- function(file_path) {
   trial_data <- trial_data %>%
     dplyr::rename("lab_trial_id" = "trial", 
                   "dataset_id" = "dataset")%>%
-    mutate(full_phrase_language = "English")%>%
+    mutate(full_phrase_language = "eng")%>%
     dplyr::select(trial_id,
                   full_phrase, 
                   full_phrase_language, 
@@ -379,7 +379,7 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
     #set time to zero at the beginning of each trial
     data <- data %>%
       group_by(trial_id) %>%
-      mutate(t = timestamp - min(timestamp)) %>%
+      mutate(t = round(timestamp - min(timestamp))) %>%
       ungroup()
   }
   
