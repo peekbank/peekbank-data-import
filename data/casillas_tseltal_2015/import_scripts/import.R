@@ -4,26 +4,31 @@ library(tidyverse)
 library(peekds)
 library(dplyr)
 library(stringr)
+library(osfr)
 
 ### general params. ###
 lab_dataset_id = "casillas_tseltal_2015"
-sample_rate = 40
+sample_rate = 25
 dataset_id = 0 #does this need to be hardcoded?
 point_of_disambiguation = 3155
 ### get raw data ###
-peekds::get_raw_data(lab_dataset_id, path = here("data", lab_dataset_id, "import_scripts", "raw_data"), osf_address = "pr6wu")
+osf_token <- read_lines(here("osf_token.txt"))
 
 #for now processing from my local project folder, change to work with osf once that gets pushed
-read_path = here("data", lab_dataset_id,"import_scripts","raw_data")
-write_path = here("data", lab_dataset_id,"import_scripts","processed_data")
+read_path <- here("data",lab_dataset_id, "raw_data/")
+write_path <- here("data",lab_dataset_id, "processed_data/")
+peekds::get_raw_data(lab_dataset_id, path = read_path)
 
 ### Read Metadata ###
 
 stim_data_raw = readr::read_csv(fs::path(read_path, "metadata", "tseltal_2015-trial_info.csv"))
 sub_data_raw = readr::read_csv(fs::path(read_path, "metadata", "raw_participant.csv"))
 participant_coder_table = readr::read_csv(fs::path(read_path, "metadata/file_primary_coder_data.csv"))
+eaf_to_log = readr::read_csv(fs::path(read_path, "metadata/log-eaf-correspondence.csv"))
+#read in new file eaf to log [x]
 
-#add fix for new trial randomization map by participant (:
+
+#add fix for new trial randomization map by participant 
 
 #first read in all the file names as a column in a tibble
 part_trial_conv = tibble("file_name" = list.files(path = fs::path(read_path,"LOG_original"),
@@ -37,24 +42,20 @@ convert_png_to_lab_id <- function(png_lwl){
   new_name = paste0(c("LWL", num), collapse="")
   return(new_name)
 }
+# do this using the eaf to log file
+#drop any log files without a corr .txt
+eaf_to_log = eaf_to_log %>% 
+  filter(across(everything(),
+                ~ !is.na(.))) %>% mutate(file = gsub("\\.eaf","\\.txt", eaf.filename))
 
-part_trial_conv = part_trial_conv %>% rowwise() %>% mutate(participant_name = convert_file_to_part(file_name))
-#any participants in the participant table who arent in the log table, we should drop them
+eaf_to_log = merge(eaf_to_log, participant_coder_table, by="file")
 
-part_trial_conv = filter(part_trial_conv, participant_name %in% participant_coder_table$participant)
-df = read.csv(fs::path(read_path,"LOG_original", "P43-36moM-19plusmonths.log"), skip =3, sep = "\t")
+eaf_to_log = eaf_to_log %>% 
+  filter_at(.vars = vars(one_of(c("primary_coder"))), ~ !is.na(.))
 
-#filter to just the lwl designs
-df = df %>% rowwise()%>%
-  mutate(Code = unlist(strsplit(Code, "\\."))[1]) %>% 
-  mutate(task_type = gsub('[0-9]+', '',Code)) %>% 
-  filter(task_type == "lwl")
-
-df = df %>% rowwise()%>% mutate(Code = convert_png_to_lab_id(Code)) %>% select("Subject", "Trial", "Code")
-
-df = filter(df, Code %in% stim_data_raw$trialname_eaf)
-df = df[order(df$Trial),]
-df$trial_index = seq.int(1,nrow(df))
+part_trial_conv = eaf_to_log %>% select("log.filename", "participant") %>% 
+  rename("file_name" = "log.filename",
+         "participant_name"="participant")
 
 get_trial_order <- function(file_name){
   path = fs::path(read_path,"LOG_original", file_name)
@@ -94,8 +95,6 @@ datasets_table = tibble(
   shortcite = "Casillas et al. (2017)"
 )
 
-datasets_table %>% write_csv(fs::path(write_path, "datasets.csv"))
-
 ### subjects table ###
 
 sub_data_raw$AgeInMonths <- as.integer(sub_data_raw$AgeInMonths )
@@ -118,7 +117,6 @@ subjects_table$subject_id <- seq.int(0,nrow(subjects_table)-1)
 #reordering probably doesn't matter, but easier to check work
 subjects_table <- subjects_table[c("subject_id", "sex", "lab_subject_id")]
 
-subjects_table %>% write_csv(fs::path(write_path, "subjects.csv"))
 
 ### stimulus table ###
 
@@ -126,13 +124,19 @@ stimuli_vec = stim_data_raw$target_word
 
 stimuli_table <- tibble("stimulus_id" = seq.int(0, n_distinct(stimuli_vec)-1),
                          "stimulus_label" = stimuli_vec,
-                         "stimulus_novelty"=NA,
-                         "stimulus_image_path"=NA,
-                         "lab_stimulus_path"=NA,
+                         "stimulus_novelty"="familiar",
                          "dataset_id" = dataset_id)
+#lab stimulus_id will be the translation...
+stimuli_table = merge(stimuli_table, stim_data_raw %>% 
+                                        select("target_word", "target_word_english","target_image") %>%
+                                        rename("stimulus_label" = "target_word", 
+                                                "lab_stimulus_id" = "target_word_english",
+                                                "stimulus_image_path" = "target_image") %>%
+                                          mutate(stimulus_image_path = 
+                                                 glue::glue("original_images/{stimulus_image_path}")),
+                      by = "stimulus_label")
 
-#we can add the stimulus path by merging across stimulus name? Not sure if we have the individual stimuli or the trials as images
-stimuli_table %>% write_csv(fs::path(write_path, "stimuli.csv"))
+# add image paths [x]
 
 ### AOI_REGION_SETS TABLE ###
 aoi_region_sets <- tibble("aoi_region_set_id"=0, #only one set of aoi regions for this study
@@ -145,20 +149,17 @@ aoi_region_sets <- tibble("aoi_region_set_id"=0, #only one set of aoi regions fo
                           "r_y_max" = 754,
                           "r_y_min" = 359)
 
-aoi_region_sets %>% write_csv(fs::path(write_path, "aoi_region_sets.csv"))
 
 
 ### ADMINISTRATIONS TABLE ### - this is where it gets complicated
 
 #restrict to participants with lwl task
-participant_coder_table <- participant_coder_table %>% 
-  filter_at(.vars = vars(one_of(c("primary_coder"))), ~ !is.na(.))
 
 administrations_table = tibble("administration_id" = seq.int(0, nrow(participant_coder_table)-1),
                          "dataset_id" = dataset_id,
                          "monitor_size_x" = 1366,
                          "monitor_size_y" = 768,
-                         "sample_rate"=40,
+                         "sample_rate"=sample_rate,
                          "tracker" = NA,
                          "coding_method" = "manual gaze coding",
                          "lab_subject_id" = participant_coder_table$participant,
@@ -181,8 +182,7 @@ administrations_table <- administrations_table[c("administration_id", "dataset_i
                                                  "age","lab_age","lab_age_units",
                                                  "monitor_size_x", "monitor_size_y", 
                                                  "sample_rate", "tracker", "coding_method")]
-
-administrations_table %>% write_csv(fs::path(write_path, "administrations.csv"))
+administrations_table$coding_method <- as.character(administrations_table$coding_method)
 
 ### TRIALS ### 
 #get language code
@@ -221,7 +221,6 @@ trials_table = trials_table[c("trial_id", "full_phrase", "full_phrase_language",
                               "point_of_disambiguation", "target_side", "lab_trial_id", 
                               "aoi_region_set_id", "dataset_id", "distractor_id", "target_id")]
 
-trials_table %>% write_csv(fs::path(write_path, "trials.csv"))
 
 ### AOI_TIMEPOINTS TABLE ###
 
@@ -237,7 +236,7 @@ test_get_aoi <- function(target_lwl, trial){
     lwl_task = filter(target_lwl, primary_coder == task)
     
     #start creating the tibble for this task+admin pair :)
-    df = tibble("timepoint_ms" = seq.int(0, trial_end, 25))
+    df = tibble("timepoint_ms" = seq.int(0, trial_end, 1000/sample_rate))
     df$administration_id = administration
     df$trial = trial
     get_aoi <- function(timepoint_ms, lwl_df = lwl_task){
@@ -319,8 +318,74 @@ full_aoi_data$aoi_timepoint_id = seq.int(0,nrow(full_aoi_data)-1)
 final_timepoints_table = full_aoi_data[c("aoi_timepoint_id", "trial_id", "aoi",
                                                 "t_norm", "administration_id")]
 
-final_timepoints_table %>% write_csv(fs::path(write_path, "aoi_timepoints.csv"))
+### check datatypes and write to files
+administrations_table <- administrations_table %>% mutate(dataset_id = as.integer(dataset_id),
+                                 age = as.numeric(age),
+                                 lab_age = as.numeric(lab_age),
+                                 lab_age_units = as.character(lab_age_units),
+                                 monitor_size_x  = as.numeric(monitor_size_x),
+                                 monitor_size_y = as.numeric(monitor_size_y),
+                                 sample_rate = as.numeric(sample_rate),
+                                 tracker = as.character(tracker),
+                                 coding_method = as.character(coding_method)) 
+administrations_table %>% write_csv(fs::path(write_path, "administrations.csv"))
+
+datasets_table <- datasets_table %>% mutate(dataset_id = as.integer(dataset_id),
+                                            lab_dataset_id = as.character(lab_dataset_id),
+                                            dataset_name= as.character(dataset_name),
+                                            cite= as.character(cite),
+                                            shortcite= as.character(shortcite))
+datasets_table %>% write_csv(fs::path(write_path, "datasets.csv"))
+
+subjects_table <- subjects_table %>% mutate(subject_id = as.integer(subject_id),
+                                            sex = as.character(sex),
+                                            lab_subject_id = as.character(lab_subject_id))
+subjects_table %>% write_csv(fs::path(write_path, "subjects.csv"))
+
+trials_table <- trials_table %>% mutate(trial_id = as.integer(trial_id),
+                                        full_phrase = as.character(full_phrase),
+                                        full_phrase_language = as.character(full_phrase_language),
+                                        point_of_disambiguation = as.integer(point_of_disambiguation),
+                                        target_side = as.character(target_side),
+                                        lab_trial_id  = as.character(lab_trial_id),
+                                        aoi_region_set_id = as.integer(aoi_region_set_id),
+                                        dataset_id = as.integer(dataset_id),
+                                        distractor_id = as.integer(distractor_id),
+                                        target_id = as.integer(target_id))
+trials_table %>% write_csv(fs::path(write_path, "trials.csv"))
+
+aoi_timepoints_table <- final_timepoints_table %>% mutate(aoi_timepoint_id = as.integer(aoi_timepoint_id),
+                                                          trial_id = as.integer(trial_id),
+                                                          aoi = as.character(aoi),
+                                                          t_norm = as.integer(t_norm),
+                                                          administration_id = as.integer(administration_id))
+aoi_timepoints_table %>% write_csv(fs::path(write_path, "aoi_timepoints.csv"))
+
+aoi_region_sets_table <- aoi_region_sets %>% mutate(aoi_region_set_id = as.integer(aoi_region_set_id),
+                                                    l_x_max = as.integer(l_x_max),
+                                                    l_x_min = as.integer(l_x_min),
+                                                    l_y_max = as.integer(l_y_max),
+                                                    l_y_min = as.integer(l_y_min),
+                                                    r_x_max = as.integer(r_x_max),
+                                                    r_x_min = as.integer(r_x_min),
+                                                    r_y_max = as.integer(r_y_max),
+                                                    r_y_min = as.integer(r_y_min))
+aoi_region_sets_table %>% write_csv(fs::path(write_path, "aoi_region_sets.csv"))
+
+stimuli_table <- stimuli_table %>% mutate(stimulus_id = as.integer(stimulus_id),
+                                          stimulus_label = as.character(stimulus_label),
+                                          stimulus_novelty = as.character(stimulus_novelty),
+                                          stimulus_image_path = as.character(stimulus_image_path),
+                                          lab_stimulus_id = as.character(lab_stimulus_id),
+                                          dataset_id = as.integer(dataset_id))
+stimuli_table %>% write_csv(fs::path(write_path, "stimuli.csv"))
+#full_aoi_data %>% write_csv(fs::path(write_path, "full_aoi_timepoints.csv"))
 
 ### Write to OSF ###
 # need osf token
-#put_processed_data(osf_token, dataset_name, path = glue::glue("{output_path}/"))
+#this is broken :(
+peekds::validate_for_db_import(glue::glue("{write_path}/"))
+#but this works?
+#read.csv(here("data",lab_dataset_id, "processed_data/administrations.csv"))
+peekds::put_processed_data(osf_token, lab_dataset_id, path = glue::glue("{write_path}/"))
+

@@ -74,7 +74,7 @@ process_subjects_info <- function(file_path) {
                   "lab_age" = "age")%>%
     dplyr::mutate(age = round(lab_age * 12,0), #convert age to months
                   lab_age_units = "years") %>%
-    mutate(sex = factor(sex, labels = c("male", "female", "missing")), #this is pulled from yurovsky processing code
+    mutate(sex = factor(sex, labels = c("male", "female", "unspecified")), #this is pulled from yurovsky processing code
            age = ifelse(age == "NaN", NA, age),
            lab_age = ifelse(lab_age == "NaN", NA, lab_age)) 
   
@@ -99,7 +99,8 @@ process_smi_trial_info <- function(file_path) {
   #separate stimulus name for individual images (target and distractor)
   #then separate into target and distractor
   trial_data <- trial_data %>%
-    mutate(stimulus_name = str_remove_all(Stimulus,".jpg|o_|t_")) %>%
+    mutate(Stimulus = str_remove_all(Stimulus,".jpg"),
+           stimulus_name = str_remove_all(Stimulus,"o_|t_")) %>%
     rename("target_side" = "target") %>%
     separate(stimulus_name, into=c("left_image","right_image"),sep="_",remove=F) %>%
     mutate(target_image = ifelse(target_side == "left", left_image, right_image), 
@@ -125,7 +126,7 @@ process_smi_trial_info <- function(file_path) {
   #extract relevant columns
   #keeping type and Stimulus for now for cross-checking with raw eyetracking
   trial_data <- trial_data %>%
-    mutate(full_phrase_language = "English")%>%
+    mutate(full_phrase_language = "eng")%>%
     dplyr::select(trial_id,
                   full_phrase, 
                   full_phrase_language, 
@@ -136,7 +137,8 @@ process_smi_trial_info <- function(file_path) {
                   type,
                   target_label, ##keeping target and distrator labels so we can match them up with stimulus id in process_smi
                   distractor_label, 
-                  stimulus_name)
+                  stimulus_name, 
+                  Stimulus)
   
   return(trial_data)
   
@@ -164,11 +166,12 @@ process_smi_stimuli <- function(file_path) {
     pivot_longer(c("left_image", "right_image"), 
                  names_to = "side", 
                  values_to = "stimulus_label")%>%
-    mutate(dataset = dataset_id, 
-           stimulus_image = NA, 
-           lab_stimulus_id = NA)%>%
+    mutate(dataset_id = dataset_id, 
+           stimulus_image_path = NA, 
+           lab_stimulus_id = NA,
+           type = str_to_lower(type))%>%
     rename("stimulus_novelty" = "type")%>%
-    distinct(stimulus_novelty, stimulus_image, lab_stimulus_id, stimulus_label, dataset)
+    distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, stimulus_label, dataset_id)
   
   return(stimuli_data)
 }
@@ -182,6 +185,7 @@ process_smi_dataset <- function(lab_dataset_id=dataset_name) {
   dataset.data <- data.frame(
     dataset_id = dataset_id, #hard code data set id for now
     lab_dataset_id = lab_dataset_id,
+    dataset_name = lab_dataset_id,
     name = lab_dataset_id, 
     shortcite = "?", 
     cite = "?"
@@ -380,7 +384,7 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
     #set time to zero at the beginning of each trial
     data <- data %>%
       group_by(trial_id) %>%
-      mutate(t = timestamp - min(timestamp)) %>%
+      mutate(t = round(timestamp - min(timestamp))) %>%
       ungroup()
   }
   
@@ -427,16 +431,21 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     mutate(l_x_min = ifelse(l_x_min < 0, 0, as.numeric(l_x_min)))%>% #setting negative vals to 0
     distinct(l_x_min, l_x_max, l_y_min, l_y_max, 
              r_x_min, r_x_max, r_y_min, r_y_max, 
-             stimulus_name)%>%
-    mutate(aoi_region_set_id = seq(0,length(stimulus_name)-1))
+             stimulus_name)
   
   # #clean up aoi.data
   aoi.data <- aoi.data.all %>%
-    dplyr::select(-stimulus_name)
+    dplyr::select(-stimulus_name) %>%
+    distinct() %>%
+    mutate(aoi_region_set_id = seq(0,length(l_x_min)-1))
   
   #create table of aoi region ids and stimulus name
   aoi_ids <- aoi.data.all %>%
-    distinct(stimulus_name,aoi_region_set_id)  
+    dplyr::rename("Stimulus" = "stimulus_name") %>%
+    dplyr::mutate(stimulus_name = str_remove_all(Stimulus,".jpg|o_|t_")) %>%
+    left_join(aoi.data, by = c("l_x_min", "l_x_max", "l_y_min", "l_y_max", "r_x_min", "r_x_max", "r_y_min", "r_y_max")) %>%
+    distinct(stimulus_name,Stimulus,aoi_region_set_id)  ##to-do: match aoi_region_set_id with trials from stimulus
+  
   
   #### generate all data objects ####
   
@@ -448,7 +457,6 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     mutate(stimulus_id = seq(0,length(stimulus_label)-1)) 
   
   ## create timepoint data so we have a list of participants for whom we actually have data
-  ###there's an error here saying we can't subset elements that don't exist?
   timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file)%>%
     bind_rows() %>%
     mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
@@ -482,7 +490,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     rename(distractor_id = stimulus_id) %>%
     left_join(stimuli.data %>% select(stimulus_id, stimulus_label), by=c("target_label"="stimulus_label")) %>%
     rename(target_id = stimulus_id)%>%
-    left_join(aoi_ids, by="stimulus_name")
+    left_join(aoi_ids %>% select(-stimulus_name), by="Stimulus") 
   
   #create xy data
   xy.data <- timepoint.data %>%
@@ -496,67 +504,14 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
                   lab_trial_id, aoi_region_set_id, dataset_id, 
                   distractor_id, target_id)
   
-  
-  
-  
-  ###----below has not been changed###
-  
-  #create xy data
-  xy.data <- lapply(all_file_paths,process_smi_eyetracking_file) %>%
-    bind_rows() %>%
-    mutate(xy_data_id = seq(0,length(lab_subject_id)-1)) %>%
-    mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1) %>%
-    dplyr::select(xy_data_id,subject_id,lab_subject_id,x,y,t,trial_id)
-  
-  #extract unique participant ids from eyetracking data (in order to filter participant demographic file)
-  participant_id_table <- xy.data %>%
-    distinct(lab_subject_id, subject_id)
-
-  #create participant data
-  subjects.data <- process_subjects_info(participant_file_path) %>%
-    left_join(participant_id_table,by="lab_subject_id") %>%
-    filter(!is.na(subject_id)) %>%
-    dplyr::select(subject_id,lab_subject_id, sex)
-  
-  #create administration data 
-  administration.data <- process_administration_info(participant_file_path, 
-                                                     all_file_paths[1])
-  
-  administration.data <- participant_id_table %>%
-    left_join(administration.data, by = "lab_subject_id")%>%
-    dplyr::select(-lab_subject_id)%>%
-    dplyr::select(dataset_id, subject_id, age, lab_age, lab_age_units, 
-                  monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method)%>%
-    mutate(administration_id = seq(0,length(subject_id)-1)) 
-  
-  #clean up xy_data
-  xy.data <- xy.data %>%
-    dplyr::select(-lab_subject_id)
-  
-  #create trials data
-  trials.data <- process_smi_trial_info(trial_file_path)
-  
-  #join with aoi.data to match aoi region id
-  trials.data <- trials.data %>%
-    left_join(aoi_ids) %>%
-    dplyr::select(-stimulus_name)
-  
-  #create dataset data
-  dataset.data <- process_smi_dataset()
-    
-  
-  #write all data
-  #write_feather(dataset.data,path=paste0(output_path,"/","dataset_data.feather"))
-  #write_feather(xy.data,path=paste0(output_path,"/","xy_data.feather"))
-  
-  write_feather(xy.data,path=paste0(output_path,"/","xy_data.csv"))
+  #write all files
+  write_csv(xy.data,path=paste0(output_path,"/","xy_timepoints.csv"))
   write_csv(subjects.data,path=paste0(output_path,"/","subjects.csv"))
+  write_csv(stimuli.data, path = paste0(output_path, "/", "stimuli.csv"))
   write_csv(trials.data,path=paste0(output_path,"/","trials.csv"))
   write_csv(dataset.data,path=paste0(output_path,"/","datasets.csv"))
-  write_csv(aoi.data,path=paste0(output_path,"/","aoi_regions.csv"))
-  
-  
-  
+  write_csv(aoi.data,path=paste0(output_path,"/","aoi_region_sets.csv"))
+  write_csv(administration.data,path=paste0(output_path,"/","administrations.csv"))
 }
 
 
@@ -565,8 +520,12 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
 
 process_smi(dir=dir_path,exp_info_dir=exp_info_path)
 
-peekds::generate_aoi(dir=output_path)
+#### Generate AOIS ####
+aoi_timepoints <- peekds::generate_aoi(dir = output_path) %>%
+  mutate(aoi = ifelse(is.na(aoi), "missing", as.character(aoi))) #NAs generated by generate_aois, change to missing
+#write to file
+write_csv(aoi_timepoints, path = paste0(output_path, "/", "aoi_timepoints.csv"))
 
-peekds::validate_for_db_import(dir_csv=output_path, dataset_type="automated")
+peekds::validate_for_db_import(dir_csv=output_path)
 
 
