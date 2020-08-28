@@ -263,7 +263,7 @@ sub_parts <- tibble(subject=sub_id) %>%
          day=zero_pad(day),
          num=zero_pad(num)) %>% 
   unite(subject, year,month, day,num)
-  return(sub_parts[1,1])
+  return(sub_parts[[1]])
 }
 
 process_smi_eyetracking_file <- function(file_path, delim_options = possible_delims,stimulus_coding="stim_column") {
