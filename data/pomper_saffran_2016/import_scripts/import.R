@@ -210,23 +210,21 @@ d_trial_ids <- d_tidy %>%
 d_tidy_semifinal <- d_tidy %>%
   mutate(aoi_data_id = seq(0, nrow(d_tidy) - 1)) %>%
   left_join(d_subject_ids, by = "sub_num") %>%
-  left_join(d_trial_ids) %>%
-  select(-target_image.y, -target_word.y) # duplicate values
+  left_join(d_trial_ids) 
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
   mutate(administration_id = subject_id,
          distractor_label = distractor_image,
          dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
-         target_label = target_image.x,
+         target_label = target_word,
          lab_trial_id = paste(order, tr_num, sep = "-"),
-         full_phrase = NA,
          aoi_region_set_id = NA, # was aoi_region_id
          monitor_size_x = NA, # 140cm .. diagonal?
          monitor_size_y = NA,
          lab_age_units = "months",
          age = as.numeric(months), # months
-         point_of_disambiguation = 0 # unsure what 1024 was?
+         point_of_disambiguation = 0 
          ) %>%
   rename(lab_subject_id = sub_num,
          lab_age = months
