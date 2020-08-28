@@ -498,7 +498,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   write_csv(subjects.data,path=paste0(output_path,"/","subjects.csv"))
   write_csv(trials.data,path=paste0(output_path,"/","trials.csv"))
   write_csv(dataset.data,path=paste0(output_path,"/","datasets.csv"))
-  write_csv(aoi.data,path=paste0(output_path,"/","aoi_regions.csv"))
+  write_csv(aoi.data,path=paste0(output_path,"/","aoi_region_sets.csv"))
   
   
   
