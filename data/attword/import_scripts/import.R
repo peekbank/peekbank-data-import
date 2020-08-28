@@ -293,7 +293,7 @@ process_smi_eyetracking_file <-
     ## Convert time into ms starting from 0
     data <- data %>%
       mutate(
-        timestamp = round((data$raw_t - data$raw_t[1]) / 1000, 3)
+        timestamp = round((data$raw_t - data$raw_t[1]) / 1000, 0)
       )
     
     # Redefine coordinate origin (0,0)
@@ -451,7 +451,7 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
     rename(target_id = stimulus_id) %>%
     left_join(stimulus_table %>% select(stimulus_id, stimulus_label),
               by = c("distractor" = "stimulus_label")) %>%
-    rename(distrator_id = stimulus_id) %>%
+    rename(distractor_id = stimulus_id) %>%
     select(-left, -right, -trial_type, -target, -distractor, 
            -target_screen_side) %>%
     mutate(aoi_region_set_id = aoi_region_sets_table_data %>% 
@@ -481,9 +481,7 @@ process_smi(dir = dir_path, exp_info_dir = exp_info_path)
 aoi_timepoints <- peekds::generate_aoi(dir = output_path)
 write_csv(aoi_timepoints, path = paste0(output_path, "/", "aoi_timepoints.csv"))
 
-
-peekds::validate_for_db_import(dir_csv = output_path, dataset_type = "automated")
-
 ### Output processed data
 put_processed_data(osf_token, dataset_name, path = glue::glue("{output_path}/"))
-                   
+
+msg_error_all <- peekds::validate_for_db_import(output_path)
