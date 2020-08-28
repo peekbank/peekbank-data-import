@@ -251,6 +251,20 @@ process_administration_info <- function(file_path_exp_info, file_path_exp) {
 
 #### Table 1A: XY Data ####
 
+#helper functions to 0 pad subject_ids so they line up with those in eye.tracking.csv
+zero_pad <- function(num){
+  ifelse(nchar(num)==1,str_c("0",num),num)
+}
+fix_subject <- function(sub_id){
+
+sub_parts <- tibble(subject=sub_id) %>% 
+  separate(subject, into=c("year","month","day","num"), sep="_") %>% 
+  mutate(month=zero_pad(month),
+         day=zero_pad(day),
+         num=zero_pad(num)) %>% 
+  unite(subject, year,month, day,num)
+  return(sub_parts[1,1])
+}
 
 process_smi_eyetracking_file <- function(file_path, delim_options = possible_delims,stimulus_coding="stim_column") {
   
@@ -299,7 +313,7 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
   
   ## add lab_subject_id column (extracted from data file)
   data <- data %>%
-    mutate(lab_subject_id=lab_subject_id)
+    mutate(lab_subject_id=fix_subject(lab_subject_id))
   
   #Remove out of range looks
   data <- 
