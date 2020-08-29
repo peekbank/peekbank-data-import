@@ -135,7 +135,8 @@ process_smi_trial_info <- function(file_path) {
                   lab_trial_id, 
                   dataset_id, 
                   target_label, ##keeping target and distrator labels so we can match them up with stimulus id in process_smi
-                  distractor_label)
+                  distractor_label,
+                  list.num)
   
   return(trial_data)
 }
@@ -154,12 +155,15 @@ process_smi_stimuli <- function(file_path) {
       delim=sep
     )
   
+  all_stim <- target_distractor_pairs %>% pivot_longer(cols=`Target`:`Distractor`) %>%
+    dplyr::select(word=value)
   #separate stimulus name for individual images (target and distracter)
-  stimuli_data <- stimuli_data %>% 
+  stimuli_data <- all_stim %>% left_join(stimuli_data) %>% 
     mutate(stimulus_label=word,
            stimulus_novelty=case_when(
              word.type %in% c("Familiar-Familiar","Familiar-Novel") ~"familiar",
-             word.type %in% c("Novel-Familiar") ~"novel"
+             word.type %in% c("Novel-Familiar") ~"novel",
+             T ~ "familiar" #distractors that aren't listed are all familiar
            ),
            stimulus_image_path=str_c("images/",stimulus_label, ".png"),
            lab_stimulus_id=stimulus_label,
@@ -189,27 +193,21 @@ process_smi_dataset <- function(lab_dataset_id=dataset_name) {
 
 #### Table 6: AOI regions ####
 #updated
-process_smi_aoi <- function(file_name, exp_info_path, left_aoi, right_aoi) {
+process_smi_aoi <- function() {
   
+  #hard-coded aois 
   ##NB: AOI coordinates are hard-coded for this experiment. 
-  #instead of xml files, this will be run over the names of jpgs in the trial_info file!
-  #note that exp_info path instead of aoi_path is used here
-  #get distinct stimulus name here
-  stim_name_df <- read.csv(fs::path(exp_info_path, file_name))%>%
-    dplyr::select("word")
-  # 
-  #now just repeat these for every stimulus  
-  max_min_info <- stim_name_df %>%
-    mutate(stimulus_name = word, 
-           l_x_min = left_aoi$l_x_min, 
-           l_x_max = left_aoi$l_x_max, 
-           l_y_min = left_aoi$l_y_min, 
-           l_y_max = left_aoi$l_y_max, 
-           r_x_min = right_aoi$r_x_min, 
-           r_x_max = right_aoi$r_x_max, 
-           r_y_min = right_aoi$r_y_min, 
-           r_y_max = right_aoi$r_y_max)%>% 
-    dplyr::select(-word)
+  #Link to relevant file is here: hhttps://github.com/langcog/tablet/blob/master/eye_tracking/MATLAB/CONSTANTS_TAB_COMP.m
+  #it's the same for every stimulus
+  max_min_info <- tibble(aoi_region_set_id = 0, 
+           l_x_min = 0, 
+           l_x_max = 533, 
+           l_y_min = 300, 
+           l_y_max = 700, 
+           r_x_min = 1067, 
+           r_x_max = 1800, 
+           r_y_min = 300, 
+           r_y_max = 700)
   
   return(max_min_info)
 }
@@ -250,7 +248,7 @@ process_administration_info <- function(file_path_exp_info, file_path_exp) {
 }
 
 #### Table 1A: XY Data ####
-
+#updated
 #helper functions to 0 pad subject_ids so they line up with those in eye.tracking.csv
 zero_pad <- function(num){
   ifelse(nchar(num)==1,str_c("0",num),num)
@@ -268,9 +266,9 @@ sub_parts <- tibble(subject=sub_id) %>%
 
 process_smi_eyetracking_file <- function(file_path, delim_options = possible_delims,stimulus_coding="stim_column") {
   
-  file_path <- paste0(dir_path,"/", file_name)
-  delim_options = possible_delims
-  stimulus_coding="stim_column"
+  # file_path <- paste0(dir_path,"/", file_name)
+  # delim_options = possible_delims
+  # stimulus_coding="stim_column"
     
   #guess delimiter
   sep <- get.delim(file_path, comment="#", delims=delim_options,skip = max_lines_search)
@@ -300,7 +298,8 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
     filter(Type=="SMP", #remove anything that isn't actually collecting ET data
            Stimulus != "-", #remove calibration
            !grepl(paste(stims_to_remove_chars,collapse="|"), Stimulus),  #remove anything that isn't actually a trial; .avis are training or attention getters
-           grepl(paste(stims_to_keep_chars,collapse="|"), Stimulus)) %>% #from here, keep only trials, which have format o_name1_name2_.jpg;
+           grepl(paste(stims_to_keep_chars,collapse="|"), Stimulus), #from here, keep only trials, which have format o_name1_name2_.jpg;
+           Stimulus != "elmo_slide.jpg")%>% #no elmo
     dplyr::select(
       raw_t = "Time",
       lx = left_x_col_name,
@@ -352,7 +351,6 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
     mutate(
       timestamp = round((data$raw_t - data$raw_t[1])/1000, 3)
     )
-  
   # Redefine coordinate origin (0,0)
   # SMI starts from top left
   # Here we convert the origin of the x,y coordinate to be bottom left (by "reversing" y-coordinate origin)
@@ -370,19 +368,27 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
       mutate(stim_lag = lag(Stimulus), 
              temp = ifelse(Stimulus != stim_lag, 1, 0), 
              temp_id = cumsum(c(0, temp[!is.na(temp)])), 
-             trial_id = temp_id)
-    
+             trial_num = temp_id)
     #set time to zero at the beginning of each trial
     data <- data %>%
-      group_by(trial_id) %>%
+      group_by(trial_num) %>%
       mutate(t = timestamp - min(timestamp),
              t_norm = t) %>% #fix this
       ungroup()
   }
   
+  #determine what list was used
+  Stim <- data$Stimulus %>% unique()
+  if (Stim[1]=="dog_book.jpg"){
+    data$list.num=1
+  }
+  else if (Stim[1]=="bottle_bird.jpg"){
+    data$list.num=2
+  }
+  print(lab_subject_id)
   #extract final columns
   xy.data <- data %>%
-    dplyr::select(lab_subject_id,x,y,t,t_norm,trial_id)
+    dplyr::select(lab_subject_id,x,y,t,t_norm,Stimulus, list.num)
   
   
   return(xy.data)
@@ -394,9 +400,9 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
 
 process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
-  dir <- dir_path
-  exp_info_dir <- exp_info_path  
-  file_ext=".txt"
+  # dir <- dir_path
+  # exp_info_dir <- exp_info_path  
+  # file_ext=".txt"
   #### generate all file paths ####
   
   #list files in directory
@@ -414,17 +420,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   trial_file_path <- paste0(exp_info_dir, "/",trial_file_name)
   
   #process aoi regions
-  aoi.data <- process_smi_aoi(trial_file_name, exp_info_path, left_aoi, right_aoi)%>%
-    mutate(aoi_region_set_id = seq(0,length(stimulus_name)-1))
-  
-  #create table of aoi region ids and stimulus name
-  aoi_ids <- aoi.data %>%
-    distinct(stimulus_name,aoi_region_set_id) ##to-do: match aoi_region_set_id with trials from stimulus
-  
-  # #clean up aoi.data
-  aoi.data <- aoi.data %>%
-    dplyr::select(-stimulus_name) %>% 
-    select(aoi_region_set_id, everything())
+  aoi.data <- process_smi_aoi()
   
   #### generate all data objects ####
   
@@ -435,7 +431,6 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   stimuli.data <- process_smi_stimuli(trial_file_path)%>%
     mutate(stimulus_id = seq(0,length(stimulus_label)-1)) 
   
-  all_file_paths <- all_file_paths[1:2]
   ## create timepoint data so we have a list of participants for whom we actually have data
   timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file)%>%
     bind_rows() %>%
@@ -462,13 +457,21 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
     mutate(administration_id = seq(0,length(subject_id)-1)) 
   
   #create trials data and match with stimulus id and aoi_region_set_id
-  trials.data <- process_smi_trial_info(trial_file_path)%>%
+  trials.data <- process_smi_trial_info(trial_file_path) %>% 
     left_join(stimuli.data %>% select(stimulus_id, stimulus_label), by=c("distractor_label"="stimulus_label")) %>%
     rename(distractor_id = stimulus_id) %>%
     left_join(stimuli.data %>% select(stimulus_id, stimulus_label), by=c("target_label"="stimulus_label")) %>%
-    rename(target_id = stimulus_id)%>%
-    left_join(aoi_ids, by="stimulus_name")%>%
-    mutate(trial_id = seq(0,length(stimulus_name)-1))%>%
+    rename(target_id = stimulus_id) %>% 
+    mutate(aoi_region_set_id=0) %>% #all have the same, so hard code
+    mutate(Stimulus=ifelse(target_side=="left",
+                                str_c(target_label,"_",distractor_label,".jpg"),
+                                str_c(distractor_label,"_",target_label,".jpg")))
+  
+  
+  stim.trials <- trials.data %>% 
+    dplyr::select(list.num,trial_id, Stimulus) #stimulus_name and list.num identify trial.id
+  
+  trials.data <- trials.data %>% 
     dplyr::select(trial_id, full_phrase, full_phrase_language, 
                   point_of_disambiguation, target_side, 
                   lab_trial_id, aoi_region_set_id, dataset_id, 
@@ -476,6 +479,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   #create xy data
   xy.data <- timepoint.data %>%
+    left_join(stim.trials, by=c("list.num", "Stimulus")) %>% 
     left_join(administration.data %>% select(subject_id, administration_id), by = "subject_id")%>%
     dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id) ##RMS: note sure whether t is right here, but I removed t_norm
   
