@@ -414,9 +414,9 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
 
 process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
-   #dir <- dir_path
-   #exp_info_dir <- exp_info_path  
-   #file_ext=".txt"
+   # dir <- dir_path
+   # exp_info_dir <- exp_info_path
+   # file_ext=".txt"
   #### generate all file paths ####
   
   #list files in directory
@@ -453,7 +453,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   
   ##extract unique participant ids from eyetracking data (in order to filter participant demographic file)
   participant_id_table <- timepoint.data %>%
-    distinct(lab_subject_id, subject_id)
+    distinct(lab_subject_id, subject_id) 
   
   #create participant data
   subjects.data <- process_subjects_info(participant_file_path) %>%
@@ -497,6 +497,7 @@ process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
   xy.data <- timepoint.data %>%
     left_join(stim.trials, by=c("list.num", "Stimulus")) %>% 
     left_join(administration.data %>% select(subject_id, administration_id), by = "subject_id") %>% 
+    filter(!is.na(administration_id)) %>% #some of the children in the timepoints data are not in the participants list and thus not in administration_id
     dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id) ##RMS: note sure whether t is right here, but I removed t_norm
   
   #create aoi timepoint data; get aois and t_norm
@@ -547,5 +548,4 @@ validate_for_db_import(dir_csv=output_path)
 ### OSF INTEGRATION ####
 write_path <- paste0(output_path, "/")
 put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
-
 
