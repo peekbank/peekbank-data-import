@@ -44,6 +44,29 @@ subjects <- read_excel(paste0(exp_info_path,"/", subject_info)) %>%
 #maybe we ignore the controls??
 sample_data <- read_delim(paste0(control_path, "/", "house.txt"), delim="\t")
 
+#explore a normal data file
+
+## what we think we know 
+
+# One question is what should the zero-point/onset time be for the videos? The paper says the kids saw it for 1.5 seconds, then the recording started, and then there were 3.5 seconds after the critical word. For apple, the range in time between the start_time and end_time is between 5003 and 315119; with most around 5600. (The range is worrying). 
+# 
+# Most of the data is in files by what image was seen, and has all the kids in it.
+# Data columns
+# - StudioTestName: List 1 or List 2 (which columns contain the relevant AOIs varies by List)
+# - ParticipantName matches the subject id's on the spreadsheet
+#  - RecordingTimestamp is in milliseconds (maybe?). For one kid, usually ended in 3/6/9 -- maybe its every 3.3 ms??
+#  - MediaName is the file, which notably contains whether the target is on the right or left (corresponds with the list)
+#  - StudioEvent & StudioEventData only exist to mark the start/end of the image
+#  - GazeEventType - is either Fixation, Saccade, or Unclassified. If (and only if?) Fixation, one of the AOIs has a positive value 
+#  - GazeEventDuration - is the length of the Event in ms - this seems to lineup with how many timestamps match that time 
+#  
+# List 1 uses AOI[M3D1]Hit and AOI[M3T1]Hit coded with 0/1
+# List 2 uses AOI[D]Hit and AOI[T]Hit coded with True/False
+# NA is used to fill on the other list
+# (Otherwise I think the lists are just for counterbalancing.)
+# other columns are ~useless
+
+
 apple <- read_delim(paste0(dir_path,"/", "apple.tsv"), delim="\t")
 apple$StudioTestName %>% unique() # List 1 v List 2
 apple$ParticipantName %>% unique() # cross check with subjects list
@@ -65,9 +88,17 @@ apple$X16 %>% unique() #all NA
 
 
 df <- apple %>% 
-  select(StudioTestName, ParticipantName, MediaName,StudioEvent, StudioEventData,
-         GazeEventType, GazeEventDuration, `AOI[D]Hit`,`AOI[M3D1]Hit`,`AOI[M3T1]Hit`,`AOI[T]Hit`, RecordingTimestamp) %>% 
-  filter(str_detect(ParticipantName, "OS")) %>% 
-  filter(GazeEventType %in% c("Fixation", "Saccade")) # we don't care about start/end? -- but sometimes it still lines up
-#also looks like there are repeated rows if you don't include time stamp, but not sure what it's doing??
+  filter(ParticipantName=="OS_015") #look at one participant
+
+df2 <- apple %>% filter(ParticipantName=="OS_014") # a list 2 participant
+
+#how long are the stamps 
+test <- apple %>% select(ParticipantName, RecordingTimestamp, StudioEvent) %>%
+  filter(StudioEvent %in% c("MovieStart", "MovieEnd")) %>% 
+  group_by(ParticipantName) %>% 
+  summarize(start_time=min(RecordingTimestamp),
+            end_time=max(RecordingTimestamp)) %>% 
+  mutate(diff_time=end_time-start_time)
+
+range(test$diff_time) # this is worrying
 
