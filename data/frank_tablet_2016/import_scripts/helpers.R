@@ -77,7 +77,7 @@ process_smi_eyetracking_file <- function(file_path,
 
   ## add lab_subject_id column (extracted from data file)
   data <- data %>%
-    mutate(lab_subject_id=fix_subject(lab_subject_id))
+    mutate(lab_subject_id =fix_subject(lab_subject_id))
 
   # if subject didn't do any real trials
   if (dim(data)[1] == 0) {
@@ -160,9 +160,11 @@ process_smi_eyetracking_file <- function(file_path,
 
   #extract final columns
   xy.data <- data %>%
-    mutate(word = map_chr(Stimulus, ~str_split(., "_")[[1]][1]),
-           lab_trial_id = str_c(list.num, "_", word)) %>%
-    select(lab_subject_id, x, y, t, lab_trial_id)
+    mutate(left_pic = map_chr(Stimulus, ~str_split(., "_")[[1]][1]),
+           right_pic = map_chr(Stimulus, ~str_split(., "_|.jpg")[[1]][2]),
+           left_pic = paste0(list.num, "_", "left_", left_pic),
+           right_pic = paste0(list.num, "_", "right_", right_pic)) %>%
+    select(lab_subject_id, x, y, t, left_pic, right_pic)
 
 
   return(xy.data)

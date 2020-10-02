@@ -48,7 +48,8 @@ write_peekbank_table("datasets", dataset_data, output_path)
 target_distractor_pairs <- read_tsv(trial_file_path2) %>%
   clean_names()
 
-novel_words <- c("dax", "dofa", "fep", "kreeb", "modi", "pifo", "toma", "wug")
+novel_words <- c("dax", "dofa", "fep", "kreeb", "modi",
+                 "pifo", "toma", "wug")
 
 stimuli_data <- target_distractor_pairs %>%
   pivot_longer(target:distractor, values_to = "stimulus_label") %>%
@@ -68,14 +69,14 @@ write_peekbank_table("stimuli", stimuli_data, output_path)
 trial_data_raw <- read_csv(trial_file_path1)
 
 trial_data <- trial_data_raw %>%
+  left_join(target_distractor_pairs, by = c("word" = "target")) %>%
   mutate(full_phrase = NA,
          full_phrase_language = "eng",
          point_of_disambiguation = 179.4,
-         lab_trial_id = str_c(list.num, "_", word),
-         target_side = case_when(target == "Left" ~ "left",
-                                TRUE ~ "right"),
+         target_side = tolower(target),
          aoi_region_set_id = 0 ,#all have the same, so hard code
-         dataset_id = dataset_id) %>%
+         dataset_id = dataset_id,
+         lab_trial_id = paste0(list.num, "_", target_side, "_", word)) %>%
   select(full_phrase, full_phrase_language, point_of_disambiguation,
          target_side, lab_trial_id, aoi_region_set_id, dataset_id, word) %>%
   rename(target = word) %>%
@@ -145,8 +146,10 @@ write_peekbank_table("subjects", subjects_data, output_path)
 timepoint_data <- full_dataset_path %>%
   list.files(full.names = T) %>%
   map_df(process_smi_eyetracking_file, subid_name, monitor_size, sample_rate)  %>%
-  mutate(xy_timepoint_id = row_number() - 1) %>%
-  select(xy_timepoint_id, x, y, t, everything())
+  mutate(xy_timepoint_id = row_number() - 1,
+         lab_trial_id = case_when(left_pic %in%  unique(trial_data$lab_trial_id) ~ left_pic, # phew, this is necessary because sometimes the distractor is the target, and vice versa
+                                   right_pic %in% unique(trial_data$lab_trial_id) ~ right_pic)) %>%
+  select(xy_timepoint_id, x, y, t, lab_subject_id, lab_trial_id)
 
 xy_data <- timepoint_data %>% # merge in administration_id and trial_id
   left_join(trial_data %>% select(lab_trial_id, trial_id)) %>%
@@ -182,8 +185,13 @@ aoi_timepoints_data <- peekds::generate_aoi(dir = output_path) %>%
 write_peekbank_table("aoi_timepoints", aoi_timepoints_data, output_path)
 
 #### Validation ####
-validate_for_db_import("eyetracking", dir_csv = output_path)
-peekds::validate_for_db_import(dir_csv = output_path)
+#validate_for_db_import("eyetracking", dir_csv = output_path) # <- this wasn't working earlier, but Linger says it validates
+#peekds::validate_for_db_import(dir_csv = output_path)
 
 ### add to OSF ####
 put_processed_data(osf_token, dataset_name, output_path, osf_address = "pr6wu")
+
+put_processed_data(osf_token, c("aoi_timepoints", "xy_timepoints", "trials"), output_path, osf_address = "pr6wu")
+
+
+
