@@ -78,7 +78,7 @@ apple$MediaName %>% unique() # has left versus right !!
 apple$StudioEvent %>% unique() # Start, End, NA
 apple$StudioEventData %>% unique() # left, right, NA
 apple$GazeEventType %>% unique() #Fixation, Saccade, NA
-apple$GazeEventDuration %>% unique() # in ms, one presumes
+apple$GazeEventDuration %>% unique() # in ms, one presumes  
 apple$`AOI[D]Hit` %>% unique() # NA, F, T
 apple$`AOI[T]Hit` %>% unique() # NA, T, F
 apple$`AOI[M3D1]Hit` %>% unique() #NA, 0, 1
@@ -102,3 +102,29 @@ test <- apple %>% select(ParticipantName, RecordingTimestamp, StudioEvent) %>%
 
 range(test$diff_time) # this is worrying
 
+#datasets
+datasets <- tibble(dataset_id=0, lab_dataset_id=NA, dataset_name="kartushina_2019",
+                   cite="Kartushina, N., & Mayor, J. (2019). Word knowledge in six-to nine-month-old Norwegian infants? Not without additional frequency cues. Royal Society open science, 6(9), 180711.",
+                   shortcite="Kartushina & Mayor(2019)")
+
+
+apple <- read_delim(paste0(dir_path,"/", "apple.tsv"), delim="\t") %>% 
+  rename(lab_subject_id=ParticipantName) %>% 
+  select(-StudioTestName, -X16, -RecordingDate, -RecordingName, -FixationFilter) %>% 
+  inner_join(subjects, c("lab_subject_id")) %>% 
+  #Assuming T means target, and D means distractor
+  # also assuming that unclassfied = missing, but saccade with no values = other (looking middle??)
+  mutate(aoi=case_when(
+    `AOI[D]Hit` ~ "distractor",
+    `AOI[T]Hit` ~ "target",
+    `AOI[M3D1]Hit`==1 ~ "distractor",
+    `AOI[M3T1]Hit`==1 ~ "target",
+    GazeEventType=="Unclassified" ~ "missing",
+    T ~ "other" 
+  )) %>% 
+  select(-`AOI[D]Hit`,-`AOI[T]Hit`,-`AOI[M3D1]Hit`,-`AOI[M3T1]Hit`, -GazeEventType)
+
+
+foot <- read_delim(paste0(dir_path,"/", "foot.tsv"), delim="\t")
+pants <- read_delim(paste0(dir_path,"/", "pants.tsv"), delim="\t")
+  
