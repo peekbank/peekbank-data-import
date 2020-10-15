@@ -107,8 +107,9 @@ d_tidy <- d_tidy %>%
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
   select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt) %>%
-  mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('left','right'))) %>%
-  rename(left_image = l_image, right_image=r_image) %>%
+  #left-right is from the coder's perspective - flip to participant's perspective
+  mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
+  rename(left_image = r_image, right_image=l_image) %>%
   mutate(target_label = target_image) %>%
   rename(target_image_old = target_image) %>% # since target image doesn't seem to be the specific image identifier
   mutate(target_image = case_when(target_side == "right" ~ right_image,
