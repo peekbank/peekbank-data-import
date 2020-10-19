@@ -42,7 +42,7 @@ d_raw_16 <- read_delim(fs::path(read_path, "TL316AB.ichart.n69.txt"),
   mutate(administration_num = 0) %>%
   relocate(administration_num, .after = `Sub Num`)
 #18-month-olds
-d_raw_18 <- read_delim(fs::path(read_path, "TL316AB.ichart.n69.txt"),
+d_raw_18 <- read_delim(fs::path(read_path, "TL318AB.ichart.n67.txt"),
                        delim = "\t") %>%
   mutate(administration_num = 1)  %>%
   relocate(administration_num, .after = `Sub Num`)
@@ -189,7 +189,7 @@ d_tidy_final %>%
 ##### SUBJECTS TABLE ####
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
-  filter(!(lab_subject_id == "12608"&sex=="F")) %>% #TO DO: one participant has different entries for sex - remove one entry for now and double check
+  filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
   mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female'))) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
