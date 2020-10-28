@@ -23,8 +23,7 @@ DATASET_PATH <- here(paste0("data/", dataset_name, "/"))
 full_dataset_path <- paste0(DATASET_PATH, "raw_data/full_dataset/")
 exp_info_path <- paste0(DATASET_PATH, "raw_data/experiment_info/")
 output_path <- paste0(DATASET_PATH, "processed_data/")
-trial_file_path1 <- paste0(exp_info_path, "trial.codes.csv")
-trial_file_path2 <- paste0(exp_info_path, "target_distractor.txt") # taken from the image file names of https://github.com/langcog/tablet/tree/master/image_pairs
+trial_file_path <- paste0(exp_info_path, "lists.csv")
 participant_file_path <- paste0(exp_info_path,  "eye.tracking.csv")
 
 ## only download if it's not on your machine
@@ -45,14 +44,15 @@ dataset_data <- tibble(
 write_peekbank_table("datasets", dataset_data, output_path)
 
 #### (2) stimuli ####
-target_distractor_pairs <- read_tsv(trial_file_path2) %>%
-  clean_names()
+target_distractors <- read_csv(trial_file_path) %>%
+  clean_names() %>%
+  filter(trial_type != "filler")
 
 novel_words <- c("dax", "dofa", "fep", "kreeb", "modi",
                  "pifo", "toma", "wug")
 
-stimuli_data <- target_distractor_pairs %>%
-  pivot_longer(target:distractor, values_to = "stimulus_label") %>%
+stimuli_data <- target_distractors %>%
+  pivot_longer(left:right, values_to = "stimulus_label") %>%
   distinct(stimulus_label) %>%
   mutate(stimulus_novelty = case_when(stimulus_label %in% novel_words ~ "novel",
                                       TRUE ~ "familiar"), # this is novelty of the word
@@ -66,32 +66,33 @@ stimuli_data <- target_distractor_pairs %>%
 write_peekbank_table("stimuli", stimuli_data, output_path)
 
 #### (3) trials ####
-trial_data_raw <- read_csv(trial_file_path1)
 
-trial_data <- trial_data_raw %>%
-  left_join(target_distractor_pairs, by = c("word" = "target")) %>%
-  mutate(full_phrase = NA,
-         full_phrase_language = "eng",
-         point_of_disambiguation = 179.4,
-         target_side = tolower(target),
-         aoi_region_set_id = 0 ,#all have the same, so hard code
-         dataset_id = dataset_id,
-         lab_trial_id = paste0(list.num, "_", target_side, "_", word)) %>%
-  select(full_phrase, full_phrase_language, point_of_disambiguation,
-         target_side, lab_trial_id, aoi_region_set_id, dataset_id, word) %>%
-  rename(target = word) %>%
-  left_join(target_distractor_pairs) %>% # merge in distract names
+trial_data <- target_distractors %>%
+  mutate(target_side = case_when(word == left ~ "left",
+                                  word == right ~ "right"),
+         target = word,
+         distractor = case_when(target == left ~ right,
+                                target == right ~ left)) %>%
   left_join(stimuli_data %>% select(stimulus_id, stimulus_label), # merge stimulus ids
             by = c("target" = "stimulus_label")) %>%
   rename(target_id = stimulus_id) %>%
   left_join(stimuli_data %>% select(stimulus_id, stimulus_label),
             by = c("distractor" = "stimulus_label")) %>%
   rename(distractor_id = stimulus_id) %>%
-  mutate(trial_id = row_number() - 1) %>%
+  select(-left, -right,  -trial) %>%
+  mutate(full_phrase = NA,
+         full_phrase_language = "eng",
+         point_of_disambiguation = 179.4,
+         aoi_region_set_id = 0 ,#all have the same, so hard code
+         dataset_id = dataset_id,
+         list = as.character(list),
+         lab_trial_id = paste0(list, "_", target_side, "_", word),
+         trial_id = row_number() - 1) %>%
   select(trial_id, full_phrase, full_phrase_language, point_of_disambiguation, target_side,
          lab_trial_id, aoi_region_set_id, dataset_id, distractor_id, target_id)
 
 write_peekbank_table("trials", trial_data, output_path)
+
 
 ####(4) administrations ####
 all_subjects_data <- read_csv(participant_file_path)%>%
@@ -190,8 +191,5 @@ write_peekbank_table("aoi_timepoints", aoi_timepoints_data, output_path)
 
 ### add to OSF ####
 put_processed_data(osf_token, dataset_name, output_path, osf_address = "pr6wu")
-
-put_processed_data(osf_token, c("aoi_timepoints", "xy_timepoints", "trials"), output_path, osf_address = "pr6wu")
-
 
 
