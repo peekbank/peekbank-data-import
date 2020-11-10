@@ -82,7 +82,7 @@ trial_data <- target_distractors %>%
   select(-left, -right,  -trial) %>%
   mutate(full_phrase = NA,
          full_phrase_language = "eng",
-         point_of_disambiguation = 179.4,
+         point_of_disambiguation = 179.4 * 16.666667, # 179.4 is in units base on sampling frequency; 16.67 is sampling frequency (Martin Z figured this out.)
          aoi_region_set_id = 0 ,#all have the same, so hard code
          dataset_id = dataset_id,
          list = as.character(list),
