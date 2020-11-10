@@ -1,4 +1,4 @@
-# process Adams et al. (2018) data
+# process Perry et al. (2017) data
 ## libraries
 library(here)
 library(janitor)
@@ -6,11 +6,12 @@ library(tidyverse)
 library(readxl)
 library(peekds)
 library(osfr)
+library(vctrs)
 
 ## constants
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
-dataset_name = "adams_marchman_2018"
+dataset_name = "perry_cowpig"
 read_path <- here("data",dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
 
@@ -36,18 +37,15 @@ remove_repeat_headers <- function(d, idx_var) {
 
 
 # read raw icoder files
-#16-month-olds
-d_raw_16 <- read_delim(fs::path(read_path, "TL316AB.ichart.n69.txt"),
-                    delim = "\t")%>%
+filepaths <- list.files(read_path, full.names = TRUE, pattern = ".txt")
+#get header of first file in order to create hard code in column types (guessing fails)
+header <- read_delim(filepaths[1], delim = "\t", n_max = 1)
+#specify column types
+set_column_types <- paste0(rep("c", ncol(header)), collapse = "")
+d_raw <- map(filepaths, read_delim, delim = "\t",col_types = set_column_types) %>% 
+  bind_rows() %>%
   mutate(administration_num = 0) %>%
   relocate(administration_num, .after = `Sub Num`)
-#18-month-olds
-d_raw_18 <- read_delim(fs::path(read_path, "TL318AB.ichart.n67.txt"),
-                       delim = "\t") %>%
-  mutate(administration_num = 1)  %>%
-  relocate(administration_num, .after = `Sub Num`)
-#combine
-d_raw <- bind_rows(d_raw_16,d_raw_18)
 
 
 # remove any column with all NAs (these are columns

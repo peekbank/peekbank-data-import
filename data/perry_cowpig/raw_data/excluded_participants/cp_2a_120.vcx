@@ -1,0 +1,6676 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Subject</key>
+	<dict>
+		<key>Birthday</key>
+		<string>01/22/12</string>
+		<key>Date of Test</key>
+		<string>10/11/13</string>
+		<key>Number</key>
+		<integer>120</integer>
+		<key>Order</key>
+		<string>cp2a</string>
+		<key>Pre-Screen Information</key>
+		<dict>
+			<key>Pre-Screen Array 0</key>
+			<dict>
+				<key>Pre-Screen Entry 0</key>
+				<dict>
+					<key>Eliminate</key>
+					<true/>
+					<key>Reason</key>
+					<string>Equipment Malfunction</string>
+					<key>Trial</key>
+					<integer>11</integer>
+				</dict>
+			</dict>
+			<key>Pre-Screen Array 1</key>
+			<dict/>
+		</dict>
+		<key>Primary PS Complete</key>
+		<false/>
+		<key>Responses</key>
+		<dict>
+			<key>Response 0</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>7</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>1</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 1</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>8</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>1</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 10</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>12</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>1</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 100</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>32</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>13</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 101</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>32</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>13</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 102</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>33</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>13</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 103</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>6</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>34</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>13</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 104</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>34</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>13</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 105</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>36</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>13</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 106</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>46</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>15</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 107</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>7</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>46</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>15</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 108</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>9</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>46</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>15</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 109</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>46</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>15</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 11</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>14</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>2</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 110</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>46</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>15</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 111</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>48</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>15</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 112</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>13</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>48</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>15</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 113</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>49</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>15</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 114</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>49</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>15</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 115</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>29</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>50</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>15</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 116</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>3</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>53</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>16</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 117</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>11</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>53</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>16</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 118</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>12</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>53</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>16</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 119</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>53</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>16</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 12</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>15</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>2</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 120</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>54</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>16</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 121</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>17</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>55</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>16</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 122</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>55</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>16</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 123</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>56</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>16</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 124</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>56</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>16</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 125</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>58</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>16</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 126</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>3</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>0</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 127</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>11</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>0</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 128</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>13</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>0</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 129</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>0</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 13</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>1</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>15</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>2</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 130</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>1</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 131</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>2</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 132</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>2</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 133</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>24</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>3</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 134</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>3</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 135</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>15</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>4</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 136</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>4</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 137</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>1</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>5</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>17</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 138</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>4</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>7</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>18</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 139</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>17</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>7</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>18</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 14</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>15</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>2</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 140</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>7</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>18</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 141</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>17</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>8</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>18</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 142</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>19</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>8</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>18</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 143</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>24</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>11</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>18</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 144</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>11</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>18</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 145</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>12</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>18</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 146</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>4</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>14</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>19</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 147</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>24</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>14</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>19</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 148</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>14</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>19</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 149</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>29</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>15</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>19</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 15</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>16</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>2</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 150</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>16</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>19</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 151</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>18</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>19</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 152</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>18</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>19</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 153</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>19</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>19</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 154</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>6</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>21</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 155</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>19</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>21</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 156</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>21</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 157</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>8</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>22</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 158</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>11</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>22</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 159</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>22</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 16</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>1</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>17</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>2</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 160</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>23</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 161</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>14</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>24</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 162</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>16</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>24</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 163</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 164</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 165</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>3</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>26</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>20</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 166</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>8</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>35</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>22</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 167</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>13</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>35</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>22</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 168</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>17</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>35</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>22</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 169</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>9</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>36</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>22</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 17</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>3</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>17</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>2</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 170</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>12</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>36</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>22</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 171</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>36</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>22</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 172</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>37</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>22</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 173</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>6</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>40</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>22</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 174</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>42</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>23</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 175</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>16</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>42</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>23</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 176</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>19</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>42</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>23</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 177</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>8</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>43</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>23</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 178</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>43</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>23</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 179</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>44</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>23</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 18</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>24</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>18</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>2</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 180</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>44</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>23</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 181</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>7</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>47</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>23</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 182</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>11</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>49</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>24</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 183</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>17</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>49</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>24</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 184</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>49</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>24</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 185</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>50</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>24</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 186</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>4</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>50</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>24</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 187</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>6</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>52</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>24</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 188</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>52</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>24</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 189</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>15</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>53</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>24</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 19</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>18</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>2</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 190</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>19</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>53</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>24</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 191</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>8</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>54</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>24</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 192</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>11</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>56</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 193</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>56</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 194</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>56</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 195</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>29</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>56</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 196</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>57</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 197</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>29</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>57</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 198</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>4</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>58</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 199</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>17</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>59</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 2</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>1</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>8</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>1</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 20</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>19</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>19</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>2</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 200</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>2</integer>
+					<key>Second</key>
+					<integer>59</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 201</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>0</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 202</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>0</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 203</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>1</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>25</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 204</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>12</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>3</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>26</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 205</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>19</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>3</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>26</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 206</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>3</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>26</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 207</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>7</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>4</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>26</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 208</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>4</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>26</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 209</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>24</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>4</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>26</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 21</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>21</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 210</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>4</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>26</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 211</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>15</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>6</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>26</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 212</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>6</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>26</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 213</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>6</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>8</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>26</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 214</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>9</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>8</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>26</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 215</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>12</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>10</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>27</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 216</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>11</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>27</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 217</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>11</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>11</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>27</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 218</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>15</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>11</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>27</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 219</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>11</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>27</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 22</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>21</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 220</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>12</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>27</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 221</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>14</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>12</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>27</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 222</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>11</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>13</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>27</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 223</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>16</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>13</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>27</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 224</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>15</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>27</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 225</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>15</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>24</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>29</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 226</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>19</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>24</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>29</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 227</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>24</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>29</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 228</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>9</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>29</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 229</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>12</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>29</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 23</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>21</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 230</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>13</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>26</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>29</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 231</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>16</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>26</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>29</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 232</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>4</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>29</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>29</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 233</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>7</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>29</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>29</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 234</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>12</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>29</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>29</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 235</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>16</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>31</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 236</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>32</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 237</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>32</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 238</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>33</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 239</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>33</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 24</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>22</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 240</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>34</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 241</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>34</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 242</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>9</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>35</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 243</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>12</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>35</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 244</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>35</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 245</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>36</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 246</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>13</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>36</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>30</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 247</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>15</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>38</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 248</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>38</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 249</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>38</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 25</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>22</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 250</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>39</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 251</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>6</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>39</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 252</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>29</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>39</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 253</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>40</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 254</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>6</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>41</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 255</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>41</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 256</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>14</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>42</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 257</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>42</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 258</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>13</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>43</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>31</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 259</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>16</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>45</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>32</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 26</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>23</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 260</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>46</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>32</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 261</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>6</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>46</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>32</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 262</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>47</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>32</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 263</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>47</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>32</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 264</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>14</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>50</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>32</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 265</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>16</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>52</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>33</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 266</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>52</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>33</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 267</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>52</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>33</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 268</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>12</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>53</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>33</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 269</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>19</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>53</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>33</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 27</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>23</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 270</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>55</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>33</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 271</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>55</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>33</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 272</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>13</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>56</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>33</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 273</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>16</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>56</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>33</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 274</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>14</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>57</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>33</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 275</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>59</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>34</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 276</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>59</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>34</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 277</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>3</integer>
+					<key>Second</key>
+					<integer>59</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>34</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 278</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>11</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>0</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>34</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 279</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>13</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>0</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>34</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 28</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>24</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 280</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>0</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>34</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 281</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>29</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>0</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>34</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 282</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>15</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>4</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>34</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 283</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>13</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>36</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 284</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>13</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>36</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 285</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>13</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>36</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 286</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>14</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>36</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 287</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>14</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>36</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 288</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>15</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>36</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 289</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>15</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>15</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>36</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 29</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>24</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 290</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>18</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>36</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 291</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>20</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>37</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 292</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>9</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>21</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>37</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 293</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>21</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>37</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 294</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>21</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>37</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 295</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>21</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>37</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 296</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>22</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>37</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 297</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>23</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>37</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 298</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>5</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>37</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 299</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>8</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>37</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 3</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>8</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>1</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 30</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>13</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 300</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>37</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 301</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>27</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>38</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 302</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>27</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>38</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 303</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>27</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>38</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 304</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>28</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>38</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 305</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>28</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>38</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 306</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>29</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>38</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 307</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>1</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>30</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>38</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 308</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>19</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>32</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>38</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 309</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>34</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>39</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 31</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>17</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 310</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>1</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>35</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>39</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 311</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>4</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>35</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>39</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 312</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>4</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>38</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>39</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 313</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>8</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>38</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>39</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 314</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>38</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>39</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 315</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>39</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>39</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 316</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>39</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>39</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 317</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>24</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>41</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>40</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 318</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>43</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>40</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 319</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>43</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>40</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 32</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>26</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>3</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 320</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>44</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>40</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 321</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>12</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>44</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>40</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 322</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>44</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>40</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 323</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>44</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>40</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 324</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>46</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>40</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 325</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>48</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>41</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 326</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>49</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>41</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 327</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>49</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>41</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 328</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>6</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>52</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>41</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 329</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>8</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>52</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>41</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 33</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>28</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>4</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 330</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>4</integer>
+					<key>Second</key>
+					<integer>53</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>41</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 34</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>29</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>4</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 35</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>11</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>29</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>4</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 36</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>30</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>4</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 37</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>6</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>30</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>4</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 38</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>19</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>31</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>4</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 39</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>31</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>4</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 4</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>9</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>1</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 40</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>33</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>4</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 41</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>24</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>35</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>5</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 42</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>35</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>5</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 43</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>36</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>5</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 44</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>36</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>5</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 45</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>37</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>5</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 46</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>14</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>37</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>5</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 47</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>18</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>37</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>5</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 48</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>38</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>5</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 49</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>39</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>5</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 5</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>12</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>9</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>1</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 50</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>19</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>40</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>5</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 51</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>22</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>40</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>5</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 52</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>42</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>6</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 53</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>1</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>43</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>6</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 54</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>43</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>6</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 55</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>44</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>6</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 56</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>45</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>6</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 57</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>6</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>46</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>6</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 58</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>46</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>6</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 59</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>47</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>6</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 6</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>15</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>9</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>1</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 60</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>55</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>8</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 61</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>21</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>56</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>8</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 62</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>24</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>56</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>8</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 63</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>8</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>57</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>8</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 64</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>57</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>8</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 65</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>58</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>8</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 66</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>5</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>58</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>8</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 67</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>59</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>8</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 68</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>5</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>59</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>8</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 69</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>24</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>0</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>8</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 7</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>10</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>1</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 70</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>3</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>9</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 71</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>5</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>3</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>9</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 72</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>8</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>3</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>9</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 73</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>3</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>9</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 74</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>4</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>9</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 75</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>17</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>5</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>9</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 76</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>5</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>9</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 77</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>6</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>9</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 78</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>6</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>9</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 79</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>7</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>9</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 8</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>11</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>1</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 80</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>9</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>10</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 81</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>28</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>10</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>10</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 82</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>11</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>10</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 83</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>23</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>11</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>10</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 84</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>11</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>10</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 85</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>25</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>14</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>10</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 86</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>16</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>11</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 87</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>20</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>22</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>11</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 88</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>29</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>24</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>12</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 89</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>5</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>12</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 9</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>26</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>0</integer>
+					<key>Second</key>
+					<integer>11</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>1</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 90</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>10</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>12</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 91</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>25</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>12</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 92</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>1</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>26</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>12</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 93</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>9</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>27</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>12</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 94</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>14</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>27</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>12</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>right</string>
+			</dict>
+			<key>Response 95</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>2</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>29</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>12</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+			<key>Response 96</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>4</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>29</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>12</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 97</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>27</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>29</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>12</integer>
+				<key>Trial Status</key>
+				<false/>
+				<key>Type</key>
+				<string>left</string>
+			</dict>
+			<key>Response 98</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>0</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>32</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>13</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>away</string>
+			</dict>
+			<key>Response 99</key>
+			<dict>
+				<key>Timecode</key>
+				<dict>
+					<key>Frame</key>
+					<integer>9</integer>
+					<key>Hour</key>
+					<integer>0</integer>
+					<key>Minute</key>
+					<integer>1</integer>
+					<key>Second</key>
+					<integer>32</integer>
+				</dict>
+				<key>Trial</key>
+				<integer>13</integer>
+				<key>Trial Status</key>
+				<true/>
+				<key>Type</key>
+				<string>off</string>
+			</dict>
+		</dict>
+		<key>Secondary PS Complete</key>
+		<false/>
+		<key>Sex</key>
+		<false/>
+		<key>Unused Trials</key>
+		<array>
+			<integer>7</integer>
+			<integer>14</integer>
+			<integer>21</integer>
+			<integer>28</integer>
+			<integer>35</integer>
+		</array>
+	</dict>
+	<key>iCoder State</key>
+	<dict>
+		<key>Mode</key>
+		<string>Code</string>
+	</dict>
+</dict>
+</plist>
