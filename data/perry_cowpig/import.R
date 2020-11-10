@@ -42,8 +42,7 @@ filepaths <- list.files(read_path, full.names = TRUE, pattern = ".txt")
 header <- read_delim(filepaths[1], delim = "\t", n_max = 1)
 #specify column types
 set_column_types <- paste0(rep("c", ncol(header)), collapse = "")
-d_raw <- map(filepaths, read_delim, delim = "\t",col_types = set_column_types) %>% 
-  bind_rows() %>%
+d_raw <- map_df(filepaths, read_delim, delim = "\t",col_types = set_column_types) %>% 
   mutate(administration_num = 0) %>%
   relocate(administration_num, .after = `Sub Num`)
 
