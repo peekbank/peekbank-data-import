@@ -90,13 +90,13 @@ d_tidy <- d_tidy %>%
   mutate(aoi = case_when(
     aoi_old == "0" ~ "distractor",
     aoi_old == "1" ~ "target",
-    aoi_old == "0.5" ~ "other",
+    aoi_old == ".5" ~ "other",
     aoi_old == "." ~ "missing",
     aoi_old == "-" ~ "missing",
     is.na(aoi_old) ~ "missing"
   ))
 
-# Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
+# Clean up column names and add stimulus information based on existing columns  ----------------------------------------
 
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
