@@ -27,35 +27,28 @@ xy_table_filename <-  "xy_timepoints.csv"
 #osf_token <- read_lines(here("osf_token.txt"))
 
 
-remove_repeat_headers <- function(d, idx_var) {
-  d[d[,idx_var] != idx_var,]
-}
-
 
 # download datata from osf
 #peekds::get_raw_data(dataset_name, path = read_path)
 
-
 # read raw icoder files
 filepaths <- list.files(read_path, full.names = TRUE, pattern = ".txt")
+
 #get header of first file in order to create hard code in column types (guessing fails)
 header <- read_delim(filepaths[1], delim = "\t", n_max = 1)
+
 #specify column types
 set_column_types <- paste0(rep("c", ncol(header)), collapse = "")
-d_raw <- map_df(filepaths, read_delim, delim = "\t",col_types = set_column_types) %>% 
+d_raw <- map_df(filepaths, read_delim, delim = "\t",col_types = set_column_types) %>%
   mutate(administration_num = 0) %>%
-  relocate(administration_num, .after = `Sub Num`)
-
+  relocate(administration_num, .after = `Sub Num`) %>%
+  clean_names()
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
-d_filtered <- d_raw %>%
+d_processed <- d_raw %>%
   select_if(~sum(!is.na(.)) > 0)
 
-# Create clean column headers --------------------------------------------------
-d_processed <-  d_filtered %>%
-  remove_repeat_headers(idx_var = "Months") %>%
-  clean_names()
 
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
@@ -67,24 +60,28 @@ pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms
                            to = sampling_rate_ms,
                            by = -sampling_rate_ms) * -1,0)
 
-post_dis_names_clean <-  post_dis_names %>% str_remove("f")
+post_dis_names_clean <-  post_dis_names %>%
+  str_remove("f")
 
 colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
 
 ### truncate columns at F3833, since trials are almost never coded later than this timepoint
+
 ## TO DO: check in about this decision
 post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
+
 #remove
-d_processed <- d_processed %>%
+d_processed_cleaned <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
 
 # Convert to long format --------------------------------------------------
 
 # get idx of first time series
 first_t_idx <- length(metadata_names) + 1             # this returns a numeric
-last_t_idx <- colnames(d_processed) %>% dplyr::last() # this returns a string
-d_tidy <- d_processed %>%
-  tidyr::gather(t, aoi, first_t_idx:last_t_idx) # but gather() still works
+last_t_idx <- colnames(d_processed_cleaned) %>%
+  dplyr::last() # this returns a string
+d_tidy <- d_processed_cleaned %>%
+  pivot_longer(names_to = "t", cols = first_t_idx:last_t_idx, values_to = "aoi")
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -112,7 +109,7 @@ d_tidy <- d_tidy %>%
   mutate(target_image = case_when(target_side == "right" ~ right_image,
                                       TRUE ~ left_image)) %>%
   mutate(distractor_image = case_when(target_side == "right" ~ left_image,
-                                      TRUE ~ right_image)) 
+                                      TRUE ~ right_image))
 
 #create stimulus table
 stimulus_table <- d_tidy %>%
@@ -135,7 +132,7 @@ d_tidy <- d_tidy %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
-# get zero-indexed subject ids 
+# get zero-indexed subject ids
 d_subject_ids <- d_tidy %>%
   distinct(sub_num) %>%
   mutate(subject_id = seq(0, length(.$sub_num) - 1))
@@ -146,19 +143,19 @@ d_tidy <- d_tidy %>%
 #get zero-indexed administration ids
 d_administration_ids <- d_tidy %>%
   distinct(sub_num,administration_num,subject_id,months) %>%
-  mutate(administration_id = seq(0, length(.$administration_num) - 1)) 
+  mutate(administration_id = seq(0, length(.$administration_num) - 1))
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
   distinct(order, tr_num, target_id, distractor_id, target_side) %>%
   mutate(full_phrase = NA) %>% #unknown
-  mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
+  mutate(trial_id = seq(0, length(.$tr_num) - 1))
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
   mutate(aoi_timepoint_id = seq(0, nrow(d_tidy) - 1)) %>%
   left_join(d_administration_ids) %>%
-  left_join(d_trial_ids) 
+  left_join(d_trial_ids)
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
@@ -237,7 +234,7 @@ d_tidy_final %>%
 
 ##### AOI REGIONS TABLE ####
 # create empty other files aoi_region_sets.csv and xy_timepoints
-# don't need 
+# don't need
 # tibble(administration_id = d_tidy_final$administration_id[1],
 #       aoi_region_set_id=NA,
 #        l_x_max=NA ,
