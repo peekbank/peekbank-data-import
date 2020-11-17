@@ -100,7 +100,7 @@ d_tidy <- d_tidy %>%
 
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
-  select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt) %>%
+  select(-prescreen_notes, -c_image,-response, -first_shift_gap,-rt) %>% # retain condition in order to distinguish animals with typical and atypical color patterning
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
   rename(left_image = r_image, right_image=l_image) %>%
@@ -113,14 +113,20 @@ d_tidy <- d_tidy %>%
 
 #create stimulus table
 stimulus_table <- d_tidy %>%
-  distinct(target_image,target_label) %>%
-  filter(!is.na(target_image)) %>%
+  distinct(target_image,target_label,condition) %>%
+  # recode condition from "familiar" (== typical color) and "test" (==atypical color) to more descriptive labels
+  mutate(condition_new=ifelse(condition=="familiar","typical_color","atypical_color")) %>% 
+  mutate(target_image_old=target_image) %>%
+  # combine target_image w/ condition to create unique set of images (e.g., the cow item can have typical or atypical coloring)
+  unite(target_image, c(target_image,condition_new)) %>% 
+  unite(target_image_old,c(target_image_old,condition)) %>%
   mutate(dataset_id = 0,
          stimulus_novelty = "familiar",
          stimulus_label = target_label,
          stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
-         lab_stimulus_id = target_image
+         lab_stimulus_id = target_image_old # retain encoding of condition as "familiar" (== typical color) and "test" (==atypical color) from original study
   ) %>%
+  select(-target_image_old) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
