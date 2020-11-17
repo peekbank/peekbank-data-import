@@ -27,7 +27,6 @@ lab_subject_id,sex,subject_id
 12512,female,25
 12520,female,26
 12547,female,27
-12608,male,28
 12612,female,29
 12683,female,30
 12717,male,31
@@ -68,3 +67,4 @@ lab_subject_id,sex,subject_id
 911343,male,66
 911401,male,67
 911429,male,68
+12608,female,28

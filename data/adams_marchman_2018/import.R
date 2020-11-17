@@ -42,7 +42,7 @@ d_raw_16 <- read_delim(fs::path(read_path, "TL316AB.ichart.n69.txt"),
   mutate(administration_num = 0) %>%
   relocate(administration_num, .after = `Sub Num`)
 #18-month-olds
-d_raw_18 <- read_delim(fs::path(read_path, "TL316AB.ichart.n69.txt"),
+d_raw_18 <- read_delim(fs::path(read_path, "TL318AB.ichart.n67.txt"),
                        delim = "\t") %>%
   mutate(administration_num = 1)  %>%
   relocate(administration_num, .after = `Sub Num`)
@@ -107,8 +107,9 @@ d_tidy <- d_tidy %>%
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
   select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt) %>%
-  mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('left','right'))) %>%
-  rename(left_image = l_image, right_image=r_image) %>%
+  #left-right is from the coder's perspective - flip to participant's perspective
+  mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
+  rename(left_image = r_image, right_image=l_image) %>%
   mutate(target_label = target_image) %>%
   rename(target_image_old = target_image) %>% # since target image doesn't seem to be the specific image identifier
   mutate(target_image = case_when(target_side == "right" ~ right_image,
@@ -185,10 +186,21 @@ d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
   write_csv(fs::path(write_path, aoi_table_filename))
 
+#### Resample AOI timepoints ####
+aoi_timepoints_preresample <- d_tidy_final %>%
+  select(aoi_timepoint_id, t, aoi, trial_id, administration_id) %>%
+  rename(t_norm = t)
+
+# aoi_timepoints <- aoi_timepoints_preresample %>%
+#   resample_times()
+
+aoi_timepoints <- resample_times(write_path, table_type="aoi_timepoints")
+
+
 ##### SUBJECTS TABLE ####
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
-  filter(!(lab_subject_id == "12608"&sex=="F")) %>% #TO DO: one participant has different entries for sex - remove one entry for now and double check
+  filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
   mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female'))) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
@@ -259,6 +271,7 @@ data_tab <- tibble(
   shortcite = "Adams et al. (2018)"
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
+
 
 
 # validation check ----------------------------------------------------------
