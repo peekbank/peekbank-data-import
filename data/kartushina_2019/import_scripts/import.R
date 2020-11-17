@@ -9,6 +9,7 @@ library(tidyverse)
 library(readxl)
 library(peekds)
 library(osfr)
+library(janitor)
 #### general parameters ####
 dataset_name <- "kartushina_2019"
 dataset_id <- 0
@@ -25,6 +26,9 @@ control_path <- fs::path(project_root,"data", dataset_name,"raw_data","control_t
 exp_info_path <- fs::path(project_root,"data", dataset_name,"raw_data", "experiment_info")
 #output path
 output_path <- fs::path(project_root,"data",dataset_name,"processed_data")
+
+full_phrase_language <- "nor"
+possible_delims <- c("\t",",")
 
 #look at subject info
 subjects <- read_excel(paste0(exp_info_path,"/", subject_info)) %>% 
@@ -48,8 +52,8 @@ sample_data <- read_delim(paste0(control_path, "/", "house.txt"), delim="\t")
 
 ## what we think we know 
 
-# One question is what should the zero-point/onset time be for the videos? The paper says the kids saw it for 1.5 seconds, then the recording started, and then there were 3.5 seconds after the critical word. For apple, the range in time between the start_time and end_time is between 5003 and 315119; with most around 5600. (The range is worrying). 
-# 
+# One question is what should the zero-point/onset time be for the videos? The paper says the kids saw it for 1.5 seconds, then the recording started, and then there were 3.5 seconds after the critical word. 
+# Some subject ids are duplicated which is causing weird behavior in the time ranges. They're not uniquely associated with subject information. So for now, we take them out.
 # Most of the data is in files by what image was seen, and has all the kids in it.
 # Data columns
 # - StudioTestName: List 1 or List 2 (which columns contain the relevant AOIs varies by List)
@@ -72,7 +76,7 @@ apple$StudioTestName %>% unique() # List 1 v List 2
 apple$ParticipantName %>% unique() # cross check with subjects list
 apple$RecordingName %>% unique() # mostly follows subject?? (likely not a useful column)
 apple$RecordingDate %>% unique() # not useful
-apple$RecordingTimestamp %>% unique() #not useful
+apple$RecordingTimestamp %>% unique() 
 apple$FixationFilter %>% unique() #not useful
 apple$MediaName %>% unique() # has left versus right !!
 apple$StudioEvent %>% unique() # Start, End, NA
@@ -100,8 +104,6 @@ test <- apple %>% select(ParticipantName, RecordingTimestamp, StudioEvent) %>%
             end_time=max(RecordingTimestamp)) %>% 
   mutate(diff_time=end_time-start_time)
 
-range(test$diff_time) # this is worrying
-
 #datasets
 datasets <- tibble(dataset_id=0, lab_dataset_id=NA, dataset_name="kartushina_2019",
                    cite="Kartushina, N., & Mayor, J. (2019). Word knowledge in six-to nine-month-old Norwegian infants? Not without additional frequency cues. Royal Society open science, 6(9), 180711.",
@@ -125,6 +127,61 @@ apple <- read_delim(paste0(dir_path,"/", "apple.tsv"), delim="\t") %>%
   select(-`AOI[D]Hit`,-`AOI[T]Hit`,-`AOI[M3D1]Hit`,-`AOI[M3T1]Hit`, -GazeEventType)
 
 
-foot <- read_delim(paste0(dir_path,"/", "foot.tsv"), delim="\t")
-pants <- read_delim(paste0(dir_path,"/", "pants.tsv"), delim="\t")
+
+
+rename_aois <- function(aoi_string) {
+  aoi_string <- if_else(str_detect(aoi_string, "\\d"), 
+                        if_else(str_detect(aoi_string, "d"), 
+                                "aoi_distractor_hit", "aoi_target_hit"),
+                        if_else(str_detect(aoi_string, "d"), 
+                                "aoi_distractor_hit_1", "aoi_target_hit_1"))
+  aoi_string <- if_else(duplicated(aoi_string), 
+                        paste0(aoi_string,"_1"), aoi_string)
+  return(aoi_string)
+}
+
+read_trial_info <- function(file_name) {
+  file_path = paste0(dir_path, "/", file_name)
+  #guess delimiter
+  sep <- get.delim(file_path, delims=possible_delims)
   
+  #read in data
+  trial_data <-  
+    read_delim(
+      file_path,
+      delim=sep
+    )
+  
+  trial_data <- trial_data %>%
+    clean_names() %>%
+    rename_with(rename_aois, starts_with("aoi")) %>%
+    rename(stimlist = studio_test_name, 
+           lab_subject_id = participant_name,
+           stimulus = media_name,
+           timestamp = recording_timestamp,
+           stim_onset_offset = studio_event,
+           gaze_type = gaze_event_type,
+           gaze_duration = gaze_event_duration) %>%
+    mutate(aoi_target_hit = as.logical(aoi_target_hit),
+           aoi_distractor_hit = as.logical(aoi_distractor_hit),
+           aoi_distractor_hit = if_else(is.na(aoi_distractor_hit), 
+                                        aoi_distractor_hit_1, aoi_distractor_hit),
+           aoi_target_hit = if_else(is.na(aoi_target_hit), 
+                                    aoi_target_hit_1, aoi_target_hit)) %>%
+    select(stimlist, lab_subject_id, stimulus, timestamp, gaze_type,
+           gaze_duration, aoi_distractor_hit, aoi_target_hit)
+  
+  return(trial_data)
+}
+
+trial_data <- do.call(rbind,lapply(trial_file_list, read_trial_info))
+
+trial_data <- trial_data %>%
+  filter(lab_subject_id %in% subjects$lab_subject_id) %>%
+  mutate(target_side = if_else(str_detect(stimulus, "right"), "right",
+                               if_else(str_detect(stimulus, "left"), "left",
+                                       NA_character_)),
+         stimulus = str_remove(stimulus, "\\_.*$"))
+
+
+
