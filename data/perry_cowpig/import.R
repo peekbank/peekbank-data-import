@@ -131,12 +131,10 @@ stimulus_table <- d_tidy %>%
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('target_image' = 'lab_stimulus_id')) %>%
-  mutate(target_id = stimulus_id) %>%
-  select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('distractor_image' = 'lab_stimulus_id')) %>%
-  mutate(distractor_id = stimulus_id) %>%
-  select(-stimulus_id)
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id) %>% separate(lab_stimulus_id,into=c("target_image", "condition")), by=c('target_image','condition')) %>%
+  rename(target_id = stimulus_id) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id) %>% separate(lab_stimulus_id,into=c("distractor_image", "condition")), by=c('distractor_image','condition')) %>%
+  rename(distractor_id = stimulus_id) 
 
 # get zero-indexed subject ids
 d_subject_ids <- d_tidy %>%
