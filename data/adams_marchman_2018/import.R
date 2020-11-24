@@ -100,7 +100,8 @@ d_tidy <- d_tidy %>%
     aoi_old == "." ~ "missing",
     aoi_old == "-" ~ "missing",
     is.na(aoi_old) ~ "missing"
-  ))
+  )) %>%
+  mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
 
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
 
@@ -159,7 +160,6 @@ d_trial_ids <- d_tidy %>%
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(d_tidy) - 1)) %>%
   left_join(d_administration_ids) %>%
   left_join(d_trial_ids) 
 
@@ -182,20 +182,12 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
-  select(aoi_timepoint_id, t, aoi, trial_id, administration_id) %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
+  select(t_norm, aoi, trial_id, administration_id) %>%
+  #resample timepoints
+  resample_times(table_type="aoi_timepoints") %>%
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
   write_csv(fs::path(write_path, aoi_table_filename))
-
-#### Resample AOI timepoints ####
-aoi_timepoints_preresample <- d_tidy_final %>%
-  select(aoi_timepoint_id, t, aoi, trial_id, administration_id) %>%
-  rename(t_norm = t)
-
-# aoi_timepoints <- aoi_timepoints_preresample %>%
-#   resample_times()
-
-aoi_timepoints <- resample_times(write_path, table_type="aoi_timepoints")
-
 
 ##### SUBJECTS TABLE ####
 d_tidy_final %>%
