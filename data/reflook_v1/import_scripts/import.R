@@ -51,7 +51,7 @@ aoi_path <- fs::path(project_root, "data", dataset_name, "raw_data", "test_aois"
 #output path
 output_path <- fs::path(project_root, "data", dataset_name,"processed_data")
 
-#### Run SMI ####
+#### Run SMI import cycle ####
 process_smi(dir = dir_path, exp_info_dir = exp_info_path)
 
 #### Generate AOIS ####
