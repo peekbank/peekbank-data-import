@@ -82,7 +82,9 @@ d_tidy <- d_tidy %>%
     aoi_old == "." ~ "missing",
     aoi_old == "-" ~ "missing",
     is.na(aoi_old) ~ "missing"
-  ))
+  )) %>%
+mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
+
 
 # Go through counterbalancing files, tidy, and concatanate into one structure ----------------------------------------
 order_read_path <- here("data",dataset_name,"full_dataset", "orders")
@@ -208,7 +210,6 @@ d_trial_ids <- d_tidy %>%
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
-  mutate(aoi_data_id = seq(0, nrow(d_tidy) - 1)) %>%
   left_join(d_subject_ids, by = "sub_num") %>%
   left_join(d_trial_ids) 
 
@@ -232,9 +233,11 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
-  select(aoi_data_id, t, aoi, trial_id, administration_id) %>%
-  rename(aoi_timepoint_id = aoi_data_id,
-         t_norm = t) %>% # original data had columns from -990ms to 6867ms...presumably centered at disambiguation per trial?
+  select(t, aoi, trial_id, administration_id) %>%
+  rename(t_norm = t) %>% # original data had columns from -990ms to 6867ms...presumably centered at disambiguation per trial?
+  #resample timepoints
+  resample_times(table_type="aoi_timepoints") %>%
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
   write_csv(fs::path(write_path, aoi_table_filename))
 
 ##### SUBJECTS TABLE ####
