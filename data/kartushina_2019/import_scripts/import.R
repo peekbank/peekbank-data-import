@@ -26,6 +26,7 @@ control_path <- fs::path(project_root,"data", dataset_name,"raw_data","control_t
 exp_info_path <- fs::path(project_root,"data", dataset_name,"raw_data", "experiment_info")
 #output path
 output_path <- fs::path(project_root,"data",dataset_name,"processed_data")
+stim_path <- fs::path(project_root,"data", dataset_name,"raw_data","stimulus_images")
 
 full_phrase_language <- "nor"
 possible_delims <- c("\t",",")
@@ -140,6 +141,10 @@ rename_aois <- function(aoi_string) {
   return(aoi_string)
 }
 
+# only experimental trials; does not include control trials for now
+# because control trials are in a strange different format
+trial_file_list <- list.files(dir_path)
+
 read_trial_info <- function(file_name) {
   file_path = paste0(dir_path, "/", file_name)
   #guess delimiter
@@ -181,7 +186,116 @@ trial_data <- trial_data %>%
   mutate(target_side = if_else(str_detect(stimulus, "right"), "right",
                                if_else(str_detect(stimulus, "left"), "left",
                                        NA_character_)),
-         stimulus = str_remove(stimulus, "\\_.*$"))
+         stimulus = str_remove(stimulus, "\\_.*$")) %>%
+  rename(target = stimulus)
+  
+target_distractor <- trial_data %>%
+  select(target) %>%
+  distinct(target) %>% # this is a stupid way to do this ... got distractors from the paper
+  mutate(distractor = case_when(target == "apple" ~ "foot",
+                                target == "cookie" ~ "belly",
+                                target == "banana" ~ "hair",
+                                target == "foot" ~ "apple",
+                                target == "belly" ~ "cookie",
+                                target == "hair" ~ "banana",
+                                target == "dog" ~ "glasses",
+                                target == "glasses" ~ "dog",
+                                target == "cat" ~ "keys",
+                                target == "keys" ~ "cat",
+                                target == "car" ~ "couch",
+                                target == "couch" ~ "car",
+                                target == "jacket" ~ "book",
+                                target == "book" ~ "jacket",
+                                target == "bread" ~ "leg",
+                                target == "leg" ~ "bread",
+                                target == "spoon" ~ "bathtub",
+                                target == "bathtub" ~ "spoon",
+                                target == "bottle" ~ "toothbrush",
+                                target == "toothbrush" ~ "bottle",
+                                target == "cup" ~ "pants",
+                                target == "pants" ~ "cup",
+                                target == "table" ~ "diaper",
+                                target == "diaper" ~ "table",
+                                target == "pacifier" ~ "pillow",
+                                target == "pillow" ~ "pacifier",
+                                target == "ball" ~ "sun",
+                                target == "sun" ~ "ball",
+                                target == "phone" ~ "moon",
+                                target == "moon" ~ "phone",
+                                target == "carpet" ~ "water",
+                                target == "water" ~ "carpet"))
 
+stimuli <- target_distractor %>%
+  select(target) %>%
+  rename(stimulus_label = target) %>%
+  mutate(stimulus_novelty = "familiar",
+         lab_stimulus_id = stimulus_label,
+         dataset_id = dataset_id,
+         stimulus_id = seq(0,length(.$stimulus_label)-1)
+         )
 
+trials <- trial_data %>%
+  select(target, target_side) %>%
+  distinct(target, target_side) %>%
+  left_join(target_distractor, by = "target") %>%
+  mutate(full_phrase_language = full_phrase_language,
+         dataset_id = dataset_id,
+         # again, this is a terrible way to do this.
+         # I got the English phrases from the paper and did my best to match
+         # to the Norwegian audio files using google translate ...
+         full_phrase = case_when(target == "table" | 
+                                   target == "phone" |
+                                   target == "moon" |
+                                   target == "glasses" |
+                                   target == "diaper" |
+                                   target == "dog" |
+                                   target == "cookie" |
+                                   target == "belly" ~ paste0("Can you find the ", target, "?"),
+                                 target == "water" |
+                                   target == "spoon" |
+                                   target == "foot" |
+                                   target == "cat" |
+                                   target == "carpet" |
+                                   target == "bathtub" |
+                                   target == "apple" ~ paste0("Where is the ", target, "?"),
+                                 target == "keys" ~ paste0("Where are the ", target, "?"),
+                                 target == "pillow" |
+                                   target == "pacifier" |
+                                   target == "pants" |
+                                   target == "hair" |
+                                   target == "couch" |
+                                   target == "cup" |
+                                   target == "car" |
+                                   target == "banana" ~ paste0("Do you see the ", target, "?"),
+                                 target == "toothbrush" |
+                                   target == "sun" |
+                                   target == "leg" |
+                                   target == "jacket" |
+                                   target == "bottle" |
+                                   target == "bread" |
+                                   target == "book" |
+                                   target == "ball"~ paste0("Look at the ", target, "."))) %>%
+  left_join(stimuli %>% select(stimulus_label, stimulus_id), by = c("target" = "stimulus_label")) %>%
+  rename("target_id" = "stimulus_id") %>%
+  left_join(stimuli %>% select(stimulus_label, stimulus_id), by = c("distractor" = "stimulus_label")) %>%
+  rename("distractor_id" = "stimulus_id") %>%
+  mutate(trial_id = seq(0,length(.$target)-1))
+
+# TODO: still need point of disambiguation in trials df
+
+aoi_timepoints <- trial_data %>%
+  left_join(trials %>% select(target, target_side, trial_id), by = c("target","target_side")) %>%
+  mutate(aoi = case_when(aoi_target_hit == TRUE &
+                           aoi_distractor_hit == FALSE ~ "target",
+                         aoi_distractor_hit ==TRUE &
+                           aoi_target_hit == FALSE ~ "distractor",
+                         gaze_type == "Saccade" ~ "other",
+                         gaze_type == "Unclassified" ~ "missing",
+                         gaze_type == "Fixation" ~ "other"
+                           ))
+
+aoi_timepoints %>%
+  select(gaze_type, aoi_target_hit, aoi_distractor_hit, aoi) %>%
+  distinct(gaze_type, aoi_target_hit, aoi_distractor_hit, aoi) %>%
+  View()
 
