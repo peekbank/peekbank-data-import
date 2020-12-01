@@ -44,8 +44,19 @@ d_raw_16 <- read_delim(fs::path(read_path, "TL316AB.ichart.n69.txt"),
 #18-month-olds
 d_raw_18 <- read_delim(fs::path(read_path, "TL318AB.ichart.n67.txt"),
                        delim = "\t") %>%
-  mutate(administration_num = 1)  %>%
-  relocate(administration_num, .after = `Sub Num`)
+  #one participant (Sub Num 12959) was administered the same order twice 
+  #this leads to problems down the road with resampling times
+  # to avoid this, we need to handle the second presentation of the same order as a separate administration
+  #(adding row numbers as a new column to disambiguate otherwise identical trial information)
+  mutate(row_number = row.names(.)) %>%
+  group_by(`Sub Num`,Order, `Tr Num`) %>%
+  mutate(administration_num = case_when(
+    `Sub Num`=="12959" ~ ifelse(row_number<max(row_number),1,2),
+    TRUE ~ 1
+  )) %>%
+  relocate(administration_num, .after = `Sub Num`) %>%
+  ungroup()
+  
 #combine
 d_raw <- bind_rows(d_raw_16,d_raw_18)
 
@@ -183,7 +194,7 @@ d_tidy_final <- d_tidy_semifinal %>%
 ##### AOI TABLE ####
 d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
-  select(t_norm, aoi, trial_id, administration_id) %>%
+  select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
