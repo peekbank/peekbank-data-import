@@ -10,7 +10,7 @@ library(osfr)
 ## constants
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
-dataset_name = "adams_marchman_2018"
+dataset_name <- "adams_marchman_2018"
 read_path <- here("data",dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
 
@@ -20,6 +20,7 @@ aoi_table_filename <- "aoi_timepoints.csv"
 subject_table_filename <- "subjects.csv"
 administrations_table_filename <- "administrations.csv"
 stimuli_table_filename <- "stimuli.csv"
+trial_types_table_filename <- "trial_types.csv"
 trials_table_filename <- "trials.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
@@ -135,7 +136,8 @@ stimulus_table <- d_tidy %>%
   filter(!is.na(target_image)) %>%
   mutate(dataset_id = 0,
          stimulus_novelty = "familiar",
-         stimulus_label = target_label,
+         original_stimulus_label = target_label,
+         english_stimulus_label = target_label,
          stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
          lab_stimulus_id = target_image
   ) %>%
@@ -163,11 +165,11 @@ d_administration_ids <- d_tidy %>%
   distinct(sub_num,administration_num,subject_id,months) %>%
   mutate(administration_id = seq(0, length(.$administration_num) - 1)) 
 
-# create zero-indexed ids for trials
-d_trial_ids <- d_tidy %>%
+# create zero-indexed ids for trial_types
+d_trial_type_ids <- d_tidy %>%
   distinct(order, tr_num, target_id, distractor_id, target_side) %>%
   mutate(full_phrase = NA) %>% #unknown
-  mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
+  mutate(trial_type_id = seq(0, length(.$tr_num) - 1)) 
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
@@ -186,7 +188,7 @@ d_tidy_final <- d_tidy_semifinal %>%
          point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz
          tracker = "video_camera",
          sample_rate = sampling_rate_hz
-         ) %>%
+         tr_order = as.numeric(tr_num)) %>%
   rename(lab_subject_id = sub_num,
          lab_age = months
          )
@@ -194,7 +196,7 @@ d_tidy_final <- d_tidy_semifinal %>%
 ##### AOI TABLE ####
 d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
-  select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
+  select(t_norm, aoi, trial_type_id, administration_id,lab_subject_id) %>%
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
@@ -204,7 +206,9 @@ d_tidy_final %>%
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
-  mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female'))) %>%
+  mutate(
+    sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
+    native_language="eng") %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -227,9 +231,16 @@ stimulus_table %>%
   select(-target_label, -target_image) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
-##### TRIALS TABLE ####
+#### TRIALS TABLE ####
 d_tidy_final %>%
   distinct(trial_id,
+           trial_order,
+           trial_type_id) %>%
+  write_csv(fs::path(write_path, trials_table_filename))
+
+##### TRIAL TYPES TABLE ####
+d_tidy_final %>%
+  distinct(trial_type_id,
            full_phrase,
            point_of_disambiguation,
            target_side,
@@ -238,8 +249,9 @@ d_tidy_final %>%
            dataset_id,
            target_id,
            distractor_id) %>%
-    mutate(full_phrase_language = "eng") %>%
-  write_csv(fs::path(write_path, trials_table_filename))
+    mutate(full_phrase_language = "eng",
+           condition = "") %>% #no condition manipulation based on current documentation
+  write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### AOI REGIONS TABLE ####
 # create empty other files aoi_region_sets.csv and xy_timepoints
