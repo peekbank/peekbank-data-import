@@ -39,7 +39,7 @@ process_smi_trial_info <- function(file_path) {
   sep <- get.delim(file_path, delims=possible_delims)
   
   #read in data
-  trial_data <-  
+  trial_types_data <-  
     read_delim(
       file_path,
       delim=sep
@@ -47,36 +47,37 @@ process_smi_trial_info <- function(file_path) {
   
   #separate stimulus name for individual images (target and distractor)
   #then separate into target and distractor
-  trial_data <- trial_data %>%
+  trial_types_data <- trial_types_data %>%
     mutate(Stimulus = str_remove_all(Stimulus,".jpg"),
            stimulus_name = str_remove_all(Stimulus,"o_|t_")) %>%
     rename("target_side" = "target") %>%
-    separate(stimulus_name, into=c("left_image","right_image"),sep="_",remove=F) %>%
+    separate(stimulus_name, into=c("left_image","right_image"), sep="_", 
+             remove=F) %>%
     mutate(target_image = ifelse(target_side == "left", left_image, right_image), 
            distractor_image = ifelse(target_side == "left", right_image, left_image), 
            target_label = target_image, 
            distractor_label = distractor_image)
   
   #convert onset to ms
-  trial_data <- trial_data %>%
-    mutate(point_of_disambiguation=onset *1000)
+  trial_types_data <- trial_types_data %>%
+    mutate(point_of_disambiguation = onset *1000)
   
   # rename and create some additional filler columns
-  trial_data <- trial_data %>%
-    mutate(trial_id=trial-1) %>%
+  trial_types_data <- trial_types_data %>%
+    mutate(trial_type_id = trial-1) %>%
     mutate(
-      dataset_id=dataset_id #choose specific dataset id for now
+      dataset_id = dataset_id #choose specific dataset id for now
     ) %>%
-    mutate(lab_trial_id=trial)
+    mutate(lab_trial_id = trial)
   
   #full phrase? currently unknown for refword
-  trial_data$full_phrase = NA
+  trial_types_data$full_phrase <- NA
   
   #extract relevant columns
   #keeping type and Stimulus for now for cross-checking with raw eyetracking
-  trial_data <- trial_data %>%
-    mutate(full_phrase_language = "eng")%>%
-    dplyr::select(trial_id,
+  trial_types_data <- trial_types_data %>%
+    mutate(full_phrase_language = "eng") %>%
+    dplyr::select(trial_type_id,
                   full_phrase, 
                   full_phrase_language, 
                   point_of_disambiguation, 
@@ -89,7 +90,7 @@ process_smi_trial_info <- function(file_path) {
                   stimulus_name, 
                   Stimulus)
   
-  return(trial_data)
+  return(trial_types_data)
   
 }
 
@@ -114,13 +115,15 @@ process_smi_stimuli <- function(file_path) {
     dplyr::select(type, left_image, right_image)%>%
     pivot_longer(c("left_image", "right_image"), 
                  names_to = "side", 
-                 values_to = "stimulus_label")%>%
+                 values_to = "english_stimulus_label") %>%
     mutate(dataset_id = dataset_id, 
+           original_stimulus_label = english_stimulus_label,
            stimulus_image_path = NA, 
            lab_stimulus_id = NA,
-           type = str_to_lower(type))%>%
-    rename("stimulus_novelty" = "type")%>%
-    distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, stimulus_label, dataset_id)
+           type = str_to_lower(type)) %>%
+    rename("stimulus_novelty" = "type") %>%
+    distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, 
+             english_stimulus_label, original_stimulus_label, dataset_id)
   
   return(stimuli_data)
 }
@@ -136,8 +139,8 @@ process_smi_dataset <- function(lab_dataset_id=dataset_name) {
     lab_dataset_id = lab_dataset_id,
     dataset_name = lab_dataset_id,
     name = lab_dataset_id, 
-    shortcite = "?", 
-    cite = "?"
+    shortcite = "Frank & Kraus unpublished", 
+    cite = "Frank & Kraus (unpublished). Children's word recognition after watching familiarization videos."
   )
   
   return(dataset.data)
@@ -224,7 +227,9 @@ process_administration_info <- function(file_path_exp_info, file_path_exp) {
 
 #### Table 1A: XY Data ####
 
-process_smi_eyetracking_file <- function(file_path, delim_options = possible_delims,stimulus_coding="stim_column") {
+process_smi_eyetracking_file <- function(file_path, 
+                                         delim_options = possible_delims, 
+                                         stimulus_coding = "stim_column") {
   
   #guess delimiter
   sep <- get.delim(file_path, comment="#", delims=delim_options,skip = max_lines_search)
@@ -251,10 +256,10 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
   
   #select rows and column names for xy file
   data <-  data %>%
-    filter(Type=="SMP", #remove anything that isn't actually collecting ET data
+    filter(Type == "SMP", #remove anything that isn't actually collecting ET data
            Stimulus != "-", #remove calibration
-           !grepl(paste(stims_to_remove_chars,collapse="|"), Stimulus),  #remove anything that isn't actually a trial; .avis are training or attention getters
-           grepl(paste(stims_to_keep_chars,collapse="|"), Stimulus)) %>% #from here, keep only trials, which have format o_name1_name2_.jpg;
+           !grepl(paste(stims_to_remove_chars, collapse="|"), Stimulus),  #remove anything that isn't actually a trial; .avis are training or attention getters
+           grepl(paste(stims_to_keep_chars, collapse="|"), Stimulus)) %>% #from here, keep only trials, which have format o_name1_name2_.jpg;
     dplyr::select(
       raw_t = "Time",
       lx = left_x_col_name,
@@ -267,7 +272,7 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
   
   ## add lab_subject_id column (extracted from data file)
   data <- data %>%
-    mutate(lab_subject_id=lab_subject_id)
+    mutate(lab_subject_id = lab_subject_id)
   
   if (dim(data)[1] == 0) { 
     return()
@@ -328,138 +333,22 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
       mutate(stim_lag = lag(Stimulus), 
              temp = ifelse(Stimulus != stim_lag, 1, 0), 
              temp_id = cumsum(c(0, temp[!is.na(temp)])), 
-             trial_id = temp_id)
+             subject_trial_id = temp_id)
     
     #set time to zero at the beginning of each trial
     data <- data %>%
-      group_by(trial_id) %>%
+      group_by(subject_trial_id) %>%
       mutate(t = round(timestamp - min(timestamp))) %>%
       ungroup()
   }
   
   #extract final columns
   xy.data <- data %>%
-    dplyr::select(lab_subject_id,x,y,t,trial_id)
+    dplyr::select(lab_subject_id, x, y, t, subject_trial_id)
   
   
   return(xy.data)
   
 }
 
-
-#### Main Processing Function ####
-
-process_smi <- function(dir,exp_info_dir, file_ext = '.txt') {
-  
-  
-  #### generate all file paths ####
-  
-  #list files in directory
-  all_files <- list.files(path = dir, 
-                          pattern = paste0('*',file_ext),
-                          all.files = FALSE)
-  
-  #create file paths
-  all_file_paths <- paste0(dir,"/",all_files,sep="")
-  
-  #create participant file path
-  participant_file_path <- paste0(exp_info_dir, "/",participant_file_name)
-  
-  #create trial info file path
-  trial_file_path <- paste0(exp_info_dir, "/",trial_file_name)
-  
-  #create aoi paths
-  all_aois <- list.files(path = aoi_path, 
-                         pattern = paste0('*','.xml'),
-                         all.files = FALSE)
-  
-  #process aois
-  #process aoi regions
-  aoi.data.all <- lapply(all_aois,process_smi_aoi,aoi_path=aoi_path,xy_file_path=all_file_paths[1]) %>%
-    bind_rows() %>%
-    mutate(l_x_min = ifelse(l_x_min < 0, 0, as.numeric(l_x_min)))%>% #setting negative vals to 0
-    distinct(l_x_min, l_x_max, l_y_min, l_y_max, 
-             r_x_min, r_x_max, r_y_min, r_y_max, 
-             stimulus_name)
-  
-  # #clean up aoi.data
-  aoi.data <- aoi.data.all %>%
-    dplyr::select(-stimulus_name) %>%
-    distinct() %>%
-    mutate(aoi_region_set_id = seq(0,length(l_x_min)-1))
-  
-  #create table of aoi region ids and stimulus name
-  aoi_ids <- aoi.data.all %>%
-    dplyr::rename("Stimulus" = "stimulus_name") %>%
-    dplyr::mutate(stimulus_name = str_remove_all(Stimulus,".jpg|o_|t_")) %>%
-    left_join(aoi.data, by = c("l_x_min", "l_x_max", "l_y_min", "l_y_max", "r_x_min", "r_x_max", "r_y_min", "r_y_max")) %>%
-    distinct(stimulus_name,Stimulus,aoi_region_set_id)  ##to-do: match aoi_region_set_id with trials from stimulus
-  
-  
-  #### generate all data objects ####
-  
-  #create dataset data
-  dataset.data <- process_smi_dataset()
-  
-  ##create stimuli data
-  stimuli.data <- process_smi_stimuli(trial_file_path) %>%
-    mutate(stimulus_id = seq(0,length(stimulus_label)-1)) 
-  
-  ## create timepoint data so we have a list of participants for whom we actually have data
-  timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file)%>%
-    bind_rows() %>%
-    mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
-    mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1)
-  
-  ##extract unique participant ids from eyetracking data (in order to filter participant demographic file)
-  participant_id_table <- timepoint.data %>%
-    distinct(lab_subject_id, subject_id)
-  
-  #create participant data
-  subjects.data <- process_subjects_info(participant_file_path) %>%
-    left_join(participant_id_table,by="lab_subject_id") %>%
-    filter(!is.na(subject_id)) %>%
-    dplyr::select(subject_id,sex, lab_subject_id)
-  
-  #create administration data 
-  administration.data <- process_administration_info(participant_file_path, 
-                                                     all_file_paths[1])
-  
-  #filtering down administrations to subjects for whom we have data
-  administration.data <- participant_id_table %>%
-    left_join(administration.data, by = "lab_subject_id") %>%
-    dplyr::select(-lab_subject_id) %>%
-    dplyr::select(dataset_id, subject_id, age, lab_age, lab_age_units, 
-                  monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method) %>%
-    mutate(administration_id = seq(0,length(subject_id)-1)) 
-  
-  #create trials data and match with stimulus id and aoi_region_set_id
-  trials.data <- process_smi_trial_info(trial_file_path)%>%
-    left_join(stimuli.data %>% select(stimulus_id, stimulus_label), by=c("distractor_label"="stimulus_label")) %>%
-    rename(distractor_id = stimulus_id) %>%
-    left_join(stimuli.data %>% select(stimulus_id, stimulus_label), by=c("target_label"="stimulus_label")) %>%
-    rename(target_id = stimulus_id)%>%
-    left_join(aoi_ids %>% select(-stimulus_name), by="Stimulus") 
-  
-  #create xy data
-  xy.data <- timepoint.data %>%
-    left_join(administration.data %>% select(subject_id, administration_id), by = "subject_id")%>%
-    dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id)
-  
-  #clean trials data
-  trials.data <- trials.data %>%
-    dplyr::select(trial_id, full_phrase, full_phrase_language, 
-                  point_of_disambiguation, target_side, 
-                  lab_trial_id, aoi_region_set_id, dataset_id, 
-                  distractor_id, target_id)
-  
-  #write all files
-  write_csv(xy.data, file = paste0(output_path,"/","xy_timepoints.csv"))
-  write_csv(subjects.data, file = paste0(output_path,"/","subjects.csv"))
-  write_csv(stimuli.data, file = paste0(output_path, "/", "stimuli.csv"))
-  write_csv(trials.data, file = paste0(output_path,"/","trials.csv"))
-  write_csv(dataset.data, file = paste0(output_path,"/","datasets.csv"))
-  write_csv(aoi.data, file = paste0(output_path,"/","aoi_region_sets.csv"))
-  write_csv(administration.data, file = paste0(output_path,"/","administrations.csv"))
-}
 
