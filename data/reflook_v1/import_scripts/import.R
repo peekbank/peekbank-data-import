@@ -33,7 +33,7 @@ dir_path <- fs::path(here::here("data", dataset_name, "raw_data"))
 
 ## only download if it's not on your machine
 if(length(list.files(paste0(dir_path, "/full_dataset"))) == 0 && length(list.files(paste0(dir_path, "/experiment_info"))) == 0) {
-  get_raw_data(lab_dataset_id = "reflook_v1", path = dir_path, osf_address = "pr6wu")
+  osfr::get_raw_data(lab_dataset_id = "reflook_v1", path = dir_path, osf_address = "pr6wu")
 }
 
 #Specify file 
@@ -179,7 +179,7 @@ trial_types.data <- trial_types.data %>%
   dplyr::select(trial_type_id, full_phrase, full_phrase_language, 
                 point_of_disambiguation, target_side, 
                 lab_trial_id, aoi_region_set_id, dataset_id, 
-                distractor_id, target_id)
+                distractor_id, target_id, condition)
 
 #write all files
 write_csv(xy.data, file = paste0(output_path,"/","xy_timepoints.csv"))
@@ -194,21 +194,6 @@ write_csv(administration.data, file = paste0(output_path,"/","administrations.cs
 
 # assign aoa based on aoa_coordinates
 # find correct aoi based on trials
-xy_joined <- add_aois(xy_joined)
-
-resample_times(xy_joined) %>%
-  dplyr::select(dataset_id, administration_id, trial_id, t_zeroed, aoi) %>%
-  dplyr::rename(t_norm = t_zeroed) %>%
-  dplyr::group_by(dataset_id, administration_id, trial_id, t_norm) %>%
-  dplyr::summarise(aoi = na_mode(aoi)) %>%
-  dplyr::ungroup() %>%
-  dplyr::group_by(dataset_id, administration_id, trial_id) %>%
-  dplyr::mutate(aoi = zoo::na.locf(aoi,
-                                   maxgap = pkg_globals$MAX_GAP_SAMPLES,
-                                   na.rm=FALSE)) %>%  # last observation carried forward
-  dplyr::ungroup() %>%
-  dplyr::mutate(aoi_timepoint_id = 0:(dplyr::n() - 1)) %>%
-  dplyr::select(-dataset_id)
 
 #### Generate AOIS ####
 aoi_timepoints <- xy.data %>%
@@ -219,8 +204,7 @@ aoi_timepoints <- xy.data %>%
   group_by(trial_id) %>%
   mutate(t_norm = t - point_of_disambiguation) %>%
   select(administration_id, trial_id, t_norm, aoi) %>%
-  peekds::resample_times(table_type = "aoi_timepoints") %>%
-  mutate(aoi_timepoint_id = 0:(n() -1))
+  peekds::resample_times(table_type = "aoi_timepoints") 
 
 # write to file
 write_csv(aoi_timepoints, file = paste0(output_path, "/", "aoi_timepoints.csv"))
@@ -228,4 +212,9 @@ write_csv(aoi_timepoints, file = paste0(output_path, "/", "aoi_timepoints.csv"))
 # run validator
 peekds::validate_for_db_import(dir_csv = output_path)
 
+# OSF integration
+# system specific read-in because I don't have another good method? 
+token <- read_lines(here("../token.txt"))[1]
+osf_token <- osfr::osf_auth(token = token) # - fill in with your own token.
+put_processed_data(osf_token, dataset_name, paste0(output_path,"/"), osf_address = "pr6wu")
 

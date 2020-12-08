@@ -76,7 +76,7 @@ process_smi_trial_info <- function(file_path) {
   #extract relevant columns
   #keeping type and Stimulus for now for cross-checking with raw eyetracking
   trial_types_data <- trial_types_data %>%
-    mutate(full_phrase_language = "eng")%>%
+    mutate(full_phrase_language = "eng") %>%
     dplyr::select(trial_type_id,
                   full_phrase, 
                   full_phrase_language, 
