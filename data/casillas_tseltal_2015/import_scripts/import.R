@@ -25,15 +25,10 @@ stim_data_raw = readr::read_csv(fs::path(read_path, "metadata", "tseltal_2015-tr
 sub_data_raw = readr::read_csv(fs::path(read_path, "metadata", "raw_participant.csv"))
 participant_coder_table = readr::read_csv(fs::path(read_path, "metadata/file_primary_coder_data.csv"))
 eaf_to_log = readr::read_csv(fs::path(read_path, "metadata/log-eaf-correspondence.csv"))
-#read in new file eaf to log [x]
 
-
-#add fix for new trial randomization map by participant 
-
+### HELPER FUNCTIONS ###
 #first read in all the file names as a column in a tibble
-part_trial_conv = tibble("file_name" = list.files(path = fs::path(read_path,"LOG_original"),
-                                                  pattern = "\\.log$", 
-                                                  full.names = FALSE))
+
 convert_file_to_part <- function(file_name){
   return(paste0(unlist(strsplit(gsub("\\.", "-", file_name), "-"))[1:2], collapse = "-"))
 }
@@ -42,20 +37,6 @@ convert_png_to_lab_id <- function(png_lwl){
   new_name = paste0(c("LWL", num), collapse="")
   return(new_name)
 }
-# do this using the eaf to log file
-#drop any log files without a corr .txt
-eaf_to_log = eaf_to_log %>% 
-  filter(across(everything(),
-                ~ !is.na(.))) %>% mutate(file = gsub("\\.eaf","\\.txt", eaf.filename))
-
-eaf_to_log = merge(eaf_to_log, participant_coder_table, by="file")
-
-eaf_to_log = eaf_to_log %>% 
-  filter_at(.vars = vars(one_of(c("primary_coder"))), ~ !is.na(.))
-
-part_trial_conv = eaf_to_log %>% select("log.filename", "participant") %>% 
-  rename("file_name" = "log.filename",
-         "participant_name"="participant")
 
 get_trial_order <- function(file_name){
   path = fs::path(read_path,"LOG_original", file_name)
@@ -67,22 +48,40 @@ get_trial_order <- function(file_name){
     mutate(Code = unlist(strsplit(Code, "\\."))[1]) %>% 
     mutate(task_type = gsub('[0-9]+', '',Code)) %>% 
     filter(task_type == "lwl")
-  
-  df = df %>% rowwise()%>% 
+  df$Trial = seq(1,nrow(df),1)
+  df = df %>% rowwise() %>% 
     mutate(Code = convert_png_to_lab_id(Code)) %>% 
     select("Subject", "Trial", "Code") %>% rename("participant" = "Subject",
-                                                  "origonal_trial_num" = "Trial",
-                                                  "origonal_trial_code" = "Code")
+                                                  "original_trial_num" = "Trial",
+                                                  "original_trial_code" = "Code")
   
-  df = filter(df, origonal_trial_code %in% stim_data_raw$trialname_eaf)
-  df = df[order(df$origonal_trial_num),]
+  df = filter(df, original_trial_code %in% stim_data_raw$trialname_eaf)
+  df = df[order(df$original_trial_num),]
   df$trial_index = seq.int(1,nrow(df))
   df$participant = convert_file_to_part(file_name) 
   df = df %>% mutate(conv_trial_name = paste("LWL", trial_index, sep=""))
   return(df)
 }
 
-participant_coder_table = filter(participant_coder_table, participant %in% part_trial_conv$participant_name)
+# do this using the eaf to log file
+#drop any log files without a corr .txt
+
+#TODO: This is dropping P26-9moM?, it shouldnt
+part_trial_conv = eaf_to_log %>% 
+  filter(across(everything(), ~ !is.na(.))) %>% 
+  mutate(file = gsub("\\.eaf","\\.txt", eaf.filename))
+
+part_trial_conv = merge(part_trial_conv, 
+                   participant_coder_table %>% filter(!(is.na(primary_coder))), 
+                   by="file")
+
+part_trial_conv = part_trial_conv %>% 
+  rename("file_name" = "log.filename",
+         "participant_name"="participant")
+
+#TODO: Use part_trial_conv instead of participant coder table
+#participant_coder_table = participant_coder_table %>% 
+#  filter(participant %in% part_trial_conv$participant_name)
 
 ### ------- TABLE GENERATION ------- ###
 
@@ -96,47 +95,68 @@ datasets_table = tibble(
 )
 
 ### subjects table ###
-
-sub_data_raw$AgeInMonths <- as.integer(sub_data_raw$AgeInMonths )
-
-subjects_table = sub_data_raw %>% 
-  select('Participant', 'Sex') %>%
+#TODO: get iso code, does one exist?
+raw_subjects_table = sub_data_raw %>% 
+  select(Participant, Sex, AgeInMonths) %>%
   rename('lab_subject_id' = 'Participant',
-         "sex" = 'Sex')
-
-subjects_table$sex[subjects_table$sex == "M"] <- "male"
-subjects_table$sex[subjects_table$sex == "F"] <- "female"
-
-#restrict to participants with data 
-subjects_table <- subjects_table %>% filter(lab_subject_id %in% (participant_coder_table%>%
-                                                 filter(!is.na(primary_coder)))$participant)
-
-subjects_table$subject_id <- seq.int(0,nrow(subjects_table)-1)
-
+         "sex" = 'Sex') %>%
+  mutate(sex = case_when(sex == "M"~ "male",
+                         sex == "F"~ "female",
+                         TRUE ~ "unspecified"),
+         AgeInMonths = as.integer(AgeInMonths),
+         native_language = "other")  %>% 
+  filter(lab_subject_id %in% (participant_coder_table%>%
+                                filter(!is.na(primary_coder)))$participant)
+  
+raw_subjects_table$subject_id <- seq(0,nrow(raw_subjects_table)-1,1)
 
 #reordering probably doesn't matter, but easier to check work
-subjects_table <- subjects_table[c("subject_id", "sex", "lab_subject_id")]
+subjects_table <- raw_subjects_table %>% select(subject_id, sex, 
+                                                native_language, lab_subject_id)
 
+# ADMINISTRATIONS TABLE #
+#One administration per child
+administrations_table <- raw_subjects_table %>% select(subject_id, AgeInMonths, lab_subject_id) %>%
+  mutate(dataset_id = dataset_id,
+         monitor_size_x = 1366,
+         monitor_size_y = 768,
+         sample_rate = sample_rate,
+         tracker = NA,
+         coding_method = "manual gaze coding",
+         lab_age_units = 'months',
+         age = AgeInMonths) %>%
+  rename(lab_age = AgeInMonths)
+
+administrations_table$administration_id <- seq(0, nrow(administrations_table)-1,1)
+
+#make sure exactly the correct columns are selected
+administrations_table <- administrations_table %>%
+  select(administration_id, dataset_id, subject_id,
+         age, lab_age, lab_age_units,
+         monitor_size_x, monitor_size_y, sample_rate,
+         tracker, coding_method)
 
 ### stimulus table ###
 
-stimuli_vec = stim_data_raw$target_word
+stimuli_table = stim_data_raw %>% 
+  select(target_word, target_word_english, target_image) %>%
+  mutate(stimulus_image_path = glue::glue("original_images/{target_image}"),
+         stimulus_novelty = "familiar",
+         dataset_id = dataset_id) %>%
+  rename(original_stimulus_label = target_word,
+         lab_stimulus_id = target_word_english) 
+stimuli_table$stimulus_id <- seq(0, nrow(stimuli_table)-1, 1)
 
-stimuli_table <- tibble("stimulus_id" = seq.int(0, n_distinct(stimuli_vec)-1),
-                         "stimulus_label" = stimuli_vec,
-                         "stimulus_novelty"="familiar",
-                         "dataset_id" = dataset_id)
-#lab stimulus_id will be the translation...
-stimuli_table = merge(stimuli_table, stim_data_raw %>% 
-                                        select("target_word", "target_word_english","target_image") %>%
-                                        rename("stimulus_label" = "target_word", 
-                                                "lab_stimulus_id" = "target_word_english",
-                                                "stimulus_image_path" = "target_image") %>%
-                                          mutate(stimulus_image_path = 
-                                                 glue::glue("original_images/{stimulus_image_path}")),
-                      by = "stimulus_label")
+stimuli_table$english_stimulus_label <- unlist(lapply(stimuli_table$lab_stimulus_id, 
+                                               function(word){str_split(word, 
+                                                                        "_")[[1]][1]}))
 
-# add image paths [x]
+stimuli_table<- stimuli_table %>% 
+  select(stimulus_id, 
+         original_stimulus_label, english_stimulus_label,
+         stimulus_novelty, stimulus_image_path,
+         lab_stimulus_id, dataset_id)
+
 
 ### AOI_REGION_SETS TABLE ###
 aoi_region_sets <- tibble("aoi_region_set_id"=0, #only one set of aoi regions for this study
@@ -149,83 +169,86 @@ aoi_region_sets <- tibble("aoi_region_set_id"=0, #only one set of aoi regions fo
                           "r_y_max" = 754,
                           "r_y_min" = 359)
 
-
-
-### ADMINISTRATIONS TABLE ### - this is where it gets complicated
-
-#restrict to participants with lwl task
-
-administrations_table = tibble("administration_id" = seq.int(0, nrow(participant_coder_table)-1),
-                         "dataset_id" = dataset_id,
-                         "monitor_size_x" = 1366,
-                         "monitor_size_y" = 768,
-                         "sample_rate"=sample_rate,
-                         "tracker" = NA,
-                         "coding_method" = "manual gaze coding",
-                         "lab_subject_id" = participant_coder_table$participant,
-                         'lab_age_units'='months')
-
-#make sure to match subject ID to correct participant
-administrations_table <- merge(administrations_table, subjects_table %>% 
-                           select('subject_id', 'lab_subject_id'), by='lab_subject_id')
-
-#match to age
-administrations_table <- merge(administrations_table, 
-                         sub_data_raw %>% rename('lab_subject_id' = 'Participant',
-                                              'lab_age' = 'AgeInMonths') %>% select('lab_subject_id', 'lab_age'), 
-                         by = 'lab_subject_id')
-
-administrations_table$age <- administrations_table$lab_age
-
-#reorder for readability
-administrations_table <- administrations_table[c("administration_id", "dataset_id", "subject_id", 
-                                                 "age","lab_age","lab_age_units",
-                                                 "monitor_size_x", "monitor_size_y", 
-                                                 "sample_rate", "tracker", "coding_method")]
-administrations_table$coding_method <- as.character(administrations_table$coding_method)
-
 ### TRIALS ### 
-#get language code
-trials_table = tibble("trial_id" = stim_data_raw$trialorder-1,
-                      "full_phrase_language" = "multiple",
-                      "aoi_region_set_id" = 0, #only one aoi region for this expmt
-                      "dataset_id" = dataset_id) 
 
+trials_types_table = stim_data_raw %>% 
+  rename(full_phrase = phrase,
+         point_of_disambiguation = time_to_word_start,
+         lab_trial_id = trialname_eaf) %>% 
+  mutate(full_phrase_language = 'other',
+         aoi_region_set_id = '0', #only one aoi region for this expmt
+         dataset_id = dataset_id,
+         target_side = case_when(target_side == "L" ~ "left",
+                                 target_side == "R" ~ "right"),
+         condition = NA,
+         point_of_disambiguation = point_of_disambiguation *1000) 
 
-trials_table = bind_cols(trials_table, stim_data_raw %>% rename("full_phrase" = "phrase",
-                                "point_of_disambiguation" = "time_to_word_start",
-                                "lab_trial_id" = "trialname_eaf") %>% select('full_phrase',
-                                                                            'point_of_disambiguation',
-                                                                            'lab_trial_id','target_word', 
-                                                                            'distractor_image', 'target_side'))
-#turn distractor image into a matchable stimulus form
-trials_table$distractor_image = as.character(trials_table$distractor_image)
-trials_table$distractor_word = str_match(trials_table$distractor_image, "(.*)\\..*$")[,2]
+# reclass distractor_image to distractor word
+trials_types_table$distractor_word <- as.character(lapply(trials_types_table$distractor_image,
+                                             function(word_png){return(str_replace(word_png, ".png", ""))}))
 
-#match the stimulus names to the stimulus ids
-trials_table <- merge(trials_table, stimuli_table %>% 
-                  rename("target_word" = "stimulus_label",
-                         "target_id" = "stimulus_id") %>% 
-                  select("target_id", "target_word"), by = "target_word")
+trials_types_table$trial_type_id <-  as.numeric(lapply(trials_types_table$lab_trial_id,
+                                                        function(lab_trial){return(str_replace(lab_trial, 
+                                                                                               "LWL", ""))})) -1
+#merge in the stimulus IDs
+trials_types_table <- merge(trials_types_table, stimuli_table %>% 
+                              mutate(target_word = original_stimulus_label) %>%
+                              select(target_word, stimulus_id)) %>% rename(target_id = stimulus_id)
 
-trials_table <- merge(trials_table, stimuli_table %>% 
-                  rename("distractor_word" = "stimulus_label",
-                         "distractor_id" = "stimulus_id") %>% 
-                  select("distractor_id", "distractor_word"), by = "distractor_word")
+trials_types_table <- merge(trials_types_table, stimuli_table %>% 
+                              mutate(distractor_word = original_stimulus_label) %>%                              
+                              select(distractor_word, stimulus_id)) %>% rename(distractor_id = stimulus_id)
 
-trials_table$target_side[trials_table$target_side == "L"] <- "left"
-trials_table$target_side[trials_table$target_side == "R"] <- "right"
+trials_types_table$trial_type_id <- seq(0, nrow(trials_types_table)-1,1)
+trials_types_table <- trials_types_table %>% arrange(trial_type_id) %>%
+  select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
+        target_side, lab_trial_id, condition, aoi_region_set_id, dataset_id, distractor_id,
+        target_id)
 
-trials_table$point_of_disambiguation = trials_table$point_of_disambiguation * 1000
-trials_table = trials_table[c("trial_id", "full_phrase", "full_phrase_language",
-                              "point_of_disambiguation", "target_side", "lab_trial_id", 
-                              "aoi_region_set_id", "dataset_id", "distractor_id", "target_id")]
+### TRIALS TABLE ###
 
+trials_table <- merge(administrations_table %>% 
+                        select(administration_id, subject_id), 
+                      subjects_table)
+trials_table <- merge(trials_table, part_trial_conv %>% 
+                        select(participant_name, file_name), 
+                      by.x = "lab_subject_id", by.y = "participant_name")
 
+get_trial_info <- function(file_name){
+  path = fs::path(read_path,"LOG_original", file_name)
+  df = read.csv(fs::path(read_path,"LOG_original",file_name), skip =3, sep = "\t")
+  df = df %>% rowwise()%>%
+    mutate(Code = unlist(strsplit(Code, "\\."))[1]) %>% 
+    mutate(task_type = gsub('[0-9]+', '',Code)) %>% 
+    filter(task_type == "lwl")
+  df <- df %>% arrange(Trial) 
+  df$lab_trial_id <- unlist(lapply(df$Code, 
+                            function(old_code){
+                              paste0("LWL", 
+                                     as.character(as.numeric(str_replace(old_code, 
+                                                                         "lwl", 
+                                                                         ""))))
+                              }
+                            ))
+  
+  df$trial_order <- seq(0, nrow(df)-1)
+  df$file_name <- file_name
+  return(df)
+}
+
+all_trials <- do.call("rbind", lapply(trials_table$file_name, get_trial_info))
+
+trials_table <- merge(trials_table, 
+                      all_trials %>% 
+                        select(file_name, lab_trial_id, trial_order))
+trials_table <- merge(trials_table,
+                      trials_types_table %>% select(lab_trial_id, trial_type_id))
+
+trials_table$trial_id <- seq(0, nrow(trials_table)-1,1)
 ### AOI_TIMEPOINTS TABLE ###
 
 ### attempt 2! ###
-test_get_aoi <- function(target_lwl, trial){
+test_get_aoi <- function(trial, target_lwl, target_annotator){
   #takes in an administration, trial pair and returns a dataframe with the aoi for that pair
   #restrict to specific trial :)
   if (trial %in% target_lwl$task_type){
@@ -233,153 +256,172 @@ test_get_aoi <- function(target_lwl, trial){
     trial_end = filter(target_lwl,trial== task_type)$end_ms[1] - trial_start
     target_lwl = target_lwl %>% mutate(start_ms = start_ms-trial_start,
                                        end_ms = end_ms-trial_start)
-    lwl_task = filter(target_lwl, primary_coder == task)
+    lwl_task = filter(target_lwl, target_annotator == task)
     
     #start creating the tibble for this task+admin pair :)
     df = tibble("timepoint_ms" = seq.int(0, trial_end, 1000/sample_rate))
-    df$administration_id = administration
+    #df$administration_id = administration
     df$trial = trial
     get_aoi <- function(timepoint_ms, lwl_df = lwl_task){
       return(filter(lwl_df, timepoint_ms >= start_ms & timepoint_ms < end_ms)$task_type[1])
     }
-    df$aoi = lapply(df$timepoint_ms, get_aoi)
+    df$aoi = unlist(lapply(df$timepoint_ms, get_aoi))
     df$aoi[is.na(df$aoi)] <- "missing"
     df$t_norm = df$timepoint_ms - point_of_disambiguation
     return(df)} else{
-      return(tibble("administration_id" = as.integer(),
+      return(tibble(#"administration_id" = as.integer(),
                     "timepoint_ms" = as.integer(),
                     "trial" = character(),
                     "aoi" = character(),
                     "t_norm" = as.integer()))}
 }
 
-full_aoi_data <- tibble("timepoint_ms" = as.integer(),
-                        "administration_id" = as.integer(),
-                        "bad_code_trial" = character(),
-                        "aoi" = character(),
-                        "t_norm" = as.integer(),
-                        "trial" = character(),
-                        "trial_index" = as.integer())
-
-for (administration in administrations_table$administration_id){
-  administration_aoi_data <- tibble("administration_id" = as.integer(),
-                          "timepoint_ms" = as.integer(),
-                          "trial" = character(),
-                          "aoi" = character(),
-                          "t_norm" = as.integer())
+get_administration_aoi <- function(administration){
   print(administration)
-  subject = filter(administrations_table, administration == administration_id)$subject_id[1]
-  lab_subject_id = filter(subjects_table, subject == subject_id)$lab_subject_id[1]
-  part_lwl_file = filter(participant_coder_table, lab_subject_id == participant)$file[1]
-  primary_coder = filter(participant_coder_table, lab_subject_id == participant)$primary_coder[1]
-  target_lwl = readr::read_delim(fs::path(read_path,"TXT_exported",part_lwl_file), delim = "\t", 
+  #takes in an administration id, returns the timepoint_aoi for that adminisitration
+  #linked to the correct trial_id
+  #need the .txt file name for the participant for the administration
+  participant_info = merge(administrations_table %>% select(administration_id, subject_id),
+                           subjects_table %>% select(subject_id, lab_subject_id))
+  participant_info = merge(participant_info, 
+                           part_trial_conv %>% rename(lab_subject_id = participant_name))
+  #restrict to the target administration
+  participant_info <- participant_info %>% filter(administration_id == administration)
+  
+  lwl_file = readr::read_delim(fs::path(read_path,"TXT_exported",participant_info$file[1]), delim = "\t", 
                                  col_names=c("task", "NA", "start_ms", "end_ms", "duration", "task_type")) %>% 
     select("task", "start_ms", "end_ms", "duration", "task_type")
-  for (trial in trials_table$lab_trial_id){
-    print(trial)
-    trial_lwl = test_get_aoi(target_lwl, trial)
-    
-    
-    
-    administration_aoi_data = rbind(administration_aoi_data, trial_lwl)
-  }
   
-  #fix the correct trial number here
-  part_file_name = part_trial_conv$file_name[part_trial_conv$participant_name == lab_subject_id][1]
-  conv_df = get_trial_order(part_file_name) %>% rename("trial" = "conv_trial_name")
-  administration_aoi_data = left_join(administration_aoi_data, conv_df[c("origonal_trial_code", "trial", "trial_index")], by= "trial")
-  administration_aoi_data = administration_aoi_data %>%
-    rename("bad_code_trial" = "trial",
-           "trial" = "origonal_trial_code")
+  administration_aoi_data = do.call("rbind", 
+                                    lapply(trials_types_table$lab_trial_id, 
+                                           test_get_aoi, 
+                                           target_lwl = lwl_file,
+                                           target_annotator = participant_info$primary_coder[1]))
   
-  #flip L and R
-  administration_aoi_data$aoi[administration_aoi_data$aoi == "L"] <- "new_right"
-  administration_aoi_data$aoi[administration_aoi_data$aoi == "R"] <- "L"
-  administration_aoi_data$aoi[administration_aoi_data$aoi == "new_right"] <- "R"
-  print(head(administration_aoi_data))
-  full_aoi_data = rbind(full_aoi_data, administration_aoi_data)
+  #flip left and right
+  
+  administration_aoi_data$aoi = unlist(lapply(administration_aoi_data$aoi, function(aoi){
+    str_replace(aoi, " ", "")
+  }))
+  
+  administration_aoi_data <- administration_aoi_data %>% mutate(fixed_aoi = case_when(aoi == "L" ~ "right",
+                                                                          aoi == "R" ~ "left",
+                                                                          TRUE ~ aoi)) 
+  administration_aoi_data$administration_id = administration
+  administration_aoi_data = merge(administration_aoi_data, 
+                                  trials_table %>% rename(trial= lab_trial_id),
+                                  by.x=c("administration_id", "trial"), by.y = c("administration_id", "trial"))
+  
+  administration_aoi_data <- administration_aoi_data %>% select(trial_order, trial_type_id, trial_id, 
+                                                                administration_id, 
+                                                                timepoint_ms, aoi, t_norm,
+                                                                fixed_aoi, lab_subject_id, 
+                                                                subject_id)
+  administration_aoi_data <- merge(administration_aoi_data, 
+                                   trials_types_table %>% 
+                                     select(trial_type_id, target_side))
+  
+  administration_aoi_data <- administration_aoi_data %>% 
+    mutate(final_aoi = case_when((fixed_aoi %in% c("left", "right")) & (fixed_aoi == target_side) ~ "target",
+                                 (fixed_aoi %in% c("left", "right")) & (fixed_aoi != target_side) ~ "distractor",
+                                 TRUE ~ fixed_aoi))
+  
+  return(administration_aoi_data)
 }
 
-full_aoi_data = full_aoi_data %>% dplyr::mutate(aoi = replace_na(aoi, "missing"))
-full_aoi_data = left_join(full_aoi_data, trials_table %>% rename("trial" = "lab_trial_id") %>% select("trial", "target_side", "trial_id"))
-full_aoi_data$aoi[full_aoi_data$aoi == "R"] <- "right"
-full_aoi_data$aoi[full_aoi_data$aoi == "L"] <- "left"
-full_aoi_data$aoi[full_aoi_data$aoi != full_aoi_data$target_side &
-                    full_aoi_data$aoi != 'missing'] <- "distractor"
-full_aoi_data$aoi[full_aoi_data$aoi == full_aoi_data$target_side &
-                    full_aoi_data$aoi != 'missing'] <- "target"
+final_aoi_table <- do.call("rbind", lapply(administrations_table$administration_id, get_administration_aoi))
+final_aoi_table$aoi_timepoint_id <- seq(0, nrow(final_aoi_table)-1, 1)
 
-full_aoi_data = merge(full_aoi_data, subjects_table %>% rename("administration_id" = "subject_id"), 
-                      by = "administration_id")
-full_aoi_data$aoi = as.character(full_aoi_data$aoi)
+aoi_timepoints <- final_aoi_table %>%
+  select(-aoi) %>% 
+  rename(aoi = final_aoi) %>% 
+  select(aoi_timepoint_id, trial_id, aoi,
+         t_norm, administration_id)
 
-full_aoi_data$aoi_timepoint_id = seq.int(0,nrow(full_aoi_data)-1)
+aoi_timepoints_table <- aoi_timepoints %>% peekds::resample_times(table_type = "aoi_timepoints")
+aoi_timepoints_table$aoi_timepoint_id <- seq(0, nrow(aoi_timepoints_table)-1)
+trials_table <- trials_table %>% select(trial_id, trial_order, trial_type_id)
 
-final_timepoints_table = full_aoi_data[c("aoi_timepoint_id", "trial_id", "aoi",
-                                                "t_norm", "administration_id")]
+### check datatypes and write to files ###
 
-### check datatypes and write to files
-administrations_table <- administrations_table %>% mutate(dataset_id = as.integer(dataset_id),
-                                 age = as.numeric(age),
-                                 lab_age = as.numeric(lab_age),
-                                 lab_age_units = as.character(lab_age_units),
-                                 monitor_size_x  = as.numeric(monitor_size_x),
-                                 monitor_size_y = as.numeric(monitor_size_y),
-                                 sample_rate = as.numeric(sample_rate),
-                                 tracker = as.character(tracker),
-                                 coding_method = as.character(coding_method)) 
+administrations_table <- administrations_table %>% 
+  mutate(administration_id =as.integer(administration_id),
+         dataset_id = as.integer(dataset_id),
+         age = as.numeric(age),
+         lab_age = as.numeric(lab_age),
+         lab_age_units = as.character(lab_age_units),
+         monitor_size_x  = as.numeric(monitor_size_x),
+         monitor_size_y = as.numeric(monitor_size_y),
+         sample_rate = as.numeric(sample_rate),
+         tracker = as.character(tracker),
+         coding_method = as.character(coding_method)) 
 administrations_table %>% write_csv(fs::path(write_path, "administrations.csv"))
 
-datasets_table <- datasets_table %>% mutate(dataset_id = as.integer(dataset_id),
-                                            lab_dataset_id = as.character(lab_dataset_id),
-                                            dataset_name= as.character(dataset_name),
-                                            cite= as.character(cite),
-                                            shortcite= as.character(shortcite))
+datasets_table <- datasets_table %>% 
+  mutate(dataset_id = as.integer(dataset_id),
+         lab_dataset_id = as.character(lab_dataset_id),
+         dataset_name= as.character(dataset_name),
+         cite= as.character(cite),
+         shortcite= as.character(shortcite))
 datasets_table %>% write_csv(fs::path(write_path, "datasets.csv"))
 
-subjects_table <- subjects_table %>% mutate(subject_id = as.integer(subject_id),
-                                            sex = as.character(sex),
-                                            lab_subject_id = as.character(lab_subject_id))
+subjects_table <- subjects_table %>% 
+  mutate(subject_id = as.integer(subject_id),
+         sex = as.character(sex),
+         native_language = as.character(native_language),
+         lab_subject_id = as.character(lab_subject_id))
 subjects_table %>% write_csv(fs::path(write_path, "subjects.csv"))
 
-trials_table <- trials_table %>% mutate(trial_id = as.integer(trial_id),
-                                        full_phrase = as.character(full_phrase),
-                                        full_phrase_language = as.character(full_phrase_language),
-                                        point_of_disambiguation = as.integer(point_of_disambiguation),
-                                        target_side = as.character(target_side),
-                                        lab_trial_id  = as.character(lab_trial_id),
-                                        aoi_region_set_id = as.integer(aoi_region_set_id),
-                                        dataset_id = as.integer(dataset_id),
-                                        distractor_id = as.integer(distractor_id),
-                                        target_id = as.integer(target_id))
+trials_types_table <- trials_types_table %>% 
+  mutate(trial_type_id = as.integer(trial_type_id),
+         full_phrase = as.character(full_phrase),
+         full_phrase_language = as.character(full_phrase_language),
+         point_of_disambiguation = as.integer(point_of_disambiguation),
+         target_side = as.character(target_side),
+         lab_trial_id  = as.character(lab_trial_id),
+         aoi_region_set_id = as.integer(aoi_region_set_id),
+         dataset_id = as.integer(dataset_id),
+         distractor_id = as.integer(distractor_id),
+         target_id = as.integer(target_id))
+trials_types_table %>% write_csv(fs::path(write_path, "trial_types.csv"))
+
+trials_table <- trials_table %>%
+  mutate(trial_id = as.integer(trial_id),
+         trial_order = as.integer(trial_order),
+         trial_type_id = as.integer(trial_type_id))
 trials_table %>% write_csv(fs::path(write_path, "trials.csv"))
 
-aoi_timepoints_table <- final_timepoints_table %>% mutate(aoi_timepoint_id = as.integer(aoi_timepoint_id),
-                                                          trial_id = as.integer(trial_id),
-                                                          aoi = as.character(aoi),
-                                                          t_norm = as.integer(t_norm),
-                                                          administration_id = as.integer(administration_id))
+
+aoi_timepoints_table <- aoi_timepoints_table %>% 
+  mutate(aoi_timepoint_id = as.integer(aoi_timepoint_id),
+         trial_id = as.integer(trial_id),
+         aoi = as.character(aoi),
+         t_norm = as.integer(t_norm),
+         administration_id = as.integer(administration_id))
 aoi_timepoints_table %>% write_csv(fs::path(write_path, "aoi_timepoints.csv"))
 
-aoi_region_sets_table <- aoi_region_sets %>% mutate(aoi_region_set_id = as.integer(aoi_region_set_id),
-                                                    l_x_max = as.integer(l_x_max),
-                                                    l_x_min = as.integer(l_x_min),
-                                                    l_y_max = as.integer(l_y_max),
-                                                    l_y_min = as.integer(l_y_min),
-                                                    r_x_max = as.integer(r_x_max),
-                                                    r_x_min = as.integer(r_x_min),
-                                                    r_y_max = as.integer(r_y_max),
-                                                    r_y_min = as.integer(r_y_min))
+aoi_region_sets_table <- aoi_region_sets %>% 
+  mutate(aoi_region_set_id = as.integer(aoi_region_set_id),
+         l_x_max = as.integer(l_x_max),
+         l_x_min = as.integer(l_x_min),
+         l_y_max = as.integer(l_y_max),
+         l_y_min = as.integer(l_y_min),
+         r_x_max = as.integer(r_x_max),
+         r_x_min = as.integer(r_x_min),
+         r_y_max = as.integer(r_y_max),
+         r_y_min = as.integer(r_y_min))
 aoi_region_sets_table %>% write_csv(fs::path(write_path, "aoi_region_sets.csv"))
 
-stimuli_table <- stimuli_table %>% mutate(stimulus_id = as.integer(stimulus_id),
-                                          stimulus_label = as.character(stimulus_label),
-                                          stimulus_novelty = as.character(stimulus_novelty),
-                                          stimulus_image_path = as.character(stimulus_image_path),
-                                          lab_stimulus_id = as.character(lab_stimulus_id),
-                                          dataset_id = as.integer(dataset_id))
+stimuli_table <- stimuli_table %>% 
+  mutate(stimulus_id = as.integer(stimulus_id),
+         original_stimulus_label = as.character(original_stimulus_label),
+         english_stimulus_label = as.character(english_stimulus_label),
+         stimulus_novelty = as.character(stimulus_novelty),
+         stimulus_image_path = as.character(stimulus_image_path),
+         lab_stimulus_id = as.character(lab_stimulus_id),
+         dataset_id = as.integer(dataset_id))
 stimuli_table %>% write_csv(fs::path(write_path, "stimuli.csv"))
-#full_aoi_data %>% write_csv(fs::path(write_path, "full_aoi_timepoints.csv"))
+
 
 ### Write to OSF ###
 # need osf token
