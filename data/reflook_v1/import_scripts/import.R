@@ -114,7 +114,7 @@ timepoint.data <- lapply(all_file_paths, process_smi_eyetracking_file) %>%
   mutate(subject_id = as.numeric(factor(lab_subject_id, 
                                         levels = unique(lab_subject_id))) - 1) %>%
   group_by(lab_subject_id, subject_trial_id) %>%
-  mutate(trial_id = cur_group_id()) %>% 
+  mutate(trial_id = cur_group_id()-1) %>% 
   ungroup()
   
 ## extract unique participant ids from eyetracking data 
