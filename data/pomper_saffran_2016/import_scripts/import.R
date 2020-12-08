@@ -4,6 +4,7 @@ library(here)
 library(janitor)
 library(tidyverse)
 library(readxl)
+#devtools::install_github("langcog/peekds")
 library(peekds)
 library(osfr)
 
@@ -21,21 +22,25 @@ subject_table_filename <- "subjects.csv"
 administrations_table_filename <- "administrations.csv"
 stimuli_table_filename <- "stimuli.csv"
 trials_table_filename <- "trials.csv"
+trial_types_table_filename <- "trial_types.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
-osf_token <- read_lines(here("osf_token.txt"))
 
+
+osf_token <- read_lines(here("osf_token.txt"))
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
 
 
-# download datata from osf
-#peekds::get_raw_data(dataset_name, path = read_path)
+# only download data if it's not on your machine
+if(length(list.files(read_path)) == 0 && length(list.files(paste0(read_path, "/orders"))) == 0) {
+  get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
+}
 
 
-# read raw icoder files (is it one file per participant or aggregated?)
+# read raw icoder files
 d_raw <- read_delim(fs::path(read_path, "pomper_saffran_2016_raw_datawiz.txt"),
                     delim = "\t")
 
@@ -86,7 +91,7 @@ d_tidy <- d_tidy %>%
 mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
 
 
-# Go through counterbalancing files, tidy, and concatanate into one structure ----------------------------------------
+# Go through counterbalancing files, tidy, and concatenate into one structure ----------------------------------------
 order_read_path <- here("data",dataset_name,"full_dataset", "orders")
 order_files = dir(order_read_path)
 count_files = 0
@@ -206,7 +211,7 @@ d_subject_ids <- d_tidy %>%
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
   distinct(order, tr_num, target_id, distractor_id, target_side) %>%
-  mutate(trial_id = seq(0, length(.$tr_num) - 1))
+  mutate(trial_type_id = seq(0, length(.$tr_num) - 1))
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
@@ -233,7 +238,7 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
-  select(t, aoi, trial_id, administration_id) %>%
+  select(t, aoi, trial_id, administration_id) %>% # trial_id or trial_type_id ?
   rename(t_norm = t) %>% # original data had columns from -990ms to 6867ms...presumably centered at disambiguation per trial?
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
@@ -243,7 +248,8 @@ d_tidy_final %>%
 ##### SUBJECTS TABLE ####
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id, sex) %>%
-  mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female'))) %>%
+  mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
+         native_language = "eng") %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -263,12 +269,16 @@ d_tidy_final %>%
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
-  select(-trial_type, -target_word, -target_image) %>%
+  mutate(english_stimulus_label = target_word) %>%
+  rename(original_stimulus_label = target_word) %>%
+  select(-trial_type, -target_image) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
-##### TRIALS TABLE ####
-d_tidy_final %>%
-  distinct(trial_id,
+
+##### TRIAL TYPES TABLE ####
+trial_types <- d_tidy_final %>%
+  distinct(trial_type_id,
+           condition,
            full_phrase,
            point_of_disambiguation,
            target_side,
@@ -279,9 +289,26 @@ d_tidy_final %>%
            distractor_id, 
            distractor_label,
            target_label) %>%
-    mutate(full_phrase_language = "eng") %>%
-    select(-distractor_label, -target_label) %>%
-      write_csv(fs::path(write_path, trials_table_filename))
+  mutate(full_phrase_language = "eng") %>%
+  select(-distractor_label, -target_label) %>%
+  write_csv(fs::path(write_path, trial_types_table_filename))
+
+##### TRIALS TABLE ####
+# trial_id	PrimaryKey	row identifier for the trials table indexing from zero
+# trial_order	IntegerField	index of the trial in order of presentation during the experiment
+# trial_type_id	ForeignKey	row identifier for the trial_types table indexing from zero
+
+# create zero-indexed ids for trials
+d_trial_ids <- d_tidy %>%
+  distinct(order, tr_num, target_id, distractor_id, target_side) %>%
+  mutate(trial_type_id = seq(0, length(.$tr_num) - 1))
+
+trials_table <- d_tidy_final %>%
+  mutate(trial_order = as.numeric(tr_num) - 1) %>%
+  distinct(trial_order, trial_type_id) %>%
+  mutate(full_phrase_language = "eng",
+         trial_id = seq(0, n() - 1)) %>%
+  write_csv(fs::path(write_path, trials_table_filename))
 
 ##### AOI REGIONS TABLE ####
 # create empty other files aoi_region_sets.csv and xy_timepoints

@@ -1,4 +1,5 @@
-### generic functions ###
+#### generic functions ###
+
 
 #function for extracting information from SMI header/ comments
 extract_smi_info <- function(file_path,parameter_name) {
@@ -12,20 +13,18 @@ extract_smi_info <- function(file_path,parameter_name) {
   return(info_object)
 }
 
-
 #### Table 2: Participant Info/ Demographics ####
 
 process_subjects_info <- function(file_path) {
   data <- read.csv(file_path)%>%
     dplyr::select(subid, age, gender)%>%
     dplyr::rename("lab_subject_id" = "subid", 
-                  "sex" = "gender",
-                  "lab_age" = "age")%>%
-    dplyr::mutate(age = round(lab_age * 12,0), #convert age to months
-                  lab_age_units = "years") %>%
-    mutate(sex = factor(sex, labels = c("male", "female", "unspecified")), #this is pulled from yurovsky processing code
-           age = ifelse(age == "NaN", NA, age),
-           lab_age = ifelse(lab_age == "NaN", NA, lab_age)) 
+                  "sex" = "gender")%>%
+    mutate(sex = factor(sex, levels = c("male", "female", "NaN"),
+                        labels = c("male", "female", "unspecified")),
+           lab_age = age, 
+           lab_age_units = "years",
+           age = round(12*(ifelse(age == "NaN", NA, age)))) #converting age from years to months
   
   return(data)
 }
@@ -39,44 +38,50 @@ process_smi_trial_info <- function(file_path) {
   sep <- get.delim(file_path, delims=possible_delims)
   
   #read in data
-  trial_types_data <-  
+  trial_data <-  
     read_delim(
       file_path,
       delim=sep
     )
   
-  #separate stimulus name for individual images (target and distractor)
-  #then separate into target and distractor
-  trial_types_data <- trial_types_data %>%
-    mutate(Stimulus = str_remove_all(Stimulus,".jpg"),
-           stimulus_name = str_remove_all(Stimulus,"o_|t_")) %>%
-    rename("target_side" = "target") %>%
-    separate(stimulus_name, into=c("left_image","right_image"), sep="_", 
-             remove=F) %>%
+  #separate stimulus name for individual images (target and distracter)
+  trial_data <- trial_data %>%
+    mutate(stimulus_name = str_remove(str_remove(Stimulus,".jpg"), "s1_")) %>%
+    separate(stimulus_name, into=c("left_image","right_image"),sep="_",remove=F)%>%
+    mutate(left_image = ifelse(left_image == "b", "bosa",
+                               ifelse(left_image == "m", "manu", left_image)),
+           right_image = ifelse(right_image == "b", "bosa",
+                                ifelse(right_image == "m", "manu", right_image)))
+  
+  #convert onset to ms
+  trial_data <- trial_data %>%
+    mutate(point_of_disambiguation=onset *1000)
+  
+  #determine target and distractor
+  trial_data <- trial_data %>%
+    dplyr::rename("target_side" = "target")%>%
     mutate(target_image = ifelse(target_side == "left", left_image, right_image), 
            distractor_image = ifelse(target_side == "left", right_image, left_image), 
            target_label = target_image, 
            distractor_label = distractor_image)
   
-  #convert onset to ms
-  trial_types_data <- trial_types_data %>%
-    mutate(point_of_disambiguation = onset *1000)
-  
   # rename and create some additional filler columns
-  trial_types_data <- trial_types_data %>%
-    mutate(trial_type_id = trial-1) %>%
+  trial_data <- trial_data %>%
+    mutate(trial_type_id=trial-1) %>%
     mutate(
-      dataset_id = dataset_id #choose specific dataset id for now
-    ) %>%
-    mutate(lab_trial_id = trial)
+      dataset=dataset_id #choose specific dataset id for now
+    )
   
   #full phrase? currently unknown for refword
-  trial_types_data$full_phrase <- NA
+  trial_data$full_phrase = NA
+  
   
   #extract relevant columns
   #keeping type and Stimulus for now for cross-checking with raw eyetracking
-  trial_types_data <- trial_types_data %>%
-    mutate(full_phrase_language = "eng") %>%
+  trial_data <- trial_data %>%
+    dplyr::rename("lab_trial_id" = "trial", 
+                  "dataset_id" = "dataset")%>%
+    mutate(full_phrase_language = "eng")%>%
     dplyr::select(trial_type_id,
                   full_phrase, 
                   full_phrase_language, 
@@ -84,15 +89,14 @@ process_smi_trial_info <- function(file_path) {
                   target_side, 
                   lab_trial_id, 
                   dataset_id, 
-                  type,
+                  object_type,
                   target_label, ##keeping target and distrator labels so we can match them up with stimulus id in process_smi
                   distractor_label, 
-                  stimulus_name, 
-                  Stimulus)
+                  stimulus_name)
   
-  return(trial_types_data)
-  
+  return(trial_data)
 }
+
 
 #### Table 4: Stimuli ####
 
@@ -110,24 +114,25 @@ process_smi_stimuli <- function(file_path) {
   
   #separate stimulus name for individual images (target and distracter)
   stimuli_data <- stimuli_data %>%
-    mutate(stimulus_name = str_remove(Stimulus,".jpg")) %>%
-    separate(stimulus_name, into=c("target_info","left_image","right_image"),sep="_",remove=F) %>%
+    mutate(stimulus_name = str_remove(str_remove(Stimulus,".jpg"), "s1_")) %>%
+    separate(stimulus_name, into=c("left_image","right_image"),sep="_",remove=F)%>%
+    mutate(left_image = ifelse(left_image == "b", "bosa",
+                               ifelse(left_image == "m", "manu", left_image)), 
+           right_image = ifelse(right_image == "b", "bosa", 
+                                ifelse(right_image == "m", "manu", right_image)))%>%
     dplyr::select(type, left_image, right_image)%>%
     pivot_longer(c("left_image", "right_image"), 
                  names_to = "side", 
-                 values_to = "english_stimulus_label") %>%
+                 values_to = "stimulus_label")%>%
     mutate(dataset_id = dataset_id, 
-           original_stimulus_label = english_stimulus_label,
            stimulus_image_path = NA, 
-           lab_stimulus_id = NA,
-           type = str_to_lower(type)) %>%
-    rename("stimulus_novelty" = "type") %>%
-    distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, 
-             english_stimulus_label, original_stimulus_label, dataset_id)
+           lab_stimulus_id = NA, 
+           type = tolower(type))%>%
+    rename("stimulus_novelty" = "type")%>%
+    distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, stimulus_label, dataset_id)
   
   return(stimuli_data)
 }
-
 
 #### Table 5: Dataset ####
 
@@ -136,11 +141,10 @@ process_smi_dataset <- function(lab_dataset_id=dataset_name) {
   ##Make dataset table
   dataset.data <- data.frame(
     dataset_id = dataset_id, #hard code data set id for now
-    lab_dataset_id = lab_dataset_id,
+    lab_dataset_id = lab_dataset_id, 
     dataset_name = lab_dataset_id,
-    name = lab_dataset_id, 
-    shortcite = "Frank & Kraus unpublished", 
-    cite = "Frank & Kraus (unpublished). Children's word recognition after watching familiarization videos."
+    cite = "?", ##what is the full citation on this?
+    shortcite = "?"
   )
   
   return(dataset.data)
@@ -148,53 +152,42 @@ process_smi_dataset <- function(lab_dataset_id=dataset_name) {
 
 #### Table 6: AOI regions ####
 
-process_smi_aoi <- function(file_name, aoi_path, xy_file_path) {
+process_smi_aoi <- function(file_name, exp_info_path) {
   
-  #set file path
-  aoi_file_path <- paste0(aoi_path, "/",file_name)
+  ##NB: AOI coordinates are hard-coded for this experiment. 
+  #Link to relevant file is here: https://github.com/dyurovsky/refword/blob/master/R/loading_helpers/load_aois_socword.R
   
-  #read in lines to extract smi info
-  monitor_size <- extract_smi_info(xy_file_path,monitor_size)
+  #instead of xml files, this will be run over the names of jpgs in the trial_info file!
+  #note that exp_info path instead of aoi_path is used here
+  #get distinct stimulus name here
+  stim_name_df <- read.csv(fs::path(exp_info_path, file_name))%>%
+    dplyr::select("Stimulus")
   
-  #get maximum x-y coordinates on screen
-  screen_xy <- str_split(monitor_size,"x") %>%
-    unlist()
-  y_max <- as.numeric(as.character(screen_xy[2]))
+  #These are the hardcoded AOIs from dan's original analysis code
+  left <- data.frame(aoi_name = "left", l_x_min = 0, 
+                     l_x_max = 555, l_y_min = 262,
+                     l_y_max = 788)
   
+  right <- data.frame(aoi_name = "right", r_x_min = 1125, 
+                      r_x_max = 1680, r_y_min = 262, 
+                      r_y_max = 788) 
   
-  #make the xml object that we will extract information from
-  xml_obj <- 
-    xmlParse(aoi_file_path[1]) %>% 
-    xmlToList(simplify = FALSE)
-  
-  #this is using x coordinates to determine which item in xml is left and right; 
-  #if x coordinates of object 1 > than x coords of object 2, then object 1 is RIGHT, object 2 LEFT
-  if(xml_obj[[1]]$Points[[1]]$X > xml_obj[[2]]$Points[[1]]$X) {
-    names(xml_obj) <- c('Right', 'Left')
-  } else {
-    names(xml_obj) <- c('Left', 'Right')
-  }
-  
-  #this is getting maximum and minimum information for AOIs
-  #first for the right
-  max_min_info_right <- 
-    data.frame("r_x_min" = as.numeric(xml_obj$Right$Points[[1]]$X), #x_min for right
-               "r_x_max" = as.numeric(xml_obj$Right$Points[[2]]$X), #x_max for right
-               "r_y_max" = y_max - as.numeric(xml_obj$Right$Points[[1]]$Y), #y_max for right
-               "r_y_min" = y_max - as.numeric(xml_obj$Right$Points[[2]]$Y)) #y_min for right
-  #then for the left
-  max_min_info_left <- 
-    data.frame("l_x_min" = as.numeric(xml_obj$Left$Points[[1]]$X), #x_min for right
-               "l_x_max" = as.numeric(xml_obj$Left$Points[[2]]$X), #x_max for right
-               "l_y_max" = y_max - as.numeric(xml_obj$Left$Points[[1]]$Y), #y_max for right
-               "l_y_min" = y_max - as.numeric(xml_obj$Left$Points[[2]]$Y)) #y_min for right
-  #then bind the cols together, first for left, then for right
-  max_min_info <- bind_cols(max_min_info_left, max_min_info_right)%>%
-    mutate(stimulus_name = str_remove(str_replace(file_name, " \\(.*\\)", ""),".xml")) 
-  
+  #now just repeat these for every stimulus  
+  max_min_info <- stim_name_df %>%
+    mutate(stimulus_name = str_remove(str_remove(str_replace(stim_name_df$Stimulus, " \\(_.*\\)", ""),".jpg"), "s1_"), 
+           l_x_min = left$l_x_min, 
+           l_x_max = left$l_x_max, 
+           l_y_min = left$l_y_min, 
+           l_y_max = left$l_y_max, 
+           r_x_min = right$r_x_min, 
+           r_x_max = right$r_x_max, 
+           r_y_min = right$r_y_min, 
+           r_y_max = right$r_y_max)%>% 
+    dplyr::select(-Stimulus)
   
   return(max_min_info)
 }
+
 
 #### Table 7: Administration Data ####
 process_administration_info <- function(file_path_exp_info, file_path_exp) {
@@ -227,9 +220,7 @@ process_administration_info <- function(file_path_exp_info, file_path_exp) {
 
 #### Table 1A: XY Data ####
 
-process_smi_eyetracking_file <- function(file_path, 
-                                         delim_options = possible_delims, 
-                                         stimulus_coding = "stim_column") {
+process_smi_eyetracking_file <- function(file_path, delim_options = possible_delims,stimulus_coding="stim_column") {
   
   #guess delimiter
   sep <- get.delim(file_path, comment="#", delims=delim_options,skip = max_lines_search)
@@ -256,27 +247,25 @@ process_smi_eyetracking_file <- function(file_path,
   
   #select rows and column names for xy file
   data <-  data %>%
-    filter(Type == "SMP", #remove anything that isn't actually collecting ET data
+    filter(Type=="SMP", #remove anything that isn't actually collecting ET data
            Stimulus != "-", #remove calibration
-           !grepl(paste(stims_to_remove_chars, collapse="|"), Stimulus),  #remove anything that isn't actually a trial; .avis are training or attention getters
-           grepl(paste(stims_to_keep_chars, collapse="|"), Stimulus)) %>% #from here, keep only trials, which have format o_name1_name2_.jpg;
+           !grepl(paste(stims_to_remove_chars,collapse="|"), Stimulus),  #remove anything that isn't actually a trial; .avis are training or attention getters
+           grepl(paste(stims_to_keep_chars,collapse="|"), Stimulus), #from here, keep only trials, which have format o_name1_name2_.jpg;
+           Stimulus != "elmo_slide.jpg")%>% # get rid of elmo
+    
     dplyr::select(
       raw_t = "Time",
       lx = left_x_col_name,
       rx = right_x_col_name,
       ly = left_y_col_name,
       ry = right_y_col_name,
-      trial_id = "Trial",
+      trial_type_id = "Trial",
       Stimulus = Stimulus
     )
   
   ## add lab_subject_id column (extracted from data file)
   data <- data %>%
-    mutate(lab_subject_id = lab_subject_id)
-  
-  if (dim(data)[1] == 0) { 
-    return()
-  } 
+    mutate(lab_subject_id=lab_subject_id)
   
   #Remove out of range looks
   data <- 
@@ -333,22 +322,36 @@ process_smi_eyetracking_file <- function(file_path,
       mutate(stim_lag = lag(Stimulus), 
              temp = ifelse(Stimulus != stim_lag, 1, 0), 
              temp_id = cumsum(c(0, temp[!is.na(temp)])), 
-             subject_trial_id = temp_id)
+             trial_type_id = temp_id)
     
     #set time to zero at the beginning of each trial
     data <- data %>%
-      group_by(subject_trial_id) %>%
+      group_by(trial_type_id) %>%
       mutate(t = round(timestamp - min(timestamp))) %>%
       ungroup()
   }
   
   #extract final columns
   xy.data <- data %>%
-    dplyr::select(lab_subject_id, x, y, t, subject_trial_id)
+    dplyr::select(lab_subject_id,x,y,t,trial_type_id)
   
   
   return(xy.data)
   
 }
 
-
+add_aois <- function(xy_joined) {
+  xy_joined <- xy_joined %>%
+    dplyr:: mutate(
+      side = dplyr::case_when(
+        x > l_x_min & x < l_x_max & y > l_y_min & y < l_y_max ~ "left",
+        x > r_x_min & x < r_x_max & y > r_y_min & y < r_y_max ~ "right",
+        !is.na(x) & !is.na(y) ~ "other",
+        TRUE ~ "missing"),
+      aoi = dplyr::case_when(
+        side %in% c("left","right") & side == target_side ~ "target",
+        side %in% c("left","right") & side != target_side ~ "distractor",
+        TRUE ~ side # other or NA, which is same as side
+      ))
+  return(xy_joined)
+}
