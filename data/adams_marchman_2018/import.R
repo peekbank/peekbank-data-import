@@ -41,7 +41,9 @@ remove_repeat_headers <- function(d, idx_var) {
 d_raw_16 <- read_delim(fs::path(read_path, "TL316AB.ichart.n69.txt"),
                     delim = "\t") %>%
   mutate(order_uniquified=Order) %>%
-  relocate(order_uniquified, .after = `Order`)
+  relocate(order_uniquified, .after = `Order`) %>%
+  mutate(row_number = as.numeric(row.names(.))) %>%
+  relocate(row_number, .after = `Sub Num`)
 # no modifications to Order needed in this dataset, because all participants received two distinct orders
 # this column is needed to disambiguate administrations for one subject who received the same order twice 
 # in the 18-month-old group below
@@ -80,16 +82,6 @@ d_processed <-  d_filtered %>%
   remove_repeat_headers(idx_var = "Months") %>%
   clean_names()
 
-# # add column to track administration ---------------------------------------------
-# d_admin_numbers <- d_raw_16 %>%
-#   ungroup() %>%
-#   distinct(`Sub Num`,Order) %>%
-#   group_by(`Sub Num`) %>%
-#   mutate(administration_num = seq(0, length(`Sub Num`) - 1)) 
-# 
-# d_raw_16 <- d_raw_16 %>%
-#   left_join()
-
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
 metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
@@ -121,12 +113,8 @@ d_processed <- d_processed  %>%
   ungroup()
 
 # Convert to long format --------------------------------------------------
-
-# get idx of first time series
-first_t_idx <- length(metadata_names) + 1             # this returns a numeric
-last_t_idx <- colnames(d_processed) %>% dplyr::last() # this returns a string
 d_tidy <- d_processed %>%
-  tidyr::gather(t, aoi, first_t_idx:last_t_idx) # but gather() still works
+  pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi")
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -195,14 +183,25 @@ d_administration_ids <- d_tidy %>%
 
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
-  distinct(order, tr_num, target_id, distractor_id, target_side) %>%
+  #order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
+  #potentially make distinct based on condition if that is relevant to the study design (no condition manipulation here)
+  distinct(trial_order, target_id, distractor_id, target_side) %>%
   mutate(full_phrase = NA) %>% #unknown
-  mutate(trial_type_id = seq(0, length(.$tr_num) - 1)) 
+  mutate(trial_type_id = seq(0, length(trial_order) - 1)) 
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
   left_join(d_administration_ids) %>%
-  left_join(d_trial_ids) 
+  left_join(d_trial_type_ids) 
+
+#get zero-indexed trial ids for the trials table
+d_trial_ids <- d_tidy_semifinal %>%
+  distinct(trial_order,trial_type_id) %>%
+  mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
+
+#join
+d_tidy_semifinal <- d_tidy_semifinal %>%
+  left_join(d_trial_ids)
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
@@ -224,7 +223,7 @@ d_tidy_final <- d_tidy_semifinal %>%
 ##### AOI TABLE ####
 d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
-  select(t_norm, aoi, trial_type_id, administration_id,lab_subject_id) %>%
+  select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
