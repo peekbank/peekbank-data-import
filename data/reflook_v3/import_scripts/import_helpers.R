@@ -339,3 +339,19 @@ process_smi_eyetracking_file <- function(file_path, delim_options = possible_del
   return(xy.data)
   
 }
+
+add_aois <- function(xy_joined) {
+  xy_joined <- xy_joined %>%
+    dplyr:: mutate(
+      side = dplyr::case_when(
+        x > l_x_min & x < l_x_max & y > l_y_min & y < l_y_max ~ "left",
+        x > r_x_min & x < r_x_max & y > r_y_min & y < r_y_max ~ "right",
+        !is.na(x) & !is.na(y) ~ "other",
+        TRUE ~ "missing"),
+      aoi = dplyr::case_when(
+        side %in% c("left","right") & side == target_side ~ "target",
+        side %in% c("left","right") & side != target_side ~ "distractor",
+        TRUE ~ side # other or NA, which is same as side
+      ))
+  return(xy_joined)
+}
