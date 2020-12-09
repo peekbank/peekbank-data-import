@@ -11,10 +11,10 @@ library(osfr)
 ## constants
 sampling_rate_hz <- 30
 sampling_rate_ms <- 33
-dataset_name = "pomper_saffran_2016"
+dataset_name = "pomper_salientme"
 read_path <- here("data",dataset_name,"full_dataset")
-write_path <- here("data",dataset_name, "processed_data/")
-
+#write_path <- here("data",dataset_name, "processed_data/")
+'
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
@@ -25,9 +25,9 @@ trials_table_filename <- "trials.csv"
 trial_types_table_filename <- "trial_types.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
+'
 
-
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
@@ -337,11 +337,10 @@ trials_table <- d_tidy_final %>%
 # write Dataset table
 data_tab <- tibble(
   dataset_id = 0, # doesn't matter (leave as 0 for all)
-  dataset_name = "pomper_saffran_2016",
-  lab_dataset_id = "SwitchingCues", # internal name from the lab (if known)
-  cite = "Pomper, R., & Saffran, J. R. (2016). Roses Are Red, Socks Are Blue: Switching Dimensions Disrupts Young Children’s Language Comprehension. Plos one, 11(6), e0158459.
-Chicago",
-  shortcite = "Pomper & Saffran (2016)"
+  dataset_name = "pomper_salientme",
+  lab_dataset_id = "NOTSURE -- ASK", # internal name from the lab (if known)
+  cite = "Pomper, R., & Saffran, J. R. (2018). Familiar object salience affects novel word learning. Child Development. doi:10.1111/cdev.13053.",
+  shortcite = "Pomper & Saffran (2018)"
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
