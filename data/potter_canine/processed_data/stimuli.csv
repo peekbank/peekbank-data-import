@@ -1,0 +1,17 @@
+target_label_condition,lab_stimulus_id,dataset_id,stimulus_novelty,original_stimulus_label,english_stimulus_label,stimulus_image_path,stimulus_id
+High,baby_High,0,familiar,baby,baby,baby,0
+Low,milk_Low,0,familiar,drink,drink,milk,1
+High,dog_High,0,familiar,dog,dog,dog,2
+Low,cookie_Low,0,familiar,food,food,cookie,3
+Low,bird_Low,0,familiar,chicken,chicken,bird,4
+High,shoe_High,0,familiar,shoe,shoe,shoe,5
+Low,cow_Low,0,familiar,animal,animal,cow,6
+High,milk_High,0,familiar,milk,milk,milk,7
+High,bird_High,0,familiar,bird,bird,bird,8
+High,cookie_High,0,familiar,cookie,cookie,cookie,9
+Low,ball_Low,0,familiar,toy,toy,ball,10
+Low,dog_Low,0,familiar,puppy,puppy,dog,11
+Low,baby_Low,0,familiar,boy,boy,baby,12
+Low,shoe_Low,0,familiar,boot,boot,shoe,13
+High,cow_High,0,familiar,cow,cow,cow,14
+High,ball_High,0,familiar,ball,ball,ball,15

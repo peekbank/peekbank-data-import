@@ -211,11 +211,10 @@ d_tidy_final <- d_tidy_semifinal %>%
          monitor_size_x = NA, #unknown TO DO
          monitor_size_y = NA, #unknown TO DO
          lab_age_units = "months",
-         age = as.numeric(months), # months # TO DO - more precise?
+         age = as.numeric(months), # months 
          point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz
          tracker = "video_camera",
-         sample_rate = sampling_rate_hz,
-         tr_order = as.numeric(tr_num)) %>% # TO DO: make tr_num into a sequential trial order (1,2,3,...)
+         sample_rate = sampling_rate_hz) %>% 
   rename(lab_subject_id = sub_num,
          lab_age = months
          )
