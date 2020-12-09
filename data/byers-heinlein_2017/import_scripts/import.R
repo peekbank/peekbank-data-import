@@ -3,26 +3,37 @@ library(here)
 library(XML)
 library(reader)
 library(fs)
+library(readxl)
+library(janitor)
 library(feather)
 library(tidyverse)
-library(peekds) # local install..
+#devtools::install_github("langcog/peekds")
+library(peekds) 
 library(osfr)
 
 ## for pushing to OSF
 osf_token <- read_lines(here("osf_token.txt"))
 
+# constants
+dataset_name = "byers-heinlein_2017"
+read_path <- here("data",dataset_name,"full_dataset")
+output_path <- here("data",dataset_name,"processed_data")
+
 ### Search ### FIXME for things to continue working on
 
+if(length(list.files(read_path)) == 0) {
+  get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
+}
+
 # load raw data
-raw <- read_csv(here("data/byers-heinlein_2017/full_dataset/switching_data.csv"))
+aois <- read_csv(paste0(read_path,"/AOIs.csv"))
+
+raw <- read_csv(paste0(read_path,"/switching_data.csv"))
 # "RecordingName","id","trial.number","order.seen","MediaName","TrialTimestamp","trial.type","carrier.language","target.language","look.target","look.distractor","look.any","GazePointX","GazePointY","PupilLeft","PupilRight","trackloss","per.eng","per.fr","per.dom","per.nondom","lang.mix","trial.number.unique","age.group","switch.type","Carrier"
 #"Subject_1_Block1","Subject_1",1,1,"Dog_L_ENG",0,"same","English","English",NA,NA,NA,NA,NA,NA,NA,TRUE,55,45,55,45,21,1,"20-month-olds","Within-sentence","Dominant"
 #"Subject_1_Block1","Subject_1",1,1,"Dog_L_ENG",17,"same","English","English",0,0,0,1559,-335,3.54,3.61,TRUE,55,45,55,45,21,1,"20-month-olds","Within-sentence","Dominant"
-#"Subject_1_Block1","Subject_1",1,1,"Dog_L_ENG",33,"same","English","English",0,0,0,1601,-403,3.72,3.62,TRUE,55,45,55,45,21,1,"20-month-olds","Within-sentence","Dominant"
-#"Subject_1_Block1","Subject_1",1,1,"Dog_L_ENG",50,"same","English","English",NA,NA,NA,NA,NA,NA,NA,TRUE,55,45,55,45,21,1,"20-month-olds","Within-sentence","Dominant"
 
 #### general parameters ####
-dataset_name <- "byers-heinlein_2017" 
 tracker_name <- "Tobii T60-XL"
 dataset_id <- 0 # doesn't matter (use 0)
 max_lines_search <- 40 #maybe change this value?
@@ -52,10 +63,6 @@ monitor_size_y <- as.numeric(as.character(screen_xy[2]))
 #stims_to_keep_chars <- c("_")
 stimulus_col_name = "MediaName" # strip filename if present (not applicable here)
 
-# no separate trial / participant files
-#trial_file_name <- "reflook_tests.csv"
-#participant_file_name <- "reflook_v1_demographics.csv"
-
 # problem: we only have age.group ("20-month-olds" vs. "Adults") -- not age in days
 # also no other demographic info (e.g., sex)
 
@@ -63,18 +70,6 @@ stimulus_col_name = "MediaName" # strip filename if present (not applicable here
 #  window_start_time = 5200, #200 ms prior to noun onset 
 #  window_end_time = 5400, # noun onset
 point_of_disambiguation = 5400
-
-#### define directory ####
-#Define root path
-project_root <- here::here()
-
-#build directory path
-dir_path <- fs::path(project_root,"data",dataset_name,"full_dataset")
-exp_info_path <- fs::path(project_root,"data",dataset_name,"experiment_info")
-aoi_path <- fs::path(project_root,"data",dataset_name,"test_aois")
-
-#output path
-output_path <- fs::path(project_root,"data",dataset_name,"processed_data")
 
 
 # write Dataset table
@@ -96,7 +91,7 @@ data_tab <- tibble(
 d_tidy <- raw %>% filter(age.group!="Adults" 
                          #trial.type!="switch"# remove language switch trials? decided to include.
                          ) %>% 
-  ### FIXME: Import trial order .csvs instead of using regular expressions; currnetly missing some trials because of  inconsistent file naming conventions
+  ### FIXME: Import trial order .csvs instead of using regular expressions; currently missing some trials because of  inconsistent file naming conventions
   mutate(subject_id = as.numeric(map_chr(id, ~str_split(., "_")[[1]][2])),
          sex = 'unspecified', ### FIXME
          target = tolower(map_chr(MediaName, ~ str_split(., "_")[[1]][1])),
@@ -118,7 +113,7 @@ d_tidy <- raw %>% filter(age.group!="Adults"
                                 target == "biscuit" ~ "pied",
                                 target == "pied" ~ "biscuit")) %>% # do we want unique images, or image x language?
   filter(t >= 0, # a few -13..
-         !is.na(distractor)) %>%  # effectively filteres filler trials as well as a few others because the mediaNames where inconsistent
+         !is.na(distractor)) %>%  # effectively filters filler trials as well as a few others because the mediaNames were inconsistent
   rename(lab_subject_id = id,
          lab_trial_id = trial.number.unique,
          lab_stimulus_id = MediaName) %>%
@@ -128,6 +123,7 @@ d_tidy <- raw %>% filter(age.group!="Adults"
 # subjects table
 d_tidy %>%
   distinct(subject_id, lab_subject_id, sex) %>%
+  mutate(native_language = "eng fre") %>% # FIXME: bilinguals: validator should accept "eng,fre", but does not
   write_csv(fs::path(output_path, "subjects.csv"))
   
 
@@ -155,6 +151,7 @@ stimuli_label <- unique(c(d_tidy$target, d_tidy$distractor))
 stim_trans <- d_tidy %>% distinct(target, distractor) %>%
   mutate(stimulus_image_path = rep(target[1:6], 2)) 
 
+# add original_stimulus_label and english_stimulus_label
 stim_tab <- cross_df(list(stimuli_image = stimuli_image, stimuli_label = stimuli_label)) %>%
   left_join(stim_trans, by=c("stimuli_image"="stimulus_image_path")) %>%
   filter(stimuli_image==stimuli_label) %>%
@@ -170,6 +167,7 @@ stim_tab %>%
   write_csv(fs::path(output_path, "stimuli.csv"))
 
 
+# now need trial_order and trial_type_id, and trial_types table
 # write trials table
 d_tidy_final <- d_tidy %>% 
   mutate(target_side = factor(target_side, levels=c('L','R'), labels = c('left','right'))) %>%
@@ -204,7 +202,7 @@ d_tidy_final2 <- d_tidy_final %>%
 # in AOI region sets, origin is TOP LEFT -- so, ymin=top_left and ymax = top_left + length
 # MZ will double check with authors.
 
-aois <- read_csv(paste0(aoi_path,'/AOIs.csv')) %>%
+aois <- aois %>%
   mutate(target.object = tolower(target.object)) %>%
   filter(target.object %in% d_tidy_final2$target) %>%
   mutate(l_x_max = case_when(target.side == 'left' ~ target.x.topleft + target.x.length,
@@ -228,7 +226,7 @@ aois <- read_csv(paste0(aoi_path,'/AOIs.csv')) %>%
 aois %>%
   left_join(aoi_region_tab, by=c("target.object" = 'target','target.side' ='target_side')) %>%
   distinct(aoi_region_set_id, l_x_max, l_x_min, l_y_max, l_y_min, r_x_max, r_x_min, r_y_max, r_y_min) %>%
-write_csv(fs::path(output_path, "aoi_region_sets.csv"))
+  write_csv(fs::path(output_path, "aoi_region_sets.csv"))
   
 
 #  write AOI table
@@ -258,7 +256,7 @@ d_tidy_final2 %>% distinct(trial_id, administration_id, GazePointX, GazePointY, 
 
 
 #### Process data ####
-peekds::validate_for_db_import(dir_csv=output_path)
+peekds::validate_for_db_import(dir_csv=output_path) 
 
 #### Upload to OSF
 put_processed_data(osf_token, dataset_name, paste0(output_path,'/'), osf_address = "pr6wu")

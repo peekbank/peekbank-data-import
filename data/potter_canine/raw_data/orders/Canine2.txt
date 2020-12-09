@@ -1,0 +1,36 @@
+Name	TrialOnset	trial number	Sound Stimulus	Left Image	Center Image	Right Image	target side	condition	Used	TrStart	PictOn	SoundOn	TrEnd	CritOnset	CritOffset
+Canine2	Picture	1	Would you prefer the bird? Check that out!	bird		dog	L	Uncommon-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	2	"Examine the cookie! Wow, cool!"	ball		cookie	R	Uncommon-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	3	Which side has the animal? Do you see it?	cow		baby	L	Uncommon-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	4	"Could you spot the drink? Wow, cool!"	shoe		milk	R	Uncommon-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	5	Which side has the baby? Do you see it?	cow		baby	R	Uncommon-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	6	Examine the toy. Check that out!	ball		cookie	L	Uncommon-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	7	"Would you prefer the puppy? Wow, cool!"	bird		dog	R	Uncommon-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	8	Cold you spot the shoe? Check that out!	shoe		milk	L	Uncommon-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	9	You're doing great! Let's keep watching.				n/a	filler	no	0	0	2000	5369	2950	4950
+Canine2	Picture	10	Look at the cookie. Do you see it?	cookie		ball	L	Common-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	11	"Do you like the bird? Wow, cool!"	dog		bird	R	Common-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	12	Can you find the boy? Check that out!	cow		baby	R	Common-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	13	"Where is the boot? Wow, cool!"	shoe		milk	L	Common-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	14	Do you like the puppy? Check that out!	dog		bird	L	Common-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	15	Where is the milk? Do you see it?	shoe		milk	R	Common-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	16	"Can you find the cow? Wow, cool!"	cow		baby	L	Common-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	17	Look at the toy. Check that out!	cookie		ball	R	Common-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	18	"Hey, these pictures are fun. Here are some more"				n/a	filler	no	0	0	2000	5369	2950	4950
+Canine2	Picture	19	Could you spot the cow? Do you see it?	baby		cow	R	Uncommon-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	20	Which side has the boot? Check that out!	milk		shoe	R	Uncommon-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	21	"Would you prefer the food? Wow, cool!"	cookie		ball	L	Uncommon-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	22	Examine the dog. Do you see it?	dog		bird	L	Uncommon-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	23	Would you prefer the ball? Check that out!	cookie		ball	R	Uncommon-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	24	"Could you spot the boy? Wow, cool!"	baby		cow	L	Uncommon-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	25	Which side has the milk? Check that out!	milk		shoe	L	Uncommon-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	26	Examine the chicken. Do you see it?	dog		bird	R	Uncommon-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	27	Great job! You're almost done.				n/a	filler	no	0	0	2000	5369	2950	4950
+Canine2	Picture	28	"Where is the animal. Wow, cool"	baby		cow	R	Common-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	29	Do you like the ball? Check that out!	ball		cookie	L	Common-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	30	Can you find the shoe? Do you see it?	milk		shoe	R	Common-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	31	Look at the chicken. Check that out!	bird		dog	L	Common-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	32	"Do you like the food? Wow, cool!"	ball		cookie	R	Common-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	33	Look at the dog. Do you see it?	bird		dog	R	Common-High	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	34	"Can you find the drink? Wow, cool!"	milk		shoe	L	Common-Low	yes	0	0	2000	5369	2950	4950
+Canine2	Picture	35	Where is the baby? Check that out!	baby		cow	L	Common-High	yes	0	0	2000	5369	2950	4950
