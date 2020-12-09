@@ -30,7 +30,7 @@ remove_repeat_headers <- function(d, idx_var) {
 }
 
 # download datata from osf
-#peekds::get_raw_data(dataset_name, path = read_path)
+# peekds::get_raw_data(dataset_name, path = read_path)
 
 
 # read raw icoder files
@@ -93,7 +93,6 @@ d_tidy <- d_tidy %>%
   ))
 
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
-
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
   select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt) %>%
@@ -161,7 +160,7 @@ d_tidy_final <- d_tidy_semifinal %>%
          monitor_size_x = NA, #unknown TO DO
          monitor_size_y = NA, #unknown TO DO
          lab_age_units = "months",
-         age = as.numeric(months), # months # TO DO - more precise?
+         age = as.numeric(months), # months 
          point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz
          tracker = "video_camera",
          sample_rate = sampling_rate_hz
@@ -172,8 +171,11 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
-  select(aoi_timepoint_id, t, aoi, trial_id, administration_id) %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
+  select(t_norm, aoi, trial_id, administration_id) %>%
+  #resample timepoints
+  resample_times(table_type="aoi_timepoints") %>%
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
   write_csv(fs::path(write_path, aoi_table_filename))
 
 #### Resample AOI timepoints ####
@@ -191,7 +193,9 @@ aoi_timepoints_preresample <- d_tidy_final %>%
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
-  mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female'))) %>%
+  mutate(
+    sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
+    native_language = "spa, eng") %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
