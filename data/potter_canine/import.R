@@ -33,7 +33,6 @@ remove_repeat_headers <- function(d, idx_var) {
 # download datata from osf
 #peekds::get_raw_data(dataset_name, path = read_path)
 
-
 # read raw icoder files
 d_raw <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
                     delim = "\t") %>%
@@ -44,6 +43,9 @@ d_raw <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
 # These files contain additional information about the target labels and carrier phrases
 trial_order_paths <- list.files(read_orders_path, full.names = TRUE, pattern = ".txt")
 trial_orders <- map_df(trial_order_paths, read_delim, delim = "\t")
+
+#read in stimulus lookup table
+stimulus_lookup_table <- read_csv(fs::path(read_path,"stimulus_lookup_table.csv"))
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
@@ -57,11 +59,14 @@ d_processed <-  d_filtered %>%
 
 #rename order and trial number column names for trial_orders, then join with d_processed
 trial_orders <- trial_orders %>%
-  rename(order=Name, tr_num=`trial number`)
+  rename(order=Name, tr_num=`trial number`) %>%
+  clean_names() %>%
+  select(order,tr_num,sound_stimulus) # select just the columns we need - really only need sound_stimulus, everything else important already in main icoder file
 
 d_processed <- d_processed %>%
   mutate(tr_num=as.numeric(tr_num)) %>% #make trial number numeric
-  left_join(trial_orders,by=c("order","tr_num"))
+  left_join(trial_orders,by=c("order","tr_num")) %>%
+  relocate(c(order, tr_num,sound_stimulus),.after = `sub_num`)
 
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
@@ -113,31 +118,41 @@ d_tidy <- d_tidy %>%
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
   rename(left_image = r_image, right_image=l_image) %>%
-  mutate(target_label = target_image) %>% # TO CHANGE
+  # determine target label based on condition (High=high-frequency label, Low=low-frequency label)
+  # first, split condition column to isolate the target label condition
+  separate(condition,into=c("carrier_phrase_condition","target_label_condition"),sep="-", remove=FALSE) %>%
+  # join data frame with stimulus lookup table in order to determine high and low target label
+  left_join(stimulus_lookup_table,by=c('target_image' = 'image_name')) %>%
+  relocate(c(high_label,low_label),.after=target_image) %>%
+  # determine target label
+  mutate(target_label = case_when(
+    target_label_condition=="High" ~ high_label,
+    target_label_condition=="Low" ~ low_label
+  )) %>% 
   rename(target_image_old = target_image) %>% # since target image doesn't seem to be the specific image identifier
   mutate(target_image = case_when(target_side == "right" ~ right_image,
                                       TRUE ~ left_image)) %>%
   mutate(distractor_image = case_when(target_side == "right" ~ left_image,
-                                      TRUE ~ right_image)) 
+                                      TRUE ~ right_image)) %>%
+  mutate(lab_stimulus_id = paste0(target_image,"_",target_label_condition))
 
 #create stimulus table
 stimulus_table <- d_tidy %>%
-  distinct(target_image,target_label) %>%
+  distinct(target_image,target_label,lab_stimulus_id,target_label_condition) %>%
   filter(!is.na(target_image)) %>%
   mutate(dataset_id = 0,
          stimulus_novelty = "familiar",
          stimulus_label = target_label,
          stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
-         lab_stimulus_id = target_image
   ) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('target_image' = 'lab_stimulus_id')) %>%
+  left_join(stimulus_table %>% select(stimulus_id,target_image, target_label_condition), by=c('target_image','target_label_condition')) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('distractor_image' = 'lab_stimulus_id')) %>%
+  left_join(stimulus_table %>% select(stimulus_id,target_image, target_label_condition), by=c('distractor_image' = 'target_image','target_label_condition')) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
