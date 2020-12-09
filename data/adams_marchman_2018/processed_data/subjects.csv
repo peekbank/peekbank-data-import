@@ -27,6 +27,7 @@ lab_subject_id,sex,subject_id,native_language
 12512,female,25,eng
 12520,female,26,eng
 12547,female,27,eng
+12608,female,28,eng
 12612,female,29,eng
 12683,female,30,eng
 12717,male,31,eng
@@ -67,4 +68,3 @@ lab_subject_id,sex,subject_id,native_language
 911343,male,66,eng
 911401,male,67,eng
 911429,male,68,eng
-12608,female,28,eng
