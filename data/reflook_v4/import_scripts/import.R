@@ -9,10 +9,10 @@ library(peekds)
 library(osfr)
 
 # load 
-source(here("data/reflook_v1/import_scripts/import_helpers.R"))
+source(here("data/reflook_v4/import_scripts/import_helpers.R"))
 
 #### general parameters ####
-dataset_name <- "reflook_v1"
+dataset_name <- "reflook_v4"
 dataset_id <- 0
 max_lines_search <- 40 #maybe change this value?
 subid_name <- "Subject"
@@ -26,14 +26,14 @@ right_y_col_name <-  "R POR Y [px]"
 stims_to_remove_chars <- c(".avi")
 stims_to_keep_chars <- c("_")
 trial_file_name <- "reflook_tests.csv"
-participant_file_name <- "reflook_v1_demographics.csv"
+participant_file_name <- "reflook_v4_demographics.csv"
 
 #### Pull in data from OSF ####
 dir_path <- fs::path(here::here("data", dataset_name, "raw_data"))
 
 ## only download if it's not on your machine
 if(length(list.files(paste0(dir_path, "/full_dataset"))) == 0 && length(list.files(paste0(dir_path, "/experiment_info"))) == 0) {
-  osfr::get_raw_data(lab_dataset_id = "reflook_v1", path = dir_path, osf_address = "pr6wu")
+  osfr::get_raw_data(lab_dataset_id = "reflook_v4", path = dir_path, osf_address = "pr6wu")
 }
 
 #Specify file 
@@ -101,7 +101,7 @@ aoi_ids <- aoi.data.all %>%
 #### generate all data objects ####
 
 #create dataset data
-dataset.data <- process_smi_dataset()
+dataset.data <- process_smi_dataset(datset_name = "reflook_v4")
 
 ##create stimuli data
 stimuli.data <- process_smi_stimuli(trial_file_path) %>%
@@ -164,22 +164,31 @@ trial_types.data <- process_smi_trial_info(trial_file_path) %>%
             by = c("target_label" = "english_stimulus_label")) %>%
   rename(target_id = stimulus_id) %>%
   left_join(aoi_ids %>% select(-stimulus_name), by = "Stimulus") %>%
-  mutate(condition = "reflook")
-
-# create xy data
-# remember to deal with the fact that subject_trial_id is not trial_id
-xy.data <- timepoint.data %>% 
-  left_join(administration.data %>% select(subject_id, administration_id), 
-            by = "subject_id") %>%
-  dplyr::select(xy_timepoint_id, x, y, t, administration_id, trial_id) %>%
-  peekds::resample_times(table_type = "xy_timepoints") # critical temporal resampling
-
-# clean trial_types data
-trial_types.data <- trial_types.data %>%
+  mutate(condition = "reflook") %>%
   dplyr::select(trial_type_id, full_phrase, full_phrase_language, 
                 point_of_disambiguation, target_side, 
                 lab_trial_id, aoi_region_set_id, dataset_id, 
                 distractor_id, target_id, condition)
+
+
+# create xy data with lots of extra stuff for resampling
+xy_merged.data <- timepoint.data %>% 
+  dplyr::left_join(trials.data, by = "trial_id") %>%
+  dplyr::left_join(trial_types.data, by = "trial_type_id") %>%
+  dplyr::left_join(aoi.data, by = "aoi_region_set_id") %>%
+  dplyr::left_join(administration.data, by = "subject_id") 
+
+# create actual xy data
+xy.data <- xy_merged.data %>%
+  dplyr::select(xy_timepoint_id, x, y, t, administration_id, trial_id, point_of_disambiguation) %>%
+  peekds::resample_times(table_type = "xy_timepoints") # critical temporal resampling
+
+# assign aoa based on aoa_coordinates
+# find correct aoi based on trials
+aoi_timepoints <- xy_merged.data %>%
+  peekds::add_aois() %>%
+  select(administration_id, trial_id, t, aoi, point_of_disambiguation) %>%
+  peekds::resample_times(table_type = "aoi_timepoints")
 
 #write all files
 write_csv(xy.data, file = paste0(output_path,"/","xy_timepoints.csv"))
@@ -190,23 +199,6 @@ write_csv(trials.data, file = paste0(output_path,"/","trials.csv"))
 write_csv(dataset.data, file = paste0(output_path,"/","datasets.csv"))
 write_csv(aoi.data, file = paste0(output_path,"/","aoi_region_sets.csv"))
 write_csv(administration.data, file = paste0(output_path,"/","administrations.csv"))
-
-
-# assign aoa based on aoa_coordinates
-# find correct aoi based on trials
-
-#### Generate AOIS ####
-aoi_timepoints <- xy.data %>%
-  dplyr::left_join(trials.data, by = "trial_id") %>%
-  dplyr::left_join(trial_types.data, by = "trial_type_id") %>%
-  dplyr::left_join(aoi.data, by = "aoi_region_set_id") %>%
-  peekds::add_aois() %>%
-  group_by(trial_id) %>%
-  mutate(t_norm = t - point_of_disambiguation) %>%
-  select(administration_id, trial_id, t_norm, aoi) %>%
-  peekds::resample_times(table_type = "aoi_timepoints") 
-
-# write to file
 write_csv(aoi_timepoints, file = paste0(output_path, "/", "aoi_timepoints.csv"))
 
 # run validator
