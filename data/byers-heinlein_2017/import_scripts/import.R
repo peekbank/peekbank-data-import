@@ -123,7 +123,7 @@ d_tidy <- raw %>% filter(age.group!="Adults"
 # subjects table
 d_tidy %>%
   distinct(subject_id, lab_subject_id, sex) %>%
-  mutate(native_language = "eng fre") %>% # FIXME: bilinguals: validator should accept "eng,fre", but does not
+  mutate(native_language = "multiple") %>% # FIXME: bilinguals: validator should accept "eng, fre" / "eng fre", but does not
   write_csv(fs::path(output_path, "subjects.csv"))
   
 
@@ -149,19 +149,20 @@ stimuli_image <- unique(d_tidy$target)[1:6] # what about lf1, 3, 7 etc ...filler
 stimuli_label <- unique(c(d_tidy$target, d_tidy$distractor))
 
 stim_trans <- d_tidy %>% distinct(target, distractor) %>%
-  mutate(stimulus_image_path = rep(target[1:6], 2)) 
+  mutate(stimulus_image_path = c(target[1:7], "mouth","cookie","foot","book","door")) 
 
 # add original_stimulus_label and english_stimulus_label
 stim_tab <- cross_df(list(stimuli_image = stimuli_image, stimuli_label = stimuli_label)) %>%
   left_join(stim_trans, by=c("stimuli_image"="stimulus_image_path")) %>%
-  filter(stimuli_image==stimuli_label) %>%
+  filter(stimuli_image==stimuli_label) %>% # FIXME: missing  original_stimulus_label="chien" ??
   select(-stimuli_label, -distractor) %>%
-  rename(stimulus_label = target, 
-         stimulus_image_path = stimuli_image) %>%
-  mutate(stimulus_id = 0:(length(stimuli_label)-1),
+  rename(original_stimulus_label = target, 
+         stimulus_image_path = stimuli_image) %>% 
+  mutate(stimulus_id = 0:(n()-1),
          lab_stimulus_id = NA,
          dataset_id = dataset_id,
-         stimulus_novelty = "familiar")
+         stimulus_novelty = "familiar",
+         english_stimulus_label = stimulus_image_path)
 
 stim_tab %>% 
   write_csv(fs::path(output_path, "stimuli.csv"))
