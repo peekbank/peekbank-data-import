@@ -248,7 +248,7 @@ trials_table$trial_id <- seq(0, nrow(trials_table)-1,1)
 ### AOI_TIMEPOINTS TABLE ###
 
 ### attempt 2! ###
-test_get_aoi <- function(trial, target_lwl, target_annotator){
+get_aoi <- function(trial, target_lwl, target_annotator){
   #takes in an administration, trial pair and returns a dataframe with the aoi for that pair
   #restrict to specific trial :)
   if (trial %in% target_lwl$task_type){
@@ -267,12 +267,14 @@ test_get_aoi <- function(trial, target_lwl, target_annotator){
     }
     df$aoi = unlist(lapply(df$timepoint_ms, get_aoi))
     df$aoi[is.na(df$aoi)] <- "missing"
+    df$t = df$timepoint_ms
     df$t_norm = df$timepoint_ms - point_of_disambiguation
     return(df)} else{
       return(tibble(#"administration_id" = as.integer(),
                     "timepoint_ms" = as.integer(),
                     "trial" = character(),
                     "aoi" = character(),
+                    "t" = character(),
                     "t_norm" = as.integer()))}
 }
 
@@ -294,7 +296,7 @@ get_administration_aoi <- function(administration){
   
   administration_aoi_data = do.call("rbind", 
                                     lapply(trials_types_table$lab_trial_id, 
-                                           test_get_aoi, 
+                                           get_aoi, 
                                            target_lwl = lwl_file,
                                            target_annotator = participant_info$primary_coder[1]))
   
@@ -314,7 +316,7 @@ get_administration_aoi <- function(administration){
   
   administration_aoi_data <- administration_aoi_data %>% select(trial_order, trial_type_id, trial_id, 
                                                                 administration_id, 
-                                                                timepoint_ms, aoi, t_norm,
+                                                                timepoint_ms, aoi, t, t_norm,
                                                                 fixed_aoi, lab_subject_id, 
                                                                 subject_id)
   administration_aoi_data <- merge(administration_aoi_data, 
@@ -330,14 +332,13 @@ get_administration_aoi <- function(administration){
 }
 
 final_aoi_table <- do.call("rbind", lapply(administrations_table$administration_id, get_administration_aoi))
-final_aoi_table$aoi_timepoint_id <- seq(0, nrow(final_aoi_table)-1, 1)
+#final_aoi_table$aoi_timepoint_id <- seq(0, nrow(final_aoi_table)-1, 1)
 
 aoi_timepoints <- final_aoi_table %>%
   select(-aoi) %>% 
   rename(aoi = final_aoi) %>% 
-  select(aoi_timepoint_id, trial_id, aoi,
-         t_norm, administration_id)
-
+  select(trial_id, aoi, t, administration_id)
+aoi_timepoints$point_of_disambiguation = point_of_disambiguation
 aoi_timepoints_table <- aoi_timepoints %>% peekds::resample_times(table_type = "aoi_timepoints")
 aoi_timepoints_table$aoi_timepoint_id <- seq(0, nrow(aoi_timepoints_table)-1)
 trials_table <- trials_table %>% select(trial_id, trial_order, trial_type_id)
@@ -425,7 +426,7 @@ stimuli_table %>% write_csv(fs::path(write_path, "stimuli.csv"))
 
 ### Write to OSF ###
 # need osf token
-#this is broken :(
+
 peekds::validate_for_db_import(glue::glue("{write_path}/"))
 #but this works?
 #read.csv(here("data",lab_dataset_id, "processed_data/administrations.csv"))
