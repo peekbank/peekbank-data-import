@@ -11,7 +11,7 @@ library(osfr)
 
 
 #### general parameters ####
-dataset_name <- "reflook_v3"
+dataset_name <- "reflook_socword"
 dataset_id <- 0
 max_lines_search <- 40 #maybe change this value?
 subid_name <- "Subject"
@@ -29,14 +29,14 @@ participant_file_name <- "reflook_v3_demographics.csv"
 osf_token <- read_lines(here("osf_token.txt"))
 
 # load 
-source(here("data/reflook_v3/import_scripts/import_helpers.R"))
+source(here("data/reflook_socword/import_scripts/import_helpers.R"))
 
 #### Pull in data from OSF ####
 dir_path <- fs::path(here::here("data", dataset_name, "raw_data"))
 
 ##only download if it's not on your machine
 if(length(list.files(paste0(dir_path, "/full_dataset"))) == 0 && length(list.files(paste0(dir_path, "/experiment_info"))) == 0) {
-  get_raw_data(lab_dataset_id = "reflook_v3", path = dir_path, osf_address = "pr6wu")
+  get_raw_data(lab_dataset_id = "reflook_socword", path = dir_path, osf_address = "pr6wu")
 }
 
 
@@ -53,10 +53,6 @@ aoi_path <- fs::path(project_root,"data", dataset_name, "raw_data","test_aois")
 
 #output path
 output_path <- fs::path(project_root,"data",dataset_name,"processed_data")
-
-
-
-
 
 file_ext = '.txt'
 
@@ -89,7 +85,7 @@ aoi.data <- aoi.data.all %>%
 #create table of aoi region ids and stimulus name
 aoi_ids <- aoi.data.all %>%
   left_join(aoi.data, by = c("l_x_min", "l_x_max", "l_y_min", "l_y_max", "r_x_min", "r_x_max", "r_y_min", "r_y_max")) %>%
-  distinct(stimulus_name,aoi_region_set_id)  ##to-do: match aoi_region_set_id with trials from stimulus
+  distinct(stimulus_name,aoi_region_set_id)  
 
 
 #### generate all data objects ####
@@ -122,7 +118,7 @@ subjects.data <- process_subjects_info(participant_file_path) %>%
   left_join(participant_id_table,by="lab_subject_id") %>%
   filter(!is.na(subject_id)) %>%
   mutate(native_language = "eng") %>%
-  dplyr::select(subject_id,sex, lab_subject_id, native_language)
+  dplyr::select(subject_id, sex, lab_subject_id, native_language)
 
 #create administration data 
 administration.data <- process_administration_info(participant_file_path, 
@@ -135,56 +131,47 @@ administration.data <- participant_id_table %>%
                 monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method) %>%
   mutate(administration_id = seq(0,length(subject_id)-1)) 
 
-
+# create trials data
 trials.data <- timepoint.data %>%
   distinct(trial_id, trial_order, trial_type_id)
 
 #create trials data and match with stimulus id and aoi_region_set_id
 # TODO: add full phrase
-trial_types.data <- process_smi_trial_info(trial_file_path)%>%
+trial_types.data <- process_smi_trial_info(trial_file_path) %>%
   left_join(stimuli.data %>% select(stimulus_id, english_stimulus_label), by=c("distractor_label"="english_stimulus_label")) %>%
   rename(distractor_id = stimulus_id) %>%
   left_join(stimuli.data %>% select(stimulus_id, english_stimulus_label), by=c("target_label"="english_stimulus_label")) %>%
   rename(target_id = stimulus_id)%>%
   left_join(aoi_ids, by="stimulus_name") %>%
-  mutate(condition = "reflook_v3")
+  mutate(condition = object_type) %>%
+  dplyr::select(trial_type_id, full_phrase, full_phrase_language, 
+                point_of_disambiguation, target_side, 
+                lab_trial_id, aoi_region_set_id, dataset_id, 
+                distractor_id, target_id, condition)
 
 #create xy data
-xy.data <- timepoint.data %>%
-  mutate(dataset_id = dataset_id) %>%
-  left_join(administration.data %>% select(subject_id, administration_id), by = "subject_id")%>%
-  left_join(trial_types.data %>% select(trial_type_id, point_of_disambiguation), by = "trial_type_id") %>%
-  dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id, dataset_id, point_of_disambiguation)
-
-xy.data <- peekds::resample_times(xy.data) %>%
-  select(xy_timepoint_id, x, y, t, administration_id, trial_id)
-
-# create aoi data
-aoi_timepoints.data <- timepoint.data %>%
+xy_merged.data <- timepoint.data %>%
   mutate(dataset_id = dataset_id) %>%
   left_join(administration.data %>% select(subject_id, administration_id), by = "subject_id")%>%
   left_join(trial_types.data %>% select(trial_type_id, 
                                         aoi_region_set_id, 
                                         target_side,
                                         point_of_disambiguation), by = "trial_type_id") %>%
-  left_join(aoi.data, by = "aoi_region_set_id") %>%
-  add_aois(.) %>%
-  mutate(aoi_timepoint_id = xy_timepoint_id) %>%
-  select(-x,-y,-xy_timepoint_id)
+  left_join(aoi.data, by = "aoi_region_set_id") 
 
-aoi_timepoints.data <- peekds::resample_times(aoi_timepoints.data)
 
-aoi_timepoints.data <- aoi_timepoints.data %>%
-  mutate(t_norm = (t - point_of_disambiguation)) %>%
-  select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id) %>%
-  mutate(aoi = if_else(is.na(aoi), "missing", aoi))
+xy.data <- xy_merged.data %>%
+  dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id, point_of_disambiguation) %>%
+  peekds::resample_times(., table_type = "xy_timepoints") %>%
+  select(xy_timepoint_id, x, y, t_norm, administration_id, trial_id)
 
-#clean trials data
-trial_types.data <- trial_types.data %>%
-  dplyr::select(trial_type_id, full_phrase, full_phrase_language, 
-                point_of_disambiguation, target_side, 
-                lab_trial_id, aoi_region_set_id, dataset_id, 
-                distractor_id, target_id, condition)
+# create aoi data
+aoi_timepoints.data <- xy_merged.data %>%
+  peekds::add_aois(.) %>%
+  select(trial_id, administration_id, aoi, t, point_of_disambiguation) %>%
+  peekds::resample_times(., table_type = "aoi_timepoints") %>%
+  select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id) 
+
 
 #write all data
 
