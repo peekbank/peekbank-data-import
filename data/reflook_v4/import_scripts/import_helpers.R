@@ -131,7 +131,7 @@ process_smi_stimuli <- function(file_path) {
 
 #### Table 5: Dataset ####
 
-process_smi_dataset <- function(lab_dataset_id=dataset_name) {
+process_smi_dataset <- function(lab_dataset_id) {
   
   ##Make dataset table
   dataset.data <- data.frame(
