@@ -147,9 +147,7 @@ stimuli_table = stim_data_raw %>%
          lab_stimulus_id = target_word_english) 
 stimuli_table$stimulus_id <- seq(0, nrow(stimuli_table)-1, 1)
 
-stimuli_table$english_stimulus_label <- unlist(lapply(stimuli_table$lab_stimulus_id, 
-                                               function(word){str_split(word, 
-                                                                        "_")[[1]][1]}))
+stimuli_table$english_stimulus_label <- stimuli_table$lab_stimulus_id
 
 stimuli_table<- stimuli_table %>% 
   select(stimulus_id, 
