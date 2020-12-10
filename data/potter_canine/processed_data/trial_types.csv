@@ -1,0 +1,33 @@
+target_side,condition,target_id,distractor_id,full_phrase,trial_type_id,dataset_id,lab_trial_id,aoi_region_set_id,point_of_disambiguation,full_phrase_language
+left,Common-High,0,14,Where is the baby? Check that out!,0,0,baby-baby-cow,NA,0,eng
+left,Common-Low,1,13,"Can you find the drink? Wow, cool!",1,0,drink-milk-shoe,NA,0,eng
+right,Common-High,2,8,Look at the dog. Do you see it?,2,0,dog-dog-bird,NA,0,eng
+right,Common-Low,3,10,"Do you like the food? Wow, cool!",3,0,food-cookie-ball,NA,0,eng
+left,Common-Low,4,11,Look at the chicken. Check that out!,4,0,chicken-bird-dog,NA,0,eng
+right,Common-High,5,7,Can you find the shoe? Do you see it?,5,0,shoe-shoe-milk,NA,0,eng
+right,Common-Low,6,12,"Where is the animal. Wow, cool",6,0,animal-cow-baby,NA,0,eng
+right,Uncommon-Low,4,11,Examine the chicken. Do you see it?,7,0,chicken-bird-dog,NA,0,eng
+left,Uncommon-High,7,5,Which side has the milk? Check that out!,8,0,milk-milk-shoe,NA,0,eng
+left,Uncommon-High,8,2,Would you prefer the bird? Check that out!,9,0,bird-bird-dog,NA,0,eng
+right,Uncommon-High,9,15,"Examine the cookie! Wow, cool!",10,0,cookie-cookie-ball,NA,0,eng
+left,Uncommon-Low,6,12,Which side has the animal? Do you see it?,11,0,animal-cow-baby,NA,0,eng
+right,Uncommon-Low,1,13,"Could you spot the drink? Wow, cool!",12,0,drink-milk-shoe,NA,0,eng
+right,Uncommon-High,0,14,Which side has the baby? Do you see it?,13,0,baby-baby-cow,NA,0,eng
+left,Uncommon-Low,10,3,Examine the toy. Check that out!,14,0,toy-ball-cookie,NA,0,eng
+right,Uncommon-Low,11,4,"Would you prefer the puppy? Wow, cool!",15,0,puppy-dog-bird,NA,0,eng
+left,Uncommon-High,5,7,Cold you spot the shoe? Check that out!,16,0,shoe-shoe-milk,NA,0,eng
+left,Common-High,9,15,Look at the cookie. Do you see it?,17,0,cookie-cookie-ball,NA,0,eng
+right,Common-High,8,2,"Do you like the bird? Wow, cool!",18,0,bird-bird-dog,NA,0,eng
+right,Common-Low,12,6,Can you find the boy? Check that out!,19,0,boy-baby-cow,NA,0,eng
+left,Common-Low,13,1,"Where is the boot? Wow, cool!",20,0,boot-shoe-milk,NA,0,eng
+left,Common-Low,11,4,Do you like the puppy? Check that out!,21,0,puppy-dog-bird,NA,0,eng
+right,Common-High,7,5,Where is the milk? Do you see it?,22,0,milk-milk-shoe,NA,0,eng
+left,Common-High,14,0,"Can you find the cow? Wow, cool!",23,0,cow-cow-baby,NA,0,eng
+right,Common-Low,10,3,Look at the toy. Check that out!,24,0,toy-ball-cookie,NA,0,eng
+right,Uncommon-High,14,0,Could you spot the cow? Do you see it?,25,0,cow-cow-baby,NA,0,eng
+right,Uncommon-Low,13,1,Which side has the boot? Check that out!,26,0,boot-shoe-milk,NA,0,eng
+left,Uncommon-Low,3,10,"Would you prefer the food? Wow, cool!",27,0,food-cookie-ball,NA,0,eng
+left,Uncommon-High,2,8,Examine the dog. Do you see it?,28,0,dog-dog-bird,NA,0,eng
+right,Uncommon-High,15,9,Would you prefer the ball? Check that out!,29,0,ball-ball-cookie,NA,0,eng
+left,Uncommon-Low,12,6,"Could you spot the boy? Wow, cool!",30,0,boy-baby-cow,NA,0,eng
+left,Common-High,15,9,Do you like the ball? Check that out!,31,0,ball-ball-cookie,NA,0,eng

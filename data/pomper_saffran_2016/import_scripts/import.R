@@ -211,7 +211,8 @@ d_subject_ids <- d_tidy %>%
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
   distinct(order, tr_num, target_id, distractor_id, target_side) %>%
-  mutate(trial_type_id = seq(0, length(.$tr_num) - 1))
+  mutate(trial_id = seq(0, length(.$tr_num) - 1),
+         trial_order = as.numeric(tr_num)-1) 
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
@@ -238,8 +239,8 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
-  select(t, aoi, trial_id, administration_id) %>% # trial_id or trial_type_id ?
-  rename(t_norm = t) %>% # original data had columns from -990ms to 6867ms...presumably centered at disambiguation per trial?
+  select(t, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
+  # original data had columns from -990ms to 6867ms...presumably centered at disambiguation per trial?
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
@@ -277,8 +278,8 @@ stimulus_table %>%
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
-  distinct(trial_type_id,
-           condition,
+  mutate(condition = trial_type) %>% # "condition" had 1A,1B,2A,2B (trial_type has color/target_image)
+  distinct(condition,
            full_phrase,
            point_of_disambiguation,
            target_side,
@@ -289,7 +290,8 @@ trial_types <- d_tidy_final %>%
            distractor_id, 
            distractor_label,
            target_label) %>%
-  mutate(full_phrase_language = "eng") %>%
+  mutate(trial_type_id = seq(0, nrow(.) - 1),
+         full_phrase_language = "eng") %>%
   select(-distractor_label, -target_label) %>%
   write_csv(fs::path(write_path, trial_types_table_filename))
 
@@ -299,16 +301,19 @@ trial_types <- d_tidy_final %>%
 # trial_type_id	ForeignKey	row identifier for the trial_types table indexing from zero
 
 # create zero-indexed ids for trials
-d_trial_ids <- d_tidy %>%
-  distinct(order, tr_num, target_id, distractor_id, target_side) %>%
-  mutate(trial_type_id = seq(0, length(.$tr_num) - 1))
+# d_trial_ids <- d_tidy %>%
+#   distinct(order, tr_num, target_id, distractor_id, target_side) %>%
+#   mutate(trial_type_id = seq(0, length(.$tr_num) - 1))
 
-trials_table <- d_tidy_final %>%
-  mutate(trial_order = as.numeric(tr_num) - 1) %>%
-  distinct(trial_order, trial_type_id) %>%
-  mutate(full_phrase_language = "eng",
-         trial_id = seq(0, n() - 1)) %>%
+trials_table <- d_tidy_final %>% left_join(trial_types %>% select())
+  distinct(trial_id, trial_order, trial_type_id) %>%
   write_csv(fs::path(write_path, trials_table_filename))
+
+# trials_table <- d_tidy_final %>%
+#   mutate(trial_order = as.numeric(tr_num) - 1) %>%
+#   distinct(trial_order, trial_type_id) %>%
+#   mutate(trial_id = seq(0, n() - 1)) %>%
+#   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### AOI REGIONS TABLE ####
 # create empty other files aoi_region_sets.csv and xy_timepoints

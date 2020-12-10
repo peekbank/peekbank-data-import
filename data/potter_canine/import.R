@@ -21,6 +21,7 @@ aoi_table_filename <- "aoi_timepoints.csv"
 subject_table_filename <- "subjects.csv"
 administrations_table_filename <- "administrations.csv"
 stimuli_table_filename <- "stimuli.csv"
+trial_types_table_filename <- "trial_types.csv"
 trials_table_filename <- "trials.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
@@ -33,7 +34,6 @@ remove_repeat_headers <- function(d, idx_var) {
 # download datata from osf
 #peekds::get_raw_data(dataset_name, path = read_path)
 
-
 # read raw icoder files
 d_raw <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
                     delim = "\t") %>%
@@ -44,6 +44,9 @@ d_raw <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
 # These files contain additional information about the target labels and carrier phrases
 trial_order_paths <- list.files(read_orders_path, full.names = TRUE, pattern = ".txt")
 trial_orders <- map_df(trial_order_paths, read_delim, delim = "\t")
+
+#read in stimulus lookup table
+stimulus_lookup_table <- read_csv(fs::path(read_path,"stimulus_lookup_table.csv"))
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
@@ -57,11 +60,14 @@ d_processed <-  d_filtered %>%
 
 #rename order and trial number column names for trial_orders, then join with d_processed
 trial_orders <- trial_orders %>%
-  rename(order=Name, tr_num=`trial number`)
+  rename(order=Name, tr_num=`trial number`) %>%
+  clean_names() %>%
+  select(order,tr_num,sound_stimulus) # select just the columns we need - really only need sound_stimulus, everything else important already in main icoder file
 
 d_processed <- d_processed %>%
   mutate(tr_num=as.numeric(tr_num)) %>% #make trial number numeric
-  left_join(trial_orders,by=c("order","tr_num"))
+  left_join(trial_orders,by=c("order","tr_num")) %>%
+  relocate(c(order, tr_num,sound_stimulus),.after = `sub_num`)
 
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
@@ -113,31 +119,42 @@ d_tidy <- d_tidy %>%
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
   rename(left_image = r_image, right_image=l_image) %>%
-  mutate(target_label = target_image) %>% # TO CHANGE
+  # determine target label based on condition (High=high-frequency label, Low=low-frequency label)
+  # first, split condition column to isolate the target label condition
+  separate(condition,into=c("carrier_phrase_condition","target_label_condition"),sep="-", remove=FALSE) %>%
+  # join data frame with stimulus lookup table in order to determine high and low target label
+  left_join(stimulus_lookup_table,by=c('target_image' = 'image_name')) %>%
+  relocate(c(high_label,low_label),.after=target_image) %>%
+  # determine target label
+  mutate(target_label = case_when(
+    target_label_condition=="High" ~ high_label,
+    target_label_condition=="Low" ~ low_label
+  )) %>% 
   rename(target_image_old = target_image) %>% # since target image doesn't seem to be the specific image identifier
   mutate(target_image = case_when(target_side == "right" ~ right_image,
                                       TRUE ~ left_image)) %>%
   mutate(distractor_image = case_when(target_side == "right" ~ left_image,
-                                      TRUE ~ right_image)) 
+                                      TRUE ~ right_image)) %>%
+  mutate(lab_stimulus_id = paste0(target_image,"_",target_label_condition))
 
 #create stimulus table
 stimulus_table <- d_tidy %>%
-  distinct(target_image,target_label) %>%
+  distinct(target_image,target_label,lab_stimulus_id,target_label_condition) %>%
   filter(!is.na(target_image)) %>%
   mutate(dataset_id = 0,
          stimulus_novelty = "familiar",
-         stimulus_label = target_label,
+         original_stimulus_label = target_label,
+         english_stimulus_label = target_label,
          stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
-         lab_stimulus_id = target_image
   ) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('target_image' = 'lab_stimulus_id')) %>%
+  left_join(stimulus_table %>% select(stimulus_id,target_image, target_label_condition), by=c('target_image','target_label_condition')) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('distractor_image' = 'lab_stimulus_id')) %>%
+  left_join(stimulus_table %>% select(stimulus_id,target_image, target_label_condition), by=c('distractor_image' = 'target_image','target_label_condition')) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
@@ -156,20 +173,27 @@ d_administration_ids <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  distinct(order, tr_num, target_id, distractor_id, target_side) %>%
-  mutate(full_phrase = NA) %>% #unknown
-  mutate(trial_id = seq(0, length(.$tr_num) - 1)) #delete .$?
+  distinct(order, tr_num, sound_stimulus, target_id, distractor_id, target_side) %>%
+  arrange(order,tr_num) %>%
+  mutate(trial_order=tr_num) %>% 
+  mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
+
+# create zero-indexed ids for trial_types
+d_trial_type_ids <- d_tidy %>%
+  distinct(condition, sound_stimulus, target_id, distractor_id, target_side) %>%
+  mutate(full_phrase = sound_stimulus) %>% 
+  mutate(trial_type_id = seq(0, length(sound_stimulus) - 1)) 
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(d_tidy) - 1)) %>%
   left_join(d_administration_ids) %>%
-  left_join(d_trial_ids) 
+  left_join(d_trial_type_ids) %>%
+  left_join(d_trial_ids)
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
   mutate(dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
-         lab_trial_id = paste(order, tr_num, sep = "-"),
+         lab_trial_id = paste(target_label,target_image,distractor_image, sep = "-"),
          aoi_region_set_id = NA, # not applicable
          monitor_size_x = NA, #unknown TO DO
          monitor_size_y = NA, #unknown TO DO
@@ -177,7 +201,8 @@ d_tidy_final <- d_tidy_semifinal %>%
          age = as.numeric(months), # months # TO DO - more precise?
          point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz
          tracker = "video_camera",
-         sample_rate = sampling_rate_hz
+         sample_rate = sampling_rate_hz,
+         t_norm=as.numeric(as.character(t)), # original data centered at point of disambiguation
          ) %>%
   rename(lab_subject_id = sub_num,
          lab_age = months
@@ -185,26 +210,18 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
-  select(aoi_timepoint_id, t, aoi, trial_id, administration_id) %>%
-  rename(t_norm = t) %>% # original data centered at point of disambiguation
+  select(t_norm, aoi, trial_id, administration_id) %>%
+  #resample timepoints
+  resample_times(table_type="aoi_timepoints") %>%
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
   write_csv(fs::path(write_path, aoi_table_filename))
-
-#### Resample AOI timepoints ####
-aoi_timepoints_preresample <- d_tidy_final %>%
-  select(aoi_timepoint_id, t, aoi, trial_id, administration_id) %>%
-  rename(t_norm = t)
-
-# aoi_timepoints <- aoi_timepoints_preresample %>%
-#   resample_times()
-
-aoi_timepoints <- aoi_timepoints_preresample %>%
-  resample_times(write_path, table_type="aoi_timepoints")
 
 ##### SUBJECTS TABLE ####
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
-  mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female'))) %>%
+  mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
+         native_language="eng") %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -227,19 +244,27 @@ stimulus_table %>%
   select(-target_label, -target_image) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
-##### TRIALS TABLE ####
+#### TRIALS TABLE ####
 d_tidy_final %>%
   distinct(trial_id,
+           trial_order,
+           trial_type_id) %>%
+  write_csv(fs::path(write_path, trials_table_filename))
+
+##### TRIAL TYPES TABLE ####
+d_tidy_final %>%
+  distinct(trial_type_id,
            full_phrase,
            point_of_disambiguation,
            target_side,
-           lab_trial_id,
+           condition,
            aoi_region_set_id,
+           lab_trial_id,
            dataset_id,
            target_id,
            distractor_id) %>%
-    mutate(full_phrase_language = "eng") %>%
-  write_csv(fs::path(write_path, trials_table_filename))
+  mutate(full_phrase_language = "eng") %>% 
+  write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### AOI REGIONS TABLE ####
 # create empty other files aoi_region_sets.csv and xy_timepoints
