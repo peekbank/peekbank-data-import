@@ -101,7 +101,7 @@ aoi_ids <- aoi.data.all %>%
 #### generate all data objects ####
 
 #create dataset data
-dataset.data <- process_smi_dataset(datset_name = "reflook_v4")
+dataset.data <- process_smi_dataset(lab_dataset_id = "reflook_v4")
 
 ##create stimuli data
 stimuli.data <- process_smi_stimuli(trial_file_path) %>%

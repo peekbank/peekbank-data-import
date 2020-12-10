@@ -51,7 +51,17 @@ process_smi_trial_info <- function(file_path) {
     mutate(left_image = ifelse(left_image == "b", "bosa",
                                ifelse(left_image == "m", "manu", left_image)),
            right_image = ifelse(right_image == "b", "bosa",
-                                ifelse(right_image == "m", "manu", right_image)))
+                                ifelse(right_image == "m", "manu", right_image))) %>%
+    mutate(left_image = case_when(left_image == "manu1" ~ "manu",
+                                  left_image == "manu2" ~ "manu_distractor",
+                                  left_image == "bosa1" ~ "bosa",
+                                  left_image == "bosa2" ~ "bosa_distractor",
+                                  TRUE ~ left_image),
+           right_image = case_when(right_image == "manu1" ~ "manu",
+                                   right_image == "manu2" ~ "manu_distractor",
+                                   right_image == "bosa1" ~ "bosa",
+                                   right_image == "bosa2" ~ "bosa_distractor",
+                                   TRUE ~ right_image))
   
   #convert onset to ms
   trial_data <- trial_data %>%
@@ -63,7 +73,7 @@ process_smi_trial_info <- function(file_path) {
     mutate(target_image = ifelse(target_side == "left", left_image, right_image), 
            distractor_image = ifelse(target_side == "left", right_image, left_image), 
            target_label = target_image, 
-           distractor_label = distractor_image)
+           distractor_label = distractor_image) 
   
   # rename and create some additional filler columns
   trial_data <- trial_data %>%
@@ -120,6 +130,16 @@ process_smi_stimuli <- function(file_path) {
                                ifelse(left_image == "m", "manu", left_image)), 
            right_image = ifelse(right_image == "b", "bosa", 
                                 ifelse(right_image == "m", "manu", right_image)))%>%
+    mutate(left_image = case_when(left_image == "manu1" ~ "manu",
+                                  left_image == "manu2" ~ "manu_distractor",
+                                  left_image == "bosa1" ~ "bosa",
+                                  left_image == "bosa2" ~ "bosa_distractor",
+                                  TRUE ~ left_image),
+           right_image = case_when(right_image == "manu1" ~ "manu",
+                                   right_image == "manu2" ~ "manu_distractor",
+                                   right_image == "bosa1" ~ "bosa",
+                                   right_image == "bosa2" ~ "bosa_distractor",
+                                   TRUE ~ right_image)) %>%
     dplyr::select(type, left_image, right_image)%>%
     pivot_longer(c("left_image", "right_image"), 
                  names_to = "side", 
@@ -143,8 +163,8 @@ process_smi_dataset <- function(lab_dataset_id=dataset_name) {
     dataset_id = dataset_id, #hard code data set id for now
     lab_dataset_id = lab_dataset_id, 
     dataset_name = lab_dataset_id,
-    cite = "?", ##what is the full citation on this?
-    shortcite = "?"
+    cite = "Yurovsky, Wade & Frank, 2013", ##what is the full citation on this?
+    shortcite = "Yurovsky et al., 2013"
   )
   
   return(dataset.data)
