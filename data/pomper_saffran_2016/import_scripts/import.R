@@ -177,6 +177,8 @@ all_orders_cleaned <- all_orders_cleaned  %>%
   mutate(lab_stimulus_id = target_image, stimulus_label = target_word) %>%
   filter(!(stimulus_label %in% c("intro","end"))) #remove intro/outro trials (not LWL)
 
+
+
 # Join back CB/trial info with tidy'd dataframes ----------------------------------------
 
 d_tidy <- d_tidy %>%
@@ -185,7 +187,7 @@ d_tidy <- d_tidy %>%
   left_join(stimulus_table, by = c('lab_stimulus_id', 'stimulus_label','target_image','target_word')) %>%
   mutate(target_side = factor(target_side, levels = c('L','R'), labels = c('left','right')))
 
-## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
+## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distractor image
 d_tidy <- d_tidy %>%
   mutate(distractor_image = case_when(target_side == "right" ~ left_image,
                                    TRUE ~ right_image)) %>%
@@ -203,21 +205,33 @@ d_tidy <- d_tidy %>%
          monitor_sr = NA,
          sample_rate = sampling_rate_hz)
 
+
 # get zero-indexed subject ids
 d_subject_ids <- d_tidy %>%
   distinct(sub_num) %>%
   mutate(subject_id = seq(0, length(.$sub_num) - 1))
 
-# create zero-indexed ids for trials
-d_trial_ids <- d_tidy %>%
+# create zero-indexed ids for trial types
+d_trial_type_ids <- d_tidy %>%
   distinct(order, tr_num, target_id, distractor_id, target_side) %>%
-  mutate(trial_id = seq(0, length(.$tr_num) - 1),
+  mutate(trial_type_id = seq(0, length(.$tr_num) - 1),
          trial_order = as.numeric(tr_num)-1) 
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
   left_join(d_subject_ids, by = "sub_num") %>%
-  left_join(d_trial_ids) 
+  left_join(d_trial_type_ids) 
+
+# create zero-indexed ids for trials
+d_trial_ids <- d_tidy_semifinal %>%
+  distinct(sub_num, tr_num, trial_type_id) %>%
+  mutate(trial_order = as.numeric(tr_num) - 1,
+         trial_id = seq(0, nrow(.) - 1)) %>%
+  select(-tr_num, -sub_num)
+
+# join in trial_id
+d_tidy_semifinal <- d_tidy_semifinal %>%
+  left_join(d_trial_ids, by = c("trial_type_id", "trial_order"))
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
@@ -289,8 +303,9 @@ trial_types <- d_tidy_final %>%
            target_id,
            distractor_id, 
            distractor_label,
-           target_label) %>%
-  mutate(trial_type_id = seq(0, nrow(.) - 1),
+           target_label, 
+           trial_type_id) %>%
+  mutate(#trial_type_id = seq(0, nrow(.) - 1),
          full_phrase_language = "eng") %>%
   select(-distractor_label, -target_label) %>%
   write_csv(fs::path(write_path, trial_types_table_filename))
@@ -300,20 +315,9 @@ trial_types <- d_tidy_final %>%
 # trial_order	IntegerField	index of the trial in order of presentation during the experiment
 # trial_type_id	ForeignKey	row identifier for the trial_types table indexing from zero
 
-# create zero-indexed ids for trials
-# d_trial_ids <- d_tidy %>%
-#   distinct(order, tr_num, target_id, distractor_id, target_side) %>%
-#   mutate(trial_type_id = seq(0, length(.$tr_num) - 1))
-
-trials_table <- d_tidy_final %>% left_join(trial_types %>% select())
+trials_table <- d_tidy_final %>% 
   distinct(trial_id, trial_order, trial_type_id) %>%
   write_csv(fs::path(write_path, trials_table_filename))
-
-# trials_table <- d_tidy_final %>%
-#   mutate(trial_order = as.numeric(tr_num) - 1) %>%
-#   distinct(trial_order, trial_type_id) %>%
-#   mutate(trial_id = seq(0, n() - 1)) %>%
-#   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### AOI REGIONS TABLE ####
 # create empty other files aoi_region_sets.csv and xy_timepoints
