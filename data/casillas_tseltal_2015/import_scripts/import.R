@@ -357,87 +357,31 @@ d_tidy <- d_tidy  %>% select(-trial_id) %>% left_join(trials_table)
 
 aoi_timepoints_table <- d_tidy %>% distinct(t_norm, aoi, trial_id, administration_id, aoi_timepoint_id)
 
-
-
-
 ### check datatypes and write to files ###
 
 administrations_table %>% 
-  # mutate(administration_id =as.integer(administration_id),
-  #        dataset_id = as.integer(dataset_id),
-  #        age = as.numeric(age),
-  #        lab_age = as.numeric(lab_age),
-  #        lab_age_units = as.character(lab_age_units),
-  #        monitor_size_x  = as.numeric(monitor_size_x),
-  #        monitor_size_y = as.numeric(monitor_size_y),
-  #        sample_rate = as.numeric(sample_rate),
-  #        tracker = as.character(tracker),
-  #        coding_method = as.character(coding_method)) 
 write_csv(fs::path(write_path, "administrations.csv"))
 
 datasets_table %>% 
-  # mutate(dataset_id = as.integer(dataset_id),
-  #        lab_dataset_id = as.character(lab_dataset_id),
-  #        dataset_name= as.character(dataset_name),
-  #        cite= as.character(cite),
-  #        shortcite= as.character(shortcite))
   write_csv(fs::path(write_path, "datasets.csv"))
 
 subjects_table %>% 
-  # mutate(subject_id = as.integer(subject_id),
-  #        sex = as.character(sex),
-  #        native_language = as.character(native_language),
-  #        lab_subject_id = as.character(lab_subject_id))
   write_csv(fs::path(write_path, "subjects.csv"))
 
 trials_types_table %>% 
-  # mutate(trial_type_id = as.integer(trial_type_id),
-  #        full_phrase = as.character(full_phrase),
-  #        full_phrase_language = as.character(full_phrase_language),
-  #        point_of_disambiguation = as.integer(point_of_disambiguation),
-  #        target_side = as.character(target_side),
-  #        lab_trial_id  = as.character(lab_trial_id),
-  #        aoi_region_set_id = as.integer(aoi_region_set_id),
-  #        dataset_id = as.integer(dataset_id),
-  #        distractor_id = as.integer(distractor_id),
-  #        target_id = as.integer(target_id))
   write_csv(fs::path(write_path, "trial_types.csv"))
 
 trials_table %>%
-  # mutate(trial_id = as.integer(trial_id),
-  #        trial_order = as.integer(trial_order),
-  #        trial_type_id = as.integer(trial_type_id))
   write_csv(fs::path(write_path, "trials.csv"))
 
 
 aoi_timepoints_table %>% 
-  # mutate(aoi_timepoint_id = as.integer(aoi_timepoint_id),
-  #        trial_id = as.integer(trial_id),
-  #        aoi = as.character(aoi),
-  #        t_norm = as.integer(t_norm),
-  #        administration_id = as.integer(administration_id))
   write_csv(fs::path(write_path, "aoi_timepoints.csv"))
 
 aoi_region_sets %>% 
-  # mutate(aoi_region_set_id = as.integer(aoi_region_set_id),
-  #        l_x_max = as.integer(l_x_max),
-  #        l_x_min = as.integer(l_x_min),
-  #        l_y_max = as.integer(l_y_max),
-  #        l_y_min = as.integer(l_y_min),
-  #        r_x_max = as.integer(r_x_max),
-  #        r_x_min = as.integer(r_x_min),
-  #        r_y_max = as.integer(r_y_max),
-  #        r_y_min = as.integer(r_y_min))
   write_csv(fs::path(write_path, "aoi_region_sets.csv"))
 
 stimuli_table %>% 
-  # mutate(stimulus_id = as.integer(stimulus_id),
-  #        original_stimulus_label = as.character(original_stimulus_label),
-  #        english_stimulus_label = as.character(english_stimulus_label),
-  #        stimulus_novelty = as.character(stimulus_novelty),
-  #        stimulus_image_path = as.character(stimulus_image_path),
-  #        lab_stimulus_id = as.character(lab_stimulus_id),
-  #        dataset_id = as.integer(dataset_id))
 write_csv(fs::path(write_path, "stimuli.csv"))
 
 
