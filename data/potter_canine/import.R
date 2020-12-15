@@ -219,7 +219,6 @@ d_tidy_final %>%
 ##### SUBJECTS TABLE ####
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
-  filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
   mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
          native_language="eng") %>%
   write_csv(fs::path(write_path, subject_table_filename))
@@ -295,8 +294,8 @@ data_tab <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
-  cite = "Adams, K. A., Marchman, V. A., Loi, E. C., Ashland, M. D., Fernald, A., & Feldman, H. M. (2018). Caregiver talk and medical risk as predictors of language outcomes in full term and preterm toddlers. Child Development, 89(5), 1674–1690. https://doi.org/10.1111/cdev.12818",
-  shortcite = "Adams et al. (2018)"
+  cite = NA,
+  shortcite = "Potter, C., & Lew-Williams, C. (in prep)"
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 

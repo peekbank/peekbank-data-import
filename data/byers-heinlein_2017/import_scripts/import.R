@@ -92,7 +92,7 @@ d_tidy <- raw %>% filter(age.group!="Adults"
                          #trial.type!="switch"# remove language switch trials? decided to include.
                          ) %>% 
   ### FIXME: Import trial order .csvs instead of using regular expressions; currently missing some trials because of  inconsistent file naming conventions
-  mutate(subject_id = as.numeric(map_chr(id, ~str_split(., "_")[[1]][2])),
+  mutate(subject_id = as.numeric(map_chr(id, ~str_split(., "_")[[1]][2])) - 1,
          sex = 'unspecified', ### FIXME
          target = tolower(map_chr(MediaName, ~ str_split(., "_")[[1]][1])),
          target_side = map_chr(MediaName, ~ str_split(., "_")[[1]][2]),
@@ -125,7 +125,7 @@ d_tidy %>%
   distinct(subject_id, lab_subject_id, sex) %>%
   mutate(native_language = "multiple") %>% # FIXME: bilinguals: validator should accept "eng, fre" / "eng fre", but does not
   write_csv(fs::path(output_path, "subjects.csv"))
-  
+
 
 # administrations table
 d_tidy %>%
@@ -134,7 +134,7 @@ d_tidy %>%
            lab_age) %>%
   mutate(coding_method = "eyetracking",
          dataset_id = dataset_id,
-         administration_id = subject_id,
+         administration_id = subject_id, 
          tracker = tracker_name,
          monitor_size_x = monitor_size_x,
          monitor_size_y = monitor_size_y,
@@ -168,36 +168,53 @@ stim_tab %>%
   write_csv(fs::path(output_path, "stimuli.csv"))
 
 
-# now need trial_order and trial_type_id, and trial_types table
 # write trials table
 d_tidy_final <- d_tidy %>% 
   mutate(target_side = factor(target_side, levels=c('L','R'), labels = c('left','right'))) %>%
-  left_join(stim_tab %>% select(stimulus_id, stimulus_label), by=c("target"="stimulus_label")) %>%
+  left_join(stim_tab %>% select(stimulus_id, english_stimulus_label), by=c("target"="english_stimulus_label")) %>%
   rename(target_id = stimulus_id) %>%
-  left_join(stim_tab %>% select(stimulus_id, stimulus_label), by=c("distractor"="stimulus_label")) %>%
-  rename(distractor_id = stimulus_id) 
+  left_join(stim_tab %>% select(stimulus_id, english_stimulus_label), by=c("distractor"="english_stimulus_label")) %>%
+  rename(distractor_id = stimulus_id) %>%
+  mutate(condition = trial.type)
 
 aoi_region_tab <- d_tidy_final %>%
   distinct(target_id, target, target_side) %>%
   mutate(aoi_region_set_id = seq(0,n()-1))
 
-d_trial_ids <- d_tidy_final %>%
-  distinct(target_id, distractor_id, target_side, carrier.language, lab_trial_id, distractor) %>% # lab_trial_id, switch.type, trial.type, 
-  mutate(trial_id = seq(0, n() - 1)) %>%
+
+# The processed data file trial_types failed to pass the validator for database import with these error messsages:
+#   - The values in field trial_type_id are not unique.
+d_trial_types <- d_tidy_final %>%
+  distinct(target_id, distractor_id, target_side, carrier.language, lab_trial_id, distractor, condition) %>% # lab_trial_id, switch.type, trial.type, 
   left_join(aoi_region_tab) %>%
   mutate(full_phrase_language = 'multiple') %>%
+  mutate(trial_type_id = seq(0, n() - 1)) %>%
   mutate(point_of_disambiguation= point_of_disambiguation,
          full_phrase = NA,
          dataset_id = dataset_id) 
 
-d_trial_ids %>% select(-carrier.language, -distractor, -target) %>% 
-  write_csv(fs::path(output_path, "trials.csv"))
+d_trial_types %>% select(-carrier.language, -distractor, -target) %>% 
+  write_csv(fs::path(output_path, "trial_types.csv"))
 
 
-# add trial_id & administration id
+# join in trial_type_id
+d_tidy_final <- d_tidy_final %>% left_join(d_trial_types)
+
+##### TRIALS TABLE ####
+# trial_id	PrimaryKey	row identifier for the trials table indexing from zero
+# trial_order	IntegerField	index of the trial in order of presentation during the experiment
+# trial_type_id	ForeignKey	row identifier for the trial_types table indexing from zero
+trials_table <- d_tidy_final %>%
+ mutate(trial_order = as.integer(lab_trial_id)) %>%
+ distinct(subject_id, trial_order, trial_type_id) %>% 
+ mutate(trial_id = seq(0, n() - 1)) %>%
+ write_csv(fs::path(output_path, "trials.csv"))
+
+# add trial_type_id & administration id
 d_tidy_final2 <- d_tidy_final %>%
   mutate(administration_id = subject_id) %>%
-  left_join(d_trial_ids) 
+  left_join(d_trial_types) %>%
+  left_join(trials_table)
 
 # create aoi_region_sets.csv 
 # in AOI region sets, origin is TOP LEFT -- so, ymin=top_left and ymax = top_left + length
@@ -243,7 +260,9 @@ aoi_time_tab <- d_tidy_final2 %>%
       aoi_timepoint_id = 0:(n()-1)
     ) %>%
   select(aoi_timepoint_id, administration_id, t, aoi, trial_id) %>%
-  mutate(t_norm = t - point_of_disambiguation) %>% 
+  mutate(point_of_disambiguation = point_of_disambiguation) %>%
+  resample_times(table_type="aoi_timepoints") %>%
+  #mutate(t_norm = t - point_of_disambiguation) %>% # now has t and point_of_disambiguation
   write_csv(fs::path(output_path, "aoi_timepoints.csv"))
 
 
@@ -256,8 +275,10 @@ d_tidy_final2 %>% distinct(trial_id, administration_id, GazePointX, GazePointY, 
   write_csv(fs::path(output_path, "xy_timepoints.csv"))
 
 
-#### Process data ####
-peekds::validate_for_db_import(dir_csv=output_path) 
+# validation check ----------------------------------------------------------
+validate_for_db_import(dir_csv = output_path)
+
+
 
 #### Upload to OSF
 put_processed_data(osf_token, dataset_name, paste0(output_path,'/'), osf_address = "pr6wu")

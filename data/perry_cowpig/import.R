@@ -16,17 +16,16 @@ read_path <- here("data",dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
 
 # processed data filenames
-'''
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
 subject_table_filename <- "subjects.csv"
 administrations_table_filename <- "administrations.csv"
 stimuli_table_filename <- "stimuli.csv"
+trial_types_table_filename <- "trial_types.csv"
 trials_table_filename <- "trials.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 #osf_token <- read_lines(here("osf_token.txt"))
-'''
 
 
 # download datata from osf
@@ -66,11 +65,9 @@ post_dis_names_clean <-  post_dis_names %>%
 
 colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
 
-### truncate columns at F3833, since trials are almost never coded later than this timepoint
-
+### truncate columns at F3600, since trials are almost never coded later than this timepoint
 ## TO DO: check in about this decision
-post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
-
+post_dis_names_clean_cols_to_remove <- post_dis_names_clean[110:length(post_dis_names_clean)]
 #remove
 d_processed_cleaned <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
@@ -78,11 +75,14 @@ d_processed_cleaned <- d_processed %>%
 # Convert to long format --------------------------------------------------
 
 # get idx of first time series
-first_t_idx <- length(metadata_names) + 1             # this returns a numeric
+first_t_idx <- colnames(d_processed_cleaned)[length(metadata_names) + 1]  # this returns a numeric
 last_t_idx <- colnames(d_processed_cleaned) %>%
   dplyr::last() # this returns a string
 d_tidy <- d_processed_cleaned %>%
-  pivot_longer(names_to = "t", cols = first_t_idx:last_t_idx, values_to = "aoi")
+  pivot_longer(names_to = "t", cols = first_t_idx:last_t_idx, values_to = "aoi") %>%
+  mutate(t=as.numeric(t)) %>%
+  #also make trial number numeric
+  mutate(tr_num=as.numeric(tr_num))
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -98,7 +98,6 @@ d_tidy <- d_tidy %>%
   ))
 
 # Clean up column names and add stimulus information based on existing columns  ----------------------------------------
-
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
   select(-prescreen_notes, -c_image,-response, -first_shift_gap,-rt) %>% # retain condition in order to distinguish animals with typical and atypical color patterning
@@ -119,22 +118,23 @@ stimulus_table <- d_tidy %>%
   mutate(condition_new=ifelse(condition=="familiar","typical_color","atypical_color")) %>% 
   mutate(target_image_old=target_image) %>%
   # combine target_image w/ condition to create unique set of images (e.g., the cow item can have typical or atypical coloring)
-  unite(target_image, c(target_image,condition_new)) %>% 
-  unite(target_image_old,c(target_image_old,condition)) %>%
+  unite(target_image, c(target_image,condition_new),remove=FALSE) %>% 
+  unite(original_image_name_condition,c(target_image_old,condition),remove=FALSE) %>%
   mutate(dataset_id = 0,
          stimulus_novelty = "familiar",
-         stimulus_label = target_label,
+         original_stimulus_label = target_label,
+         english_stimulus_label = target_label,
          stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
          lab_stimulus_id = target_image_old # retain encoding of condition as "familiar" (== typical color) and "test" (==atypical color) from original study
   ) %>%
-  select(-target_image_old) %>%
+  rename(original_image_name=target_image_old) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id) %>% separate(lab_stimulus_id,into=c("target_image", "condition")), by=c('target_image','condition')) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id,original_image_name,condition,condition_new), by=c("target_image" = "original_image_name",'condition')) %>%
   rename(target_id = stimulus_id) %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id) %>% separate(lab_stimulus_id,into=c("distractor_image", "condition")), by=c('distractor_image','condition')) %>%
+  left_join(stimulus_table %>% select(stimulus_id,original_image_name,condition), by=c('distractor_image'= "original_image_name",'condition')) %>%
   rename(distractor_id = stimulus_id) 
 
 # get zero-indexed subject ids
@@ -152,25 +152,32 @@ d_administration_ids <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  distinct(order, tr_num, target_id, distractor_id, target_side) %>%
-  mutate(full_phrase = NA) %>% #unknown
-  mutate(trial_id = seq(0, length(.$tr_num) - 1))
+  distinct(order, tr_num, condition, target_id, distractor_id, target_side) %>%
+  arrange(order,tr_num) %>%
+  mutate(trial_order=tr_num) %>% # potentially revisit depending on whether these should be sequential (rather than ordered and matching the trial number from the original study)
+  mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
+
+# create zero-indexed ids for trial_types
+d_trial_type_ids <- d_tidy %>%
+  distinct(condition, target_id, distractor_id, target_side) %>%
+  mutate(full_phrase = NA) %>%  # TO DO: parse full phrase based on order/ sound stimuli
+  mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(d_tidy) - 1)) %>%
   left_join(d_administration_ids) %>%
-  left_join(d_trial_ids)
+  left_join(d_trial_ids) %>%
+  left_join(d_trial_type_ids)
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
   mutate(dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
-         lab_trial_id = paste(order, tr_num, sep = "-"),
+         lab_trial_id = paste(condition, target_image, distractor_image, sep = "-"),
          aoi_region_set_id = NA, # not applicable
-         monitor_size_x = NA, #unknown TO DO
-         monitor_size_y = NA, #unknown TO DO
+         monitor_size_x = 1920, 
+         monitor_size_y = 1200, 
          lab_age_units = "months",
-         age = as.numeric(months), # months # TO DO - more precise?
+         age = as.numeric(months), # TO DO - lookup participants with missing ages
          point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz
          tracker = "video_camera",
          sample_rate = sampling_rate_hz
@@ -181,26 +188,18 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
-  select(aoi_timepoint_id, t, aoi, trial_id, administration_id) %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
+  select(t_norm, aoi, trial_id, administration_id) %>%
+  #resample timepoints
+  resample_times(table_type="aoi_timepoints") %>%
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
   write_csv(fs::path(write_path, aoi_table_filename))
-
-#### Resample AOI timepoints ####
-aoi_timepoints_preresample <- d_tidy_final %>%
-  select(aoi_timepoint_id, t, aoi, trial_id, administration_id) %>%
-  rename(t_norm = t)
-
-# aoi_timepoints <- aoi_timepoints_preresample %>%
-#   resample_times()
-
-aoi_timepoints <- resample_times(write_path, table_type="aoi_timepoints")
-
 
 ##### SUBJECTS TABLE ####
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
-  filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
-  mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female'))) %>%
+  mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
+         native_language="eng") %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -220,22 +219,37 @@ d_tidy_final %>%
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
-  select(-target_label, -target_image) %>%
+  select(stimulus_id,
+         stimulus_novelty,
+         original_stimulus_label,
+         english_stimulus_label,
+         stimulus_image_path,
+         lab_stimulus_id,
+         dataset_id) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
-##### TRIALS TABLE ####
+#### TRIALS TABLE ####
 d_tidy_final %>%
   distinct(trial_id,
+           trial_order,
+           trial_type_id) %>%
+  write_csv(fs::path(write_path, trials_table_filename))
+
+##### TRIAL TYPES TABLE ####
+d_tidy_final %>%
+  distinct(trial_type_id,
            full_phrase,
            point_of_disambiguation,
            target_side,
-           lab_trial_id,
+           condition_new,
            aoi_region_set_id,
+           lab_trial_id,
            dataset_id,
            target_id,
            distractor_id) %>%
-    mutate(full_phrase_language = "eng") %>%
-  write_csv(fs::path(write_path, trials_table_filename))
+  mutate(full_phrase_language = "eng") %>% 
+  rename(condition=condition_new) %>%
+  write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### AOI REGIONS TABLE ####
 # create empty other files aoi_region_sets.csv and xy_timepoints
@@ -266,8 +280,8 @@ data_tab <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
-  cite = "Adams, K. A., Marchman, V. A., Loi, E. C., Ashland, M. D., Fernald, A., & Feldman, H. M. (2018). Caregiver talk and medical risk as predictors of language outcomes in full term and preterm toddlers. Child Development, 89(5), 1674–1690. https://doi.org/10.1111/cdev.12818",
-  shortcite = "Adams et al. (2018)"
+  cite = "Perry, L. K., & Saffran, J. R. (2017). Is a Pink Cow Still a Cow? Individual Differences in Toddlers’ Vocabulary Knowledge and Lexical Representations. Cognitive Science, 41(4), 1090-1105. doi: 10.1111/cogs.12370",
+  shortcite = "Perry & Saffran (2017)"
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
