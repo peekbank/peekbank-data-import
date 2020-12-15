@@ -104,11 +104,9 @@ timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file)%>%
   bind_rows() %>%
   mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
   mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1) %>%
-  mutate(trial_order = trial_type_id + 1) %>%
-  group_by(subject_id, trial_type_id) %>%
-  mutate(trial_id = (cur_group_id() - 1)) %>%
-  ungroup() 
-  
+  mutate(trial_order = trial_type_id + 1,
+         trial_id = trial_type_id)
+
 ##extract unique participant ids from eyetracking data (in order to filter participant demographic file)
 participant_id_table <- timepoint.data %>%
   distinct(lab_subject_id, subject_id)
@@ -144,6 +142,7 @@ trial_types.data <- process_smi_trial_info(trial_file_path) %>%
   rename(target_id = stimulus_id)%>%
   left_join(aoi_ids, by="stimulus_name") %>%
   mutate(condition = object_type) %>%
+  mutate(full_phrase = paste0("Can you find the ", target_label, "?")) %>%
   dplyr::select(trial_type_id, full_phrase, full_phrase_language, 
                 point_of_disambiguation, target_side, 
                 lab_trial_id, aoi_region_set_id, dataset_id, 
