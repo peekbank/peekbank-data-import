@@ -37,7 +37,6 @@ osf_token <- read_lines(here("osf_token.txt"))
 #TODO: Import from osf directly
 #peekds::get_raw_data("mahr_coartic", path = here(paste("data/mahr_coartic/raw_data/", sep='')))
 
-#read in raw data#
 
 gaze <- read_csv(paste0(read_path, "gazes.csv")) %>%
   mutate(Subj = as.integer(Subj))
@@ -50,7 +49,7 @@ model_data <- read_csv(paste0(read_path, "model_data.csv"))
 
 subjects <- read_csv(paste0(read_path, "subj.csv"))
 
-trials <- read_csv(paste0(read_path, "trials.csv"))
+raw_trials <- read_csv(paste0(read_path, "trials.csv"))
 
 stimuli_trials <- read_csv(paste0(read_path, "stimuli/trials.csv"))
 ### ------- TABLE GENERATION ------- ###
@@ -102,7 +101,7 @@ aoi_region_sets <- tibble(aoi_region_set_id = 0,
 stimuli_table <- tibble(lab_stimulus_id = unique(append(stimuli_trials$ImageLFile, stimuli_trials$ImageRFile))) %>%
   mutate(stimulus_id = seq(0, nrow(.)-1, 1),
          original_stimulus_label = gsub('.{0,1}$', '', lab_stimulus_id),
-         english_stimulus_label = original_stimulus_label,
+         english_stimulus_label = str_replace(original_stimulus_label, "_", ""),
          stimulus_novelty = "familiar",
          stimulus_image_path = paste0("/stimuli/images/", lab_stimulus_id, ".png", sep = ""),
          dataset_id = dataset_id)
@@ -124,13 +123,15 @@ find_full_phrase <- function(file_name){
 return(new_phrase)
 }
 
-trial_types_table <- stimuli_trials %>% 
-  rename(condition = Condition,
-         Audio = PromptFile,
-         ImageL = ImageLFile, ImageR = ImageRFile) %>% 
-  mutate(trial_type_id = seq(0,nrow(.)-1),
-         lab_trial_id = paste(Block, TrialNo, condition, sep = "_"),
-         target_lab_id = case_when(TargetImage == "ImageL" ~ ImageL,
+#get trial order after block randomization
+reorder_trials_by_administration <- function(raw_df) {
+  raw_df$trial_order <- seq(1, nrow(raw_df))
+  return(raw_df)
+}
+
+temp_trials <- raw_trials %>% 
+  rename(condition = StimType) %>% 
+  mutate(target_lab_id = case_when(TargetImage == "ImageL" ~ ImageL,
                                    TargetImage == "ImageR" ~ ImageR),
          distractor_lab_id = case_when(DistractorImage == "ImageL" ~ ImageL,
                                        DistractorImage == "ImageR" ~ ImageR),
@@ -138,9 +139,8 @@ trial_types_table <- stimuli_trials %>%
                                  TargetImage == "ImageR" ~ "right"),
          full_phrase_language = "eng",
          aoi_region_set_id = 0,
-         dataset_id = dataset_id, 
-        Block = paste0("Block", Block, sep = ""),
-        point_of_disambiguation = 1015.93) %>% 
+         dataset_id = dataset_id,
+         point_of_disambiguation = 1015.93) %>% 
   left_join(stimuli_table %>% 
               select(stimulus_id, lab_stimulus_id) %>% 
               rename(target_lab_id = lab_stimulus_id)) %>% 
@@ -148,32 +148,24 @@ trial_types_table <- stimuli_trials %>%
   left_join(stimuli_table %>% 
               select(stimulus_id, lab_stimulus_id) %>% 
               rename(distractor_lab_id = lab_stimulus_id)) %>% 
-  rename(distractor_id = stimulus_id)# %>% select()
+  rename(distractor_id = stimulus_id) %>%
+  arrange(Subj, BlockOrder, TrialNo) %>%
+  group_by(Subj) %>% 
+  group_modify(~reorder_trials_by_administration(.x)) %>% ungroup()
 
-trial_types_table$full_phrase = unlist(lapply(trial_types_table$Audio,find_full_phrase))
+trials_table <- temp_trials %>%
+  distinct(Audio, condition, target_id,distractor_id,target_side, trial_order) %>%
+  mutate(trial_id = seq(0, nrow(.)-1))
 
+trials_table$full_phrase = unlist(lapply(trials_table$Audio,find_full_phrase))
 
-trials_table <- trials %>% rename(condition = StimType) %>% 
-  left_join(trial_types_table %>% select(TargetWord, TargetImage, DistractorImage,
-                                         ImageL, ImageR, Audio, lab_trial_id, trial_type_id))
+mega_trials <- temp_trials %>% left_join(trials_table)
 
+trials_types_table = trials_table %>% distinct(condition, full_phrase, target_id, distractor_id, target_side) %>% 
+  mutate(trial_type_id = seq(0, nrow(.)-1))
 
-#get trial order after block randomization
-reorder_trials_by_administration <- function(raw_df) {
-  raw_df$trial_order <- seq(0, nrow(raw_df)-1)
-  return(raw_df)
-}
-
-#really proud of this
-trials_table <- trials_table %>% rename(lab_subject_id = Subj) %>%
-  arrange(lab_subject_id, BlockOrder, TrialNo) %>%
-  group_by(lab_subject_id) %>% 
-  group_modify(~reorder_trials_by_administration(.x)) %>% ungroup() %>% 
-  left_join(subjects_table %>% select(lab_subject_id, subject_id)) %>%
-  left_join(administrations_table %>% select(subject_id, administration_id)) %>%
-  mutate(trial_id = seq(0, nrow(.)-1)) %>% select(lab_subject_id, Block, TrialNo, trial_type_id, trial_order, trial_id)
-test <- trials_table %>% 
-  mutate(lab_subject_id = as.integer(lab_subject_id))
+mega_trials <- mega_trials %>% left_join(trials_types_table) %>% 
+  mutate(lab_subject_id = as.integer(Subj))
 
 get_trial_disambiguation <- function(grouped_timepoints){
   sorted_df = grouped_timepoints %>% arrange(Time)
@@ -190,8 +182,7 @@ all_timepoints_table <- gaze %>% rename(lab_subject_id = Subj) %>%
   left_join(subjects_table %>% 
               mutate(lab_subject_id = as.integer(lab_subject_id)) %>% select(lab_subject_id, subject_id)) %>%
   left_join(administrations_table %>% select(subject_id, administration_id)) %>%
-  left_join(trials_table %>% 
-              mutate(lab_subject_id = as.integer(lab_subject_id)))
+  left_join(mega_trials)
 
 xy_timepoints_table <- all_timepoints_table %>% 
   mutate(xy_timepoint_id = seq(0, nrow(.)-1)) %>%
@@ -209,6 +200,17 @@ aoi_timepoints = all_timepoints_table %>%
   peekds::resample_times("aoi_timepoints")
 
 ### Clean up tables and prepare for import! ------------------------------------
+mega_trials %>% distinct(trial_type_id, trial_order, trial_id)%>%
+  write_csv(paste0(write_path, "/", trials_table_filename))
+
+mega_trials %>% 
+  mutate(lab_trial_id = paste(condition, target_lab_id, 
+                               distractor_lab_id, target_side, sep = "-")) %>%
+  distinct(trial_type_id, full_phrase, full_phrase_language,
+           point_of_disambiguation, target_side,
+           lab_trial_id, condition, aoi_region_set_id,
+           dataset_id, distractor_id, target_id) %>%
+  write_csv(paste0(write_path, "/", trial_types_filename))
 
 #administrations table
 administrations_table <- administrations_table %>% 
@@ -245,32 +247,6 @@ subjects_table <- subjects_table %>%
          lab_subject_id = as.character(lab_subject_id)) %>% 
   select(subject_id, sex, native_language, lab_subject_id) %>% 
   write_csv(paste0(write_path, "/", subject_table_filename))
-
-# trial types table
-trial_types_table <- trial_types_table %>% 
-  mutate(trial_type_id = as.integer(trial_type_id),
-         full_phrase = as.character(full_phrase),
-         full_phrase_language = as.character(full_phrase_language),
-         point_of_disambiguation  = as.integer(point_of_disambiguation),
-         target_side = as.character(target_side),
-         lab_trial_id = as.character(lab_trial_id),
-         condition = as.character(condition),
-         aoi_region_set_id = as.integer(aoi_region_set_id),
-         dataset_id  = as.integer(dataset_id),
-         distractor_id  = as.integer(distractor_id),
-         target_id = as.integer(target_id)) %>%
-  select(trial_type_id, full_phrase, full_phrase_language,
-         point_of_disambiguation, target_side,
-         lab_trial_id, condition, aoi_region_set_id,
-         dataset_id, distractor_id, target_id) %>%
-  write_csv(paste0(write_path, "/", trial_types_filename))
-
-#trials
-trials_table <- trials_table %>% mutate(trial_id = as.integer(trial_id),
-                                        trial_order = as.integer(trial_order),
-                                        trial_type_id = as.integer(trial_type_id)) %>%
-  select(trial_id, trial_order, trial_type_id) %>%
-  write_csv(paste0(write_path, "/", trials_table_filename))
 
 #xy_timepoints
 xy_timepoints_table <- xy_timepoints_table %>%
@@ -322,4 +298,5 @@ stimuli_table <- stimuli_table %>%
 
 
 peekds::validate_for_db_import(write_path)
+peekds::put_processed_data(osf_token, lab_dataset_id, path = glue::glue("{write_path}/"))
 
