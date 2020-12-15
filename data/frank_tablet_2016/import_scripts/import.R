@@ -16,6 +16,7 @@ subid_name <- "Subject" # for extracting info from SMI
 monitor_size_string <- "Calibration Area"
 sample_rate_string <- "Sample Rate"
 osf_token <- read_lines(here("osf_token.txt"))
+OSF_ADDRESS <- "pr6wu"
 
 #### Define paths and get data from OSF if necessary ####
 DATASET_PATH <- here(paste0("data/", dataset_name, "/"))
@@ -28,10 +29,10 @@ participant_file_path <- paste0(exp_info_path,  "eye.tracking.csv")
 
 ## only download if it's not on your machine
 if(length(list.files(full_dataset_path)) == 0 & length(list.files(exp_info_path)) == 0) {
-  get_raw_data(lab_dataset_id = dataset_name, path = DATASET_PATH, osf_address = "pr6wu")
+  get_raw_data(lab_dataset_id = dataset_name, path = DATASET_PATH, osf_address = OSF_ADDRESS)
 }
 
-######## Make 8 Peekbank tables #########
+######## Make 9 Peekbank tables #########
 #### (1) datasets ####
 dataset_data <- tibble(
   dataset_id = dataset_id, #hard code data set id for now
@@ -46,7 +47,8 @@ write_peekbank_table("datasets", dataset_data, output_path)
 #### (2) stimuli ####
 target_distractors <- read_csv(trial_file_path) %>%
   clean_names() %>%
-  filter(trial_type != "filler")
+  filter(trial_type != "filler") %>%
+  rename(original_order = trial)
 
 novel_words <- c("dax", "dofa", "fep", "kreeb", "modi",
                  "pifo", "toma", "wug")
@@ -65,9 +67,8 @@ stimuli_data <- target_distractors %>%
 
 write_peekbank_table("stimuli", stimuli_data, output_path)
 
-#### (3) trials ####
-
-trial_data <- target_distractors %>%
+#### (3) trial_types ####
+mega_trials_table <- target_distractors %>%
   mutate(target_side = case_when(word == left ~ "left",
                                   word == right ~ "right"),
          target = word,
@@ -78,20 +79,33 @@ trial_data <- target_distractors %>%
   rename(target_id = stimulus_id) %>%
   left_join(stimuli_data %>% select(stimulus_id, stimulus_label),
             by = c("distractor" = "stimulus_label")) %>%
-  rename(distractor_id = stimulus_id) %>%
-  select(-left, -right,  -trial) %>%
+  rename(distractor_id = stimulus_id,
+         condition = trial_type) %>%
+  select(-left, -right)  %>%
+  mutate(trial_type_id = row_number() - 1)
+
+trial_types_data <- mega_trials_table %>%
   mutate(full_phrase = NA,
          full_phrase_language = "eng",
-         point_of_disambiguation = 179.4 * 16.666667, # 179.4 is in units base on sampling frequency; 16.67 is sampling frequency (Martin Z figured this out.)
+         point_of_disambiguation = 179.4 * 16.666667, # 179.4 is in units based on sampling frequency; 16.67 is sampling frequency (Martin Z figured this out.)
          aoi_region_set_id = 0 ,#all have the same, so hard code
          dataset_id = dataset_id,
          list = as.character(list),
-         lab_trial_id = paste0(list, "_", target_side, "_", word),
-         trial_id = row_number() - 1) %>%
-  select(trial_id, full_phrase, full_phrase_language, point_of_disambiguation, target_side,
-         lab_trial_id, aoi_region_set_id, dataset_id, distractor_id, target_id)
+         lab_trial_id = paste0(target_side, "_", word)) %>%
+  select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, target_side,
+         lab_trial_id, aoi_region_set_id, dataset_id, distractor_id, target_id, condition)
 
-write_peekbank_table("trials", trial_data, output_path)
+write_peekbank_table("trial_types", trial_types_data, output_path)
+
+
+#### (3a) trials ###
+
+trials_table <- mega_trials_table %>%
+  select(trial_type_id, original_order) %>%
+  rename(trial_order = original_order) %>%
+  mutate(trial_id = row_number() - 1)
+
+write_peekbank_table("trials", trials_table, output_path)
 
 
 ####(4) administrations ####
@@ -144,23 +158,37 @@ subjects_data <- all_subjects_data %>%
 write_peekbank_table("subjects", subjects_data, output_path)
 
 #### (6) xy_timepoints ####
-timepoint_data <- full_dataset_path %>%
+raw_timepoint_data <- full_dataset_path %>%
   list.files(full.names = T) %>%
-  map_df(process_smi_eyetracking_file, subid_name, monitor_size, sample_rate)  %>%
+  map_df(process_smi_eyetracking_file, subid_name, monitor_size, sample_rate)
+
+timepoint_data <- raw_timepoint_data %>%
   mutate(xy_timepoint_id = row_number() - 1,
-         lab_trial_id = case_when(left_pic %in%  unique(trial_data$lab_trial_id) ~ left_pic, # phew, this is necessary because sometimes the distractor is the target, and vice versa
-                                   right_pic %in% unique(trial_data$lab_trial_id) ~ right_pic)) %>%
+         left_pic = str_remove(left_pic, "[:digit:]_"),
+         right_pic =  str_remove(right_pic, "[:digit:]_"),
+         lab_trial_id = case_when(left_pic %in%  unique(trial_types_data$lab_trial_id) ~ left_pic, # phew, this is necessary because sometimes the distractor is the target, and vice versa
+                                  right_pic %in% unique(trial_types_data$lab_trial_id) ~ right_pic)) %>%
   select(xy_timepoint_id, x, y, t, lab_subject_id, lab_trial_id)
 
 xy_data <- timepoint_data %>% # merge in administration_id and trial_id
-  left_join(trial_data %>% select(lab_trial_id, trial_id)) %>%
+  left_join(trial_types_data %>% select(lab_trial_id, trial_type_id)) %>%
+  left_join(trials_table %>% select(trial_type_id, trial_id)) %>%
   filter(!is.na(trial_id)) %>% # remove filler trials (4 per subject)
   left_join(subjects_data %>% select(subject_id, lab_subject_id)) %>%
   left_join(administration_data %>% select(subject_id, administration_id)) %>%
   filter(!is.na(administration_id)) %>% # some of the children in the timepoints data are not in the participants list and thus not in administration_id
   select(xy_timepoint_id, x, y, t, administration_id, trial_id) ##RMS: note sure whether t is right here, but I removed t_norm
 
-write_peekbank_table("xy_timepoints", xy_data, output_path)
+xy_joined <- xy_data %>%
+  left_join(trials_table, by = "trial_id") %>%
+  left_join(trial_types_data, by = "trial_type_id") %>%
+  left_join(aoi_info, by = "aoi_region_set_id")
+
+xy_joined_resampled <- xy_joined %>%
+  peekds::resample_times(., table_type = "xy_timepoints") %>%
+  select(xy_timepoint_id, x, y, t_norm, administration_id, trial_id)
+
+write_peekbank_table("xy_timepoints", xy_joined_resampled, output_path)
 
 #### (7) aoi_region_sets ####
 #hard-coded aois
@@ -180,8 +208,10 @@ aoi_info <- tibble(aoi_region_set_id = 0,
 write_peekbank_table("aoi_region_sets", aoi_info, output_path)
 
 #### (8) aoi_timepoints ####
-aoi_timepoints_data <- peekds::generate_aoi(dir = output_path) %>%
-  mutate(aoi = ifelse(is.na(aoi), "missing", as.character(aoi))) #NAs generated by generate_aois, change to missing
+aoi_timepoints_data <- peekds::add_aois(xy_joined) %>%
+  select(trial_id, administration_id, aoi, t, point_of_disambiguation) %>%
+  resample_times(., table_type = "aoi_timepoints") %>%
+  select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
 write_peekbank_table("aoi_timepoints", aoi_timepoints_data, output_path)
 
@@ -190,6 +220,6 @@ write_peekbank_table("aoi_timepoints", aoi_timepoints_data, output_path)
 #peekds::validate_for_db_import(dir_csv = output_path)
 
 ### add to OSF ####
-put_processed_data(osf_token, dataset_name, output_path, osf_address = "pr6wu")
+put_processed_data(osf_token, dataset_name, output_path, osf_address = OSF_ADDRESS)
 
 

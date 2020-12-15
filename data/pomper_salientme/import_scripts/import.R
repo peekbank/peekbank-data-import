@@ -75,14 +75,16 @@ colnames(d_processed) <- c(metadata_names,
                            pre_dis_names_clean, 
                            post_dis_names_clean)
 
+### following Adam, Marchman Import.R, truncate columns at F3833, since trials are almost never coded later than this timepoint
+## TO DO: check in about this decision
+post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
+#remove
+d_processed <- d_processed %>%
+  select(-all_of(post_dis_names_clean_cols_to_remove))
 # Convert to long format --------------------------------------------------
 
-# get index of first and last time series sample
-first_t_idx <- length(metadata_names) + 1 # this returns a numeric
-last_t_idx <- colnames(d_processed) %>% dplyr::last() # this returns a string
-
 d_tidy <- d_processed %>%
-  tidyr::gather(t, aoi, first_t_idx:last_t_idx) # but gather() still works, doesn't work if we convert to numeric!
+  tidyr::gather(t, aoi, `-1617`:`3833`) # something was weird with pivot_longer
 
 # recode 0, 1, ., - as distractor, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -95,7 +97,17 @@ d_tidy <- d_tidy %>%
     aoi_old == "." ~ "missing",
     aoi_old == "-" ~ "missing",
     is.na(aoi_old) ~ "missing"
-  ))
+  )) %>% 
+  rename(left_image = r_image, right_image=l_image) %>% 
+  mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>% #need to flip the right and left sides from the icoder
+  mutate(target_image = case_when(target_side == 'right' ~ right_image,
+                                  TRUE ~ left_image)) %>%
+  mutate(distractor_image = case_when(target_side == 'right' ~ left_image,
+                                      TRUE ~ right_image))
+
+# clean up d_tidy to remove extraneous information
+d_tidy <- d_tidy %>% 
+  select(-c_image, -prescreen_notes, -c_image, -rt, -target_side, -left_image, -right_image)
 
 
 # Go through counterbalancing files, tidy, and concatenate into one structure ----------------------------------------
@@ -103,11 +115,10 @@ order_read_path <- here("data", dataset_name, "raw_data", "orders")
 order_files = dir(order_read_path)
 count_files = 0
 for (o in order_files) {
-  count_files = count_files+1
+  count_files = count_files +1
   this_order = read_excel(fs::path(order_read_path, o))  %>% 
     add_column("order" = (str_split_fixed(o, '_', 2)[1]), 
                .before="Tr. Num") # to make icoder data for merging below
-  
   if (count_files == 1) {
     all_orders <- this_order
   }
@@ -117,14 +128,21 @@ for (o in order_files) {
   }
 }
 
+
+
 ## clean up resulting dataframe and add easier names
 all_orders_cleaned <- all_orders %>%
+  select( -`...5`, -Duration) %>%
+  filter(!Condition=='Filler') %>%
   rename('tr_num' = 'Tr. Num', 'target_side' = 'Target Side',
          'left_image' = 'LeftFile','right_image' = 'RightFile', 
          'target_word' = 'Target Object', 'condition' = 'Condition') %>%
   separate(SoundStimulus, sep = "_",  remove = FALSE,
-           into = c("target_word", "carrier_phrase")) %>% 
-  #select(-`...10`, -`...5`, -`...11`, -Duration) %>%
+           into = c("target_word", "carrier_word")) %>% 
+  separate(condition, sep = "-", into = c("familiarity", "word_salience"), remove = FALSE) %>%
+  mutate(stimulus_novelty = case_when(
+    str_detect(familiarity, "Nov") ~ "novel",
+    TRUE ~ 'familiar')) %>% 
   mutate(tr_num = as.character(tr_num), target_word = tolower(target_word)) %>% 
   mutate(target_image = case_when(
     target_side == "L"  ~ left_image,
@@ -133,69 +151,98 @@ all_orders_cleaned <- all_orders %>%
     target_side == "L"  ~ right_image,
     target_side == "R" ~ left_image))
 
-# mutate(target_word = tolower(str_split_fixed(SoundStimulus, '_', 2)[,1]))
-
-
 # Get carrier phrases, not sure how to get the post attention getters. are they neccessary?
 nouns = c('tever', 'pifo','jang','sprock',
           'bed','bird','box','brush','bus','cake',
-          'cat', 'chair','door','fish','juice','sock')
-all_carrier_phrases = all_orders_cleaned %>%
+          'cat', 'chair','door','fish','juice','sock') # TODO: check if any missing
+
+all_carrier_phrases <- all_orders_cleaned %>%
   filter(target_word %in% nouns) %>%
   mutate(target_word = tolower(target_word), target_image = tolower(target_image)) %>% 
-  mutate(carrier_try = factor(carrier_phrase, levels=c('Find','Where','Look'), 
+  mutate(carrier_phrase = factor(carrier_word, levels=c('Find','Where','Look'), 
                               labels = c("Find the", "Where is the", "Look at the"))) %>%
-  mutate(full_phrase = paste0(carrier_try,' ', target_word)) %>%
-  select(target_word, target_image, distractor_image, carrier_try, full_phrase, SoundStimulus) %>%
-  distinct(target_word, target_image, distractor_image, carrier_try, full_phrase, SoundStimulus)
+  mutate(full_phrase = paste0(carrier_phrase,' ', target_word)) %>%
+  select(target_word, carrier_word, carrier_phrase, full_phrase, SoundStimulus) %>%
+  distinct(target_word, carrier_word, carrier_phrase, full_phrase, SoundStimulus)
 
+#Get stimulus table for saving out with right datafields
+# get every combination of word and sound
 
-all_orders_cleaned <- all_orders_cleaned %>%
-  filter(!condition=='Filler') %>%
-  filter(!target_image=='NA') # intro/end trials
+#create a table that include distractor image that didn't use in the target-image as well
+all_stimuli <- all_orders_cleaned %>% 
+  select(target_word, target_image, distractor_image) %>% 
+  tidyr::gather(image,lab_stimuli, target_image:distractor_image) %>% 
+  distinct(lab_stimuli, .keep_all = TRUE) %>% 
+  separate(image, into = c("trial_type", "image"), sep = "_", remove = FALSE) %>% 
+  select(-image)
 
-# Get stimulus table for saving out with right datafields
-## get every combination of word and sound
-stimulus_table <-  all_orders_cleaned %>%
-  distinct(target_word, target_image, distractor_image) %>%
-  mutate(target_word = tolower(target_word)) %>% # make same case
-  # novel words don't match, so skip filter(target_image != target_word) %>% 
-  mutate(stimulus_image_path = paste0('raw_data/stimuli/images/', target_image, '.jpg'),
-         lab_stimulus_id = target_image, dataset_id = 0) %>%
-  mutate(stimulus_novelty = case_when(
-    target_word == 'tever' ~ 'novel',
-    target_word == 'pifo' ~ 'novel',
-    target_word == 'sprock' ~ 'novel',
-    target_word == 'jang' ~ 'novel',
-    TRUE ~ 'familiar'))  %>% 
-  gather(key="trial_type", value = "stimulus_label", target_word, target_image) %>%
-  mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1),
-         target_image = lab_stimulus_id, target_word = stimulus_label)
+#get all variables for stimulus table
+all_stimuli <- all_stimuli %>% 
+  select(-trial_type) %>% 
+  mutate(dataset_id = 0,
+    stimulus_image_path = paste0('raw_data/stimuli/images/', lab_stimuli, '.jpg'),
+    lab_stimulus_id = lab_stimuli, 
+    stimulus_id = seq(0, length(.$lab_stimuli)-1))
 
+# stimulus table to use for ingestion
+stimulus_table <- all_stimuli %>% 
+  select(lab_stimulus_id, stimulus_id)
 
 ## join in carrier phrases with counterbalancing orders
 all_orders_cleaned <- all_orders_cleaned  %>%
-  left_join(all_carrier_phrases, by = c('SoundStimulus','target_image','target_word')) %>% # join just by sound stimulus
+  left_join(all_carrier_phrases, by = c('SoundStimulus', 'target_word', 'carrier_word')) %>% # join just by sound stimulus
   mutate(lab_stimulus_id = target_image, stimulus_label = target_word) %>%
-  filter(!(stimulus_label %in% c("intro","end"))) #remove intro/outro trials (not LWL)
+  filter(!(stimulus_label %in% c("intro","end"))) %>% #remove intro/outro trials (not LWL)
+  mutate(stimulus_novelty = case_when(
+    str_detect(lab_stimulus_id, "novel") ~ "novel",
+    TRUE ~ 'familiar')) %>% 
+  select(-target_word)
 
-# Join back CB/trial info with tidy'd dataframes ----------------------------------------
-
+## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distractor image; 
 d_tidy <- d_tidy %>%
-  select(-prescreen_notes, -l_image, -c_image, -r_image, -target_side) %>%
-  left_join(all_orders_cleaned, by=c('condition','tr_num', 'target_image','order')) %>%
-  left_join(stimulus_table, by = c('lab_stimulus_id', 'stimulus_label','target_image','target_word')) %>%
-  mutate(target_side = factor(target_side, levels = c('L','R'), labels = c('left','right')))
-
-## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
-d_tidy <- d_tidy %>%
-  mutate(distractor_image = case_when(target_side == "right" ~ left_image,
-                                      TRUE ~ right_image)) %>%
-  mutate(target_id = stimulus_id) %>%
-  select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(trial_type, stimulus_id), by=c('trial_type' = 'trial_type')) %>%
+  left_join(stimulus_table, by=c("target_image" = "lab_stimulus_id")) %>% 
+  mutate(target_id = stimulus_id) %>% 
+  select(-stimulus_id) %>% 
+  left_join(stimulus_table, by=c('distractor_image' = 'lab_stimulus_id')) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
+
+## add full phase order info to d_tidy, something missing in the condition
+d_tidy <- d_tidy %>%
+  mutate(stimulus_novelty = case_when(
+    str_detect(condition, "Nov") ~ "novel",
+    TRUE ~ 'familiar')) 
+
+d_tidy <- d_tidy %>% 
+#  select(-target_image, -distractor_image) %>% 
+  left_join(all_orders_cleaned, by=c('order', 'target_image',
+                                     'distractor_image',
+                                     'stimulus_novelty',
+                                     'condition','tr_num'))
+#  order, tr_num, condition, target_image, SoundStimulus, full_phrase)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# get zero-indexed subject ids 
+d_subject_ids <- d_tidy %>%
+  distinct(sub_num) %>%
+  mutate(subject_id = seq(0, length(.$sub_num) - 1))
+#join
+d_tidy <- d_tidy %>%
+  left_join(d_subject_ids, by = "sub_num")
+
+#get zero-indexed administration ids
+d_administration_ids <- d_tidy %>%
+  distinct(sub_num, subject_id,months) %>%
+  mutate(administration_id = seq(0, length(.$sub_num) - 1)) 
+
+# create zero-indexed ids for trials
+d_trial_ids <- d_tidy %>%
+  distinct(order, tr_num, condition, target_id, distractor_id, target_side) %>%
+  arrange(order,tr_num) %>%
+  mutate(trial_order=tr_num) %>% 
+  mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
+
+
 
 # create dataset variables
 d_tidy <- d_tidy %>%
@@ -215,7 +262,7 @@ d_trial_ids <- d_tidy %>%
   distinct(order, tr_num, target_id, distractor_id, target_side) %>%
   mutate(trial_id = seq(0, length(.$tr_num) - 1),
          trial_order = as.numeric(tr_num)-1) 
-# joins
+# joins back
 d_tidy_semifinal <- d_tidy %>%
   left_join(d_subject_ids, by = "sub_num") %>%
   left_join(d_trial_ids)
@@ -320,7 +367,7 @@ trials_table <- d_tidy_final %>%
 # don't need
 # tibble(administration_id = d_tidy_final$administration_id[1],
 #       aoi_region_set_id=NA,
-#        l_x_max=NA ,
+#        l_x_max=NA 
 #        l_x_min=NA ,
 #        l_y_max=NA ,
 #        l_y_min=NA ,
@@ -343,7 +390,7 @@ trials_table <- d_tidy_final %>%
 data_tab <- tibble(
   dataset_id = 0, # doesn't matter (leave as 0 for all)
   dataset_name = "pomper_salientme",
-  lab_dataset_id = "", # TODO: ask Martin if there is one internal name from the lab (if known)
+  lab_dataset_id = dataset_name, # (if known)
   cite = "Pomper, R., & Saffran, J. R. (2018). Familiar object salience affects novel word learning. Child Development. doi:10.1111/cdev.13053.",
   shortcite = "Pomper & Saffran (2018)"
 ) %>%
@@ -355,14 +402,3 @@ validate_for_db_import(dir_csv = write_path)
 
 ## OSF INTEGRATION ###
 #put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
-
-#### Notes for organizing stimuli ####
-# TODO: Get carrier phrases, what are carrier phrases?
-# pifo is novel1 and paired with high salience
-# tever is novel3 and paired with low salience
-# not sure about sprock and jang
-# carrier phrases: check that out, wow, that's cool, look at, where is, find the ?
-# every combination of order and condition exists: 8 orders and 8 conditions
-# 44 unique sub_num, each have every condition, but only one order
-# TODO: does each subject require a unique trial order?
-

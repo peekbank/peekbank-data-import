@@ -113,10 +113,8 @@ timepoint.data <- lapply(all_file_paths, process_smi_eyetracking_file) %>%
   mutate(xy_timepoint_id = seq(0, length(lab_subject_id) - 1)) %>%
   mutate(subject_id = as.numeric(factor(lab_subject_id, 
                                         levels = unique(lab_subject_id))) - 1) %>%
-  group_by(lab_subject_id, subject_trial_id) %>%
-  mutate(trial_id = cur_group_id()-1) %>% 
-  ungroup()
-  
+  rename(trial_id = subject_trial_id)
+
 ## extract unique participant ids from eyetracking data 
 # (in order to filter participant demographic file)
 participant_id_table <- timepoint.data %>%
@@ -147,13 +145,14 @@ administration.data <- participant_id_table %>%
 #
 # trial_id, trial_order, trial_type_id
 trials.data <- timepoint.data %>%
-  select(lab_subject_id, subject_trial_id, trial_id) %>%
+  select(lab_subject_id, trial_id) %>%
   group_by(lab_subject_id) %>%
   distinct() %>%
-  rename(trial_type_id = subject_trial_id) %>%
-  mutate(trial_order = trial_type_id + 1) %>%
+  mutate(trial_type_id = trial_id, 
+         trial_order = trial_type_id + 1) %>%
   ungroup() %>%
-  select(-lab_subject_id)
+  select(-lab_subject_id) %>%
+  distinct()
 
 # create trial_types data and match with stimulus id and aoi_region_set_id
 trial_types.data <- process_smi_trial_info(trial_file_path) %>%
@@ -169,7 +168,6 @@ trial_types.data <- process_smi_trial_info(trial_file_path) %>%
                 point_of_disambiguation, target_side, 
                 lab_trial_id, aoi_region_set_id, dataset_id, 
                 distractor_id, target_id, condition)
-
 
 # create xy data with lots of extra stuff for resampling
 xy_merged.data <- timepoint.data %>% 
