@@ -408,4 +408,4 @@ data_tab <- tibble(
 validate_for_db_import(dir_csv = write_path)
 
 ## OSF INTEGRATION ###
-#put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
+put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
