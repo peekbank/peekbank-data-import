@@ -253,8 +253,9 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
+  # original data had columns from -990ms to 6867msm, centered at disambiguation per trial
+  mutate(point_of_disambiguation=990) %>% #TO DO: temporary fix to handle the rezeroing in the current resample_times() function
   select(t, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
-  # original data had columns from -990ms to 6867ms...presumably centered at disambiguation per trial?
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
