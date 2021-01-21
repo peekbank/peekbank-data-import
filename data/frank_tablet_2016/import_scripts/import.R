@@ -62,7 +62,9 @@ stimuli_data <- target_distractors %>%
          lab_stimulus_id = stimulus_label,
          dataset_id = dataset_id,
          stimulus_id = row_number()-1) %>%
-  select(stimulus_id, stimulus_label, stimulus_novelty,
+  mutate(original_stimulus_label = stimulus_label,
+         english_stimulus_label = stimulus_label) %>%
+  select(stimulus_id, original_stimulus_label,english_stimulus_label, stimulus_novelty,
          stimulus_image_path, lab_stimulus_id, dataset_id)
 
 write_peekbank_table("stimuli", stimuli_data, output_path)
@@ -153,7 +155,8 @@ write_peekbank_table("administrations", administration_data, output_path)
 
 #### (5) subjects ####
 subjects_data <- all_subjects_data %>%
-  select(subject_id, sex, lab_subject_id)
+  mutate(native_language = "eng") %>%
+  select(subject_id, sex, lab_subject_id, native_language)
 
 write_peekbank_table("subjects", subjects_data, output_path)
 
@@ -217,7 +220,7 @@ write_peekbank_table("aoi_timepoints", aoi_timepoints_data, output_path)
 
 #### Validation ####
 #validate_for_db_import("eyetracking", dir_csv = output_path) # <- this wasn't working earlier, but Linger says it validates
-#peekds::validate_for_db_import(dir_csv = output_path)
+peekds::validate_for_db_import(dir_csv = output_path)
 
 ### add to OSF ####
 put_processed_data(osf_token, dataset_name, output_path, osf_address = OSF_ADDRESS)
