@@ -296,8 +296,8 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
+  mutate(point_of_disambiguation=1617) %>% #TO DO: temporary fix to handle the rezeroing in the current resample_times() function (adding in -earliest time point from normalized time, -(-1617))
   select(t, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
-  # original data had columns from -990ms to 6867ms...presumably centered at disambiguation per trial?
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
@@ -408,4 +408,4 @@ data_tab <- tibble(
 validate_for_db_import(dir_csv = write_path)
 
 ## OSF INTEGRATION ###
-put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
+#put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
