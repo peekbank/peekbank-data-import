@@ -34,8 +34,9 @@ write_path <- here(paste("data/", lab_dataset_id, "/processed_data/", sep=''))
 
 osf_token <- read_lines(here("osf_token.txt"))
 
-#TODO: Import from osf directly
-#peekds::get_raw_data("mahr_coartic", path = here(paste("data/mahr_coartic/raw_data/", sep='')))
+# only download data if it's not on your machine
+if(length(list.files(read_path)) == 0 ) {
+  get_raw_data(lab_dataset_id = lab_dataset_id, path = read_path, osf_address = "pr6wu")}
 
 
 gaze <- read_csv(paste0(read_path, "gazes.csv")) %>%
