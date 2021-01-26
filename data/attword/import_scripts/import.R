@@ -492,10 +492,13 @@ process_smi_eyetracking_file <-
   write_csv(stimulus_table, path = paste0(output_path, "/", "stimuli.csv"))
   write_csv(trials_table, path = paste0(output_path, "/", "trials.csv"))
  
-}
+#}
 
-
-
+xy_data %>% 
+  filter(lab_subject_id %in% c("2013_07_26_208", "2013_06_26_21", "2013_08_04_261", "2013_08_04_271")) %>% 
+  ggplot() + 
+  geom_rect(data = aoi_data[5,], aes(xmin = l_x_min, xmax = l_x_max, ymin = l_y_min, ymax = l_y_max))+
+  geom_point(aes(x, y), alpha = .05)
 #### Run SMI ####
 
 process_smi(dir = dir_path, exp_info_dir = exp_info_path)
