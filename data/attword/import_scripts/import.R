@@ -24,10 +24,13 @@ stims_to_remove_chars <- c(".avi")
 stims_to_keep_chars <- c("_")
 
 osf_token <- read_lines(here("osf_token.txt"))
+read_path <- here("data/attword/raw_data/")
 
 ## download raw data 
-peekds::get_raw_data(dataset_name, path = here("data/attword/raw_data/"))
-
+#peekds::get_raw_data(dataset_name, path = read_path)
+if(length(list.files(read_path)) == 0) {
+  get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
+}
 #### define directory ####
 # Define root path
 project_root <- here::here()
@@ -335,15 +338,16 @@ process_smi_eyetracking_file <-
 
 #### Main Processing Function ####
 
-process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
-  
+#process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
+  dir = dir_path
+  exp_info_dir = exp_info_path
+  file_ext=".txt"
   
   #### generate file paths ####
   
   # create all raw data smi file path 
   smi_files <- list.files(dir, full.names = TRUE, recursive = TRUE, 
                         include.dirs = FALSE)
-  # create all demographic file path (not working now)
   
   demographic_files <- list.files(glue::glue("{exp_info_dir}/demographics"), 
                                              full.names = TRUE, 
@@ -353,6 +357,7 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   all_aois <- list.files(
     path = aoi_path,
     pattern = paste0("*", ".xml"),
+    recursive=TRUE,
     all.files = FALSE
   )
   
@@ -372,7 +377,8 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
    
   demographic_data <- map_dfr(demographic_files, process_subjects_info) %>%
                     mutate(subject_id = as.numeric(factor(lab_subject_id, 
-                                                    levels = unique(lab_subject_id))) - 1)
+                                                    levels = unique(lab_subject_id))) - 1,
+                           native_language = "eng")
   
   # read aoi_data for trials' table?
   # warning about raw_t
@@ -384,13 +390,13 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   xy_data <- suppressMessages(map_dfr(smi_files, process_smi_eyetracking_file))
   
   # read stimulus data
-  stimuli <- read_csv(glue::glue("{exp_info_dir}/design/attword_stimuli.csv"))
+#  stimuli <- read_csv(glue::glue("{exp_info_dir}/design/attword_stimuli.csv"))
   
-  stimulus_table <- stimuli %>%
-    mutate(stimulus_id = 0:(n()-1),
-           stimulus_image_path = NA,
-           lab_stimulus_id = stimulus_id,
-           dataset_id = dataset_id)
+#  stimulus_table <- stimuli %>%
+#    mutate(stimulus_id = 0:(n()-1),
+#           stimulus_image_path = NA,
+#           lab_stimulus_id = stimulus_id,
+#           dataset_id = dataset_id)
   
   # read design data
   design <- read_delim(glue::glue("{exp_info_dir}/design/design.txt"), "\t") %>%
@@ -434,8 +440,9 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
   
   
   # trials table data 
-  trials_table <- design %>%
-    mutate(name = str_remove(name, ".jpg")) %>%
+  temp_trials_table <- design %>%
+    rename(file_name = name) %>%
+    mutate(name = str_remove(file_name, ".jpg")) %>%
     separate(name, into = c("left", "right"), sep = "_") %>%
     mutate(target_side = factor(target_screen_side, levels = c(1, 2), 
                                 labels = c("left", "right")),
@@ -445,12 +452,27 @@ process_smi <- function(dir, exp_info_dir, file_ext = ".txt") {
            full_phrase_language = "eng",
            lab_trial_id = 1:n(),
            trial_id = 0:(n()-1),
-           dataset_id = dataset_id) %>%
-    left_join(stimulus_table %>% select(stimulus_id, stimulus_label),
-              by = c("target" = "stimulus_label")) %>%
+           dataset_id = dataset_id)
+    
+    #build stimulus table
+    stimulus_targets <- temp_trials_table$target
+    stimulus_distractors <- temp_trials_table$distractor
+    english_stimulus_label <- unique(stimulus_targets %>% append(stimulus_distractors))
+    
+    stimuli_table <- data.frame(english_stimulus_label)%>%
+          mutate(stimulus_id = 0:(n()-1),
+                 stimulus_image_path = NA,
+                 lab_stimulus_id = stimulus_id,
+                 dataset_id = dataset_id,
+                 original_stimulus_label = english_stimulus_label,
+                 stimulus_novelty = ifelse(original_stimulus_label %in% c("skwish", "modi", "dax"), "novel", "familiar"))
+    #left join in after building stimuli table
+   trials_table <-  temp_trials_table %>%
+    left_join(stimuli_table %>% select(stimulus_id, english_stimulus_label),
+              by = c("target" = "english_stimulus_label")) %>%
     rename(target_id = stimulus_id) %>%
-    left_join(stimulus_table %>% select(stimulus_id, stimulus_label),
-              by = c("distractor" = "stimulus_label")) %>%
+    left_join(stimuli_table %>% select(stimulus_id, english_stimulus_label),
+              by = c("distractor" = "english_stimulus_label")) %>%
     rename(distractor_id = stimulus_id) %>%
     select(-left, -right, -trial_type, -target, -distractor, 
            -target_screen_side) %>%
