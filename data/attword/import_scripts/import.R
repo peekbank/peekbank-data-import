@@ -329,7 +329,7 @@ process_smi_eyetracking_file <-
     
     # extract final columns
     xy.data <- data %>%
-      dplyr::select(lab_subject_id, x, y, t, trial_id)
+      dplyr::select(lab_subject_id, x, y, t, trial_id, Stimulus)
     
     
     return(xy.data)
@@ -426,6 +426,7 @@ process_smi_eyetracking_file <-
   # xy_timepoints table data 
   # xy_timepoints_table_data : lab_subject_id, subject_id, x, y, t, trial_id, xy_data_id
   # rename xy_data_id to xy_timepoint_id? 
+  
   xy_timepoints_table_data <- xy_data %>%
     mutate(xy_timepoint_id = seq(0, length(lab_subject_id) - 1)) %>%
     mutate(administration_id = as.numeric(factor(lab_subject_id, levels = unique(lab_subject_id))) - 1) %>%
@@ -435,9 +436,9 @@ process_smi_eyetracking_file <-
   # aoi_region_sets table data 
   #
   aoi_region_sets_table_data <- aoi_data %>% 
-                                mutate(aoi_region_set_id = 0:(n()-1)) %>% 
-                                select(-stimulus_name)
-  
+    filter(stimulus_name == "att_wd3/test_book_dog") %>%
+    mutate(aoi_region_set_id = 0:(n()-1)) %>% 
+    select(-stimulus_name) 
   
   # trials table data 
   temp_trials_table <- design %>%
@@ -474,14 +475,24 @@ process_smi_eyetracking_file <-
     left_join(stimuli_table %>% select(stimulus_id, english_stimulus_label),
               by = c("distractor" = "english_stimulus_label")) %>%
     rename(distractor_id = stimulus_id) %>%
-    select(-left, -right, -trial_type, -target, -distractor, 
+     rename(condition = trial_type) %>%
+     mutate(condition = case_when(condition == "me" ~ "mutual_exclusivity",
+                                  condition == "new" ~ "new_novel",
+                                  condition == "easy" ~ "easy_familiar",
+                                  condition == "hard" ~ "hard_familiar",
+                                  TRUE ~ condition)) %>%
+    select(-left, -right, -target, -distractor, 
            -target_screen_side) %>%
     mutate(aoi_region_set_id = aoi_region_sets_table_data %>% 
              pull(aoi_region_set_id) %>% 
              first())
 
-
+   xy_joined <- xy_timepoints_table_data %>% 
+     left_join(trials_table) %>%
+     left_join(aoi_region_sets_table_data)
+     
   
+   xy_table <- peekds::add_aois(xy_joined)
   #### write files ####
 
   write_csv(administrations_table_data, path = paste0(output_path, "/", "administrations.csv"))
@@ -493,12 +504,16 @@ process_smi_eyetracking_file <-
   write_csv(trials_table, path = paste0(output_path, "/", "trials.csv"))
  
 #}
-
-xy_data %>% 
-  filter(lab_subject_id %in% c("2013_07_26_208", "2013_06_26_21", "2013_08_04_261", "2013_08_04_271")) %>% 
+aoi_selection = 5
+  
+xy_table %>% 
+  filter(administration_id %in% c(1:5)) %>% 
   ggplot() + 
   geom_rect(data = aoi_data[5,], aes(xmin = l_x_min, xmax = l_x_max, ymin = l_y_min, ymax = l_y_max))+
-  geom_point(aes(x, y), alpha = .05)
+  geom_rect(data = aoi_data[5,], aes(xmin = r_x_min, xmax = r_x_max, ymin = r_y_min, ymax = r_y_max))+
+  geom_point(aes(x, y, color = aoi), alpha = .5)
+
+
 #### Run SMI ####
 
 process_smi(dir = dir_path, exp_info_dir = exp_info_path)
