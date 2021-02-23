@@ -341,8 +341,16 @@ aoi_timepoints <- final_aoi_table %>%
   select(-aoi) %>% 
   rename(aoi = final_aoi) %>% 
   select(trial_id, aoi, t, administration_id)
+
 aoi_timepoints$point_of_disambiguation = point_of_disambiguation
-aoi_timepoints_table <- aoi_timepoints %>% peekds::resample_times(table_type = "aoi_timepoints")
+
+#TODO: change to updated functions
+aoi_timepoints_table <- aoi_timepoints %>% 
+  #no rezeroing needed
+  mutate(t_zeroed = t) %>%
+  peekds::normalize_times() %>% 
+  peekds::resample_times(table_type = "aoi_timepoints")
+
 aoi_timepoints_table$aoi_timepoint_id <- seq(0, nrow(aoi_timepoints_table)-1)
 trials_table <- trials_table %>% select(trial_id, trial_order, trial_type_id)
 

@@ -155,7 +155,7 @@ temp_trials <- raw_trials %>%
   group_modify(~reorder_trials_by_administration(.x)) %>% ungroup()
 
 trials_table <- temp_trials %>%
-  distinct(Audio, condition, target_id,distractor_id,target_side, trial_order) %>%
+  distinct(Audio, condition, target_id,distractor_id, target_side, trial_order) %>%
   mutate(trial_id = seq(0, nrow(.)-1))
 
 trials_table$full_phrase = unlist(lapply(trials_table$Audio,find_full_phrase))
@@ -176,7 +176,7 @@ get_trial_disambiguation <- function(grouped_timepoints){
 }
 #x_y timepoints from gazes
 all_timepoints_table <- gaze %>% rename(lab_subject_id = Subj) %>% 
-  mutate(t = Time + point_of_disambiguation,
+  mutate(t = Time,
          x = XMean * monitor_size_x,
          y = YMean * monitor_size_y,
          point_of_disambiguation = point_of_disambiguation) %>% 
@@ -188,6 +188,8 @@ all_timepoints_table <- gaze %>% rename(lab_subject_id = Subj) %>%
 xy_timepoints_table <- all_timepoints_table %>% 
   mutate(xy_timepoint_id = seq(0, nrow(.)-1)) %>%
   select(xy_timepoint_id, x, y, t, point_of_disambiguation, administration_id, trial_id) %>%
+  peekds::rezero_times() %>%
+  peekds::normalize_times() %>%
   peekds::resample_times("xy_timepoints")
 
 aoi_timepoints = all_timepoints_table %>% 
@@ -198,6 +200,8 @@ aoi_timepoints = all_timepoints_table %>%
                          GazeByImageAOI == "tracked" ~ "other",
                          is.na(GazeByImageAOI) ~ "missing",
                          TRUE ~ "none_of")) %>% select(-GazeByImageAOI) %>%
+  peekds::rezero_times() %>%
+  peekds::normalize_times() %>%
   peekds::resample_times("aoi_timepoints")
 
 ### Clean up tables and prepare for import! ------------------------------------
