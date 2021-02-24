@@ -213,7 +213,7 @@ d_subject_ids <- d_tidy %>%
 
 # create zero-indexed ids for trial types
 d_trial_type_ids <- d_tidy %>%
-  distinct(order, tr_num,full_phrase, target_id, distractor_id, target_side) %>%
+  distinct(full_phrase, target_id, distractor_id, target_side) %>%
   mutate(trial_type_id = seq(0, nrow(.) - 1)) 
 
 # joins
@@ -225,12 +225,11 @@ d_tidy_semifinal <- d_tidy %>%
 d_trial_ids <- d_tidy_semifinal %>%
   distinct(tr_num, trial_type_id) %>%
   mutate(trial_order = as.numeric(tr_num) - 1,
-         trial_id = seq(0, nrow(.) - 1)) %>%
-  select(-tr_num)
+         trial_id = seq(0, nrow(.) - 1))
 
 # join in trial_id
 d_tidy_semifinal <- d_tidy_semifinal %>%
-  left_join(d_trial_ids, by = c("trial_type_id"))
+  left_join(d_trial_ids, by = c("trial_type_id","tr_num"))
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
@@ -238,7 +237,7 @@ d_tidy_final <- d_tidy_semifinal %>%
          distractor_label = distractor_image,
          dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
          target_label = target_word,
-         lab_trial_id = paste(order, tr_num, sep = "-"),
+         lab_trial_id = NA,
          aoi_region_set_id = NA, # was aoi_region_id
          monitor_size_x = NA, # 140cm .. diagonal?
          monitor_size_y = NA,

@@ -265,7 +265,7 @@ d_subject_ids <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  distinct(order, tr_num, target_id, distractor_id, target_side) %>%
+  distinct(tr_num, full_phrase,target_id, distractor_id, target_side) %>%
   mutate(trial_id = seq(0, length(.$tr_num) - 1),
          trial_order = as.numeric(tr_num)-1) 
 # joins back
