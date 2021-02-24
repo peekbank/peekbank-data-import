@@ -296,8 +296,8 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
-  mutate(point_of_disambiguation=1617) %>% #TO DO: temporary fix to handle the rezeroing in the current resample_times() function (adding in -earliest time point from normalized time, -(-1617))
   select(t, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
+  rename(t_norm=t) %>%
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
@@ -365,8 +365,7 @@ trials_table <- d_tidy_final %>%
   left_join(d_trial_ids, by = c("order", "tr_num", "target_id", "distractor_id", "target_side")) %>% 
   mutate(trial_order = as.numeric(tr_num) - 1) %>%
   distinct(trial_order, trial_type_id) %>%
-  mutate(full_phrase_language = "eng",
-         trial_id = seq(0, n() - 1)) %>%
+  mutate(trial_id = seq(0, n() - 1)) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### AOI REGIONS TABLE ####

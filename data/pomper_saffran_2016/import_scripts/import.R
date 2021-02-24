@@ -27,7 +27,7 @@ aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
 
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
@@ -35,9 +35,9 @@ remove_repeat_headers <- function(d, idx_var) {
 
 
 # only download data if it's not on your machine
-if(length(list.files(read_path)) == 0 && length(list.files(paste0(read_path, "/orders"))) == 0) {
-  get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
-}
+# if(length(list.files(read_path)) == 0 && length(list.files(paste0(read_path, "/orders"))) == 0) {
+#   get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
+# }
 
 
 # read raw icoder files
@@ -213,9 +213,8 @@ d_subject_ids <- d_tidy %>%
 
 # create zero-indexed ids for trial types
 d_trial_type_ids <- d_tidy %>%
-  distinct(order, tr_num, target_id, distractor_id, target_side) %>%
-  mutate(trial_type_id = seq(0, length(.$tr_num) - 1),
-         trial_order = as.numeric(tr_num)-1) 
+  distinct(order, tr_num,full_phrase, target_id, distractor_id, target_side) %>%
+  mutate(trial_type_id = seq(0, nrow(.) - 1)) 
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
@@ -224,14 +223,14 @@ d_tidy_semifinal <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy_semifinal %>%
-  distinct(sub_num, tr_num, trial_type_id) %>%
+  distinct(tr_num, trial_type_id) %>%
   mutate(trial_order = as.numeric(tr_num) - 1,
          trial_id = seq(0, nrow(.) - 1)) %>%
-  select(-tr_num, -sub_num)
+  select(-tr_num)
 
 # join in trial_id
 d_tidy_semifinal <- d_tidy_semifinal %>%
-  left_join(d_trial_ids, by = c("trial_type_id", "trial_order"))
+  left_join(d_trial_ids, by = c("trial_type_id"))
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
@@ -252,10 +251,10 @@ d_tidy_final <- d_tidy_semifinal %>%
          )
 
 ##### AOI TABLE ####
-d_tidy_final %>%
+aoi_timepoints <- d_tidy_final %>%
   # original data had columns from -990ms to 6867msm, centered at disambiguation per trial
-  mutate(point_of_disambiguation=990) %>% #TO DO: temporary fix to handle the rezeroing in the current resample_times() function
   select(t, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
+  rename(t_norm=t) %>%
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
@@ -360,4 +359,4 @@ Chicago",
 validate_for_db_import(dir_csv = write_path)
 
 ## OSF INTEGRATION ###
-put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
+#put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
