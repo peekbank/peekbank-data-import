@@ -143,15 +143,17 @@ timepoints <- d %>%
 
 xy_timepoints <- timepoints %>%
   select(x, y, t, point_of_disambiguation, administration_id, trial_id) %>%
+  rename(t_norm = t) %>% 
   peekds::resample_times(table_type = "xy_timepoints") %>%
   mutate(t_norm = as.integer(t_norm))
   
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- timepoints %>%
   select(aoi, t, point_of_disambiguation, administration_id, trial_id) %>%
+  rename(t_norm = t) %>% 
+  mutate(t_norm = as.integer(t_norm)) %>% 
   mutate(aoi = str_to_lower(ifelse(is.na(aoi), "missing", as.character(aoi)))) %>%
-  peekds::resample_times(table_type = "aoi_timepoints") %>%
-  mutate(t_norm = as.integer(t_norm))
+  peekds::resample_times(table_type = "aoi_timepoints")
 
 ################## WRITING AND VALIDATION ##################
 write_csv(dataset, file = here(output_path, "datasets.csv"))
