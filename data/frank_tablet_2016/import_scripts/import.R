@@ -76,11 +76,11 @@ mega_trials_table <- target_distractors %>%
          target = word,
          distractor = case_when(target == left ~ right,
                                 target == right ~ left)) %>%
-  left_join(stimuli_data %>% select(stimulus_id, stimulus_label), # merge stimulus ids
-            by = c("target" = "stimulus_label")) %>%
+  left_join(stimuli_data %>% select(stimulus_id, original_stimulus_label), # merge stimulus ids
+            by = c("target" = "original_stimulus_label")) %>%
   rename(target_id = stimulus_id) %>%
-  left_join(stimuli_data %>% select(stimulus_id, stimulus_label),
-            by = c("distractor" = "stimulus_label")) %>%
+  left_join(stimuli_data %>% select(stimulus_id, original_stimulus_label),
+            by = c("distractor" = "original_stimulus_label")) %>%
   rename(distractor_id = stimulus_id,
          condition = trial_type) %>%
   select(-left, -right)  %>%
@@ -99,7 +99,6 @@ trial_types_data <- mega_trials_table %>%
 
 write_peekbank_table("trial_types", trial_types_data, output_path)
 
-
 #### (3a) trials ###
 
 trials_table <- mega_trials_table %>%
@@ -108,7 +107,6 @@ trials_table <- mega_trials_table %>%
   mutate(trial_id = row_number() - 1)
 
 write_peekbank_table("trials", trials_table, output_path)
-
 
 ####(4) administrations ####
 all_subjects_data <- read_csv(participant_file_path)%>%
@@ -160,7 +158,24 @@ subjects_data <- all_subjects_data %>%
 
 write_peekbank_table("subjects", subjects_data, output_path)
 
-#### (6) xy_timepoints ####
+#### (6) aoi_region_sets ####
+#hard-coded aois
+##NB: AOI coordinates are hard-coded for this experiment.
+#Link to relevant file is here: hhttps://github.com/langcog/tablet/blob/master/eye_tracking/MATLAB/CONSTANTS_TAB_COMP.m
+#it's the same for every stimulus
+aoi_info <- tibble(aoi_region_set_id = 0,
+                   l_x_min = 0,
+                   l_x_max = 533,
+                   l_y_min = 300,
+                   l_y_max = 700,
+                   r_x_min = 1067,
+                   r_x_max = 1800,
+                   r_y_min = 300,
+                   r_y_max = 700)
+
+write_peekbank_table("aoi_region_sets", aoi_info, output_path)
+
+#### (7) xy_timepoints ####
 raw_timepoint_data <- full_dataset_path %>%
   list.files(full.names = T) %>%
   map_df(process_smi_eyetracking_file, subid_name, monitor_size, sample_rate)
@@ -185,35 +200,22 @@ xy_data <- timepoint_data %>% # merge in administration_id and trial_id
 xy_joined <- xy_data %>%
   left_join(trials_table, by = "trial_id") %>%
   left_join(trial_types_data, by = "trial_type_id") %>%
-  left_join(aoi_info, by = "aoi_region_set_id")
+  left_join(aoi_info, by = "aoi_region_set_id") %>%
+  left_join(administration_data)
 
 xy_joined_resampled <- xy_joined %>%
-  peekds::resample_times(., table_type = "xy_timepoints") %>%
+  rename(t_zeroed = t) %>%
+  peekds::normalize_times() %>%
+  peekds::resample_times(table_type = "xy_timepoints") %>%
   select(xy_timepoint_id, x, y, t_norm, administration_id, trial_id)
 
 write_peekbank_table("xy_timepoints", xy_joined_resampled, output_path)
 
-#### (7) aoi_region_sets ####
-#hard-coded aois
-##NB: AOI coordinates are hard-coded for this experiment.
-#Link to relevant file is here: hhttps://github.com/langcog/tablet/blob/master/eye_tracking/MATLAB/CONSTANTS_TAB_COMP.m
-#it's the same for every stimulus
-aoi_info <- tibble(aoi_region_set_id = 0,
-                   l_x_min = 0,
-                   l_x_max = 533,
-                   l_y_min = 300,
-                   l_y_max = 700,
-                   r_x_min = 1067,
-                   r_x_max = 1800,
-                   r_y_min = 300,
-                   r_y_max = 700)
-
-write_peekbank_table("aoi_region_sets", aoi_info, output_path)
-
 #### (8) aoi_timepoints ####
 aoi_timepoints_data <- peekds::add_aois(xy_joined) %>%
-  select(trial_id, administration_id, aoi, t, point_of_disambiguation) %>%
-  resample_times(., table_type = "aoi_timepoints") %>%
+  rename(t_zeroed = t) %>%
+  peekds::normalize_times() %>%
+  resample_times(table_type = "aoi_timepoints") %>%
   select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
 write_peekbank_table("aoi_timepoints", aoi_timepoints_data, output_path)
