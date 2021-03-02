@@ -161,6 +161,8 @@ xy_merged.data <- timepoint.data %>%
 
 xy.data <- xy_merged.data %>%
   dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id, point_of_disambiguation) %>%
+  peekds::rezero_times(.) %>%
+  peekds::normalize_times(.) %>%
   peekds::resample_times(., table_type = "xy_timepoints") %>%
   select(xy_timepoint_id, x, y, t_norm, administration_id, trial_id)
 
@@ -168,6 +170,8 @@ xy.data <- xy_merged.data %>%
 aoi_timepoints.data <- xy_merged.data %>%
   peekds::add_aois(.) %>%
   select(trial_id, administration_id, aoi, t, point_of_disambiguation) %>%
+  peekds::rezero_times(.) %>%
+  peekds::normalize_times(.) %>%
   peekds::resample_times(., table_type = "aoi_timepoints") %>%
   select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id) 
 
