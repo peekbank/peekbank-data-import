@@ -179,25 +179,29 @@ xy_merged.data <- timepoint.data %>%
 # create actual xy data
 xy.data <- xy_merged.data %>%
   dplyr::select(xy_timepoint_id, x, y, t, administration_id, trial_id, point_of_disambiguation) %>%
-  peekds::resample_times(table_type = "xy_timepoints") # critical temporal resampling
+  peekds::rezero_times(.) %>%
+  peekds::normalize_times(.) %>%
+  peekds::resample_times(., table_type = "xy_timepoints") 
 
 # assign aoa based on aoa_coordinates
 # find correct aoi based on trials
 aoi_timepoints <- xy_merged.data %>%
   peekds::add_aois() %>%
   select(administration_id, trial_id, t, aoi, point_of_disambiguation) %>%
-  peekds::resample_times(table_type = "aoi_timepoints")
+  peekds::rezero_times(.) %>%
+  peekds::normalize_times(.) %>%
+  peekds::resample_times(., table_type = "aoi_timepoints") 
 
 #write all files
-write_csv(xy.data, file = paste0(output_path,"/","xy_timepoints.csv"))
-write_csv(subjects.data, file = paste0(output_path,"/","subjects.csv"))
-write_csv(stimuli.data, file = paste0(output_path, "/", "stimuli.csv"))
-write_csv(trial_types.data, file = paste0(output_path,"/","trial_types.csv"))
-write_csv(trials.data, file = paste0(output_path,"/","trials.csv"))
-write_csv(dataset.data, file = paste0(output_path,"/","datasets.csv"))
-write_csv(aoi.data, file = paste0(output_path,"/","aoi_region_sets.csv"))
-write_csv(administration.data, file = paste0(output_path,"/","administrations.csv"))
-write_csv(aoi_timepoints, file = paste0(output_path, "/", "aoi_timepoints.csv"))
+write_csv(xy.data, path = paste0(output_path,"/","xy_timepoints.csv"))
+write_csv(subjects.data, path = paste0(output_path,"/","subjects.csv"))
+write_csv(stimuli.data, path = paste0(output_path, "/", "stimuli.csv"))
+write_csv(trial_types.data, path = paste0(output_path,"/","trial_types.csv"))
+write_csv(trials.data, path = paste0(output_path,"/","trials.csv"))
+write_csv(dataset.data, path = paste0(output_path,"/","datasets.csv"))
+write_csv(aoi.data, path = paste0(output_path,"/","aoi_region_sets.csv"))
+write_csv(administration.data, path = paste0(output_path,"/","administrations.csv"))
+write_csv(aoi_timepoints, path = paste0(output_path, "/", "aoi_timepoints.csv"))
 
 # run validator
 peekds::validate_for_db_import(dir_csv = output_path)

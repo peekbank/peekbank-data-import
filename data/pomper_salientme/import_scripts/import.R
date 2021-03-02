@@ -8,8 +8,6 @@ library(readxl)
 library(peekds)
 library(osfr)
 
-# TODO s are questions from NB
-
 ## constants
 sampling_rate_hz <- 30 
 sampling_rate_ms <- 33 # 33 ms
@@ -61,7 +59,8 @@ d_processed <- d_raw %>%
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
 metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
-pre_dis_names <- old_names[str_detect(old_names, "x\\d")] # TODO: what does 'dis' mean here?
+#define pre- and post-disambiguation names
+pre_dis_names <- old_names[str_detect(old_names, "x\\d")] 
 post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
 
 
@@ -75,16 +74,18 @@ colnames(d_processed) <- c(metadata_names,
                            pre_dis_names_clean, 
                            post_dis_names_clean)
 
-### following Adam, Marchman Import.R, truncate columns at F3833, since trials are almost never coded later than this timepoint
+### truncate columns at F4367, since trials are never coded later than this timepoint
 ## TO DO: check in about this decision
-post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
+post_dis_names_clean_cols_to_remove <- post_dis_names_clean[133:length(post_dis_names_clean)]
 #remove
 d_processed <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
 # Convert to long format --------------------------------------------------
-
+# get idx of first time series
+first_t_idx <- length(metadata_names) + 1            
+last_t_idx <- colnames(d_processed) %>% length()
 d_tidy <- d_processed %>%
-  tidyr::gather(t, aoi, `-1617`:`3833`) # something was weird with pivot_longer
+  pivot_longer(first_t_idx:last_t_idx,names_to = "t", values_to = "aoi") 
 
 # recode 0, 1, ., - as distractor, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -99,133 +100,123 @@ d_tidy <- d_tidy %>%
     is.na(aoi_old) ~ "missing"
   )) %>% 
   rename(left_image = r_image, right_image=l_image) %>% 
-  mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>% #need to flip the right and left sides from the icoder
+  mutate(target_side = as.character(factor(target_side, levels = c('l','r'), labels = c('right','left')))) %>% #need to flip the right and left sides from the icoder
   mutate(target_image = case_when(target_side == 'right' ~ right_image,
                                   TRUE ~ left_image)) %>%
   mutate(distractor_image = case_when(target_side == 'right' ~ left_image,
                                       TRUE ~ right_image))
 
-# clean up d_tidy to remove extraneous information
-d_tidy <- d_tidy %>% 
-  select(-c_image, -prescreen_notes, -c_image, -rt, -target_side, -left_image, -right_image)
-
-
-# Go through counterbalancing files, tidy, and concatenate into one structure ----------------------------------------
+# read in order files
 order_read_path <- here("data", dataset_name, "raw_data", "orders")
-order_files = dir(order_read_path)
-count_files = 0
-for (o in order_files) {
-  count_files = count_files +1
-  this_order = read_excel(fs::path(order_read_path, o))  %>% 
-    add_column("order" = (str_split_fixed(o, '_', 2)[1]), 
-               .before="Tr. Num") # to make icoder data for merging below
-  if (count_files == 1) {
-    all_orders <- this_order
-  }
-  else {
-    all_orders <- all_orders %>%
-      full_join(this_order)
-  }
+
+order_files <- list.files(path=order_read_path,pattern="xlsx",full.names=FALSE)
+
+read_order <- function(file_name,path=order_read_path) {
+  output <- read_excel(here::here(order_read_path,file_name)) %>%
+    mutate(order=str_remove(file_name,"_eprime.xlsx"))
 }
 
-
-
-## clean up resulting dataframe and add easier names
-all_orders_cleaned <- all_orders %>%
-  select( -`...5`, -Duration) %>%
-  rename('tr_num' = 'Tr. Num', 'target_side' = 'Target Side',
-         'left_image' = 'LeftFile','right_image' = 'RightFile', 
-         'target_word' = 'Target Object') %>%
-  separate(SoundStimulus, sep = "_",  remove = FALSE,
-           into = c("target_word", "carrier_word")) %>% 
+all_orders <- map_df(order_files,read_order) %>%
+  clean_names() %>%
+  select(-x5,-duration,-target_object) %>%
+  filter(condition!="Filler") %>%
+  rename(
+    left_image=left_file,
+    right_image=right_file
+  ) %>%
+  mutate(target_side=case_when(
+    target_side=="L" ~ "left",
+    target_side=="R" ~"right"
+  )) %>%
+  mutate(target_image = case_when(target_side == 'right' ~ right_image,
+                                  TRUE ~ left_image)) %>%
+  separate(sound_stimulus, sep = "_",  remove = FALSE,
+           into = c("target_label", "carrier_phrase_code"), extra="merge") %>% 
+  mutate(tr_num = as.character(tr_num), 
+         target_label = tolower(target_label)) %>% 
   mutate(stimulus_novelty = case_when(
-    str_detect(Condition, "Nov") ~ "novel",
-    TRUE ~ 'familiar')) %>% 
-  select(-Condition) %>% 
-  mutate(tr_num = as.character(tr_num), target_word = tolower(target_word)) %>% 
-  mutate(target_image = case_when(
-    target_side == "L"  ~ left_image,
-    target_side == "R" ~ right_image)) %>% 
-  mutate(distractor_image = case_when(
-    target_side == "L"  ~ right_image,
-    target_side == "R" ~ left_image))
+    str_detect(condition, "Nov") ~ "novel",
+    str_detect(condition, "Fam") ~ "familiar",
+    TRUE ~ "")) %>% 
+  mutate(carrier_phrase = case_when(
+    str_detect(carrier_phrase_code,"Find") ~ "Find the",
+    str_detect(carrier_phrase_code,"Where") ~ "Where is the",
+    str_detect(carrier_phrase_code,"Look") ~ "Look at the"
+    )) %>%
+  mutate(full_phrase = paste0(carrier_phrase,' ', target_label)) %>%
+  mutate(lab_stimulus_id = paste0(target_image,"_",target_label)) %>%
+  #fix som inconsistencies in condition naming
+  mutate(condition = case_when(
+    condition == "Fam-LoComp" ~ "Fam-LowComp",
+    condition == "Fam-LowCompTest" ~ "Fam-LowComp-Test",
+    condition == "Fam-HiCompTest" ~ "Fam-HiComp-Test",
+    TRUE ~ condition
+  )) %>%
+  select(-target_image,-condition) #removing target_image and condition to avoid inconsistencies
 
-# Get carrier phrases, not sure how to get the post attention getters. are they neccessary?
-nouns = c('tever', 'pifo','jang','sprock',
-          'bed','bird','box','brush','bus','cake',
-          'cat', 'chair','door','fish','juice','sock') # TODO: check if any missing
+#join orders into d_tidy
+d_tidy <- d_tidy %>%
+  left_join(all_orders,by=c("order","tr_num","target_side","left_image","right_image"))
 
-all_carrier_phrases <- all_orders_cleaned %>%
-  filter(target_word %in% nouns) %>%
-  mutate(target_word = tolower(target_word), target_image = tolower(target_image)) %>% 
-  mutate(carrier_phrase = factor(carrier_word, levels=c('Find','Where','Look'), 
-                              labels = c("Find the", "Where is the", "Look at the"))) %>%
-  mutate(full_phrase = paste0(carrier_phrase,' ', target_word)) %>%
-  select(target_word, carrier_word, carrier_phrase, full_phrase, SoundStimulus) %>%
-  distinct(target_word, carrier_word, carrier_phrase, full_phrase, SoundStimulus)
+#add distractor label
+## somewhat complex here because the assignment of image to label is randomized for novel items
+## and because some distractor items and target items are distinct due to an inversion of the item perspective (left/right)
 
-#Get stimulus table for saving out with right datafields
-# get every combination of word and sound
+#create label mapping file for novel items to facilitate adding the correct distractor label
+label_mapping_novel <- d_tidy %>%
+  filter(stimulus_novelty=="novel") %>%
+  distinct(order,target_image,target_label,stimulus_novelty) %>%
+  rename(
+    label=target_label,
+    image=target_image
+  ) %>%
+  select(-stimulus_novelty)
 
-# create a table that include distractor image that didn't use in the target-image as well
-all_stimuli <- all_orders_cleaned %>% 
-  select(target_word, target_image, distractor_image, stimulus_novelty) %>% 
-  tidyr::gather(image,lab_stimuli, target_image:distractor_image) %>% 
-  distinct(lab_stimuli, .keep_all = TRUE) %>% 
-  separate(image, into = c("trial_type", "image"), sep = "_", remove = FALSE) %>% 
-  select(-image)
+#determine distractor label in d_tidy
+d_tidy <- d_tidy %>%
+  separate(distractor_image,into=c("distractor_label","orientation"),remove=FALSE) %>%
+  select(-orientation) %>%
+  left_join(label_mapping_novel, by=c("order",'distractor_image' = 'image')) %>%
+  rename(distractor_label_novel=label) %>%
+  #when novel stimulus, use assigned novel label
+  mutate(
+    distractor_label=case_when(
+      str_detect(distractor_label,"novel") ~ distractor_label_novel,
+      TRUE ~ distractor_label
+    )
+  ) %>%
+  select(-distractor_label_novel)
 
-#get all variables for stimulus table
-all_stimuli <- all_stimuli %>% 
-  select(-trial_type) %>% 
+#create stimulus table
+stimulus_table <- d_tidy %>%
+  distinct(target_image,target_label,lab_stimulus_id,stimulus_novelty) %>%
   mutate(dataset_id = 0,
-    stimulus_image_path = paste0('raw_data/stimuli/images/', lab_stimuli, '.jpg'),
-    lab_stimulus_id = lab_stimuli, 
-    stimulus_id = seq(0, length(.$lab_stimuli)-1))
-
-# stimulus table to use for ingestion
-stimulus_table <- all_stimuli %>% 
-  select(lab_stimulus_id, stimulus_id)
-
-## join in carrier phrases with counterbalancing orders
-all_orders_cleaned <- all_orders_cleaned  %>%
-  left_join(all_carrier_phrases, by = c('SoundStimulus', 'target_word', 'carrier_word')) %>% # join just by sound stimulus
-  mutate(lab_stimulus_id = target_image, stimulus_label = target_word) %>%
-  filter(!(stimulus_label %in% c("intro","end"))) %>% #remove intro/outro trials (not LWL)
-  mutate(stimulus_novelty = case_when(
-    str_detect(lab_stimulus_id, "novel") ~ "novel",
-    TRUE ~ 'familiar')) %>% 
-  filter(!(target_side == "N")) %>% 
-  mutate(target_side = case_when(
-    str_detect(target_side, "L") ~ "left",
-    TRUE ~ 'right'))  
+         original_stimulus_label = target_label,
+         english_stimulus_label = target_label,
+         stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
+  ) %>%
+  mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distractor image; 
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table, by=c("target_image" = "lab_stimulus_id")) %>% 
+  left_join(stimulus_table) %>% 
   mutate(target_id = stimulus_id) %>% 
   select(-stimulus_id) %>% 
-  left_join(stimulus_table, by=c('distractor_image' = 'lab_stimulus_id')) %>%
+  #only join in image, label, and id for matching to distractor
+  left_join(select(stimulus_table,target_image,target_label,stimulus_id), by=c('distractor_image' = 'target_image','distractor_label' = 'target_label')) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
 ## add full phrase and order info to d_tidy, something missing in the condition
 d_tidy <- d_tidy %>%
-  separate(condition, sep = "-", into = c("target_familiarity", "target_visual_salience"), remove = FALSE) %>%
-  mutate(stimulus_novelty = case_when(
-    str_detect(condition, "Nov") ~ "novel",
-    TRUE ~ 'familiar'))  %>% 
+  separate(condition, sep = "-", into = c("target_familiarity", "visual_salience_competition","trial_kind"), remove = FALSE) %>%
   mutate(target_visual_salience = case_when(
-    str_detect(target_visual_salience, "Hi") ~ "High",
-    TRUE ~ 'Low'))
-
-d_tidy <- d_tidy %>% 
-#  select(-target_image, -distractor_image) %>% 
-  left_join(all_orders_cleaned, by=c('order', 'target_image',
-                                     'distractor_image',
-                                     'stimulus_novelty','tr_num'))
-#  order, tr_num, condition, target_image, SoundStimulus, full_phrase)
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    str_detect(visual_salience_competition, "Hi") ~ "High",
+    str_detect(visual_salience_competition, "low") ~ 'Low')) %>%
+  mutate(trial_kind = case_when(
+    is.na(trial_kind) ~ "selection",
+    !is.na(trial_kind) & trial_kind == 'Test'~"test"
+  ))
 
 # get zero-indexed subject ids 
 d_subject_ids <- d_tidy %>%
@@ -265,7 +256,7 @@ d_subject_ids <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  distinct(order, tr_num, target_id, distractor_id, target_side) %>%
+  distinct(tr_num, full_phrase,target_id, distractor_id, target_side) %>%
   mutate(trial_id = seq(0, length(.$tr_num) - 1),
          trial_order = as.numeric(tr_num)-1) 
 # joins back
@@ -296,8 +287,8 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 d_tidy_final %>%
-  mutate(point_of_disambiguation=1617) %>% #TO DO: temporary fix to handle the rezeroing in the current resample_times() function (adding in -earliest time point from normalized time, -(-1617))
   select(t, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
+  rename(t_norm=t) %>%
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
@@ -365,8 +356,7 @@ trials_table <- d_tidy_final %>%
   left_join(d_trial_ids, by = c("order", "tr_num", "target_id", "distractor_id", "target_side")) %>% 
   mutate(trial_order = as.numeric(tr_num) - 1) %>%
   distinct(trial_order, trial_type_id) %>%
-  mutate(full_phrase_language = "eng",
-         trial_id = seq(0, n() - 1)) %>%
+  mutate(trial_id = seq(0, n() - 1)) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### AOI REGIONS TABLE ####
