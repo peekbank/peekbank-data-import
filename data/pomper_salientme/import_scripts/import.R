@@ -144,8 +144,7 @@ all_orders <- map_df(order_files,read_order) %>%
     str_detect(carrier_phrase_code,"Look") ~ "Look at the"
     )) %>%
   mutate(full_phrase = paste0(carrier_phrase,' ', target_label)) %>%
-  mutate(lab_stimulus_id = paste0(target_image,"_",target_label)) %>%
-  #fix som inconsistencies in condition naming
+  #fix some inconsistencies in condition naming
   mutate(condition = case_when(
     condition == "Fam-LoComp" ~ "Fam-LowComp",
     condition == "Fam-LowCompTest" ~ "Fam-LowComp-Test",
@@ -188,42 +187,77 @@ d_tidy <- d_tidy %>%
   select(-distractor_label_novel)
 
 #create stimulus table
-stimulus_table <- d_tidy %>%
-  distinct(target_image,target_label,lab_stimulus_id,stimulus_novelty) %>%
-  mutate(dataset_id = 0,
-         original_stimulus_label = target_label,
-         english_stimulus_label = target_label,
-         stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
+#some distractors are never target, so need to gather target and distractor stimuli separately
+stimulus_table_target <- d_tidy %>%
+  distinct(target_image,target_label,stimulus_novelty)  %>%
+  mutate(
+    original_stimulus_label = target_label,
+    english_stimulus_label = target_label,
+    stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
+    lab_stimulus_id = paste0(target_image,"_",target_label)
   ) %>%
+  rename(image=target_image,
+         label=target_label)
+stimulus_table_distractor <- d_tidy %>%
+  distinct(distractor_image,distractor_label) %>%
+  mutate(
+    stimulus_novelty = case_when(
+      str_detect(distractor_image,"novel") ~ "novel",
+      TRUE ~ "familiar"),
+    lab_stimulus_id = paste0(distractor_image,"_",distractor_label)
+  ) %>%
+  mutate(
+  original_stimulus_label = distractor_label,
+  english_stimulus_label = distractor_label,
+  stimulus_image_path = distractor_image # TO DO - update once images are shared/ image file path known
+) %>%
+  rename(image=distractor_image,
+         label=distractor_label)
+  
+#combine stimulus tables into one complete stimulus table
+stimulus_table <- stimulus_table_target  %>%
+  bind_rows(stimulus_table_distractor) %>%
+  distinct(original_stimulus_label,english_stimulus_label,stimulus_image_path,lab_stimulus_id,stimulus_novelty,image,label) %>%
+  mutate(dataset_id = 0) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distractor image; 
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table) %>% 
+  left_join(stimulus_table,by=c("target_image"="image","target_label"="label")) %>% 
   mutate(target_id = stimulus_id) %>% 
   select(-stimulus_id) %>% 
   #only join in image, label, and id for matching to distractor
-  left_join(select(stimulus_table,target_image,target_label,stimulus_id), by=c('distractor_image' = 'target_image','distractor_label' = 'target_label')) %>%
+  left_join(select(stimulus_table,image,label,stimulus_id), by=c('distractor_image' = 'image','distractor_label' = 'label')) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
-## add full phrase and order info to d_tidy, something missing in the condition
+## add full phrase and order info to d_tidy
 d_tidy <- d_tidy %>%
   separate(condition, sep = "-", into = c("target_familiarity", "visual_salience_competition","trial_kind"), remove = FALSE) %>%
-  mutate(target_visual_salience = case_when(
-    str_detect(visual_salience_competition, "Hi") ~ "High",
-    str_detect(visual_salience_competition, "low") ~ 'Low')) %>%
+  mutate(visual_salience_competition = case_when(
+    str_detect(visual_salience_competition, "Hi") ~ "high_salience",
+    str_detect(visual_salience_competition, "Low") ~ 'low_salience')) %>%
   mutate(trial_kind = case_when(
     is.na(trial_kind) ~ "selection",
     !is.na(trial_kind) & trial_kind == 'Test'~"test"
-  ))
+  )) %>%
+  unite(col=condition_new,visual_salience_competition,trial_kind,sep="_",remove=FALSE) %>%
+  mutate(condition=condition_new)
+
+# create dataset variables
+d_tidy <- d_tidy %>%
+  mutate(lab_dataset_id = "pomper_salientme",
+         tracker = "video_camera",
+         monitor = NA,
+         monitor_sr = NA,
+         sample_rate = sampling_rate_hz)
 
 # get zero-indexed subject ids 
 d_subject_ids <- d_tidy %>%
   distinct(sub_num) %>%
   mutate(subject_id = seq(0, length(.$sub_num) - 1))
 
-#join
+#join back into d_tidy
 d_tidy <- d_tidy %>%
   left_join(d_subject_ids, by = "sub_num")
 
@@ -234,44 +268,25 @@ d_administration_ids <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  distinct(order, tr_num, condition, target_id, distractor_id, target_side) %>%
-  arrange(order,tr_num) %>%
+  distinct(tr_num, condition,full_phrase, target_id, distractor_id, target_side) %>%
+  arrange(tr_num) %>%
   mutate(trial_order=tr_num) %>% 
   mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
 
+# create zero-indexed ids for trial_types
+d_trial_type_ids <- d_tidy %>%
+  distinct(condition, full_phrase, target_id, distractor_id, target_side) %>%
+  mutate(trial_type_id = seq(0, length(full_phrase) - 1)) 
 
-
-# create dataset variables
-d_tidy <- d_tidy %>%
-  mutate(lab_dataset_id = "pomper_salientme",
-         tracker = "video_camera",
-         monitor = NA,
-         monitor_sr = NA,
-         sample_rate = sampling_rate_hz)
-
-# get zero-indexed subject ids
-d_subject_ids <- d_tidy %>%
-  distinct(sub_num) %>%
-  mutate(subject_id = seq(0, length(.$sub_num) - 1))
-
-# create zero-indexed ids for trials
-d_trial_ids <- d_tidy %>%
-  distinct(tr_num, full_phrase,target_id, distractor_id, target_side) %>%
-  mutate(trial_id = seq(0, length(.$tr_num) - 1),
-         trial_order = as.numeric(tr_num)-1) 
-# joins back
+# joins
 d_tidy_semifinal <- d_tidy %>%
-  select(-subject_id) %>% 
-  left_join(d_subject_ids, by = "sub_num") %>%
-  left_join(d_trial_ids, by = c("tr_num","target_id", "distractor_id", "order", "target_side"))
+  left_join(d_administration_ids) %>%
+  left_join(d_trial_type_ids) %>%
+  left_join(d_trial_ids)
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
-  mutate(administration_id = subject_id,
-         distractor_label = distractor_image,
-         dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
-         target_label = target_word,
-         lab_trial_id = paste(order, tr_num, sep = "-"),
+  mutate(lab_trial_id = paste(target_label,target_image,distractor_image, sep = "-"),
          aoi_region_set_id = NA, # was aoi_region_id
          monitor_size_x = NA, # 140cm .. diagonal?
          monitor_size_y = NA,
@@ -317,46 +332,37 @@ d_tidy_final %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
-all_stimuli %>%
-  mutate(english_stimulus_label = target_word) %>%
-  rename(original_stimulus_label = target_word) %>%
+stimulus_table %>%
+  select(stimulus_id,
+         original_stimulus_label,
+         english_stimulus_label,
+         stimulus_novelty,
+         stimulus_image_path,
+         lab_stimulus_id,
+         dataset_id) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
- # mutate(condition = trial_type) %>% # "condition" had 1A,1B,2A,2B (trial_type has color/target_image)
-  distinct(condition,
+  distinct(trial_type_id,
            full_phrase,
            point_of_disambiguation,
            target_side,
-           lab_trial_id,
+           condition,
            aoi_region_set_id,
+           lab_trial_id,
            dataset_id,
            target_id,
-           distractor_id, 
-           distractor_label,
-           target_label) %>%
-  mutate(trial_type_id = seq(0, nrow(.) - 1),
-         full_phrase_language = "eng") %>%
-  select(-distractor_label, -target_label) %>%
+           distractor_id) %>%
+  mutate(full_phrase_language = "eng") %>% 
   write_csv(fs::path(write_path, trial_types_table_filename))
 
-##### TRIALS TABLE ####
-# trial_id	PrimaryKey	row identifier for the trials table indexing from zero
-# trial_order	IntegerField	index of the trial in order of presentation during the experiment
-# trial_type_id	ForeignKey	row identifier for the trial_types table indexing from zero
-
-# create zero-indexed ids for trials
-d_trial_ids <- d_tidy %>%
-  distinct(order, tr_num, target_id, distractor_id, target_side) %>%
-  mutate(trial_type_id = seq(0, length(.$tr_num) - 1))
-
-trials_table <- d_tidy_final %>%
-  left_join(d_trial_ids, by = c("order", "tr_num", "target_id", "distractor_id", "target_side")) %>% 
-  mutate(trial_order = as.numeric(tr_num) - 1) %>%
-  distinct(trial_order, trial_type_id) %>%
-  mutate(trial_id = seq(0, n() - 1)) %>%
+#### TRIALS TABLE ####
+trials <- d_tidy_final %>%
+  distinct(trial_id,
+           trial_order,
+           trial_type_id) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### AOI REGIONS TABLE ####
@@ -385,7 +391,7 @@ trials_table <- d_tidy_final %>%
 ##### DATASETS TABLE ####
 # write Dataset table
 data_tab <- tibble(
-  dataset_id = 0, # doesn't matter (leave as 0 for all)
+  dataset_id = 0, # leave as 0 for all
   dataset_name = "pomper_salientme",
   lab_dataset_id = dataset_name, # (if known)
   cite = "Pomper, R., & Saffran, J. R. (2018). Familiar object salience affects novel word learning. Child Development. doi:10.1111/cdev.13053.",

@@ -42,3 +42,13 @@ data/pomper_salientme/raw_data/orders/SME-C2N2L1_eprime.xlsx
 data/pomper_salientme/raw_data/orders/SME-C2N2L2_eprime.xlsx
 data/pomper_salientme/raw_data/SalientME_Participants_deID.xlsx
 data/pomper_salientme/raw_data/SME_Final.txt
+data/pomper_salientme/processed_data/administrations.csv
+data/pomper_salientme/processed_data/aoi_timepoints.csv
+data/pomper_salientme/processed_data/datasets.csv
+data/pomper_salientme/processed_data/stimuli.csv
+data/pomper_salientme/processed_data/subjects.csv
+data/pomper_salientme/processed_data/trial_types.csv
+data/pomper_salientme/processed_data/trials.csv
+data/potter_canine/processed_data/aoi_timepoints.csv
+data/potter_canine/processed_data/aoi_timepoints.csv
+data/potter_canine/processed_data/aoi_timepoints.csv
