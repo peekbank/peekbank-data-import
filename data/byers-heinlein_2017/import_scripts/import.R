@@ -149,7 +149,7 @@ stimuli_image <- unique(d_tidy$target)[1:6] # what about lf1, 3, 7 etc ...filler
 stimuli_label <- unique(c(d_tidy$target, d_tidy$distractor))
 
 stim_trans <- d_tidy %>% distinct(target, distractor) %>%
-  mutate(stimulus_image_path = c(target[1:7], "mouth","cookie","foot","book","door")) 
+  mutate(stimulus_image_path = c(target[1:6],"dog", "mouth","cookie","foot","book","door")) 
 
 # add original_stimulus_label and english_stimulus_label
 stim_tab <- cross_df(list(stimuli_image = stimuli_image, stimuli_label = stimuli_label)) %>%
@@ -171,9 +171,9 @@ stim_tab %>%
 # write trials table
 d_tidy_final <- d_tidy %>% 
   mutate(target_side = factor(target_side, levels=c('L','R'), labels = c('left','right'))) %>%
-  left_join(stim_tab %>% select(stimulus_id, english_stimulus_label), by=c("target"="english_stimulus_label")) %>%
+  left_join(stim_tab %>% select(stimulus_id, original_stimulus_label), by=c("target"="original_stimulus_label")) %>%
   rename(target_id = stimulus_id) %>%
-  left_join(stim_tab %>% select(stimulus_id, english_stimulus_label), by=c("distractor"="english_stimulus_label")) %>%
+  left_join(stim_tab %>% select(stimulus_id, original_stimulus_label), by=c("distractor"="original_stimulus_label")) %>%
   rename(distractor_id = stimulus_id) %>%
   mutate(condition = trial.type)
 
@@ -261,7 +261,9 @@ aoi_time_tab <- d_tidy_final2 %>%
     ) %>%
   select(aoi_timepoint_id, administration_id, t, aoi, trial_id) %>%
   mutate(point_of_disambiguation = point_of_disambiguation) %>%
-  resample_times(table_type="aoi_timepoints") %>%
+  peekds::rezero_times(.) %>%
+  peekds::normalize_times(.) %>%
+  peekds::resample_times(.,table_type="aoi_timepoints") %>%
   #mutate(t_norm = t - point_of_disambiguation) %>% # now has t and point_of_disambiguation
   write_csv(fs::path(output_path, "aoi_timepoints.csv"))
 
@@ -272,6 +274,9 @@ d_tidy_final2 %>% distinct(trial_id, administration_id, GazePointX, GazePointY, 
          y = GazePointY, 
          t = TrialTimestamp,
          xy_timepoint_id = 0:(n()-1)) %>%
+  peekds::rezero_times(.) %>%
+  peekds::normalize_times(.) %>%
+  peekds::resample_times(.,table_type="xy_timepoints") %>%
   write_csv(fs::path(output_path, "xy_timepoints.csv"))
 
 
@@ -281,4 +286,4 @@ validate_for_db_import(dir_csv = output_path)
 
 
 #### Upload to OSF
-put_processed_data(osf_token, dataset_name, paste0(output_path,'/'), osf_address = "pr6wu")
+#put_processed_data(osf_token, dataset_name, paste0(output_path,'/'), osf_address = "pr6wu")
