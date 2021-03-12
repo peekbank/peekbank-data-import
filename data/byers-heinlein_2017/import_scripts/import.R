@@ -27,7 +27,8 @@ if(length(list.files(read_path)) == 0) {
 
 # load raw data
 aois <- read_csv(paste0(read_path,"/AOIs.csv"))
-
+subj_info <- read_csv(here(read_path,"switching_data_subj_info.csv")) %>%
+  select(-age.group) #remove some not needed columns that cause issues due to naming consistencies
 raw <- read_csv(paste0(read_path,"/switching_data.csv"))
 # "RecordingName","id","trial.number","order.seen","MediaName","TrialTimestamp","trial.type","carrier.language","target.language","look.target","look.distractor","look.any","GazePointX","GazePointY","PupilLeft","PupilRight","trackloss","per.eng","per.fr","per.dom","per.nondom","lang.mix","trial.number.unique","age.group","switch.type","Carrier"
 #"Subject_1_Block1","Subject_1",1,1,"Dog_L_ENG",0,"same","English","English",NA,NA,NA,NA,NA,NA,NA,TRUE,55,45,55,45,21,1,"20-month-olds","Within-sentence","Dominant"
@@ -63,9 +64,6 @@ monitor_size_y <- as.numeric(as.character(screen_xy[2]))
 #stims_to_keep_chars <- c("_")
 stimulus_col_name = "MediaName" # strip filename if present (not applicable here)
 
-# problem: we only have age.group ("20-month-olds" vs. "Adults") -- not age in days
-# also no other demographic info (e.g., sex)
-
 # notes based on OSF's switching_analysis.R:
 #  window_start_time = 5200, #200 ms prior to noun onset 
 #  window_end_time = 5400, # noun onset
@@ -88,18 +86,23 @@ data_tab <- tibble(
 # other two pairs: door - mouth, cookie - foot
 
 # Basic dataset filtering and cleaning up
-d_tidy <- raw %>% filter(age.group!="Adults" 
+d_tidy <- raw %>% 
+  left_join(subj_info, by = c("id")) %>%
+  filter(age.group!="Adults" 
                          #trial.type!="switch"# remove language switch trials? decided to include.
                          ) %>% 
   ### FIXME: Import trial order .csvs instead of using regular expressions; currently missing some trials because of  inconsistent file naming conventions
-  mutate(subject_id = as.numeric(map_chr(id, ~str_split(., "_")[[1]][2])) - 1,
-         sex = 'unspecified', ### FIXME
-         target = tolower(map_chr(MediaName, ~ str_split(., "_")[[1]][1])),
-         target_side = map_chr(MediaName, ~ str_split(., "_")[[1]][2]),
-         trial_language = map_chr(MediaName, ~ str_split(., "_")[[1]][3]), # ENG / FR / SW
-         age = 20, ### FIXME
-         lab_age = 20, ### FIXME
+  mutate(sex = if_else(gender==0,"female","male"), ### inferred this from numbers in paper
+         age = months, 
+         lab_age = total.age.days, 
          t = TrialTimestamp) %>%
+  separate(MediaName, into=c("target","target_side","trial_language"),sep="_", remove=FALSE) %>% # some warning messages due to trials with media names that don't match the common pattern
+  mutate(
+    target=tolower(target)
+  ) %>%
+  rename(lab_subject_id = id,
+         lab_trial_id = trial.number.unique,
+         lab_stimulus_id = MediaName) %>%
   mutate(distractor = case_when(target == "book" ~ "dog",
                                 target == "dog"~ "book",
                                 target == "door" ~ "mouth",
@@ -112,18 +115,17 @@ d_tidy <- raw %>% filter(age.group!="Adults"
                                 target == "bouche" ~ "porte",
                                 target == "biscuit" ~ "pied",
                                 target == "pied" ~ "biscuit")) %>% # do we want unique images, or image x language?
-  filter(t >= 0, # a few -13..
-         !is.na(distractor)) %>%  # effectively filters filler trials as well as a few others because the mediaNames were inconsistent
-  rename(lab_subject_id = id,
-         lab_trial_id = trial.number.unique,
-         lab_stimulus_id = MediaName) %>%
+  filter(t >= 0#, # a few -13.. ## alternative would be to use the rezeroing process
+         #!is.na(distractor)
+         ) %>%  # effectively filters filler trials as well as a few others because the mediaNames were inconsistent
   select(-trial.number, -PupilLeft, -PupilRight)
 
 
 # subjects table
-d_tidy %>%
-  distinct(subject_id, lab_subject_id, sex) %>%
-  mutate(native_language = "multiple") %>% # FIXME: bilinguals: validator should accept "eng, fre" / "eng fre", but does not
+subjects <- d_tidy %>%
+  distinct(lab_subject_id, sex) %>%
+  mutate(native_language = "eng,fre") %>% 
+  mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
   write_csv(fs::path(output_path, "subjects.csv"))
 
 
