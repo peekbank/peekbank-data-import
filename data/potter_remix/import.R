@@ -27,7 +27,6 @@ xy_table_filename <-  "xy_timepoints.csv"
 osf_token <- read_lines(here("osf_token.txt"))
 
 
-# *** how does this function work in terms of indexing syntax, I need it later
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
@@ -260,7 +259,6 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 
 ##### AOI TABLE ####
-### *** is this table right?????
 aoi_timepoints <- d_tidy_final %>%
   select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
   #resample timepoints
