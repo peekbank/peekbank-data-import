@@ -45,7 +45,6 @@ subid_col_name <- "id"
 # not found in paper/datafile, but Tobii T60-XL according to manual has a 24" TFT wide-screen display 1920 x 1200 pixels
 monitor_size <- "1920x1200" # pixels  "Calibration Area" 
 sample_rate <- 60 # Hz (found in paper, but could be automatically reverse-engineered from timestamps..)
-lab_age_units = "months"
 
 #get maximum x-y coordinates on screen
 screen_xy <- str_split(monitor_size,"x") %>%
@@ -73,6 +72,9 @@ data_tab <- tibble(
 # tidy trial order info
 ## note that the trial order information varies somewhat between the two experiments included
 ## (called Mix and Remix originally - corresponds to Exp 1 and Exp 3 in PNAS paper)
+
+##FIXME: the trial orders include filler trials that do not appear to be kept in the switching_data.csv file
+## TO DO: extract all data from 
 trial_order <- trial_order_1 %>%
   bind_rows(trial_order_2) %>%
   clean_names() %>%
@@ -142,20 +144,16 @@ d_tidy <- raw %>%
   left_join(trial_order) %>%
   mutate(sex = if_else(gender==0,"female","male"), ### inferred this from numbers in paper
          age = months, 
-         lab_age = total.age.days, 
-         t = TrialTimestamp) %>%
+         lab_age = months, #could calculate days from subject info sheet but would require extra computation (since total days missing for some infants)
+         lab_age_units = "months",
+         t = trial_timestamp) %>%
   ## removed the following line because it is no longer needed given new trial order information added
   #separate(MediaName, into=c("target","target_side","trial_language"),sep="_", remove=FALSE) %>% # some warning messages due to trials with media names that don't match the common pattern
+  rename(lab_subject_id = id) %>%
   mutate(
-    target=tolower(target)
-  ) %>%
-  rename(lab_subject_id = id,
-         lab_trial_id = trial.number.unique,
-         lab_stimulus_id = MediaName) %>%
+    lab_trial_id = paste(target_word,target_object,distractor_object, sep = "-")) %>%
   filter(t >= 0#, # a few -13.. ## alternative would be to use the rezeroing process
-         #!is.na(distractor)
-         ) %>%  # effectively filters filler trials as well as a few others because the mediaNames were inconsistent
-  select(-trial.number, -PupilLeft, -PupilRight)
+         )
 
 
 # subjects table
@@ -164,60 +162,89 @@ subjects <- d_tidy %>%
   mutate(native_language = "eng,fre") %>% 
   mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
   write_csv(fs::path(output_path, "subjects.csv"))
-
+#join subject_id back in with d_tidy
+d_tidy <- d_tidy %>%
+  left_join(subjects)
 
 # administrations table
-d_tidy %>%
+administrations <-d_tidy %>%
   distinct(subject_id, 
            age,
-           lab_age) %>%
+           lab_age,
+           lab_age_units) %>%
   mutate(coding_method = "eyetracking",
          dataset_id = dataset_id,
          administration_id = subject_id, 
          tracker = tracker_name,
          monitor_size_x = monitor_size_x,
          monitor_size_y = monitor_size_y,
-         sample_rate = sample_rate,
-         lab_age_units = lab_age_units) %>% # unless you have longitudinal data) %>%
+         sample_rate = sample_rate) %>% 
   write_csv(fs::path(output_path, "administrations.csv"))
 
+#add administrations back in to keep ids consistent
+d_tidy <- d_tidy %>%
+  left_join(administrations)
 
 # stimulus table 
+## now constructed fully using the trial order .csv info (in the past: constructed "by hand")
 ## FIXME -- there are filler trials that are not in the datafile that we currently have that would be useful.
-stimuli_image <- unique(d_tidy$target)[1:6] # what about lf1, 3, 7 etc ...filler?
-stimuli_label <- unique(c(d_tidy$target, d_tidy$distractor))
-
-stim_trans <- d_tidy %>% distinct(target, distractor) %>%
-  mutate(stimulus_image_path = c(target[1:6],"dog", "mouth","cookie","foot","book","door")) 
-
-# add original_stimulus_label and english_stimulus_label
-stim_tab <- cross_df(list(stimuli_image = stimuli_image, stimuli_label = stimuli_label)) %>%
-  left_join(stim_trans, by=c("stimuli_image"="stimulus_image_path")) %>%
-  filter(stimuli_image==stimuli_label) %>% # FIXME: missing  original_stimulus_label="chien" ??
-  select(-stimuli_label, -distractor) %>%
-  rename(original_stimulus_label = target, 
-         stimulus_image_path = stimuli_image) %>% 
-  mutate(stimulus_id = 0:(n()-1),
-         lab_stimulus_id = NA,
-         dataset_id = dataset_id,
-         stimulus_novelty = "familiar",
-         english_stimulus_label = stimulus_image_path)
-
-stim_tab %>% 
+#extract unique targets
+unique_targets <- d_tidy %>%
+  distinct(
+    target_object,
+    target_word,
+    target_word_english
+  ) %>%
+  rename(
+    original_stimulus_label=target_word,
+    english_stimulus_label=target_word_english,
+    stimulus_image_path=target_object
+  )
+#extract unique distractors 
+#(just to be sure in case not all distractors also appeared as targets)
+unique_distractors <- d_tidy %>%
+  distinct(
+    distractor_object,
+    distractor_word,
+    distractor_word_english
+  ) %>%
+  rename(
+    original_stimulus_label=distractor_word,
+    english_stimulus_label=distractor_word_english,
+    stimulus_image_path=distractor_object
+  )
+#bind them together and complete missing columns for stimuli table
+stimuli <- unique_targets %>%
+  bind_rows(unique_distractors) %>%
+  distinct(
+    original_stimulus_label,
+    english_stimulus_label,
+    stimulus_image_path
+  ) %>%
+  arrange(
+    stimulus_image_path,
+    english_stimulus_label,
+    original_stimulus_label
+  ) %>%
+  mutate(
+    lab_stimulus_id=paste(stimulus_image_path,original_stimulus_label,sep="-"),
+    dataset_id=0,
+    stimulus_id = 0:(n()-1),
+    stimulus_novelty = "familiar"
+  ) %>% 
   write_csv(fs::path(output_path, "stimuli.csv"))
 
-
-# write trials table
+# rejoin stimulus and distractor ids for creating trials tables
+## joining by target/ distractor words because these uniquely identify stimuli (object-label asdsociations)
 d_tidy_final <- d_tidy %>% 
-  mutate(target_side = factor(target_side, levels=c('L','R'), labels = c('left','right'))) %>%
-  left_join(stim_tab %>% select(stimulus_id, original_stimulus_label), by=c("target"="original_stimulus_label")) %>%
+  left_join(stimuli %>% select(stimulus_id, original_stimulus_label), by=c("target_word"="original_stimulus_label")) %>%
   rename(target_id = stimulus_id) %>%
-  left_join(stim_tab %>% select(stimulus_id, original_stimulus_label), by=c("distractor"="original_stimulus_label")) %>%
+  left_join(stimuli %>% select(stimulus_id, original_stimulus_label), by=c("distractor_word"="original_stimulus_label")) %>%
   rename(distractor_id = stimulus_id) %>%
-  mutate(condition = trial.type)
+  mutate(condition = paste(switch_type,trial_type,sep="_"))
 
 aoi_region_tab <- d_tidy_final %>%
-  distinct(target_id, target, target_side) %>%
+  distinct(target_id, target_word, target_side) %>%
   mutate(aoi_region_set_id = seq(0,n()-1))
 
 
