@@ -57,7 +57,7 @@ monitor_size_y <- as.numeric(as.character(screen_xy[2]))
 # notes based on OSF's switching_analysis.R:
 #  window_start_time = 5200, #200 ms prior to noun onset 
 #  window_end_time = 5400, # noun onset
-point_of_disambiguation = 5400
+pod = 5400
 
 # write Dataset table
 data_tab <- tibble(
@@ -155,11 +155,11 @@ d_tidy <- raw %>%
   filter(t >= 0#, # a few -13.. ## alternative would be to use the rezeroing process
          )
 
-
 # subjects table
 subjects <- d_tidy %>%
   distinct(lab_subject_id, sex) %>%
-  mutate(native_language = "eng,fre") %>% 
+  #mutate(native_language = "eng,fre") %>% ## FIXME: appears to be currently not possible in the current schema
+  mutate(native_language = "multiple") %>%
   mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
   write_csv(fs::path(output_path, "subjects.csv"))
 #join subject_id back in with d_tidy
@@ -243,106 +243,121 @@ d_tidy_final <- d_tidy %>%
   rename(distractor_id = stimulus_id) %>%
   mutate(condition = paste(switch_type,trial_type,sep="_"))
 
-aoi_region_tab <- d_tidy_final %>%
-  distinct(target_id, target_word, target_side) %>%
-  mutate(aoi_region_set_id = seq(0,n()-1))
+#create ids for trial type
+d_trial_type_ids <- d_tidy_final %>%
+  distinct(target_id, distractor_id, target_side, carrier_language, target_language,lab_trial_id, condition) %>% 
+  mutate(trial_type_id = seq(0, n() - 1))
+#join with d_tidy_final
+d_tidy_final <- d_tidy_final %>%
+  left_join(d_trial_type_ids)
 
+# create zero-indexed ids for trials
+d_trial_ids <- d_tidy_final %>%
+  distinct(trial_number, target_id, distractor_id, target_side, carrier_language, target_language,lab_trial_id, condition,trial_type_id) %>%
+  mutate(trial_id = seq(0, length(.$trial_number) - 1))
+#join with d_tidy_final
+d_tidy_final <- d_tidy_final %>%
+  left_join(d_trial_ids)
 
-# The processed data file trial_types failed to pass the validator for database import with these error messsages:
-#   - The values in field trial_type_id are not unique.
-d_trial_types <- d_tidy_final %>%
-  distinct(target_id, distractor_id, target_side, carrier.language, lab_trial_id, distractor, condition) %>% # lab_trial_id, switch.type, trial.type, 
-  left_join(aoi_region_tab) %>%
-  mutate(full_phrase_language = 'multiple') %>%
-  mutate(trial_type_id = seq(0, n() - 1)) %>%
-  mutate(point_of_disambiguation= point_of_disambiguation,
-         full_phrase = NA,
-         dataset_id = dataset_id) 
+#### AOI Table ####
+#create aoi_region_sets and zero-indexed ids
+aoi_regions <- aois %>%
+  clean_names() %>%
+  mutate(target_object = tolower(target_object)) %>%
+  filter(target_object %in% unique(d_tidy_final$target_object)) %>%
+  mutate(l_x_max = case_when(target_side == 'left' ~ target_x_topleft + target_x_length,
+                             TRUE ~ distractor_x_topleft + distractor_x_length),
+         l_x_min = case_when(target_side == 'left' ~ target_x_topleft,
+                             TRUE ~ distractor_x_topleft),
+         l_y_max = case_when(target_side == 'left' ~ 1200 - target_y_topleft,
+                             TRUE ~ 1200 - distractor_y_topleft),
+         l_y_min = case_when(target_side == 'left' ~ 1200 - (target_y_topleft+target_y_length),
+                             TRUE ~ 1200 - (distractor_y_topleft+distractor_y_length)),
+         r_x_max = case_when(target_side == 'right' ~ target_x_topleft + target_x_length,
+                             TRUE ~ distractor_x_topleft + distractor_x_length),
+         r_x_min = case_when(target_side == 'right' ~ target_x_topleft,
+                             TRUE ~ distractor_x_topleft),
+         r_y_max = case_when(target_side == 'right' ~ 1200 - target_y_topleft,
+                             TRUE ~ 1200 - distractor_y_topleft),
+         r_y_min = case_when(target_side == 'right' ~ 1200 - (target_y_topleft+target_y_length),
+                             TRUE ~ 1200 - (distractor_y_topleft+distractor_y_length))) %>%
+  distinct(target_object,target_side,l_x_max, l_x_min, l_y_max, l_y_min, r_x_max, r_x_min, r_y_max, r_y_min) %>%
+  mutate(aoi_region_set_id = seq(0,n()-1)) 
+#rejoin
+d_tidy_final <- d_tidy_final %>%
+  left_join(aoi_regions)
+#write final region set table
+aoi_region_sets <- aoi_regions %>%
+  distinct(aoi_region_set_id,l_x_max, l_x_min, l_y_max, l_y_min, r_x_max, r_x_min, r_y_max, r_y_min) %>%
+  write_csv(fs::path(output_path, "aoi_region_sets.csv"))
 
-d_trial_types %>% select(-carrier.language, -distractor, -target) %>% 
-  write_csv(fs::path(output_path, "trial_types.csv"))
-
-
-# join in trial_type_id
-d_tidy_final <- d_tidy_final %>% left_join(d_trial_types)
+##add final columns to d_tidy_final
+d_tidy_final <- d_tidy_final %>%
+  mutate(point_of_disambiguation=pod) %>%
+  mutate(
+    full_phrase=NA,
+    full_phrase_language = case_when(
+      carrier_language=="English" & target_language == "English"  ~ "eng",
+      carrier_language=="French" & target_language == "French" ~ "fre",
+      str_detect(condition,"switch") ~ "multiple",
+      TRUE ~ NA_character_))
 
 ##### TRIALS TABLE ####
 # trial_id	PrimaryKey	row identifier for the trials table indexing from zero
 # trial_order	IntegerField	index of the trial in order of presentation during the experiment
 # trial_type_id	ForeignKey	row identifier for the trial_types table indexing from zero
-trials_table <- d_tidy_final %>%
- mutate(trial_order = as.integer(lab_trial_id)) %>%
- distinct(subject_id, trial_order, trial_type_id) %>% 
- mutate(trial_id = seq(0, n() - 1)) %>%
+trials <- d_tidy_final %>%
+  mutate(trial_order=trial_number) %>%
+ distinct(trial_id, trial_order, trial_type_id) %>% 
+  arrange(trial_id, trial_type_id, trial_order) %>%
  write_csv(fs::path(output_path, "trials.csv"))
 
-# add trial_type_id & administration id
-d_tidy_final2 <- d_tidy_final %>%
-  mutate(administration_id = subject_id) %>%
-  left_join(d_trial_types) %>%
-  left_join(trials_table)
-
-# create aoi_region_sets.csv 
-# in AOI region sets, origin is TOP LEFT -- so, ymin=top_left and ymax = top_left + length
-# MZ will double check with authors.
-
-aois <- aois %>%
-  mutate(target.object = tolower(target.object)) %>%
-  filter(target.object %in% d_tidy_final2$target) %>%
-  mutate(l_x_max = case_when(target.side == 'left' ~ target.x.topleft + target.x.length,
-                             TRUE ~ distractor.x.topleft + distractor.x.length),
-         l_x_min = case_when(target.side == 'left' ~ target.x.topleft,
-                             TRUE ~ distractor.x.topleft),
-         l_y_max = case_when(target.side == 'left' ~ target.y.topleft + target.y.length,
-                             TRUE ~ distractor.y.topleft + distractor.y.length),
-         l_y_min = case_when(target.side == 'left' ~ target.y.topleft,
-                             TRUE ~ distractor.y.topleft),
-         
-         r_x_max = case_when(target.side == 'right' ~ target.x.topleft + target.x.length,
-                             TRUE ~ distractor.x.topleft + distractor.x.length),
-         r_x_min = case_when(target.side == 'right' ~ target.x.topleft,
-                             TRUE ~ distractor.x.topleft),
-         r_y_max = case_when(target.side == 'right' ~ target.y.topleft + target.y.length,
-                             TRUE ~ distractor.y.topleft + distractor.y.length),
-         r_y_min = case_when(target.side == 'right' ~ target.y.topleft,
-                             TRUE ~ distractor.y.topleft)) 
-
-aois %>%
-  left_join(aoi_region_tab, by=c("target.object" = 'target','target.side' ='target_side')) %>%
-  distinct(aoi_region_set_id, l_x_max, l_x_min, l_y_max, l_y_min, r_x_max, r_x_min, r_y_max, r_y_min) %>%
-  write_csv(fs::path(output_path, "aoi_region_sets.csv"))
+#### Trial Types Table ####
+trial_types <- d_tidy_final %>%
+  distinct(
+    trial_type_id,
+    full_phrase,
+    full_phrase_language,
+    point_of_disambiguation,
+    target_side,
+    lab_trial_id,
+    condition,
+    aoi_region_set_id,
+    dataset_id,
+    target_id,
+    distractor_id) %>% 
+  arrange(trial_type_id) %>%
+  write_csv(fs::path(output_path, "trial_types.csv"))
   
-
-#  write AOI table
-aoi_time_tab <- d_tidy_final2 %>% 
+#### AOI timepoints Table ####
+aoi_timepoints <- d_tidy_final %>% 
   mutate(
-    administration_id = subject_id,
     aoi = case_when(
-      look.target==1 ~ "target",
-      look.distractor==1 ~ "distractor",
-      is.na(look.target) ~ "missing",
-      TRUE ~ "missing" # just in case
-    )) %>% mutate(
-      aoi_timepoint_id = 0:(n()-1)
-    ) %>%
-  select(aoi_timepoint_id, administration_id, t, aoi, trial_id) %>%
-  mutate(point_of_disambiguation = point_of_disambiguation) %>%
+      look_target==1 ~ "target",
+      look_distractor==1 ~ "distractor",
+      #add on-screen looks not to target or distractor
+      gaze_point_x<=1920 & gaze_point_x>=0 & gaze_point_y<=1200 & gaze_point_y>=0 ~ "other",
+      TRUE ~ "missing" 
+    )) %>%
+  relocate(aoi, .after=look_any) %>%
+  select(administration_id, t, aoi, trial_id,point_of_disambiguation) %>%
   peekds::rezero_times(.) %>%
   peekds::normalize_times(.) %>%
   peekds::resample_times(.,table_type="aoi_timepoints") %>%
-  #mutate(t_norm = t - point_of_disambiguation) %>% # now has t and point_of_disambiguation
+  mutate(aoi_timepoint_id = 0:(n()-1)) %>%
   write_csv(fs::path(output_path, "aoi_timepoints.csv"))
 
 
-# XY timepoints
-d_tidy_final2 %>% distinct(trial_id, administration_id, GazePointX, GazePointY, TrialTimestamp) %>%
-  mutate(x = GazePointX, 
-         y = GazePointY, 
-         t = TrialTimestamp,
-         xy_timepoint_id = 0:(n()-1)) %>%
+#### XY timepoints table ####
+xy_timepoints <- d_tidy_final %>% 
+  select(gaze_point_x, gaze_point_y, trial_timestamp,administration_id,trial_id,point_of_disambiguation) %>%
+  rename(x = gaze_point_x, 
+         y = gaze_point_y, 
+         t = trial_timestamp) %>%
   peekds::rezero_times(.) %>%
   peekds::normalize_times(.) %>%
   peekds::resample_times(.,table_type="xy_timepoints") %>%
+  mutate(xy_timepoint_id = 0:(n()-1)) %>%
   write_csv(fs::path(output_path, "xy_timepoints.csv"))
 
 
