@@ -66,3 +66,11 @@ data/byers-heinlein_2017/full_dataset/id_mapping.csv
 data/byers-heinlein_2017/full_dataset/Mix_Master_Subject_List_Infants.csv
 data/byers-heinlein_2017/full_dataset/ReMix_Master_Subject_List_Infants.csv
 data/byers-heinlein_2017/full_dataset/switching_data_subj_info.csv
+data/byers-heinlein_2017/full_dataset/Mix_Trial_Orders.csv
+data/byers-heinlein_2017/full_dataset/ReMix_Trial_Orders.csv
+data/byers-heinlein_2017/raw_data/AOIs.csv
+data/byers-heinlein_2017/raw_data/Mix_Trial_Orders.csv
+data/byers-heinlein_2017/raw_data/ReMix_Trial_Orders.csv
+data/byers-heinlein_2017/raw_data/switching_data.csv
+data/byers-heinlein_2017/raw_data/switching_data_subj_info.csv
+data/byers-heinlein_2017/raw_data/switching_data_variable_explanations.docx

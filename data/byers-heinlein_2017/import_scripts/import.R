@@ -16,7 +16,7 @@ osf_token <- read_lines(here("osf_token.txt"))
 
 # constants
 dataset_name = "byers-heinlein_2017"
-read_path <- here("data",dataset_name,"full_dataset")
+read_path <- here("data",dataset_name,"raw_data")
 output_path <- here("data",dataset_name,"processed_data")
 
 ### Search ### FIXME for things to continue working on
@@ -28,7 +28,11 @@ if(length(list.files(read_path)) == 0) {
 # load raw data
 aois <- read_csv(paste0(read_path,"/AOIs.csv"))
 subj_info <- read_csv(here(read_path,"switching_data_subj_info.csv")) %>%
-  select(-age.group) #remove some not needed columns that cause issues due to naming consistencies
+  clean_names()
+trial_order_1 <- read_csv(here(read_path,"Mix_Trial_Orders.csv")) %>%
+  mutate(study="mix")
+trial_order_2 <- read_csv(here(read_path,"ReMix_Trial_Orders.csv")) %>%
+  mutate(study="remix")
 raw <- read_csv(paste0(read_path,"/switching_data.csv"))
 # "RecordingName","id","trial.number","order.seen","MediaName","TrialTimestamp","trial.type","carrier.language","target.language","look.target","look.distractor","look.any","GazePointX","GazePointY","PupilLeft","PupilRight","trackloss","per.eng","per.fr","per.dom","per.nondom","lang.mix","trial.number.unique","age.group","switch.type","Carrier"
 #"Subject_1_Block1","Subject_1",1,1,"Dog_L_ENG",0,"same","English","English",NA,NA,NA,NA,NA,NA,NA,TRUE,55,45,55,45,21,1,"20-month-olds","Within-sentence","Dominant"
@@ -37,21 +41,11 @@ raw <- read_csv(paste0(read_path,"/switching_data.csv"))
 #### general parameters ####
 tracker_name <- "Tobii T60-XL"
 dataset_id <- 0 # doesn't matter (use 0)
-max_lines_search <- 40 #maybe change this value?
 subid_col_name <- "id"
 # not found in paper/datafile, but Tobii T60-XL according to manual has a 24" TFT wide-screen display 1920 x 1200 pixels
 monitor_size <- "1920x1200" # pixels  "Calibration Area" 
 sample_rate <- 60 # Hz (found in paper, but could be automatically reverse-engineered from timestamps..)
 lab_age_units = "months"
-
-possible_delims <- c("\t",",")
-left_x_col_name <-  "GazePointX" # data has no separate left and right eye measures (except for pupil diameter)
-right_x_col_name <-  "GazePointX"
-left_y_col_name <-  "GazePointY" 
-right_y_col_name <-  "GazePointY"
-# adding pupil size:
-left_pupil_size_col_name <- "PupilLeft"
-right_pupil_size_col_name <- "PupilRight"
 
 #get maximum x-y coordinates on screen
 screen_xy <- str_split(monitor_size,"x") %>%
@@ -60,15 +54,11 @@ monitor_size_x <- as.numeric(as.character(screen_xy[1]))
 monitor_size_y <- as.numeric(as.character(screen_xy[2]))
 
 # no stimuli included in OSF repo
-#stims_to_remove_chars <- c(".avi")
-#stims_to_keep_chars <- c("_")
-stimulus_col_name = "MediaName" # strip filename if present (not applicable here)
 
 # notes based on OSF's switching_analysis.R:
 #  window_start_time = 5200, #200 ms prior to noun onset 
 #  window_end_time = 5400, # noun onset
 point_of_disambiguation = 5400
-
 
 # write Dataset table
 data_tab <- tibble(
@@ -80,41 +70,88 @@ data_tab <- tibble(
 ) %>% 
   write_csv(fs::path(output_path, "datasets.csv"))
 
-# Notes on stimuli:
-# if dog is target, book is distractor
-# if book is target, dog is distractor
-# other two pairs: door - mouth, cookie - foot
+# tidy trial order info
+## note that the trial order information varies somewhat between the two experiments included
+## (called Mix and Remix originally - corresponds to Exp 1 and Exp 3 in PNAS paper)
+trial_order <- trial_order_1 %>%
+  bind_rows(trial_order_2) %>%
+  clean_names() %>%
+  #make relevant columns lower case
+  mutate(
+    left_stim=tolower(left_stim),
+    right_stim=tolower(right_stim),
+    target_object=tolower(target_object),
+    target_word=tolower(target_word),
+    distractor_word=tolower(distractor_word)
+  ) %>%
+  mutate(
+    distractor_object=ifelse(target_side=="left",right_stim,left_stim)
+  )
+
+## create table matching english and french words
+targets_translate <- trial_order %>%
+  distinct(target_object,target_word) %>%
+  filter(!is.na(target_word)) %>%
+  filter(!(target_object==target_word)) %>%
+  rename(
+    english_word=target_object,
+    french_word=target_word
+  )
+distractors_translate <- trial_order %>%
+  distinct(distractor_object,distractor_word) %>%
+  filter(!is.na(distractor_word)) %>%
+  filter(!(distractor_object==distractor_word)) %>%
+  rename(
+    english_word=distractor_object,
+    french_word=distractor_word
+  )
+translate_table <- targets_translate %>%
+  bind_rows(distractors_translate) %>%
+  distinct(english_word,french_word)
+
+## use translation table to extend the missing information about target_word/ distractor_word
+## in half of the trial order information
+trial_order <- trial_order %>%
+  left_join(translate_table, by = c("target_object" = "english_word")) %>%
+  rename(target_word_french = french_word) %>%
+  mutate(target_word_english = target_object) %>%
+  left_join(translate_table, by = c("distractor_object" = "english_word")) %>%
+  rename(distractor_word_french = french_word) %>%
+  mutate(distractor_word_english = distractor_object) %>%
+  mutate(
+    target_word = case_when(
+      is.na(target_word) & target_language=="English" ~ target_word_english,
+      is.na(target_word) & target_language=="French" ~ target_word_french,
+      TRUE ~ target_word
+    ),
+    distractor_word = case_when(
+      is.na(distractor_word) & target_language=="English" ~ distractor_word_english,
+      is.na(distractor_word) & target_language=="French" ~ distractor_word_french,
+      TRUE ~ distractor_word
+    )
+  )
 
 # Basic dataset filtering and cleaning up
 d_tidy <- raw %>% 
+  clean_names() %>%
   left_join(subj_info, by = c("id")) %>%
-  filter(age.group!="Adults" 
+  filter(age_group!="Adults" 
                          #trial.type!="switch"# remove language switch trials? decided to include.
                          ) %>% 
-  ### FIXME: Import trial order .csvs instead of using regular expressions; currently missing some trials because of  inconsistent file naming conventions
+  ## join in trial order
+  left_join(trial_order) %>%
   mutate(sex = if_else(gender==0,"female","male"), ### inferred this from numbers in paper
          age = months, 
          lab_age = total.age.days, 
          t = TrialTimestamp) %>%
-  separate(MediaName, into=c("target","target_side","trial_language"),sep="_", remove=FALSE) %>% # some warning messages due to trials with media names that don't match the common pattern
+  ## removed the following line because it is no longer needed given new trial order information added
+  #separate(MediaName, into=c("target","target_side","trial_language"),sep="_", remove=FALSE) %>% # some warning messages due to trials with media names that don't match the common pattern
   mutate(
     target=tolower(target)
   ) %>%
   rename(lab_subject_id = id,
          lab_trial_id = trial.number.unique,
          lab_stimulus_id = MediaName) %>%
-  mutate(distractor = case_when(target == "book" ~ "dog",
-                                target == "dog"~ "book",
-                                target == "door" ~ "mouth",
-                                target == "mouth" ~ "door",
-                                target == "cookie" ~ "foot",
-                                target == "foot" ~ "cookie",
-                                target == "livre" ~ "chien",
-                                target == "chien"~ "livre",
-                                target == "porte" ~ "bouche",
-                                target == "bouche" ~ "porte",
-                                target == "biscuit" ~ "pied",
-                                target == "pied" ~ "biscuit")) %>% # do we want unique images, or image x language?
   filter(t >= 0#, # a few -13.. ## alternative would be to use the rezeroing process
          #!is.na(distractor)
          ) %>%  # effectively filters filler trials as well as a few others because the mediaNames were inconsistent
