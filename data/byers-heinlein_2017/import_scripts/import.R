@@ -158,8 +158,7 @@ d_tidy <- raw %>%
 # subjects table
 subjects <- d_tidy %>%
   distinct(lab_subject_id, sex) %>%
-  #mutate(native_language = "eng,fre") %>% ## FIXME: appears to be currently not possible in the current schema
-  mutate(native_language = "multiple") %>%
+  mutate(native_language = "eng, fre") %>% 
   mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
   write_csv(fs::path(output_path, "subjects.csv"))
 #join subject_id back in with d_tidy
