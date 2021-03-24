@@ -23,7 +23,7 @@ DATASET_PATH <- here(file.path("data", dataset_name))
 
 full_dataset_path <- file.path(DATASET_PATH, "raw_data/full_dataset")
 exp_info_path <- file.path(DATASET_PATH, "raw_data/experiment_info")
-output_path <- file.path(DATASET_PATH, "processed_data")
+output_path <- file.path(DATASET_PATH, "processed_data/")
 trial_file_path <- file.path(exp_info_path, "lists.csv")
 participant_file_path <- file.path(exp_info_path,  "eye.tracking.csv")
 
@@ -31,6 +31,8 @@ participant_file_path <- file.path(exp_info_path,  "eye.tracking.csv")
 if(length(list.files(full_dataset_path)) == 0 & length(list.files(exp_info_path)) == 0) {
   get_raw_data(lab_dataset_id = dataset_name, path = DATASET_PATH, osf_address = OSF_ADDRESS)
 }
+
+
 
 ######## Make 9 Peekbank tables #########
 #### (1) datasets ####
@@ -98,7 +100,7 @@ trial_types_data <- mega_trials_table %>%
          aoi_region_set_id = 0 ,#all have the same, so hard code
          dataset_id = dataset_id,
          list = as.character(list),
-         lab_trial_id = paste0(target_side, "_", word)) %>%
+         lab_trial_id = paste(list,target_side, word, sep="_")) %>%
   select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, target_side,
          lab_trial_id, aoi_region_set_id, dataset_id, distractor_id, target_id, condition)
 
@@ -113,6 +115,8 @@ trials_table <- mega_trials_table %>%
 write_peekbank_table("trials", trials_table, output_path)
 
 ####(4) administrations ####
+original_subinfo <- read_csv(here(exp_info_path, "et_demographics.csv"))
+
 all_subjects_data <- read_csv(participant_file_path) %>%
   select(sid, age, gender) %>%
   rename("lab_subject_id" = "sid",
@@ -123,7 +127,11 @@ all_subjects_data <- read_csv(participant_file_path) %>%
          lab_age_units = "years",
          age = round(12*(ifelse(age == "NaN", NA, age)))) %>%  # converting age from years to months # 1659 entries
   distinct() %>%
-  mutate(subject_id = row_number() - 1) # 110 distinct subjects
+  mutate(subject_id = row_number() - 1) %>% # 110 distinct subjects
+  left_join(select(original_subinfo, SID, exclude) %>% 
+              mutate(lab_subject_id = SID)) %>%
+  filter(exclude == 0) %>%
+  select(-exclude) # exclusions bring this down to 69 distinct subjects
 
 monitor_size <- full_dataset_path %>% # add in administration info
   list.files(full.names = T) %>% #  info from smi files
@@ -158,7 +166,7 @@ write_peekbank_table("administrations", administration_data, output_path)
 #### (5) subjects ####
 subjects_data <- all_subjects_data %>%
   mutate(native_language = "eng") %>%
-  select(subject_id, sex, lab_subject_id, native_language)
+  select(subject_id, sex, lab_subject_id, native_language) 
 
 write_peekbank_table("subjects", subjects_data, output_path)
 
@@ -188,8 +196,8 @@ raw_timepoint_data <- full_dataset_path %>%
 
 timepoint_data <- raw_timepoint_data %>%
   mutate(xy_timepoint_id = row_number() - 1,
-         left_pic = str_remove(left_pic, "[:digit:]_"),
-         right_pic =  str_remove(right_pic, "[:digit:]_"),
+         # left_pic = str_remove(left_pic, "[:digit:]_"),
+         # right_pic =  str_remove(right_pic, "[:digit:]_"),
          lab_trial_id = case_when(left_pic %in%  unique(trial_types_data$lab_trial_id) ~ left_pic, # phew, this is necessary because sometimes the distractor is the target, and vice versa
                                   right_pic %in% unique(trial_types_data$lab_trial_id) ~ right_pic)) %>%
   select(xy_timepoint_id, x, y, t, lab_subject_id, lab_trial_id)
@@ -222,7 +230,7 @@ write_peekbank_table("xy_timepoints", xy_joined_resampled, output_path)
 aoi_timepoints_data <- peekds::add_aois(xy_joined) %>%
   rename(t_zeroed = t) %>%
   peekds::normalize_times() %>%
-  resample_times(table_type = "aoi_timepoints") %>%
+  peekds::resample_times(table_type = "aoi_timepoints") %>%
   select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
 write_peekbank_table("aoi_timepoints", aoi_timepoints_data, output_path)
@@ -249,28 +257,50 @@ subinfo <- aoi_data_joined %>%
     age >= 48 ~ 4
   ))
 
-save.image(file='myEnvironment.RData')
-# load('myEnvironment.RData')
-
 subage <- subinfo %>%
   group_by(ageyear) %>%
   summarize(total = sum(ageyear))
 
 # even trial type goes to 48, only 32 trial types have data
 # familiar-familiar trials were all used, data were evenly distributed among three conditions
-summarize_by_condition <- aoi_data_joined %>%
-  group_by(t_norm, condition) %>%
-  filter(aoi == "target" | aoi == "distractor") %>%
-  filter(age >= 48) %>%
-  summarise(target_pct = mean(aoi == "target"), distractor_pct = mean(aoi == "distractor"))
-
-summarize_by_condition %>%
+aoi_data_joined %>%
+  filter(age > 12, age < 60) %>%
+  mutate(age_group = cut(age, c(12,24,36,48,60))) %>%
+  group_by(t_norm, age_group, condition) %>%
+  summarise(target_pct = mean(aoi == "target", na.rm=TRUE) /
+              mean(aoi == "target" | aoi == "distractor", na.rm=TRUE)) %>%
   ggplot(aes(x = t_norm, y = target_pct, col = condition)) +
   geom_line() +
-  xlim(-3000, 4000) + 
+  facet_grid(~age_group) +
+  xlim(-1000, 4000) + 
   ylim(.3, .9) + 
   geom_hline(aes(yintercept = .5), lty = 2) +
   theme_bw()
+
+# by item
+aoi_data_joined %>%
+  filter(age > 12, age < 60) %>%
+  mutate(age_group = cut(age, c(12,24,36,48,60))) %>%
+  filter(condition != "familiar-familiar") %>%
+  group_by(t_norm, age_group, condition, english_stimulus_label) %>%
+  summarise(target_pct = mean(aoi == "target", na.rm=TRUE) /
+              mean(aoi == "target" | aoi == "distractor", na.rm=TRUE)) %>%
+  ggplot(aes(x = t_norm, y = target_pct, col = condition)) +
+  geom_line() +
+  facet_grid(english_stimulus_label~age_group) +
+  xlim(-1000, 4000) + 
+  geom_hline(aes(yintercept = .5), lty = 2) +
+  theme_bw()
+
+# means
+aoi_data_joined %>%
+  filter(age > 12, age < 60) %>%
+  filter(t_norm > 300) %>%
+  mutate(age_group = cut(age, c(12,24,36,48,60))) %>%
+  group_by(condition, age_group, administration_id) %>%
+  summarise(target_pct = mean(aoi == "target", na.rm=TRUE) /
+              mean(aoi == "target" | aoi == "distractor", na.rm=TRUE)) %>%
+  summarise(mean = mean(target_pct, na.rm=TRUE))
 
 ### add to OSF ####
 put_processed_data(osf_token, dataset_name, output_path, osf_address = OSF_ADDRESS)
