@@ -19,13 +19,13 @@ osf_token <- read_lines(here("osf_token.txt"))
 OSF_ADDRESS <- "pr6wu"
 
 #### Define paths and get data from OSF if necessary ####
-DATASET_PATH <- here(paste0("data/", dataset_name, "/"))
+DATASET_PATH <- here(file.path("data", dataset_name))
 
-full_dataset_path <- paste0(DATASET_PATH, "raw_data/full_dataset/")
-exp_info_path <- paste0(DATASET_PATH, "raw_data/experiment_info/")
-output_path <- paste0(DATASET_PATH, "processed_data/")
-trial_file_path <- paste0(exp_info_path, "lists.csv")
-participant_file_path <- paste0(exp_info_path,  "eye.tracking.csv")
+full_dataset_path <- file.path(DATASET_PATH, "raw_data/full_dataset")
+exp_info_path <- file.path(DATASET_PATH, "raw_data/experiment_info")
+output_path <- file.path(DATASET_PATH, "processed_data")
+trial_file_path <- file.path(exp_info_path, "lists.csv")
+participant_file_path <- file.path(exp_info_path,  "eye.tracking.csv")
 
 ## only download if it's not on your machine
 if(length(list.files(full_dataset_path)) == 0 & length(list.files(exp_info_path)) == 0) {
@@ -45,23 +45,28 @@ dataset_data <- tibble(
 write_peekbank_table("datasets", dataset_data, output_path)
 
 #### (2) stimuli ####
+# list 1, 2 each has 24 trial types with 24 distinct target words and 24 distinct distractor words -  meaning within one list, one target label only appeared once
+# 32 distinctive labels in total, among whch
+# 8 labels only used for target: "dog"    "cookie" "bottle" "cat"    "horse"  "carrot" "lion"   "hammer"
+# 8 labels only used for distractor: "book"   "baby"   "bird"   "ball"   "clock"  "lamp"   "table"  "sheep"
+# rest 16 used for both target and distractor
 target_distractors <- read_csv(trial_file_path) %>%
   clean_names() %>%
   filter(trial_type != "filler") %>%
   rename(original_order = trial)
 
-novel_words <- c("dax", "dofa", "fep", "kreeb", "modi",
-                 "pifo", "toma", "wug")
+novel_words <- c("dax", "dofa", "fep", "kreeb", 
+                 "modi","pifo", "toma", "wug")
 
-stimuli_data <- target_distractors %>%
-  pivot_longer(left:right, values_to = "stimulus_label") %>%
-  distinct(stimulus_label) %>%
+stimuli_data <- target_distractors %>% # 48 entries
+  pivot_longer(left:right, values_to = "stimulus_label") %>% # expand rows so that target and dis have own rows, 2 rows per trial, 96 entries
+  distinct(stimulus_label) %>% # 32 distinct labels, 24 familiar, 8 novel
   mutate(stimulus_novelty = case_when(stimulus_label %in% novel_words ~ "novel",
                                       TRUE ~ "familiar"), # this is novelty of the word
          stimulus_image_path = str_c("images/",stimulus_label, ".png"),
          lab_stimulus_id = stimulus_label,
          dataset_id = dataset_id,
-         stimulus_id = row_number()-1) %>%
+         stimulus_id = row_number()-1) %>% # 32 distinct labels with image paths lab ids 
   mutate(original_stimulus_label = stimulus_label,
          english_stimulus_label = stimulus_label) %>%
   select(stimulus_id, original_stimulus_label,english_stimulus_label, stimulus_novelty,
@@ -75,14 +80,14 @@ mega_trials_table <- target_distractors %>%
                                   word == right ~ "right"),
          target = word,
          distractor = case_when(target == left ~ right,
-                                target == right ~ left)) %>%
+                                target == right ~ left)) %>% # extract target side and distractor label based on word column
   left_join(stimuli_data %>% select(stimulus_id, original_stimulus_label), # merge stimulus ids
             by = c("target" = "original_stimulus_label")) %>%
   rename(target_id = stimulus_id) %>%
   left_join(stimuli_data %>% select(stimulus_id, original_stimulus_label),
             by = c("distractor" = "original_stimulus_label")) %>%
   rename(distractor_id = stimulus_id,
-         condition = trial_type) %>%
+         condition = trial_type) %>% # finish adding target and distractor stimulus ids
   select(-left, -right)  %>%
   mutate(trial_type_id = row_number() - 1)
 
@@ -100,7 +105,6 @@ trial_types_data <- mega_trials_table %>%
 write_peekbank_table("trial_types", trial_types_data, output_path)
 
 #### (3a) trials ###
-
 trials_table <- mega_trials_table %>%
   select(trial_type_id, original_order) %>%
   rename(trial_order = original_order) %>%
@@ -109,17 +113,17 @@ trials_table <- mega_trials_table %>%
 write_peekbank_table("trials", trials_table, output_path)
 
 ####(4) administrations ####
-all_subjects_data <- read_csv(participant_file_path)%>%
-  select(sid, age, gender)%>%
+all_subjects_data <- read_csv(participant_file_path) %>%
+  select(sid, age, gender) %>%
   rename("lab_subject_id" = "sid",
-         "sex" = "gender")%>%
+         "sex" = "gender") %>%
   mutate(sex = factor(sex, levels = c("Male", "Female", "NaN"),
                       labels = c("male", "female", "unspecified")),
          lab_age = age,
          lab_age_units = "years",
-         age = round(12*(ifelse(age == "NaN", NA, age)))) %>%  # converting age from years to days
+         age = round(12*(ifelse(age == "NaN", NA, age)))) %>%  # converting age from years to months # 1659 entries
   distinct() %>%
-  mutate(subject_id = row_number() - 1)
+  mutate(subject_id = row_number() - 1) # 110 distinct subjects
 
 monitor_size <- full_dataset_path %>% # add in administration info
   list.files(full.names = T) %>% #  info from smi files
@@ -176,6 +180,8 @@ aoi_info <- tibble(aoi_region_set_id = 0,
 write_peekbank_table("aoi_region_sets", aoi_info, output_path)
 
 #### (7) xy_timepoints ####
+# read in all 121 files
+# every subject participated in 24 trials (one of lists) 
 raw_timepoint_data <- full_dataset_path %>%
   list.files(full.names = T) %>%
   map_df(process_smi_eyetracking_file, subid_name, monitor_size, sample_rate)
@@ -188,6 +194,7 @@ timepoint_data <- raw_timepoint_data %>%
                                   right_pic %in% unique(trial_types_data$lab_trial_id) ~ right_pic)) %>%
   select(xy_timepoint_id, x, y, t, lab_subject_id, lab_trial_id)
 
+# subject 2 and 27 does not have eyetracking data
 xy_data <- timepoint_data %>% # merge in administration_id and trial_id
   left_join(trial_types_data %>% select(lab_trial_id, trial_type_id)) %>%
   left_join(trials_table %>% select(trial_type_id, trial_id)) %>%
@@ -223,6 +230,47 @@ write_peekbank_table("aoi_timepoints", aoi_timepoints_data, output_path)
 #### Validation ####
 #validate_for_db_import("eyetracking", dir_csv = output_path) # <- this wasn't working earlier, but Linger says it validates
 peekds::validate_for_db_import(dir_csv = output_path)
+
+aoi_data_joined <- aoi_data_joined <- aoi_timepoints_data %>%
+  left_join(administration_data) %>%
+  left_join(trials_table) %>%
+  left_join(trial_types_data) %>%
+  mutate(stimulus_id = target_id) %>%
+  left_join(stimuli_data)
+
+# get subject info
+subinfo <- aoi_data_joined %>%
+  group_by(subject_id, age) %>%
+  summarise(trials = length(unique(trial_id))) %>% 
+  mutate(ageyear = case_when(
+    age < 24  ~ 1 ,
+    age >= 24  & age < 36 ~ 2  ,
+    age >= 36  & age < 48 ~ 3  ,
+    age >= 48 ~ 4
+  ))
+
+save.image(file='myEnvironment.RData')
+# load('myEnvironment.RData')
+
+subage <- subinfo %>%
+  group_by(ageyear) %>%
+  summarize(total = sum(ageyear))
+
+# even trial type goes to 48, only 32 trial types have data
+# familiar-familiar trials were all used, data were evenly distributed among three conditions
+summarize_by_condition <- aoi_data_joined %>%
+  group_by(t_norm, condition) %>%
+  filter(aoi == "target" | aoi == "distractor") %>%
+  filter(age >= 48) %>%
+  summarise(target_pct = mean(aoi == "target"), distractor_pct = mean(aoi == "distractor"))
+
+summarize_by_condition %>%
+  ggplot(aes(x = t_norm, y = target_pct, col = condition)) +
+  geom_line() +
+  xlim(-3000, 4000) + 
+  ylim(.3, .9) + 
+  geom_hline(aes(yintercept = .5), lty = 2) +
+  theme_bw()
 
 ### add to OSF ####
 put_processed_data(osf_token, dataset_name, output_path, osf_address = OSF_ADDRESS)

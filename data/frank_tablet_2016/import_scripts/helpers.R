@@ -173,5 +173,5 @@ process_smi_eyetracking_file <- function(file_path,
 
 write_peekbank_table <- function(table_name, table_df, output_dir){
   write_csv(table_df,
-            path = paste0(output_path, table_name, ".csv"))
+            file = file.path(output_dir, paste0(table_name, ".csv")))
 }
