@@ -1,0 +1,71 @@
+---
+title: "import_template_automated"
+output: html_document
+---
+
+This is a template for importing eyetracking datasets to a peekbank schema compliant format with raw output files from automated eyetracking systems, such as smi. In this template, we are using dataset *reflook_socword* as the example. 
+
+For automated coded eyetracking datasets, we will have nine processed tables at the end of this script: datasets, administrations, subjects, trial_types, trials, stimuli, xy_timepoints, aoi_region_sets, aoi_timepoints.
+<!-- have not checked against tobii, eyelink, etc, add later -->
+
+First, let's load R packages and environment.
+
+```{r setup, include=FALSE}
+library(here)
+library(XML)
+library(reader)
+library(fs)
+library(feather)
+library(tidyverse)
+library(peekds)
+library(osfr)
+source(here("data/reflook_socword/import_scripts/import_helpers.R"))
+
+```
+
+Then, set up general parameters for this dataset and load raw data files from osf if you don't have them already.
+
+```{r parameters}
+dataset_name <- "reflook_socword"
+dataset_id <- 0
+# osf_token <- read_lines(here("osf_token.txt"))
+OSF_ADDRESS <- "pr6wu"
+
+#### Define paths and get data from OSF if necessary ####
+DATASET_PATH <- here(file.path("data", dataset_name))
+raw_data_path <- file.path(DATASET_PATH, "raw_data")
+full_dataset_path <- file.path(DATASET_PATH, "raw_data/full_dataset")
+# if raw_data_path does not exist, get_raw_data will report error
+if (!file.exists(raw_data_path)){
+  dir.create(file.path(raw_data_path)) 
+}
+exp_info_path <- file.path(DATASET_PATH, "raw_data/experiment_info")
+output_path <- file.path(DATASET_PATH, "processed_data")
+# if output_path does not exist, write_csv will report error
+if (!file.exists(output_path)){
+  dir.create(file.path(output_path)) 
+}
+
+if(length(list.files(full_dataset_path)) == 0 & length(list.files(exp_info_path)) == 0) {
+  peekds::get_raw_data(lab_dataset_id = dataset_name, path = raw_data_path, osf_address = OSF_ADDRESS)
+}
+
+```
+
+Let's create the first `datasets` table.
+
+```{r datasets}
+######## Make 9 Peekbank tables #########
+#### (1) datasets ####
+df_dataset <- tibble(
+  dataset_id = dataset_id,
+  lab_dataset_id = dataset_name,
+  dataset_name = dataset_name,
+  cite = "Yurovsky, D., Wade, A., & Frank, M. (2013). Online processing of speech and social information in early word learning. In Proceedings of the annual meeting of the cognitive science society (Vol. 35, No. 35).",
+  shortcite = "Yurovsky et al. (2013)"
+)
+
+write_csv(df_dataset, file = file.path(output_path, paste0('datasets', ".csv")))
+```
+
+
