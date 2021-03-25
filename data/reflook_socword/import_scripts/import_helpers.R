@@ -243,7 +243,7 @@ process_administration_info <- function(file_path_exp_info, file_path_exp) {
 process_smi_eyetracking_file <- function(file_path, delim_options = possible_delims,stimulus_coding="stim_column") {
   
   #guess delimiter
-  sep <- get.delim(file_path, comment="#", delims=delim_options,skip = max_lines_search)
+  sep <- get.delim(file_path, comment="#", delims=delim_options, skip = max_lines_search)
   
   #read in lines to extract smi info
   lab_subject_id <- extract_smi_info(file_path,subid_name)

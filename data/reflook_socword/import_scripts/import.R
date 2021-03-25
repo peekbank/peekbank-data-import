@@ -134,7 +134,6 @@ trials.data <- timepoint.data %>%
   distinct(trial_id, trial_order, trial_type_id)
 
 #create trials data and match with stimulus id and aoi_region_set_id
-# TODO: add full phrase
 trial_types.data <- process_smi_trial_info(trial_file_path) %>%
   left_join(stimuli.data %>% select(stimulus_id, english_stimulus_label), by=c("distractor_label"="english_stimulus_label")) %>%
   rename(distractor_id = stimulus_id) %>%

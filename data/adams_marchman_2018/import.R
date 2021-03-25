@@ -177,8 +177,8 @@ d_tidy <- d_tidy %>%
 
 #get zero-indexed administration ids
 d_administration_ids <- d_tidy %>%
-  distinct(subject_id,sub_num,months,order_uniquified) %>%
-  arrange(subject_id,sub_num,months,order_uniquified) %>%
+  distinct(subject_id, sub_num, months, order_uniquified) %>%
+  arrange(subject_id, sub_num, months, order_uniquified) %>%
   mutate(administration_id = seq(0, length(.$order_uniquified) - 1)) 
 
 # create zero-indexed ids for trial_types
