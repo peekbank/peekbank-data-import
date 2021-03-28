@@ -32,7 +32,7 @@ remove_repeat_headers <- function(d, idx_var) {
 }
 
 
-# download datata from osf
+# download data from osf
 # peekds::get_raw_data(dataset_name, path = read_path)
 
 
