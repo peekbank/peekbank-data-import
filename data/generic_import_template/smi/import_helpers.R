@@ -1,5 +1,16 @@
-#### generic functions ###
+#### generic  ###
 
+max_lines_search <- 40 #maybe change this value?
+subid_name <- "Subject"
+monitor_size <- "Calibration Area"
+sample_rate <- "Sample Rate"
+possible_delims <- c("\t",",")
+left_x_col_name <-  "L POR X [px]"
+right_x_col_name <-  "R POR X [px]"
+left_y_col_name <-  "L POR Y [px]"
+right_y_col_name <-  "R POR Y [px]"
+stims_to_remove_chars <- c(".avi")
+stims_to_keep_chars <- c("_")
 
 #function for extracting information from SMI header/ comments
 extract_smi_info <- function(file_path,parameter_name) {
@@ -34,7 +45,7 @@ process_subjects_info <- function(file_path) {
 
 process_smi_trial_info <- function(file_path) {
   
-  #guess delimiter
+  # guess delimiter
   sep <- get.delim(file_path, delims=possible_delims)
   
   #read in data
@@ -112,7 +123,7 @@ process_smi_trial_info <- function(file_path) {
 
 process_smi_stimuli <- function(file_path) {
   
-  #guess delimiter
+  # guess delimiter
   sep <- get.delim(file_path, delims=possible_delims)
   
   #read in data
@@ -152,22 +163,6 @@ process_smi_stimuli <- function(file_path) {
     distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, stimulus_label, dataset_id)
   
   return(stimuli_data)
-}
-
-#### Table 5: Dataset ####
-
-process_smi_dataset <- function(lab_dataset_id=dataset_name) {
-  
-  ##Make dataset table
-  dataset.data <- data.frame(
-    dataset_id = dataset_id, #hard code data set id for now
-    lab_dataset_id = lab_dataset_id, 
-    dataset_name = lab_dataset_id,
-    cite = "Yurovsky, Wade & Frank, 2013", ##what is the full citation on this?
-    shortcite = "Yurovsky et al., 2013"
-  )
-  
-  return(dataset.data)
 }
 
 #### Table 6: AOI regions ####
@@ -240,7 +235,7 @@ process_administration_info <- function(file_path_exp_info, file_path_exp) {
 
 #### Table 1A: XY Data ####
 
-process_smi_eyetracking_file <- function(file_path, delim_options = possible_delims,stimulus_coding="stim_column") {
+process_smi_eyetracking_file <- function(file_path, delim_options = possible_delims, stimulus_coding="stim_column") {
   
   #guess delimiter
   sep <- get.delim(file_path, comment="#", delims=delim_options, skip = max_lines_search)
