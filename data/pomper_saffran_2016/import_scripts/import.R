@@ -152,7 +152,11 @@ stimulus_table <-  all_orders_cleaned %>%
   filter(target_image != target_word) %>% # lets get object/color combinations so we have the full table, please!
   rename('color' = target_word) %>%
   mutate(stimulus_image_path = paste0('raw_data/stimuli/images/', target_image, '.jpg'),
-         lab_stimulus_id = target_image, stimulus_novelty = 'familiar', dataset_id = 0) %>%
+         lab_stimulus_id = target_image, 
+         stimulus_novelty = 'familiar', 
+         dataset_id = 0,
+         image_description = target_image,
+         image_description_source = "image path") %>%
   gather(key="trial_type", value = "stimulus_label", color, target_image) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1),
          target_image = lab_stimulus_id, target_word = stimulus_label)
