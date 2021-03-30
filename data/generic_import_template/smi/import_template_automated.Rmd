@@ -20,7 +20,6 @@ library(tidyverse)
 library(peekds)
 library(osfr)
 library(kableExtra)
-trial_file_name <- "reflook_v3_tests.csv"
 ```
 
 Then, set up general parameters and file paths. In this step, we will also download the raw files if they are not on our local machine.
@@ -270,7 +269,7 @@ aoi_timepoints_data %>%
 
 That's it! Now, we'll write all the tables to `.csv` files and validate them to make sure they adhere to the schema. The osf write are commented out so you don't accidentally write a bunch of stuff when running this script. There you have it--that's how to import a Peekbank eyetracker dataset.
 
-```{r write-all}
+```{r write-all, message = FALSE, warning = FALSE}
 output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
 
 write_csv(df_dataset, file = here(output_path, "datasets.csv"))
@@ -293,3 +292,16 @@ peekds::validate_for_db_import(dir_csv = output_path)
 ```
 
 Finally, we'll create a simple visualization plot for this dataset.
+```{r vis, message = FALSE, warning = FALSE}
+aoi_timepoints_data %>%
+  left_join(trials_data) %>%
+  left_join(trial_types_data) %>%
+  group_by(t_norm, condition) %>%
+  filter(aoi %in% c("target", "distractor")) %>%
+  summarise(correct = mean(aoi == "target")) %>%
+  ggplot(aes(x = t_norm, y = correct, col = condition)) +
+  geom_line() +
+  xlim(-3000, 4000) +
+  geom_hline(aes(yintercept = .5), lty = 2) +
+  theme_bw()
+```
