@@ -27,7 +27,7 @@ Then, set up general parameters and file paths.
 
 ```{r parameters, message = FALSE, warning = FALSE}
 dataset_name <- "reflook_socword"
-source(here("data/reflook_socword/import_scripts/import_helpers_template.R"))
+source(here("data/generic_import_template/smi/import_helpers.R"))
 dataset_id <- 0
 file_ext = '.txt'
 # raw data directory

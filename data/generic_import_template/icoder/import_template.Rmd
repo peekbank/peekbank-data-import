@@ -16,7 +16,7 @@ library(peekds)
 library(osfr)
 library(DT)
 library(kableExtra)
-source(here("data/adams_marchman_2018/read_data_helpers.R"))
+source(here("data/generic_import_template/icoder/read_data_helpers.R"))
 ```
 
 First, we set some constants and file paths. Your data will need to be in the folder "data/your_dataset_name/raw_data" starting from your working directory.

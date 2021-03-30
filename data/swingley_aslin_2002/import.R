@@ -105,6 +105,24 @@ d_tidy <- d_tidy %>%
   #ambiguous decision: make the distractor label match distractor image
   mutate(distractor_label=distractor_image)
 
+## Fix mislabeled targets
+## D. Swingley, 3/28, personal communication:
+## Order 4 was, at some point, incorrectly coded for which MP variants it held, 
+## and I managed to fix the overarching label (m-h vs m-e) but did not spot 
+## that this would leave the wrong spellouts for the individual items. 
+## [...] It's the spellouts (opal/opple, "target") that are wrong, not the condition label (m-e/m-h, "type")
+## --> relabel targets for order 4
+d_tidy <- d_tidy %>%
+  mutate(target_label = case_when(
+    order == 4 & cond == "mp" & targ_wd == "apple" ~ "opple",
+    order == 4 & cond == "mp" & targ_wd == "baby" ~ "vaby",
+    order == 4 & cond == "mp" & targ_wd == "ball" ~ "gall",
+    order == 4 & cond == "mp" & targ_wd == "car" ~  "cur",
+    order == 4 & cond == "mp" & targ_wd == "dog" ~ "tog",
+    order == 4 & cond == "mp" & targ_wd == "kitty" ~ "pity",
+    TRUE ~ target_label
+  )
+  )
 
 #create stimulus table
 
@@ -177,7 +195,7 @@ d_tidy_final <- d_tidy %>%
          sample_rate = sampling_rate_hz,
          coding_method = "manual gaze coding",
          full_phrase_language = "eng",
-         condition = cond, #condition manipulation - not taking into account mp - easy/ hard (close/distant) 
+         condition = type, #condition manipulation - taking into account mp - easy/ hard (close/distant) 
          sex = factor(sex, levels = c('m','f'), labels = c('male','female')),
          native_language="eng") %>%
   rename(lab_subject_id = subj,
