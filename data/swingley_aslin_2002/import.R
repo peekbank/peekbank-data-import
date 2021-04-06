@@ -24,10 +24,10 @@ trial_types_table_filename <- "trial_types.csv"
 trials_table_filename <- "trials.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
-#osf_token <- read_lines(here("osf_token.txt"))
+osf_token <- read_lines(here("osf_token.txt"))
 
 # download datata from osf
-#peekds::get_raw_data(dataset_name, path = read_path)
+# peekds::get_raw_data(dataset_name, path = read_path)
 
 
 # read raw icoder files
@@ -138,6 +138,8 @@ stimulus_table <- d_tidy %>%
          original_stimulus_label = target_label,
          english_stimulus_label = target_label,
          stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
+         image_description = stimulus_image_path,
+         image_description_source = "experiment documentation",
          lab_stimulus_id = paste(cond,target_image,target_label,sep="_")
   ) %>%
   arrange(stimulus_image_path, original_stimulus_label) %>%
