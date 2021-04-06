@@ -12,6 +12,11 @@ data_path <- "data/garrison_bergelson_2020/raw_data"
 output_path <- "data/garrison_bergelson_2020/processed_data"
 dataset_name <- "garrison_bergelson_2020"
 
+osf_token <- read_lines(here("osf_token.txt"))
+if(length(list.files(data_path)) == 0) {
+  get_raw_data(lab_dataset_id = dataset_name, path = data_path, osf_address = "pr6wu")
+}
+
 # yoursmy_test.Rds: binned data with subject excludes implemented, output at end of dataprep/yoursmy_dataprep_eyetracking.Rmd
 d <- readRDS(here(data_path, "eyetracking/yoursmy_test.Rds"))
 
@@ -50,10 +55,12 @@ stimuli <- d %>%
          stimulus_novelty = "familiar", 
          lab_stimulus_id = TargetImage, 
          stimulus_image_path = TargetImage,
+         image_description = str_replace(str_replace(stimulus_image_path, ".jpg", ""), "[^A-Za-z]+",""),
+         image_description_source = "image path",
          dataset_id = 0) %>%
   ungroup() %>%
   select(original_stimulus_label, english_stimulus_label, stimulus_novelty, 
-         stimulus_image_path, lab_stimulus_id, dataset_id) %>%
+         stimulus_image_path, lab_stimulus_id, dataset_id, image_description,image_description_source) %>%
   distinct() %>%
   mutate(stimulus_id = 0:(n() - 1))
 
