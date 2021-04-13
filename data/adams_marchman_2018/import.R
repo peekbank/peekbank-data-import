@@ -153,7 +153,9 @@ stimulus_table <- d_tidy %>%
          stimulus_novelty = "familiar",
          original_stimulus_label = target_label,
          english_stimulus_label = target_label,
-         stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
+         stimulus_image_path = paste0(target_image, ".pct"), # TO DO - update once images are shared/ image file path known
+         image_description = target_label,
+         image_description_source = "image path",
          lab_stimulus_id = target_image
   ) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
