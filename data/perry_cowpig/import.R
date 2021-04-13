@@ -127,6 +127,26 @@ stimulus_table <- d_tidy %>%
          stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
          lab_stimulus_id = target_image_old # retain encoding of condition as "familiar" (== typical color) and "test" (==atypical color) from original study
   ) %>%
+  # for image description, add picture-by-picture description based on stimulus information
+  mutate(
+    image_description = case_when(
+      condition=="familiar" ~ target_label,
+      condition=="test" & target_label == "cow" ~ "pink cow",
+      condition == "test" & target_label == "strawberry" ~ "green strawberry",
+      condition == "test" & target_label == "duck" ~ "brown duck",
+      condition == "test" & target_label == "frog" ~ "striped frog",
+      condition == "test" & target_label == "zebra" ~ "green zebra",
+      condition == "test" & target_label == "peas" ~ "red peas",
+      condition == "test" & target_label == "monkey" ~ "yellow monkey",
+      condition == "test" & target_label == "grapes" ~ "yellow grapes",
+      condition == "test" & target_label == "elephant" ~ "brown elephant",
+      condition == "test" & target_label == "lion" ~ "grey lion",
+      condition == "test" & target_label == "banana" ~ "purple banana",
+      condition == "test" & target_label == "pig" ~ "holstein pig"
+    ),
+    image_description_source = "experiment documentation"
+  ) %>%
+  
   rename(original_image_name=target_image_old) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
@@ -224,6 +244,8 @@ stimulus_table %>%
          original_stimulus_label,
          english_stimulus_label,
          stimulus_image_path,
+         image_description,
+         image_description_source,
          lab_stimulus_id,
          dataset_id) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))

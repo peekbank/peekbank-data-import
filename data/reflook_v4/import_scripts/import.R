@@ -33,7 +33,7 @@ dir_path <- fs::path(here::here("data", dataset_name, "raw_data"))
 
 ## only download if it's not on your machine
 if(length(list.files(paste0(dir_path, "/full_dataset"))) == 0 && length(list.files(paste0(dir_path, "/experiment_info"))) == 0) {
-  osfr::get_raw_data(lab_dataset_id = "reflook_v4", path = dir_path, osf_address = "pr6wu")
+  get_raw_data(lab_dataset_id = "reflook_v4", path = dir_path, osf_address = "pr6wu")
 }
 
 #Specify file 
@@ -208,7 +208,7 @@ peekds::validate_for_db_import(dir_csv = output_path)
 
 # OSF integration
 # system specific read-in because I don't have another good method? 
-token <- read_lines(here("../token.txt"))[1]
+token <- read_lines(here("../osf_token.txt"))[1]
 osf_token <- osfr::osf_auth(token = token) # - fill in with your own token.
 put_processed_data(osf_token, dataset_name, paste0(output_path,"/"), osf_address = "pr6wu")
 

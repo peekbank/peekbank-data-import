@@ -120,10 +120,12 @@ process_smi_stimuli <- function(file_path) {
            original_stimulus_label = english_stimulus_label,
            stimulus_image_path = NA, 
            lab_stimulus_id = NA,
-           type = str_to_lower(type)) %>%
+           type = str_to_lower(type),
+           image_description = english_stimulus_label,
+           image_description_source = "image path") %>%
     rename("stimulus_novelty" = "type") %>%
     distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, 
-             english_stimulus_label, original_stimulus_label, dataset_id)
+             english_stimulus_label, original_stimulus_label, image_description, image_description_source, dataset_id)
   
   return(stimuli_data)
 }

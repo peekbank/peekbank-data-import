@@ -87,3 +87,89 @@ data/swingley_aslin_2002/raw_data/readme_swingley_mon2_peekbank_21mar25.txt
 data/swingley_aslin_2002/raw_data/stimuli_combinations_snippet.R
 data/swingley_aslin_2002/raw_data/subjdat_mon2_peekbank
 data/swingley_aslin_2002/raw_data/swingley_mon2_peekbank_21mar25.txt
+data/reflook_v4/processed_data/administrations.csv
+data/reflook_v4/processed_data/aoi_region_sets.csv
+data/reflook_v4/processed_data/aoi_timepoints.csv
+data/reflook_v4/processed_data/datasets.csv
+data/reflook_v4/processed_data/stimuli.csv
+data/reflook_v4/processed_data/subjects.csv
+data/reflook_v4/processed_data/trial_types.csv
+data/reflook_v4/processed_data/trials.csv
+data/reflook_v4/processed_data/xy_timepoints.csv
+data/reflook_v4/raw_data/experiment_info/reflook_stimuli.docx
+data/reflook_v4/raw_data/experiment_info/reflook_tests.csv
+data/reflook_v4/raw_data/experiment_info/reflook_v4_demographics.csv
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_052212_2_2133 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070312_01_1631 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070312_02_1632 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070312_04_1633 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070312_05_1634 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070312_07_1635 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070312_08_1636 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070312_10-1_1639 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070312_09_1637 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070312_11_1640 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_02_1642 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_01_1641 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_03_1643 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_04_1644 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_05_1645 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_06_1646 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_07_1647 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_08_1648 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_09_1649 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_10_1650 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_11_1651 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_12_1652 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_13_1653 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_14_1654 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_15_1655 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070512_16_1656 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_01_1657 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_02_1658 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_03_1659 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_04_1660 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_05_1661 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_06_1662 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_07_1663 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_08_1664 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_09_1665 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_11_1666 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_12_1667 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_13_1668 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_14_1669 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_070912_15_1670 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071012_01_1672 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071012_02_1673 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071012_03_1674 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071012_05-2_1677 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071012_04_1675 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071012_06_1678 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071012_07_1679 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071012_08_1680 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071012_09_1681 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071012_10_1684 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071112_01_1685 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071112_02_1686 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071112_03_1687 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071112_04_1688 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071112_05_1689 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071112_06_1690 Samples.txt
+data/reflook_v4/raw_data/full_dataset/Reflook4_2 (2)_071112_07_1691 Samples.txt
+data/reflook_v4/raw_data/test_aois/o_book_dog (AOIs).xml
+data/reflook_v4/raw_data/test_aois/o_clock_lamp (AOIs).xml
+data/reflook_v4/raw_data/test_aois/o_dog_car (AOIs).xml
+data/reflook_v4/raw_data/test_aois/o_fep_toma (AOIs).xml
+data/reflook_v4/raw_data/test_aois/o_lamp_carrot (AOIs).xml
+data/reflook_v4/raw_data/test_aois/o_toma_fep (AOIs).xml
+data/reflook_v4/raw_data/test_aois/t_banana_car (AOIs).xml
+data/reflook_v4/raw_data/test_aois/t_book_banana (AOIs).xml
+data/reflook_v4/raw_data/test_aois/t_clock_frog (AOIs).xml
+data/reflook_v4/raw_data/test_aois/t_fep_toma (AOIs).xml
+data/reflook_v4/raw_data/test_aois/t_frog_carrot (AOIs).xml
+data/reflook_v4/raw_data/test_aois/t_toma_fep (AOIs).xml
+data/potter_canine/processed_data/stimuli.csv
+data/potter_canine/processed_data/aoi_timepoints.csv
+data/perry_cowpig/processed_data/aoi_timepoints.csv
+data/perry_cowpig/processed_data/stimuli.csv
+data/potter_canine/processed_data/stimuli.csv
