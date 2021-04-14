@@ -14,10 +14,13 @@ point_of_disambiguation = 3155
 ### get raw data ###
 osf_token <- read_lines(here("osf_token.txt"))
 
-#for now processing from my local project folder, change to work with osf once that gets pushed
 read_path <- here("data",lab_dataset_id, "raw_data/")
 write_path <- here("data",lab_dataset_id, "processed_data/")
-#peekds::get_raw_data(lab_dataset_id, path = read_path)
+
+### download data from OSF if not already present
+if(length(list.files(read_path)) == 0) {
+  peekds::get_raw_data(lab_dataset_id = lab_dataset_id, path = read_path, osf_address = "pr6wu")
+}
 
 ### Read Metadata ###
 
@@ -155,9 +158,16 @@ combine_label <- function(raw_string){
 stimuli_table$english_stimulus_label <- unlist(lapply(stimuli_table$lab_stimulus_id,combine_label))
 
 stimuli_table<- stimuli_table %>% 
+  #add image description
+  mutate(
+    image_description = str_replace(english_stimulus_label, "-tseltal",""),
+    image_description_source = "experiment documentation"
+  ) %>%
   select(stimulus_id, 
          original_stimulus_label, english_stimulus_label,
          stimulus_novelty, stimulus_image_path,
+         image_description,
+         image_description_source,
          lab_stimulus_id, dataset_id)
 
 
