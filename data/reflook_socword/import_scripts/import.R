@@ -192,6 +192,6 @@ validate_for_db_import(dir_csv=output_path)
 
 #### OSF INTEGRATION ####
 write_path <- paste0(output_path, "/")
-put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
+#put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
 
 

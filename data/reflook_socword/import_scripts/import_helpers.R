@@ -148,8 +148,12 @@ process_smi_stimuli <- function(file_path) {
            stimulus_image_path = NA, 
            lab_stimulus_id = NA, 
            type = tolower(type))%>%
-    rename("stimulus_novelty" = "type")%>%
-    distinct(stimulus_novelty, stimulus_image_path, lab_stimulus_id, stimulus_label, dataset_id)
+    rename("stimulus_novelty" = "type") %>%
+    mutate( image_description = case_when(
+      stimulus_novelty == "familiar" ~ stimulus_label,
+      TRUE ~ NA_character_),
+      image_description_source = "experiment documentation") %>%
+    distinct(stimulus_novelty, stimulus_image_path, image_description, image_description_source, lab_stimulus_id, stimulus_label, dataset_id)
   
   return(stimuli_data)
 }
