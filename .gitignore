@@ -631,3 +631,184 @@ data/potter_remix/processed_data/administrations.csv
 data/adams_marchman_2018/processed_data/aoi_timepoints.csv
 data/adams_marchman_2018/processed_data/datasets.csv
 data/adams_marchman_2018/processed_data/stimuli.csv
+data/frank_tablet_2016/processed_data/administrations.csv
+data/frank_tablet_2016/processed_data/aoi_timepoints.csv
+data/frank_tablet_2016/processed_data/stimuli.csv
+data/frank_tablet_2016/processed_data/subjects.csv
+data/frank_tablet_2016/processed_data/trial_types.csv
+data/frank_tablet_2016/processed_data/trials.csv
+data/frank_tablet_2016/processed_data/xy_timepoints.csv
+data/frank_tablet_2016/raw_data/experiment_info/et_demographics.csv
+data/frank_tablet_2016/raw_data/experiment_info/eye.tracking.csv
+data/frank_tablet_2016/raw_data/experiment_info/lists.csv
+data/frank_tablet_2016/raw_data/experiment_info/target_distractor.txt
+data/frank_tablet_2016/raw_data/experiment_info/trial.codes.csv
+data/frank_tablet_2016/raw_data/full_dataset/2014_07_03_01-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_07_03_02-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_07_03_03-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_07_03_04-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_07_03_05-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_07_29_06-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_07_29_07-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_07_29_08-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_07_29_09-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_01_03-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_07_29_10-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_01_11-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_01_12-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_01_13-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_05_16-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_01_14-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_05_17-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_05_18-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_05_19-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_15_20-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_15_21-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_15_22-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_15_23-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_15_24-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_15_25-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_15_27-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_15_26-eye_data Samples_fixed.txt
+data/frank_tablet_2016/processed_data/administrations.csv
+data/frank_tablet_2016/processed_data/aoi_timepoints.csv
+data/frank_tablet_2016/processed_data/stimuli.csv
+data/frank_tablet_2016/processed_data/subjects.csv
+data/frank_tablet_2016/processed_data/trials.csv
+data/frank_tablet_2016/processed_data/xy_timepoints.csv
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_18_28-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_18_30-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_18_29-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_18_31-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_18_32-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_18_33-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_18_34-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_18_35-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_20_36-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_20_37-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_20_38-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_20_40-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_20_41-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_20_39-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_20_42-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_22_43-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_22_44-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_22_45-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_22_47-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_22_46-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_22_48-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_22_49-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_22_50-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_22_51-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_24_52-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_24_53-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_24_54-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_24_55-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_24_56-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_26_57-eye_data Samples_fixed.txt
+data/frank_tablet_2016/processed_data/administrations.csv
+data/frank_tablet_2016/processed_data/aoi_timepoints.csv
+data/frank_tablet_2016/processed_data/stimuli.csv
+data/frank_tablet_2016/processed_data/subjects.csv
+data/frank_tablet_2016/processed_data/trials.csv
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_27_58-eye_data Samples_fixed.txt
+data/frank_tablet_2016/processed_data/xy_timepoints.csv
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_27_59-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_27_60-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_27_61-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_27_62-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_08_29_63-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_02_64-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_02_65-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_02_66-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_02_67-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_03_68-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_03_69-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_03_70-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_03_72-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_03_71-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_03_73-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_04_74-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_04_75-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_04_76-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_04_77-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_05_78-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_05_79-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_05_80-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_05_81-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_05_82-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_05_83-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_05_84-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_05_85-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_09_86-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_09_87-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_09_88-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_09_89-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_09_90-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_09_91-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_09_92-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_10_93-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_10_94-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_10_95-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_10_96-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_10_97-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_13_100-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_13_101-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_13_102-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_13_103-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_13_98-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_09_13_99-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_04_104-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_04_105-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_04_106-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_04_107-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_04_108-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_04_109-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_04_110-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_04_111-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_04_112-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_11_113-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_25_114-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_25_115-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_25_116-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_25_117-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_10_25_118-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_11_15_119-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_11_15_120-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/full_dataset/2014_11_15_121-eye_data Samples_fixed.txt
+data/frank_tablet_2016/raw_data/images/apple.jpg
+data/frank_tablet_2016/raw_data/images/baby.jpg
+data/frank_tablet_2016/raw_data/images/ball.jpg
+data/frank_tablet_2016/raw_data/images/bird.jpg
+data/frank_tablet_2016/raw_data/images/book.jpg
+data/frank_tablet_2016/raw_data/images/bottle.jpg
+data/frank_tablet_2016/raw_data/images/car.jpg
+data/frank_tablet_2016/raw_data/images/carrot.jpg
+data/frank_tablet_2016/raw_data/images/cat.jpg
+data/frank_tablet_2016/raw_data/images/clock.jpg
+data/frank_tablet_2016/raw_data/images/chair.jpg
+data/frank_tablet_2016/raw_data/images/cookie.jpg
+data/frank_tablet_2016/raw_data/images/cup.jpg
+data/frank_tablet_2016/raw_data/images/dax.jpg
+data/frank_tablet_2016/raw_data/images/dofa.jpg
+data/frank_tablet_2016/raw_data/images/dog.jpg
+data/frank_tablet_2016/raw_data/images/fep.jpg
+data/frank_tablet_2016/raw_data/images/frog.jpg
+data/frank_tablet_2016/raw_data/images/flower.jpg
+data/frank_tablet_2016/raw_data/images/hammer.jpg
+data/frank_tablet_2016/raw_data/images/horse.jpg
+data/frank_tablet_2016/raw_data/images/juice.jpg
+data/frank_tablet_2016/raw_data/images/kreeb.jpg
+data/frank_tablet_2016/raw_data/images/lamp.jpg
+data/frank_tablet_2016/raw_data/images/lion.jpg
+data/frank_tablet_2016/raw_data/images/modi.jpg
+data/frank_tablet_2016/raw_data/images/monkey.jpg
+data/frank_tablet_2016/raw_data/images/pifo.jpg
+data/frank_tablet_2016/raw_data/images/sheep.jpg
+data/frank_tablet_2016/raw_data/images/shoe.jpg
+data/frank_tablet_2016/raw_data/images/shovel.jpg
+data/frank_tablet_2016/raw_data/images/spoon.jpg
+data/frank_tablet_2016/raw_data/images/table.jpg
+data/frank_tablet_2016/raw_data/images/toma.jpg
+data/frank_tablet_2016/raw_data/images/train.jpg
+data/frank_tablet_2016/raw_data/images/wug.jpg

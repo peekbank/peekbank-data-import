@@ -71,8 +71,13 @@ stimuli_data <- target_distractors %>% # 48 entries
          stimulus_id = row_number()-1) %>% # 32 distinct labels with image paths lab ids 
   mutate(original_stimulus_label = stimulus_label,
          english_stimulus_label = stimulus_label) %>%
+  #add image description for familiar items
+  mutate( image_description = case_when(
+    stimulus_novelty == "familiar" ~ stimulus_label,
+    TRUE ~ NA_character_),
+    image_description_source = "image path") %>%
   select(stimulus_id, original_stimulus_label,english_stimulus_label, stimulus_novelty,
-         stimulus_image_path, lab_stimulus_id, dataset_id)
+         stimulus_image_path, image_description, image_description_source, lab_stimulus_id, dataset_id)
 
 write_peekbank_table("stimuli", stimuli_data, output_path)
 
