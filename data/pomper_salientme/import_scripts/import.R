@@ -219,7 +219,15 @@ stimulus_table <- stimulus_table_target  %>%
   bind_rows(stimulus_table_distractor) %>%
   distinct(original_stimulus_label,english_stimulus_label,stimulus_image_path,lab_stimulus_id,stimulus_novelty,image,label) %>%
   mutate(dataset_id = 0) %>%
-  mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
+  mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1)) %>%
+  mutate(image_description = case_when(
+    image == "novel1" ~ "purple unfamiliar object",
+    image == "novel2" ~ "orange-yellow unfamiliar object",
+    image == "novel3" ~ "green unfamiliar object",
+    image == "novel4" ~ "blue unfamiliar object",
+    TRUE ~ english_stimulus_label
+  )) %>%
+  mutate(image_description_source = "experiment documentation")
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distractor image; 
 d_tidy <- d_tidy %>%
@@ -338,6 +346,8 @@ stimulus_table %>%
          english_stimulus_label,
          stimulus_novelty,
          stimulus_image_path,
+         image_description,
+         image_description_source,
          lab_stimulus_id,
          dataset_id) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
@@ -394,7 +404,7 @@ data_tab <- tibble(
   dataset_id = 0, # leave as 0 for all
   dataset_name = "pomper_salientme",
   lab_dataset_id = dataset_name, # (if known)
-  cite = "Pomper, R., & Saffran, J. R. (2018). Familiar object salience affects novel word learning. Child Development. doi:10.1111/cdev.13053.",
+  cite = "Pomper, R., & Saffran, J. R. (2018). Familiar object salience affects novel word learning. Child Development, 90(2), e246-e262. doi:10.1111/cdev.13053.",
   shortcite = "Pomper & Saffran (2018)"
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
