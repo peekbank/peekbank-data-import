@@ -296,7 +296,7 @@ data_tab <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
-  cite = NA,
+  cite = "Potter, C. E., & Lew-Williams, C. (in prep). Behold the canine!: How does toddlers’ knowledge of typical frames and familiar words interact to influence their sentence processing?",
   shortcite = "Potter, C., & Lew-Williams, C. (in prep)"
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))

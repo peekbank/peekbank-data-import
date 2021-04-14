@@ -60,7 +60,7 @@ datasets_table = tibble(
   dataset_id = dataset_id,
   lab_dataset_id = lab_dataset_id,
   dataset_name = lab_dataset_id,
-  cite = "Mahr, T., McMillan, B. T. M., Saffran, J. R., Ellis Weismer, S., & Edwards, J. (2015). Anticipatory coarticulation facilitates word recognition in toddlers. Cognition, 142, 345–350.",
+  cite = "Mahr, T., McMillan, B. T. M., Saffran, J. R., Ellis Weismer, S., & Edwards, J. (2015). Anticipatory coarticulation facilitates word recognition in toddlers. Cognition, 142, 345-350.",
   shortcite = "Mahr et al. (2015)"
 )
 #rename and reorder data

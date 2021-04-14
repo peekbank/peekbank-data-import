@@ -302,7 +302,7 @@ data_tab <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
-  cite = "Perry, L. K., & Saffran, J. R. (2017). Is a Pink Cow Still a Cow? Individual Differences in Toddlers’ Vocabulary Knowledge and Lexical Representations. Cognitive Science, 41(4), 1090-1105. doi: 10.1111/cogs.12370",
+  cite = "Perry, L. K., & Saffran, J. R. (2017). Is a pink cow still a cow? Individual differences in toddlers' vocabulary knowledge and lexical representations. Cognitive Science, 41(4), 1090-1105. doi: 10.1111/cogs.12370",
   shortcite = "Perry & Saffran (2017)"
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))

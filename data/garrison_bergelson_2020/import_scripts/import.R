@@ -8,8 +8,8 @@ library(here)
 library(peekds) 
 library(osfr)
 
-data_path <- "data/garrison_bergelson_2020/raw_data"
-output_path <- "data/garrison_bergelson_2020/processed_data"
+data_path <- here("data","garrison_bergelson_2020","raw_data")
+output_path <- here("data","garrison_bergelson_2020","processed_data")
 dataset_name <- "garrison_bergelson_2020"
 
 osf_token <- read_lines(here("osf_token.txt"))
@@ -28,7 +28,7 @@ dataset <- tibble(dataset_id = 0,
                   dataset_name = "garrison_bergelson_2020",
                   name = "garrison_bergelson_2020", 
                   shortcite = "Garrison et al. (2020)", 
-                  cite = "Garrison, H., Baudet, G., Breitfeld, E., Aberman, A., & Bergelson, E. (2020). Familiarity plays a small role in noun comprehension at 12–18 months. Infancy, 25, 458-477.")
+                  cite = "Garrison, H., Baudet, G., Breitfeld, E., Aberman, A., & Bergelson, E. (2020). Familiarity plays a small role in noun comprehension at 12-18 months. Infancy, 25, 458-477.")
 
 ### 2. SUBJECTS TABLE 
 demographics <- read_csv(here(data_path, "yoursmy_ages.csv")) %>% 
