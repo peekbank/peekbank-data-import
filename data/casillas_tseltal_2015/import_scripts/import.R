@@ -138,7 +138,9 @@ administrations_table <- administrations_table %>%
 
 stimuli_table = stim_data_raw %>% 
   select(target_word, target_word_english, target_image) %>%
-  mutate(stimulus_image_path = glue::glue("original_images/{target_image}"),
+  mutate(image_description = target_word,
+         image_description_source = "experiment documentation",
+    stimulus_image_path = glue::glue("split_images/{target_image}"),
          stimulus_novelty = "familiar",
          dataset_id = dataset_id) %>%
   rename(original_stimulus_label = target_word,
@@ -168,6 +170,7 @@ stimuli_table<- stimuli_table %>%
          stimulus_novelty, stimulus_image_path,
          image_description,
          image_description_source,
+         stimulus_novelty, stimulus_image_path, image_description,image_description_source,
          lab_stimulus_id, dataset_id)
 
 

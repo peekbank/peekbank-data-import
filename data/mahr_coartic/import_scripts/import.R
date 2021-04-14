@@ -104,6 +104,8 @@ stimuli_table <- tibble(lab_stimulus_id = unique(append(stimuli_trials$ImageLFil
          original_stimulus_label = gsub('.{0,1}$', '', lab_stimulus_id),
          english_stimulus_label = str_replace(original_stimulus_label, "_", ""),
          stimulus_novelty = "familiar",
+         image_description = english_stimulus_label,
+         image_description_source = "experiment documentation",
          stimulus_image_path = paste0("/stimuli/images/", lab_stimulus_id, ".png", sep = ""),
          dataset_id = dataset_id)
 
@@ -298,7 +300,8 @@ stimuli_table <- stimuli_table %>%
          lab_stimulus_id = as.character(lab_stimulus_id),
          dataset_id = as.integer(dataset_id)) %>%
   select(stimulus_id, original_stimulus_label, english_stimulus_label,
-         stimulus_novelty, stimulus_image_path, lab_stimulus_id, dataset_id) %>%
+         stimulus_novelty, stimulus_image_path, lab_stimulus_id, dataset_id,
+         image_description, image_description_source) %>%
   write_csv(paste0(write_path, "/", stimuli_table_filename))
 
 
