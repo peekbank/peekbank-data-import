@@ -229,7 +229,9 @@ stimuli <- unique_targets %>%
     lab_stimulus_id=paste(stimulus_image_path,original_stimulus_label,sep="-"),
     dataset_id=0,
     stimulus_id = 0:(n()-1),
-    stimulus_novelty = "familiar"
+    stimulus_novelty = "familiar",
+    image_description = stimulus_image_path,
+    image_description_source = "experiment documentation"
   ) %>% 
   write_csv(fs::path(output_path, "stimuli.csv"))
 

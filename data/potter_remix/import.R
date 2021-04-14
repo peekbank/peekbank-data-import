@@ -193,10 +193,13 @@ stimulus_table <- d_tidy %>%
          lab_stimulus_id = paste0(target_image,"_",target_spoken_label,sep=""),
          stimulus_id = seq(0, nrow(.) - 1)
   ) %>%
+  mutate(
+    image_description = target_image,
+    image_description_source = "experiment documentation") %>%
   rename(
     original_stimulus_label = target_spoken_label,
     english_stimulus_label= target_label,
-    stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
+    stimulus_image_path = target_image # TO DO - update once images are shared/ image file path known
   )
   
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on the "spoken labels"
@@ -352,7 +355,7 @@ data_tab <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
-  cite = "Potter, C.E., Fourakis, E., Morin-Lessard, E., Byers-Heinlein, K., & Lew-Williams, C. (2019). Bilingual toddlers’ comprehension of mixed sentences is asymmetrical across their two languages. Developmental Science, 22(4), e12794. https://doi.org/10.1111/desc.12794",
+  cite = "Potter, C.E., Fourakis, E., Morin-Lessard, E., Byers-Heinlein, K., & Lew-Williams, C. (2019). Bilingual toddlers' comprehension of mixed sentences is asymmetrical across their two languages. Developmental Science, 22(4), e12794. https://doi.org/10.1111/desc.12794",
   shortcite = "Potter et al. (2019)"
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
