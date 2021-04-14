@@ -351,7 +351,7 @@ data_tab <- tibble(
   dataset_id = 0, # doesn't matter (leave as 0 for all)
   dataset_name = "pomper_saffran_2016",
   lab_dataset_id = "SwitchingCues", # internal name from the lab (if known)
-  cite = "Pomper, R., & Saffran, J. R. (2016). Roses Are Red, Socks Are Blue: Switching Dimensions Disrupts Young Children’s Language Comprehension. Plos one, 11(6), e0158459.
+  cite = "Pomper, R., & Saffran, J. R. (2016). Roses are red, socks are blue: Switching dimensions disrupts young children's language comprehension. Plos one, 11(6), e0158459.
 Chicago",
   shortcite = "Pomper & Saffran (2016)"
 ) %>%
