@@ -2,6 +2,7 @@
 # Garrison et al. (2020), Infancy raw data
 # https://doi.org/10.1111/infa.12333
 # Mike Frank 12/8/202
+# Peekbank team updates (last on 4/30/21)
 
 library(tidyverse)
 library(here)
@@ -146,20 +147,22 @@ timepoints <- d %>%
   left_join(trials) %>%
   left_join(subjects) %>%
   left_join(administrations) %>%
-  rename(point_of_disambiguation = TargetOnset) 
+  mutate(point_of_disambiguation = TargetOnset)
 
 xy_timepoints <- timepoints %>%
   select(x, y, t, point_of_disambiguation, administration_id, trial_id) %>%
-  rename(t_norm = t) %>% 
-  peekds::resample_times(table_type = "xy_timepoints") %>%
-  mutate(t_norm = as.integer(t_norm))
+  #not using the rezeroing function because times are already relative to trial onset
+  rename(t_zeroed=t) %>%
+  peekds::normalize_times() %>%
+  peekds::resample_times(table_type = "xy_timepoints") 
   
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- timepoints %>%
   select(aoi, t, point_of_disambiguation, administration_id, trial_id) %>%
-  rename(t_norm = t) %>% 
-  mutate(t_norm = as.integer(t_norm)) %>% 
   mutate(aoi = str_to_lower(ifelse(is.na(aoi), "missing", as.character(aoi)))) %>%
+  #not using the rezeroing function because times are already relative to trial onset
+  rename(t_zeroed=t) %>%
+  peekds::normalize_times() %>%
   peekds::resample_times(table_type = "aoi_timepoints")
 
 ################## WRITING AND VALIDATION ##################
@@ -178,10 +181,10 @@ peekds::validate_for_db_import(dir_csv = output_path)
 
 # OSF integration
 # system specific read-in of validation token
-token <- read_lines(here("../token.txt"))[1]
-osf_token <- osf_auth(token = token) 
-put_processed_data(osf_token, dataset_name, paste0(output_path,"/"),
-                   osf_address = "pr6wu")
+#token <- read_lines(here("../token.txt"))[1]
+#osf_token <- osf_auth(token = token) 
+#put_processed_data(osf_token, dataset_name, paste0(output_path,"/"),
+#                   osf_address = "pr6wu")
 
 ################## ENTERTAINING PLOT ##################
 aoi_timepoints %>%
