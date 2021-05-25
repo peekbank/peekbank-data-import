@@ -10,29 +10,38 @@ library(readxl)
 library(peekds)
 library(osfr)
 library(janitor)
+
 #### general parameters ####
 dataset_name <- "kartushina_2019"
 dataset_id <- 0
 subject_info <- "Participants_info_70sbj.xlsx"
-#paths
-
-dir_path <- fs::path(here::here("data", dataset_name, "raw_data"))
-#Define root path
-project_root <- here::here()
-#build directory path
-dir_path <- fs::path(project_root,"data", dataset_name,"raw_data","experimental_trials")
-control_path <- fs::path(project_root,"data", dataset_name,"raw_data","control_trials")
-
-exp_info_path <- fs::path(project_root,"data", dataset_name,"raw_data", "experiment_info")
-#output path
-output_path <- fs::path(project_root,"data",dataset_name,"processed_data")
-stim_path <- fs::path(project_root,"data", dataset_name,"raw_data","stimulus_images")
-
+OSF_ADDRESS <- "pr6wu"
 full_phrase_language <- "nor"
 possible_delims <- c("\t",",")
 
+# set up file paths
+# Define root path
+project_root <- here::here()
+raw_data_path <- fs::path(project_root, "data", dataset_name, "raw_data")
+# build directory path
+experiment_path <- fs::path(raw_data_path, "experimental_trials")
+control_path <- fs::path(raw_data_path, "control_trials")
+exp_info_path <- fs::path(raw_data_path, "experiment_info")
+stim_path <- fs::path(raw_data_path, "stimulus_images")
+# output path
+output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
+
+## only download if it's not on your machine
+if(length(list.files(experiment_path)) == 0 & length(list.files(exp_info_path)) == 0) {
+  # check if raw_data_path exists to avoid generating an error in using get_raw_data
+  if (!file.exists(raw_data_path)){
+    dir.create(raw_data_path)
+  }
+  get_raw_data(lab_dataset_id = dataset_name, path = raw_data_path, osf_address = OSF_ADDRESS)
+}
+
 #look at subject info
-subjects <- read_excel(paste0(exp_info_path,"/", subject_info)) %>% 
+subjects <- read_excel(fs::path(exp_info_path, subject_info)) %>% 
   select(lab_subject_id=ID, lab_age=age, Gender) %>% 
   mutate(sex=case_when(
     Gender=="F" ~ "female",
@@ -47,9 +56,9 @@ subjects <- read_excel(paste0(exp_info_path,"/", subject_info)) %>%
 # what do datafiles look like 
 
 #maybe we ignore the controls??
-sample_data <- read_delim(paste0(control_path, "/", "house.txt"), delim="\t")
+sample_data <- read_delim(fs::path(control_path, "house.txt"), delim="\t")
 
-#explore a normal data file
+#### explore a normal tobi data file ####
 
 ## what we think we know 
 
@@ -71,13 +80,12 @@ sample_data <- read_delim(paste0(control_path, "/", "house.txt"), delim="\t")
 # (Otherwise I think the lists are just for counterbalancing.)
 # other columns are ~useless
 
-
-apple <- read_delim(paste0(dir_path,"/", "apple.tsv"), delim="\t")
+apple <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t")
 apple$StudioTestName %>% unique() # List 1 v List 2
 apple$ParticipantName %>% unique() # cross check with subjects list
 apple$RecordingName %>% unique() # mostly follows subject?? (likely not a useful column)
 apple$RecordingDate %>% unique() # not useful
-apple$RecordingTimestamp %>% unique() 
+apple$RecordingTimestamp %>% unique() # sample rate 3
 apple$FixationFilter %>% unique() #not useful
 apple$MediaName %>% unique() # has left versus right !!
 apple$StudioEvent %>% unique() # Start, End, NA
@@ -92,12 +100,12 @@ apple$`AOI[M3T1]Hit` %>% unique() # NA, 0, 1
 apple$X16 %>% unique() #all NA
 
 
-df <- apple %>% 
+df1 <- apple %>% 
   filter(ParticipantName=="OS_015") #look at one participant
 
 df2 <- apple %>% filter(ParticipantName=="OS_014") # a list 2 participant
 
-#how long are the stamps 
+# how long are the stamps 
 test <- apple %>% select(ParticipantName, RecordingTimestamp, StudioEvent) %>%
   filter(StudioEvent %in% c("MovieStart", "MovieEnd")) %>% 
   group_by(ParticipantName) %>% 
@@ -105,17 +113,20 @@ test <- apple %>% select(ParticipantName, RecordingTimestamp, StudioEvent) %>%
             end_time=max(RecordingTimestamp)) %>% 
   mutate(diff_time=end_time-start_time)
 
+
+#### (1) datasets ####
 #datasets
 datasets <- tibble(dataset_id=0, lab_dataset_id=NA, dataset_name="kartushina_2019",
                    cite="Kartushina, N., & Mayor, J. (2019). Word knowledge in six-to nine-month-old Norwegian infants? Not without additional frequency cues. Royal Society open science, 6(9), 180711.",
                    shortcite="Kartushina & Mayor(2019)")
 
 
-apple <- read_delim(paste0(dir_path,"/", "apple.tsv"), delim="\t") %>% 
+# mutate gaze data column from 'AOI[D|T]Hit' to target, distractor and missing
+apple <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t") %>% 
   rename(lab_subject_id=ParticipantName) %>% 
   select(-StudioTestName, -X16, -RecordingDate, -RecordingName, -FixationFilter) %>% 
   inner_join(subjects, c("lab_subject_id")) %>% 
-  #Assuming T means target, and D means distractor
+  # Assuming T means target, and D means distractor
   # also assuming that unclassfied = missing, but saccade with no values = other (looking middle??)
   mutate(aoi=case_when(
     `AOI[D]Hit` ~ "distractor",
@@ -126,8 +137,6 @@ apple <- read_delim(paste0(dir_path,"/", "apple.tsv"), delim="\t") %>%
     T ~ "other" 
   )) %>% 
   select(-`AOI[D]Hit`,-`AOI[T]Hit`,-`AOI[M3D1]Hit`,-`AOI[M3T1]Hit`, -GazeEventType)
-
-
 
 
 rename_aois <- function(aoi_string) {
@@ -143,10 +152,11 @@ rename_aois <- function(aoi_string) {
 
 # only experimental trials; does not include control trials for now
 # because control trials are in a strange different format
-trial_file_list <- list.files(dir_path)
+trial_file_list <- list.files(experiment_path)
 
+# helper function to read in all tsv data
 read_trial_info <- function(file_name) {
-  file_path = paste0(dir_path, "/", file_name)
+  file_path = fs::path(experiment_path, file_name)
   #guess delimiter
   sep <- get.delim(file_path, delims=possible_delims)
   
@@ -179,6 +189,7 @@ read_trial_info <- function(file_name) {
   return(trial_data)
 }
 
+# read in all the experiment gaze data
 trial_data <- do.call(rbind,lapply(trial_file_list, read_trial_info))
 
 trial_data <- trial_data %>%
@@ -189,6 +200,7 @@ trial_data <- trial_data %>%
          stimulus = str_remove(stimulus, "\\_.*$")) %>%
   rename(target = stimulus)
   
+# no other distractor vs target info was found in the raw data, so pair information was only found in the paper
 target_distractor <- trial_data %>%
   select(target) %>%
   distinct(target) %>% 
