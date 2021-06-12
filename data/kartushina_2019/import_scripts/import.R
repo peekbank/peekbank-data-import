@@ -1,4 +1,3 @@
-
 #### Load packages ####
 library(here)
 library(XML)
@@ -40,222 +39,104 @@ if(length(list.files(experiment_path)) == 0 & length(list.files(exp_info_path)) 
   get_raw_data(lab_dataset_id = dataset_name, path = raw_data_path, osf_address = OSF_ADDRESS)
 }
 
-#look at subject info
-subjects <- read_excel(fs::path(exp_info_path, subject_info)) %>% 
-  select(lab_subject_id=ID, lab_age=age, Gender) %>% 
-  mutate(sex=case_when(
-    Gender=="F" ~ "female",
-    Gender=="M" ~ "male",
-     T ~"unspecified"
-  )) %>% 
-  select(-Gender) %>% 
+#### (1) datasets table ####
+df_dataset  <- tibble(
+  dataset_id = dataset_id, 
+  lab_dataset_id = dataset_name, 
+  dataset_name = dataset_name,
+  cite = "Kartushina, N., & Mayor, J. (2019). Word knowledge in six-to nine-month-old Norwegian infants? Not without additional frequency cues. Royal Society open science, 6(9), 180711.", 
+  shortcite = "Kartushina & Mayor (2019)")
+
+#### (2) subjects table ####
+# look at subject info
+df_subjects_info <- read_excel(fs::path(exp_info_path, subject_info)) %>% 
+  select(lab_subject_id = ID, lab_age = age, Gender) %>% 
   filter(!is.na(lab_subject_id)) %>% 
-  filter(lab_subject_id!="Average") #has 70 -- not sure which of the various exclusions this applies
+  filter(lab_subject_id!="Average") # has 70 -- not sure which of the various exclusions this applies
 # there's a final sample of 50 in paper after various exclusions
 
-# what do datafiles look like 
+df_subjects <- df_subjects_info %>% 
+  mutate(sex = case_when(Gender=="F" ~ "female", Gender=="M" ~ "male", T ~"unspecified"), 
+         subject_id = seq(0, length(.$lab_subject_id)-1), 
+         native_language = "nor"
+         ) %>% 
+  select(-Gender, -lab_age)
 
-#maybe we ignore the controls??
-sample_data <- read_delim(fs::path(control_path, "house.txt"), delim="\t")
+#### Eyetracking files only have hit or miss data for eyetracking data, therefore we don't have
+#### aoi_regions_sets and xy_timepoints tables
+#### The coding method should be "preprocessed eyetracking"
 
-#### explore a normal tobi data file ####
-
-## what we think we know 
-
-# One question is what should the zero-point/onset time be for the videos? The paper says the kids saw it for 1.5 seconds, then the recording started, and then there were 3.5 seconds after the critical word. 
-# Some subject ids are duplicated which is causing weird behavior in the time ranges. They're not uniquely associated with subject information. So for now, we take them out.
-# Most of the data is in files by what image was seen, and has all the kids in it.
-# Data columns
-# - StudioTestName: List 1 or List 2 (which columns contain the relevant AOIs varies by List)
-# - ParticipantName matches the subject id's on the spreadsheet
-#  - RecordingTimestamp is in milliseconds (maybe?). For one kid, usually ended in 3/6/9 -- maybe its every 3.3 ms??
-#  - MediaName is the file, which notably contains whether the target is on the right or left (corresponds with the list)
-#  - StudioEvent & StudioEventData only exist to mark the start/end of the image
-#  - GazeEventType - is either Fixation, Saccade, or Unclassified. If (and only if?) Fixation, one of the AOIs has a positive value 
-#  - GazeEventDuration - is the length of the Event in ms - this seems to lineup with how many timestamps match that time 
-#  
-# List 1 uses AOI[M3D1]Hit and AOI[M3T1]Hit coded with 0/1
-# List 2 uses AOI[D]Hit and AOI[T]Hit coded with True/False
-# NA is used to fill on the other list
-# (Otherwise I think the lists are just for counterbalancing.)
-# other columns are ~useless
-
-apple <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t")
-apple$StudioTestName %>% unique() # List 1 v List 2
-apple$ParticipantName %>% unique() # cross check with subjects list
-apple$RecordingName %>% unique() # mostly follows subject?? (likely not a useful column)
-apple$RecordingDate %>% unique() # not useful
-apple$RecordingTimestamp %>% unique() # sample rate 3
-apple$FixationFilter %>% unique() #not useful
-apple$MediaName %>% unique() # has left versus right !!
-apple$StudioEvent %>% unique() # Start, End, NA
-apple$StudioEventData %>% unique() # left, right, NA
-apple$GazeEventType %>% unique() #Fixation, Saccade, NA
-apple$GazeEventDuration %>% unique() # in ms, one presumes  
-apple$`AOI[D]Hit` %>% unique() # NA, F, T
-apple$`AOI[T]Hit` %>% unique() # NA, T, F
-apple$`AOI[M3D1]Hit` %>% unique() #NA, 0, 1
-apple$`AOI[M3T1]Hit` %>% unique() # NA, 0, 1
-# data either has values for D&T or for M3d1/M3t1 but never both ??
-apple$X16 %>% unique() #all NA
-
-
-df1 <- apple %>% 
-  filter(ParticipantName=="OS_015") #look at one participant
-
-df2 <- apple %>% filter(ParticipantName=="OS_014") # a list 2 participant
-
-# how long are the stamps 
-test <- apple %>% select(ParticipantName, RecordingTimestamp, StudioEvent) %>%
-  filter(StudioEvent %in% c("MovieStart", "MovieEnd")) %>% 
-  group_by(ParticipantName) %>% 
-  summarize(start_time=min(RecordingTimestamp),
-            end_time=max(RecordingTimestamp)) %>% 
-  mutate(diff_time=end_time-start_time)
-
-
-#### (1) datasets table ####
-#datasets
-datasets <- tibble(dataset_id=0, lab_dataset_id=NA, dataset_name="kartushina_2019",
-                   cite="Kartushina, N., & Mayor, J. (2019). Word knowledge in six-to nine-month-old Norwegian infants? Not without additional frequency cues. Royal Society open science, 6(9), 180711.",
-                   shortcite="Kartushina & Mayor(2019)")
-
-
-# mutate gaze data column from 'AOI[D|T]Hit' to target, distractor and missing
-apple <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t") %>% 
-  rename(lab_subject_id=ParticipantName) %>% 
-  select(-StudioTestName, -X16, -RecordingDate, -RecordingName, -FixationFilter) %>% 
-  inner_join(subjects, c("lab_subject_id")) %>% 
-  # Assuming T means target, and D means distractor
-  # also assuming that unclassfied = missing, but saccade with no values = other (looking middle??)
-  mutate(aoi=case_when(
-    `AOI[D]Hit` ~ "distractor",
-    `AOI[T]Hit` ~ "target",
-    `AOI[M3D1]Hit`==1 ~ "distractor",
-    `AOI[M3T1]Hit`==1 ~ "target",
-    GazeEventType=="Unclassified" ~ "missing",
-    T ~ "other" 
-  )) %>% 
-  select(-`AOI[D]Hit`,-`AOI[T]Hit`,-`AOI[M3D1]Hit`,-`AOI[M3T1]Hit`, -GazeEventType)
-
-
-rename_aois <- function(aoi_string) {
-  aoi_string <- if_else(str_detect(aoi_string, "\\d"), 
-                        if_else(str_detect(aoi_string, "d"), 
-                                "aoi_distractor_hit", "aoi_target_hit"),
-                        if_else(str_detect(aoi_string, "d"), 
-                                "aoi_distractor_hit_1", "aoi_target_hit_1"))
-  aoi_string <- if_else(duplicated(aoi_string), 
-                        paste0(aoi_string,"_1"), aoi_string)
-  return(aoi_string)
-}
-
+#### (3) Stimuli table ####
+# all experimental data were saved in files with stimulus words
 # only experimental trials; does not include control trials for now
 # because control trials are in a strange different format
-trial_file_list <- list.files(experiment_path)
+all_data_files <- list.files(experiment_path)
+stimuli_words <- str_remove(all_data_files, ".tsv")
 
-# helper function to read in all tsv data
-read_trial_info <- function(file_name) {
-  file_path = fs::path(experiment_path, file_name)
-  #guess delimiter
-  sep <- get.delim(file_path, delims=possible_delims)
+# no other distractor vs target info was found in the raw data, so pair information was typed in from the paper
+# For more information, please reference Table 1 as well as section 2.2.2 
+# Overall, the experiment is a 2 by 2 design with Context and Frequency conditions 
+# and 16 words used for image stimuli that match with the word, and 16 other words that were related to the stimuli images.
+#
+# e.g. spoon is contextually related to the word cookie; the frequency of pacifier matches the frequency of dog
+#
+# 32 words were used in the study with two conditions
+# 16 of them match the exact labels of the 16 stimuli images used in the
+# context (n = 8: cookie–belly, banana–hair, apple–foot, bread–leg) and 
+# in the frequency (n = 8: dog– glasses, cat–keys, car–couch, jacket–book) conditions.
+# The other 16 words are either contextually related or frequency-comparable words to the matching words.
+
+df_target  <- tibble(target = stimuli_words)
+
+df_word_pairs <- tibble(
+  matching = c("cookie-belly", "banana-hair", "apple-foot", "bread-leg", "dog-glasses", "cat-keys", "book-jacket", "car-couch"), 
+  related = c("spoon-bathtub", "bottle-toothbrush", "cup-pants", "table-diaper", "pacifier-pillow", "ball-sun", "phone-moon", "water-carpet"), 
+  condition_partial = c(rep("context", 4), rep("frequency", 4)) # condition and frequency are only one dimension of the experimental design
+)
+
+df_words_origin <- df_word_pairs %>% 
+  separate(matching, c("match_target", "match_distractor")) %>% 
+  separate(related, c("related_target", "related_distractor"))
   
-  #read in data
-  trial_data <-  
-    read_delim(
-      file_path,
-      delim=sep
-    )
-  
-  trial_data <- trial_data %>%
-    clean_names() %>%
-    rename_with(rename_aois, starts_with("aoi")) %>%
-    rename(stimlist = studio_test_name, 
-           lab_subject_id = participant_name,
-           stimulus = media_name,
-           timestamp = recording_timestamp,
-           stim_onset_offset = studio_event,
-           gaze_type = gaze_event_type,
-           gaze_duration = gaze_event_duration) %>%
-    mutate(aoi_target_hit = as.logical(aoi_target_hit),
-           aoi_distractor_hit = as.logical(aoi_distractor_hit),
-           aoi_distractor_hit = if_else(is.na(aoi_distractor_hit), 
-                                        aoi_distractor_hit_1, aoi_distractor_hit),
-           aoi_target_hit = if_else(is.na(aoi_target_hit), 
-                                    aoi_target_hit_1, aoi_target_hit)) %>%
-    select(stimlist, lab_subject_id, stimulus, timestamp, gaze_type,
-           gaze_duration, aoi_distractor_hit, aoi_target_hit)
-  
-  return(trial_data)
+df_words_switch <- tibble(
+  match_target = df_words_origin$match_distractor, 
+  match_distractor = df_words_origin$match_target, 
+  related_target = df_words_origin$related_distractor, 
+  related_distractor = df_words_origin$related_target, 
+  condition_partial = df_words_origin$condition_partial
+)
+
+# TODO: what to do when two stimulus images are used for one target?
+# for example, apple label was used for apple_foot.png and foot_apple.png
+# currently, only apple_foot.png was entered as the image path
+df_words <- rbind(df_words_origin, df_words_switch) %>%
+  mutate(stimulus_image_path = paste0(match_target, "_", match_distractor, ".png"), 
+         image_description = paste0("An image with a visual representation of ", match_target, " on the left side and of ", match_distractor, " on the right side."))
+
+df_words_match <- df_words %>%
+  mutate(target = match_target, distractor = match_distractor, condition = paste0(condition_partial, "_match")) %>%
+  select(target, distractor, stimulus_image_path, condition, image_description)
+
+df_words_related <- df_words %>%
+  mutate(target = related_target, distractor = related_distractor, condition = paste0(condition_partial, "_related")) %>%
+  select(target, distractor, stimulus_image_path, condition, image_description)
+
+is_list_match <- setdiff(stimuli_words, c(df_words$match_target, df_words$related_target))
+if (length(is_list_match) > 0) {
+  stop("Target word list does not match with file list under experimental_trials folder!")
 }
 
-# read in all the experiment gaze data
-trial_data <- do.call(rbind,lapply(trial_file_list, read_trial_info))
+df_stimuli <- rbind(df_words_match, df_words_related)
+target_distractor <- select(df_stimuli, target, distractor, condition)
 
-trial_data <- trial_data %>%
-  filter(lab_subject_id %in% subjects$lab_subject_id) %>%
-  mutate(target_side = if_else(str_detect(stimulus, "right"), "right",
-                               if_else(str_detect(stimulus, "left"), "left",
-                                       NA_character_)),
-         stimulus = str_remove(stimulus, "\\_.*$")) %>%
-  rename(target = stimulus)
-  
-#### stimuli information ####
-# no other distractor vs target info was found in the raw data, so pair information was typed in from the paper
-# Reference Table 1 as well as section 2.2.2 words
-# 32 words were used in the study. 
-#### Context and frequency condition ####
-# 16 of them are the labels of the 16 objects used in the
-# context (n = 8: cookie–belly, banana–hair, apple–foot, bread–leg) and in the frequency (n = 8: dog– glasses, cat–keys, car–couch, jacket–book) conditions.
-# These words were used on matching trials in their respective conditions.
-# The other 16 words are semantically related words to the labels used in the context and frequency condition, 
-# therefore should not be considered as actual stimuli
-
-# this target_distractor table match the image pairs in the \stimulus_images folder
-# with related pairs added
-target_distractor <- trial_data %>%
-  select(target) %>%
-  distinct(target) %>% 
-  mutate(distractor = case_when(target == "apple" ~ "foot", 
-                                target == "banana" ~ "hair",
-                                target == "belly" ~ "cookie",
-                                target == "book" ~ "jacket",
-                                target == "bread" ~ "leg",
-                                target == "car" ~ "couch",
-                                target == "cat" ~ "keys",
-                                target == "cookie" ~ "belly",
-                                target == "couch" ~ "car",
-                                target == "dog" ~ "glasses",
-                                target == "foot" ~ "apple",
-                                target == "glasses" ~ "dog",
-                                target == "hair" ~ "banana",
-                                target == "jacket" ~ "book",
-                                target == "keys" ~ "cat",
-                                target == "leg" ~ "bread",
-                                target == "spoon" ~ "bathtub",
-                                target == "bathtub" ~ "spoon",
-                                target == "bottle" ~ "toothbrush",
-                                target == "toothbrush" ~ "bottle",
-                                target == "cup" ~ "pants",
-                                target == "pants" ~ "cup",
-                                target == "table" ~ "diaper",
-                                target == "diaper" ~ "table",
-                                target == "pacifier" ~ "pillow",
-                                target == "pillow" ~ "pacifier",
-                                target == "ball" ~ "sun",
-                                target == "sun" ~ "ball",
-                                target == "phone" ~ "moon",
-                                target == "moon" ~ "phone",
-                                target == "carpet" ~ "water",
-                                target == "water" ~ "carpet"))
-
-stimuli <- target_distractor %>%
-  select(target) %>%
+df_stimuli <- df_stimuli %>%
+  select(target, stimulus_image_path, condition, image_description) %>%
   rename(english_stimulus_label = target) %>%
-  mutate(stimulus_novelty = "familiar",
+  mutate(stimulus_id = seq(0,length(.$english_stimulus_label)-1), 
          lab_stimulus_id = english_stimulus_label,
          dataset_id = dataset_id,
-         stimulus_id = seq(0,length(.$english_stimulus_label)-1), 
+         stimulus_novelty = "familiar",
+         image_description_source = "image path",
          # the original norwegian labels below were pasted from the paper table 1
          original_stimulus_label = case_when(english_stimulus_label == "cookie" ~ "kjeks",
                                              english_stimulus_label == "belly" ~ "mage",
@@ -289,16 +170,126 @@ stimuli <- target_distractor %>%
                                              english_stimulus_label == "moon" ~ "måne",
                                              english_stimulus_label == "water" ~ "vann",
                                              english_stimulus_label == "carpet" ~ "teppe")
-         )
+  )
 
-trial_types <- trial_data %>%
+##################################
+# here we read in the eyetracking data 
+
+# what do datafiles look like 
+# based on inspection of the control trial data, we ignored the control data
+# sample_data <- read_delim(fs::path(control_path, "house.txt"), delim="\t")
+
+## what we think we know 
+
+# One question is what should the zero-point/onset time be for the videos? The paper says the kids saw it for 1.5 seconds, then the recording started, and then there were 3.5 seconds after the critical word. 
+# Some subject ids are duplicated which is causing weird behavior in the time ranges. They're not uniquely associated with subject information. So for now, we take them out.
+# Most of the data is in files by what image was seen, and has all the kids in it.
+# Data columns
+# - StudioTestName: List 1 or List 2 (which columns contain the relevant AOIs varies by List)
+# - ParticipantName matches the subject id's on the spreadsheet
+#  - RecordingTimestamp is in milliseconds (maybe?). For one kid, usually ended in 3/6/9 -- maybe its every 3.3 ms??
+#  - MediaName is the file, which notably contains whether the target is on the right or left (corresponds with the list)
+#  - StudioEvent & StudioEventData only exist to mark the start/end of the image
+#  - GazeEventType - is either Fixation, Saccade, or Unclassified. If (and only if?) Fixation, one of the AOIs has a positive value 
+#  - GazeEventDuration - is the length of the Event in ms - this seems to lineup with how many timestamps match that time 
+#  
+# List 1 uses AOI[M3D1]Hit and AOI[M3T1]Hit coded with 0/1
+# List 2 uses AOI[D]Hit and AOI[T]Hit coded with True/False
+# NA is used to fill on the other list
+# (Otherwise I think the lists are just for counterbalancing.)
+# other columns are ~useless
+# This helper function is renaming columns of "AOI[M3D1]Hit" to aoi_target_hit etc
+rename_aois <- function(aoi_string) {
+  aoi_string <- if_else(str_detect(aoi_string, "\\d"), 
+                        if_else(str_detect(aoi_string, "d"), 
+                                "aoi_distractor_hit", "aoi_target_hit"),
+                        if_else(str_detect(aoi_string, "d"), 
+                                "aoi_distractor_hit_1", "aoi_target_hit_1"))
+  aoi_string <- if_else(duplicated(aoi_string), 
+                        paste0(aoi_string,"_1"), aoi_string)
+  return(aoi_string)
+}
+
+# helper function to read in all tsv eyetracking data in a clean format
+read_trial_data <- function(file_name) {
+  file_path = fs::path(experiment_path, file_name)
+  #guess delimiter
+  sep <- get.delim(file_path, delims = possible_delims)
+  
+  #read in data
+  trial_data <- read_delim(file_path, delim = sep)
+  
+  trial_data <- trial_data %>%
+    clean_names() %>%
+    rename_with(rename_aois, starts_with("aoi")) %>%
+    rename(stimlist = studio_test_name, 
+           lab_subject_id = participant_name,
+           stimulus = media_name,
+           timestamp = recording_timestamp,
+           stim_onset_offset = studio_event,
+           gaze_type = gaze_event_type,
+           gaze_duration = gaze_event_duration) %>%
+    mutate(aoi_target_hit = as.logical(aoi_target_hit),
+           aoi_distractor_hit = as.logical(aoi_distractor_hit),
+           aoi_distractor_hit = if_else(is.na(aoi_distractor_hit), 
+                                        aoi_distractor_hit_1, aoi_distractor_hit),
+           aoi_target_hit = if_else(is.na(aoi_target_hit), 
+                                    aoi_target_hit_1, aoi_target_hit)) %>%
+    select(stimlist, lab_subject_id, stimulus, timestamp, gaze_type,
+           gaze_duration, aoi_distractor_hit, aoi_target_hit)
+  
+  return(trial_data)
+}
+
+# read in all the experiment gaze data
+trial_data <- do.call(rbind,lapply(all_data_files, read_trial_data))
+
+trial_data <- trial_data %>%
+  filter(lab_subject_id %in% subjects$lab_subject_id) %>%
+  mutate(target_side = if_else(str_detect(stimulus, "right"), "right",
+                               if_else(str_detect(stimulus, "left"), "left",
+                                       NA_character_)),
+         stimulus = str_remove(stimulus, "\\_.*$")) %>%
+  rename(target = stimulus)
+
+
+#### (4) Administration table ####
+# monitor size and sampling rate were found from paper p9 section2.3 Procedure
+# - "We collected infants’ gaze using a Tobii TX300 eye-tracker, which has a sampling rate
+#   (binocular) of 300 Hz and a screen resolution of 1920 × 1080 pixels."
+subject_list <- unique(trial_data$lab_subject_id)
+
+df_administrations <- df_subjects_info %>%
+  filter(.$lab_subject_id %in% subject_list) %>% # filter out subjects that were not included in the trial data
+  select(subject_id = lab_subject_id, lab_age) %>%
+  mutate(
+    administration_id = seq(0, length(.$subject_id)-1), 
+    dataset_id = dataset_id, 
+    age = lab_age/(365.25/12), 
+    lab_age_units = "days",
+    monitor_size_x = 1920, 
+    monitor_size_y = 1080, 
+    sample_rate = 300, 
+    tracker = "Tobii TX300", 
+    coding_method = "preprocessed eyetracking"
+  )
+
+
+# TODO: still need point of disambiguation in trials table
+# from the paper: we inserted a 1.5 s period of silence at the beginning of each trial so that infantswould have the same exposure to the visual
+# stimuli before the onset of the sentence, as in the BS12 study. Trials ended 3.5 s after the targetword onset
+# see Figure 3, so for now we are using point_of_disambiguation = 1500
+
+#### (5) Trial_types table ####
+df_trials <- trial_data %>%
   select(target, target_side) %>%
   distinct(target, target_side) %>%
   left_join(target_distractor, by = "target") %>%
-  left_join(stimuli %>% select(english_stimulus_label, original_stimulus_label), 
+  left_join(df_stimuli %>% select(english_stimulus_label, original_stimulus_label), 
             by = c("target" = "english_stimulus_label")) %>%
   mutate(full_phrase_language = full_phrase_language,
          dataset_id = dataset_id,
+         point_of_disambiguation = 1500, 
          # sound matched manually 
          # again, this is a terrible way to do this.
          # I got the English phrases from the paper and did my best to match
@@ -306,21 +297,53 @@ trial_types <- trial_data %>%
          # now this is not being used but I'll keep it here in case someone needs to import with
          # English full phrases in the future...
          full_phrase_english = case_when(target == "table" | 
+                                           target == "phone" |
+                                           target == "moon" |
+                                           target == "glasses" |
+                                           target == "diaper" |
+                                           target == "dog" |
+                                           target == "cookie" |
+                                           target == "belly" ~ paste0("Can you find the ", target, "?"),
+                                         target == "water" |
+                                           target == "spoon" |
+                                           target == "foot" |
+                                           target == "cat" |
+                                           target == "carpet" |
+                                           target == "bathtub" |
+                                           target == "apple" ~ paste0("Where is the ", target, "?"),
+                                         target == "keys" ~ paste0("Where are the ", target, "?"),
+                                         target == "pillow" |
+                                           target == "pacifier" |
+                                           target == "pants" |
+                                           target == "hair" |
+                                           target == "couch" |
+                                           target == "cup" |
+                                           target == "car" |
+                                           target == "banana" ~ paste0("Do you see the ", target, "?"),
+                                         target == "toothbrush" |
+                                           target == "sun" |
+                                           target == "leg" |
+                                           target == "jacket" |
+                                           target == "bottle" |
+                                           target == "bread" |
+                                           target == "book" |
+                                           target == "ball"~ paste0("Look at the ", target, ".")),
+         full_phrase = case_when(target == "table" | 
                                    target == "phone" |
                                    target == "moon" |
                                    target == "glasses" |
                                    target == "diaper" |
                                    target == "dog" |
                                    target == "cookie" |
-                                   target == "belly" ~ paste0("Can you find the ", target, "?"),
+                                   target == "belly" ~ paste0("Kan du finne ", original_stimulus_label, "?"),
                                  target == "water" |
                                    target == "spoon" |
                                    target == "foot" |
                                    target == "cat" |
                                    target == "carpet" |
                                    target == "bathtub" |
-                                   target == "apple" ~ paste0("Where is the ", target, "?"),
-                                 target == "keys" ~ paste0("Where are the ", target, "?"),
+                                   target == "apple" |
+                                   target == "keys" ~ paste0("Hvor er ", original_stimulus_label, "?"),
                                  target == "pillow" |
                                    target == "pacifier" |
                                    target == "pants" |
@@ -328,7 +351,7 @@ trial_types <- trial_data %>%
                                    target == "couch" |
                                    target == "cup" |
                                    target == "car" |
-                                   target == "banana" ~ paste0("Do you see the ", target, "?"),
+                                   target == "banana" ~ paste0("Ser du ", original_stimulus_label, "?"),
                                  target == "toothbrush" |
                                    target == "sun" |
                                    target == "leg" |
@@ -336,58 +359,101 @@ trial_types <- trial_data %>%
                                    target == "bottle" |
                                    target == "bread" |
                                    target == "book" |
-                                   target == "ball"~ paste0("Look at the ", target, ".")),
-         full_phrase = case_when(target == "table" | 
-                                    target == "phone" |
-                                    target == "moon" |
-                                    target == "glasses" |
-                                    target == "diaper" |
-                                    target == "dog" |
-                                    target == "cookie" |
-                                    target == "belly" ~ paste0("Kan du finne ", original_stimulus_label, "?"),
-                                  target == "water" |
-                                    target == "spoon" |
-                                    target == "foot" |
-                                    target == "cat" |
-                                    target == "carpet" |
-                                    target == "bathtub" |
-                                    target == "apple" |
-                                    target == "keys" ~ paste0("Hvor er ", original_stimulus_label, "?"),
-                                  target == "pillow" |
-                                    target == "pacifier" |
-                                    target == "pants" |
-                                    target == "hair" |
-                                    target == "couch" |
-                                    target == "cup" |
-                                    target == "car" |
-                                    target == "banana" ~ paste0("Ser du ", original_stimulus_label, "?"),
-                                  target == "toothbrush" |
-                                    target == "sun" |
-                                    target == "leg" |
-                                    target == "jacket" |
-                                    target == "bottle" |
-                                    target == "bread" |
-                                    target == "book" |
-                                    target == "ball"~ paste0("Se på ", original_stimulus_label, "."))) %>%
-  left_join(stimuli %>% select(english_stimulus_label, stimulus_id), by = c("target" = "english_stimulus_label")) %>%
+                                   target == "ball"~ paste0("Se på ", original_stimulus_label, "."))) %>%
+  left_join(df_stimuli %>% select(english_stimulus_label, stimulus_id), by = c("target" = "english_stimulus_label")) %>%
   rename("target_id" = "stimulus_id") %>%
-  left_join(stimuli %>% select(english_stimulus_label, stimulus_id), by = c("distractor" = "english_stimulus_label")) %>%
+  left_join(df_stimuli %>% select(english_stimulus_label, stimulus_id), by = c("distractor" = "english_stimulus_label")) %>%
   rename("distractor_id" = "stimulus_id") %>%
-  mutate(trial_type_id = seq(0,length(.$target)-1)) 
+  mutate(trial_type_id = seq(0,length(.$target)-1))
 
-# TODO: get conditions
-# From the paper, conditions are based on stimulus trial types
-# There are four conditions in total
-# 1. context condition, matched words, related words
-# 2. frequency condition, matched words, related words
+df_trial_types <- df_trials %>%
+  select(-target, -distractor)
 
-# TODO: get point of disambiguation
-# TODO: get aoi_region_set_id
+#### (6) Trials table ####
+df_trials <- tibble(
+  trial_id = seq(0, length(df_trial_types$trial_type_id)-1), 
+  trial_order = 0, 
+  trial_type_id = 0
+)
 
-# TODO: still need point of disambiguation in trials table
+# TODO: seems the order was randomized with every subject listen to 32 words as target on either left or right side
+# and the order was randomized for every subject 
 
+df_tmp1 <- trial_data %>% 
+  filter(lab_subject_id == "OS_018") %>%
+  select(target, timestamp, target_side) %>%
+  arrange(timestamp) %>%
+  distinct(target, target_side)
+
+df_tmp2 <- trial_data %>% 
+  filter(lab_subject_id == "OS_052") %>%
+  select(target, timestamp, target_side) %>%
+  arrange(timestamp) %>%
+  distinct(target, target_side)
+
+
+#### explore a normal tobi data file ####
+
+'''
+comment out since this segment is for sample data exploration
+apple <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t")
+apple$StudioTestName %>% unique() # List 1 v List 2
+apple$ParticipantName %>% unique() # cross check with subjects list
+apple$RecordingName %>% unique() # mostly follows subject?? (likely not a useful column)
+apple$RecordingDate %>% unique() # not useful
+apple$RecordingTimestamp %>% unique() # sample rate 3
+apple$FixationFilter %>% unique() #not useful
+apple$MediaName %>% unique() # has left versus right !!
+apple$StudioEvent %>% unique() # Start, End, NA
+apple$StudioEventData %>% unique() # left, right, NA
+apple$GazeEventType %>% unique() #Fixation, Saccade, NA
+apple$GazeEventDuration %>% unique() # in ms, one presumes  
+apple$`AOI[D]Hit` %>% unique() # NA, F, T
+apple$`AOI[T]Hit` %>% unique() # NA, T, F
+apple$`AOI[M3D1]Hit` %>% unique() #NA, 0, 1
+apple$`AOI[M3T1]Hit` %>% unique() # NA, 0, 1
+# data either has values for D&T or for M3d1/M3t1 but never both ??
+apple$X16 %>% unique() #all NA
+
+
+df1 <- apple %>% filter(ParticipantName == "OS_015")
+
+# confirmating that Unclassified gaze events are all empty
+df2 <- apple %>% 
+  filter(ParticipantName == "OS_015", GazeEventType == "Unclassified") %>%
+  select(`AOI[D]Hit`, `AOI[T]Hit`, `AOI[M3D1]Hit`, `AOI[M3T1]Hit`) %>%
+  unique() #look at one participant
+
+# how long are the stamps 
+test <- apple %>% select(ParticipantName, RecordingTimestamp, StudioEvent) %>%
+  filter(StudioEvent %in% c("MovieStart", "MovieEnd")) %>% 
+  group_by(ParticipantName) %>% 
+  summarize(start_time=min(RecordingTimestamp),
+            end_time=max(RecordingTimestamp)) %>% 
+  mutate(diff_time=end_time-start_time)
+
+# mutate gaze data column from "AOI[D|T]Hit" to target, distractor and missing
+df_apple_no <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t") %>% 
+  filter(ParticipantName == "OS_015") %>% 
+  rename(lab_subject_id = ParticipantName) %>% 
+  select(-StudioTestName, -X16, -RecordingDate, -RecordingName, -FixationFilter) %>% 
+  inner_join(subjects, c("lab_subject_id")) %>% 
+  # Assuming T means target, and D means distractor
+  # also assuming that unclassfied = missing, but saccade with no values = other (looking middle??)
+  mutate(aoi = case_when(
+    `AOI[D]Hit` == TRUE ~ "distractor",
+    `AOI[T]Hit` == TRUE ~ "target",
+    `AOI[M3D1]Hit` == 1 ~ "distractor",
+    `AOI[M3T1]Hit` == 1 ~ "target",
+    GazeEventType == "Unclassified" ~ "missing",
+    TRUE ~ "other" 
+  )) %>% 
+  select(-`AOI[D]Hit`,-`AOI[T]Hit`,-`AOI[M3D1]Hit`,-`AOI[M3T1]Hit`, -GazeEventType)
+'''
+
+#### (6) Aoi_timepoints table ####
 aoi_timepoints <- trial_data %>%
-  left_join(trials %>% select(target, target_side, trial_id), by = c("target","target_side")) %>%
+  left_join(df_trials %>% select(target, target_side, trial_id), by = c("target","target_side")) %>%
   mutate(aoi = case_when(aoi_target_hit == TRUE &
                            aoi_distractor_hit == FALSE ~ "target",
                          aoi_distractor_hit ==TRUE &
