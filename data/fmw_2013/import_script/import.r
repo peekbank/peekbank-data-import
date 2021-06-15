@@ -43,62 +43,72 @@ d_raw_18 <- read_delim(fs::path(read_path,"FMW2013_English_18mos_n50toMF.txt"),
 d_raw_24 <- read_delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt"),
                        delim = "\t",
                        col_types = cols(.default = "c")) %>%
+  select(-c(X255:X4372)) %>%
   mutate(order_uniquified=Order) %>%
   relocate(order_uniquified, .after = `Order`) %>%
   mutate(row_number = as.numeric(row.names(.))) %>%
   relocate(row_number, .after = `Sub Num`) 
 
+#Need to relabel columns before merging them, I think
+
+#write relabeling functions
+relabel_cols <- function(d.raw){
+  # remove any column with all NAs (these are columns
+  # where there were variable names but no eye tracking data)
+  d_filtered <- d.raw %>%
+    select_if(~sum(!is.na(.)) > 0) %>%
+    filter(!is.na(`Sub Num`)) # remove some residual NA rows
+  
+  # Create clean column headers --------------------------------------------------
+  d_processed <-  d_filtered %>%
+    remove_repeat_headers(idx_var = "Months") %>%
+    clean_names()
+  
+  
+  # Relabel time bins --------------------------------------------------
+  old_names <- colnames(d_processed)
+  metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
+  pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
+  post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
+  
+  pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
+                                   to = sampling_rate_ms,
+                                   by = -sampling_rate_ms) * -1,0)
+  
+  
+  post_dis_names_clean <-  post_dis_names %>% str_remove("f")
+  
+  colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
+  
+  
+  ### truncate columns at F3833, since trials are almost never coded later than this timepoint
+  ## TO DO: check in about this decision
+  post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
+  #remove
+  d_processed <- d_processed %>%
+    select(-all_of(post_dis_names_clean_cols_to_remove))
+  
+  return(d_processed)
+}
+
 #combine
-d_raw <- bind_rows(d_raw_18,d_raw_24)
-
-
-# remove any column with all NAs (these are columns
-# where there were variable names but no eye tracking data)
-d_filtered <- d_raw %>%
-  select_if(~sum(!is.na(.)) > 0) %>%
-  filter(!is.na(`Sub Num`)) # remove some residual NA rows
-
-# Create clean column headers --------------------------------------------------
-d_processed <-  d_filtered %>%
-  remove_repeat_headers(idx_var = "Months") %>%
-  clean_names()
-
-
-# Relabel time bins --------------------------------------------------
-old_names <- colnames(d_processed)
-metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
-pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
-post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
-
-pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
-                                 to = sampling_rate_ms,
-                                 by = -sampling_rate_ms) * -1,0)
-
-
-post_dis_names_clean <-  post_dis_names %>% str_remove("f")
-
-colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
-
-
-### truncate columns at F3833, since trials are almost never coded later than this timepoint
-## TO DO: check in about this decision
-post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
-#remove
-d_processed <- d_processed %>%
-  select(-all_of(post_dis_names_clean_cols_to_remove))
+d_processed <- bind_rows( relabel_cols(d_raw_24),
+                          relabel_cols(d_raw_18)
+                        )
 
 
 #create trial_order variable by modifiying the tr_num variable
 d_processed <- d_processed  %>%
   mutate(tr_num=as.numeric(as.character(tr_num))) %>%
   arrange(sub_num,months,order_uniquified,tr_num) %>%
-  group_by(sub_num, months,order_uniquified) %>%
+  group_by(sub_num, months,condition,order_uniquified) %>%
   mutate(trial_order = seq(1, length(tr_num))) %>%
   relocate(trial_order, .after=tr_num) %>%
   ungroup()
 
 d_tidy <- d_processed %>%
-  pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi")
+  pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi") %>%
+  select(-c("-1333":"-633"))
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -114,4 +124,197 @@ d_tidy <- d_tidy %>%
   )) %>%
   mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
 
+
+# Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
+
+d_tidy <- d_tidy %>%
+  filter(!is.na(sub_num)) %>%
+  select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt) %>%
+  #left-right is from the coder's perspective - flip to participant's perspective
+  mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
+  rename(left_image = r_image, right_image=l_image) %>%
+  mutate(target_label = target_image) %>%
+  rename(target_image_old = target_image) %>% # since target image doesn't seem to be the specific image identifier
+  mutate(target_image = case_when(target_side == "right" ~ right_image,
+                                  TRUE ~ left_image)) %>%
+  mutate(distractor_image = case_when(target_side == "right" ~ left_image,
+                                      TRUE ~ right_image))
+
+
+#create stimulus table
+stimulus_table <- d_tidy %>%
+  distinct(target_image,target_label) %>%
+  filter(!is.na(target_image)) %>%
+  mutate(dataset_id = 0,
+         stimulus_novelty = "familiar",
+         original_stimulus_label = target_label,
+         english_stimulus_label = target_label,
+         stimulus_image_path = paste0(target_image, ".pct"), # TO DO - update once images are shared/ image file path known
+         image_description = target_label,
+         image_description_source = "image path",
+         lab_stimulus_id = target_image
+  ) %>%
+  mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
+
+
+## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
+d_tidy <- d_tidy %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('target_image' = 'lab_stimulus_id')) %>%
+  mutate(target_id = stimulus_id) %>%
+  select(-stimulus_id) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('distractor_image' = 'lab_stimulus_id')) %>%
+  mutate(distractor_id = stimulus_id) %>%
+  select(-stimulus_id)
+
+# get zero-indexed subject ids 
+d_subject_ids <- d_tidy %>%
+  distinct(sub_num) %>%
+  mutate(subject_id = seq(0, length(.$sub_num) - 1))
+#join
+d_tidy <- d_tidy %>%
+  left_join(d_subject_ids, by = "sub_num")
+
+#get zero-indexed administration ids
+d_administration_ids <- d_tidy %>%
+  distinct(subject_id, sub_num, months, order_uniquified) %>%
+  arrange(subject_id, sub_num, months, order_uniquified) %>%
+  mutate(administration_id = seq(0, length(.$order_uniquified) - 1)) 
+
+# create zero-indexed ids for trial_types
+d_trial_type_ids <- d_tidy %>%
+  #order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
+  #potentially make distinct based on condition if that is relevant to the study design (no condition manipulation here)
+  distinct(trial_order, target_id, distractor_id, target_side) %>%
+  mutate(full_phrase = NA) %>% #unknown
+  mutate(trial_type_id = seq(0, length(trial_order) - 1)) 
+
+# joins
+d_tidy_semifinal <- d_tidy %>%
+  left_join(d_administration_ids) %>%
+  left_join(d_trial_type_ids) 
+
+#get zero-indexed trial ids for the trials table
+d_trial_ids <- d_tidy_semifinal %>%
+  distinct(trial_order,trial_type_id) %>%
+  mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
+
+#join
+d_tidy_semifinal <- d_tidy_semifinal %>%
+  left_join(d_trial_ids)
+
+# add some more variables to match schema
+d_tidy_final <- d_tidy_semifinal %>%
+  mutate(dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
+         lab_trial_id = paste(order, tr_num, sep = "-"),
+         aoi_region_set_id = NA, # not applicable
+         monitor_size_x = NA, #unknown TO DO
+         monitor_size_y = NA, #unknown TO DO
+         lab_age_units = "months",
+         age = as.numeric(months), # months 
+         point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz
+         tracker = "video_camera",
+         sample_rate = sampling_rate_hz) %>% 
+  rename(lab_subject_id = sub_num,
+         lab_age = months
+  )
+
+
+##### AOI TABLE ####
+d_tidy_final %>%
+  rename(t_norm = t) %>% # original data centered at point of disambiguation
+  select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
+  #resample timepoints
+  resample_times(table_type="aoi_timepoints") %>%
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
+  write_csv(fs::path(write_path, aoi_table_filename))
+
+##### SUBJECTS TABLE ####
+d_tidy_final %>%
+  distinct(subject_id, lab_subject_id,sex) %>%
+  filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
+  mutate(
+    sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
+    native_language="eng") %>%
+  write_csv(fs::path(write_path, subject_table_filename))
+
+##### ADMINISTRATIONS TABLE ####
+d_tidy_final %>%
+  distinct(administration_id,
+           dataset_id,
+           subject_id,
+           age,
+           lab_age,
+           lab_age_units,
+           monitor_size_x,
+           monitor_size_y,
+           sample_rate,
+           tracker) %>%
+  mutate(coding_method = "manual gaze coding") %>%
+  write_csv(fs::path(write_path, administrations_table_filename))
+
+##### STIMULUS TABLE ####
+stimulus_table %>%
+  select(-target_label, -target_image) %>%
+  write_csv(fs::path(write_path, stimuli_table_filename))
+
+#### TRIALS TABLE ####
+d_tidy_final %>%
+  distinct(trial_id,
+           trial_order,
+           trial_type_id) %>%
+  write_csv(fs::path(write_path, trials_table_filename))
+
+##### TRIAL TYPES TABLE ####
+d_tidy_final %>%
+  distinct(trial_type_id,
+           full_phrase,
+           point_of_disambiguation,
+           target_side,
+           lab_trial_id,
+           aoi_region_set_id,
+           dataset_id,
+           target_id,
+           distractor_id) %>%
+  mutate(full_phrase_language = "eng",
+         condition = "") %>% #no condition manipulation based on current documentation
+  write_csv(fs::path(write_path, trial_types_table_filename))
+
+##### AOI REGIONS TABLE ####
+# create empty other files aoi_region_sets.csv and xy_timepoints
+# don't need 
+# tibble(administration_id = d_tidy_final$administration_id[1],
+#       aoi_region_set_id=NA,
+#        l_x_max=NA ,
+#        l_x_min=NA ,
+#        l_y_max=NA ,
+#        l_y_min=NA ,
+#        r_x_max=NA ,
+#        r_x_min=NA ,
+#        r_y_max=NA ,
+#        r_y_min=NA ) %>%
+#   write_csv(fs::path(write_path, aoi_regions_table_filename))
+
+##### XY TIMEPOINTS TABLE ####
+# d_tidy_final %>% distinct(trial_id, administration_id) %>%
+#   mutate(x = NA,
+#          y = NA,
+#          t = NA,
+#          xy_timepoint_id = 0:(n()-1)) %>%
+#   write_csv(fs::path(write_path, xy_table_filename))
+
+##### DATASETS TABLE ####
+# write Dataset table
+data_tab <- tibble(
+  dataset_id = 0, # make zero 0 for all
+  dataset_name = dataset_name,
+  lab_dataset_id = dataset_name, # internal name from the lab (if known)
+  cite = "Fernald, A., Marchman, V. A., & Weisleder, A. (2013). SES differences in language processing skill and vocabulary are evident at 18 months. Developmental Science, 16(2), 234-248",
+  shortcite = "Fernald et al. (2013)"
+) %>%
+  write_csv(fs::path(write_path, dataset_table_filename))
+
+
+
+# validation check ----------------------------------------------------------
+validate_for_db_import(dir_csv = write_path)
 
