@@ -45,8 +45,8 @@ d_raw <- read.delim(fs::path(read_path, "Hurtado2007_Spanish_Tommy_xsect_n49toMF
          target_side = target_s,
          target_image = target_i, # # ? e.g. galleta1 - galleta4, carro1 - carro4, globo1 - globo4
          word_onset_frame = word_ons, # unique values: 31, 32, 34
-         left_image = v7,
-         right_image = v8) %>% 
+         l_image = v7, 
+         r_image = v8) %>% 
   mutate(row_number = as.numeric(row.names(.))) %>%
   #mutate(across(everything(), ~na_if(., "."))) %>% 
   #mutate(across(everything(), ~na_if(., "-"))) %>%
@@ -121,9 +121,10 @@ sort(unique(d_tidy$target_image))
 
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
-  select(-response, -condition, -target_r, -gap, -cdi, -v16) %>% 
+  select(-response, -condition, -target_r, -gap, -cdi, -v16, -shifts) %>% 
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
+  rename(left_image = r_image, right_image = l_image) %>%
   mutate(target_label = target_image) %>% 
   rename(target_image_old = target_image) %>% # since target image doesn't seem to be the specific image identifier
   mutate(target_image = case_when(target_side == "right" ~ right_image,
@@ -135,7 +136,14 @@ d_tidy <- d_tidy %>%
   separate(target_image, 
     into = c("target_label", "target_num"), 
     sep = "(?<=[A-Za-z])(?=[0-9])"
-  ) %>% 
+  ) %>% # trouble splitting "bebé2" / "bebé1" etc, so we'll just manually fix those
+  mutate(target_label = case_when(
+    target_label == "bebé1" ~ "bebé",
+    target_label == "bebé2" ~ "bebé",
+    target_label == "bebé3" ~ "bebé",
+    target_label == "bebé4" ~ "bebé",
+    TRUE ~ target_label
+  )) %>%
   mutate(english_stimulus_label = case_when(
     target_label == "bebé" ~ "baby",
     target_label == "carro" ~ "car",
@@ -231,7 +239,7 @@ d_tidy_final <- d_tidy_semifinal %>%
 ##### AOI TABLE ####
 d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
-  select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
+  select(t_norm, aoi, trial_id, administration_id, lab_subject_id) %>%
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
