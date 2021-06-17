@@ -27,8 +27,6 @@ experiment_path <- fs::path(raw_data_path, "experimental_trials")
 control_path <- fs::path(raw_data_path, "control_trials")
 exp_info_path <- fs::path(raw_data_path, "experiment_info")
 stim_path <- fs::path(raw_data_path, "stimulus_images")
-# output path
-output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
 
 ## only download if it's not on your machine
 if(length(list.files(experiment_path)) == 0 & length(list.files(exp_info_path)) == 0) {
@@ -345,6 +343,7 @@ df_trial_info <- trial_data %>%
   mutate(full_phrase_language = full_phrase_language,
          dataset_id = dataset_id,
          point_of_disambiguation = 2020, 
+         aoi_region_set_id = NA, 
          # sound matched manually 
          # again, this is a terrible way to do this.
          # I got the English phrases from the paper and did my best to match
@@ -444,10 +443,10 @@ df_trials <- trial_data %>%
 # because target and target_side are still needed later for aoi_timepoints df, so we will select out
 # these two columns later
 
-
 #### (6) Aoi_timepoints table ####
 df_aoi_timepoints <- trial_data %>%
-  left_join(select(df_trials, -trial_type_id, -trial_order), by = c("lab_subject_id", "target","target_side")) %>%
+  left_join(select(df_trials, -trial_order), by = c("lab_subject_id", "target", "target_side")) %>%
+  left_join(select(df_trial_types, trial_type_id, point_of_disambiguation), by = c("trial_type_id")) %>%
   left_join(select(df_administrations, lab_subject_id=subject_id, administration_id), by = c("lab_subject_id")) %>%
   mutate(aoi = case_when(aoi_target_hit == TRUE & aoi_distractor_hit == FALSE ~ "target",
                          aoi_distractor_hit ==TRUE & aoi_target_hit == FALSE ~ "distractor",
@@ -455,6 +454,53 @@ df_aoi_timepoints <- trial_data %>%
                          gaze_type == "Unclassified" ~ "missing",
                          gaze_type == "Fixation" ~ "other"
                            )) %>%
-  select(administration_id, t=timestamp, aoi, trial_id)
+  select(administration_id, t=timestamp, aoi, trial_id, point_of_disambiguation) %>%
+  peekds::rezero_times(.) %>%
+  peekds::normalize_times(.) %>%
+  peekds::resample_times(., table_type = "aoi_timepoints") %>%
+  select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
-#
+df_trials <- df_trials %>%
+  select(-target, -target_side)
+
+#### write all the tables to `.csv` files and validate them ####
+# output path
+output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
+
+write_csv(df_dataset, file = here(output_path, "datasets.csv"))
+write_csv(df_subjects, file = here(output_path, "subjects.csv"))
+write_csv(df_stimuli, file = here(output_path,  "stimuli.csv"))
+write_csv(df_administrations, file = here(output_path, "administrations.csv"))
+write_csv(df_trial_types, file = here(output_path, "trial_types.csv"))
+write_csv(df_trials, file = here(output_path, "trials.csv"))
+write_csv(df_aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
+
+# run validation
+peekds::validate_for_db_import(dir_csv = output_path)
+
+#### create a simple visualization plot for this dataset. ####
+accs <- df_aoi_timepoints %>%
+  left_join(df_administrations) %>%
+  left_join(df_trials) %>%
+  left_join(df_trial_types) %>%
+  mutate(condition_type = if_else(str_detect(condition, "context"), "context", "frequency"),
+         is_match = if_else(str_detect(condition, "match"), "match", "related")) %>% 
+  # mutate(age_group = ifelse(age < mean(age), "13-17", "17-20")) %>%
+  group_by(t_norm, administration_id, condition_type, is_match) %>% 
+  filter(aoi %in% c("target", "distractor")) %>%
+  summarise(correct = mean(aoi == "target")) %>%
+  group_by(t_norm, condition_type, is_match) %>% 
+  summarise(ci = 1.96 * sd(correct) / sqrt(length(correct)), 
+            correct = mean(correct))
+
+ggplot(accs, aes(x = t_norm, y = correct, col = is_match)) + 
+  facet_wrap(~condition_type) + 
+  geom_pointrange(aes(ymin = correct - ci, 
+                      ymax = correct + ci)) +
+  geom_hline(yintercept = .5, lty = 2, col = "black") + 
+  langcog::theme_mikabr() + 
+  langcog::scale_color_solarized(name = "Age Group") + 
+  xlim(-500, 3000) + 
+  xlab("Time from target word onset (msec)") + 
+  ylab("Proportion correct") + 
+  theme(legend.position = "bottom") 
