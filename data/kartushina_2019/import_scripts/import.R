@@ -106,12 +106,12 @@ df_words_switch <- tibble(
   condition_partial = df_words_origin$condition_partial
 )
 
-# TODO: what to do when two stimulus images are used for one target?
+# what to do when two stimulus images are used for one target?
 # for example, apple label was used for apple_foot.png and foot_apple.png
 # currently, only apple_foot.png was entered as the image path
 df_words <- rbind(df_words_origin, df_words_switch) %>%
-  mutate(stimulus_image_path = paste0(match_target, "_", match_distractor, ".png"), 
-         image_description = paste0("An image with a visual representation of ", match_target, " on the left side and of ", match_distractor, " on the right side."))
+  mutate(stimulus_image_path = paste0(match_target, "_", match_distractor, ".png; ", match_distractor, "_", match_target, ".png"), 
+         image_description = paste0("Twos image with a visual representation of ", match_target, " on one side and of ", match_distractor, " on the other side."))
 
 df_words_match <- df_words %>%
   mutate(target = match_target, distractor = match_distractor, condition = paste0(condition_partial, "_match")) %>%
@@ -179,11 +179,65 @@ df_stimuli <- df_stimuli %>%
 # based on inspection of the control trial data, we ignored the control data
 # sample_data <- read_delim(fs::path(control_path, "house.txt"), delim="\t")
 
-## what we think we know 
+####################################################################
+#### This section of codes are for exploring one eye tracking files.
+#### explore a normal tobi data file ####
+####################################################################
+apple <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t")
+apple$StudioTestName %>% unique() # List 1 v List 2
+apple$ParticipantName %>% unique() # cross check with subjects list
+apple$RecordingName %>% unique() # mostly follows subject?? (likely not a useful column)
+apple$RecordingDate %>% unique() # not useful
+apple$RecordingTimestamp %>% unique() # sample rate 3
+apple$FixationFilter %>% unique() #not useful
+apple$MediaName %>% unique() # has left versus right !!
+apple$StudioEvent %>% unique() # Start, End, NA
+apple$StudioEventData %>% unique() # left, right, NA
+apple$GazeEventType %>% unique() #Fixation, Saccade, NA
+apple$GazeEventDuration %>% unique() # in ms, one presumes  
+apple$`AOI[D]Hit` %>% unique() # NA, F, T
+apple$`AOI[T]Hit` %>% unique() # NA, T, F
+apple$`AOI[M3D1]Hit` %>% unique() #NA, 0, 1
+apple$`AOI[M3T1]Hit` %>% unique() # NA, 0, 1
+# data either has values for D&T or for M3d1/M3t1 but never both ??
+apple$X16 %>% unique() #all NA
 
-# One question is what should the zero-point/onset time be for the videos? The paper says the kids saw it for 1.5 seconds, then the recording started, and then there were 3.5 seconds after the critical word. 
-# Some subject ids are duplicated which is causing weird behavior in the time ranges. They're not uniquely associated with subject information. So for now, we take them out.
-# Most of the data is in files by what image was seen, and has all the kids in it.
+
+df1 <- apple %>% filter(ParticipantName == "OS_015")
+
+# confirmating that Unclassified gaze events are all empty
+df2 <- apple %>% 
+  filter(ParticipantName == "OS_015", GazeEventType == "Unclassified") %>%
+  select(`AOI[D]Hit`, `AOI[T]Hit`, `AOI[M3D1]Hit`, `AOI[M3T1]Hit`) %>%
+  unique() #look at one participant
+
+# how long are the stamps 
+test_trialtime <- apple %>% select(ParticipantName, RecordingTimestamp, StudioEvent, StudioEventData) %>%
+  filter(StudioEvent %in% c("MovieStart", "MovieEnd")) %>% 
+  group_by(ParticipantName, StudioEventData) %>% 
+  summarize(start_time=min(RecordingTimestamp),
+            end_time=max(RecordingTimestamp)) %>% 
+  mutate(diff_time=end_time-start_time)
+
+# mutate gaze data column from "AOI[D|T]Hit" to target, distractor and missing
+df_apple_no <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t") %>% 
+  filter(ParticipantName == "OS_091") %>% 
+  rename(lab_subject_id = ParticipantName) %>% 
+  select(-StudioTestName, -X16, -RecordingDate, -RecordingName, -FixationFilter) %>% 
+  inner_join(df_subjects_info, c("lab_subject_id")) %>% 
+  # Assuming T means target, and D means distractor
+  # also assuming that unclassfied = missing, but saccade with no values = other (looking middle??)
+  mutate(aoi = case_when(
+    `AOI[D]Hit` == TRUE ~ "distractor",
+    `AOI[T]Hit` == TRUE ~ "target",
+    `AOI[M3D1]Hit` == 1 ~ "distractor",
+    `AOI[M3T1]Hit` == 1 ~ "target",
+    GazeEventType == "Unclassified" ~ "missing",
+    TRUE ~ "other" 
+  )) %>% 
+  select(-`AOI[D]Hit`,-`AOI[T]Hit`,-`AOI[M3D1]Hit`,-`AOI[M3T1]Hit`, -GazeEventType)
+
+####################################################################
 # Data columns
 # - StudioTestName: List 1 or List 2 (which columns contain the relevant AOIs varies by List)
 # - ParticipantName matches the subject id's on the spreadsheet
@@ -198,6 +252,7 @@ df_stimuli <- df_stimuli %>%
 # NA is used to fill on the other list
 # (Otherwise I think the lists are just for counterbalancing.)
 # other columns are ~useless
+
 # This helper function is renaming columns of "AOI[M3D1]Hit" to aoi_target_hit etc
 rename_aois <- function(aoi_string) {
   aoi_string <- if_else(str_detect(aoi_string, "\\d"), 
@@ -245,7 +300,7 @@ read_trial_data <- function(file_name) {
 trial_data <- do.call(rbind,lapply(all_data_files, read_trial_data))
 
 trial_data <- trial_data %>%
-  filter(lab_subject_id %in% subjects$lab_subject_id) %>%
+  filter(lab_subject_id %in% df_subjects$lab_subject_id) %>%
   mutate(target_side = if_else(str_detect(stimulus, "right"), "right",
                                if_else(str_detect(stimulus, "left"), "left",
                                        NA_character_)),
@@ -275,13 +330,13 @@ df_administrations <- df_subjects_info %>%
   )
 
 
-# TODO: still need point of disambiguation in trials table
-# from the paper: we inserted a 1.5 s period of silence at the beginning of each trial so that infantswould have the same exposure to the visual
-# stimuli before the onset of the sentence, as in the BS12 study. Trials ended 3.5 s after the targetword onset
-# see Figure 3, so for now we are using point_of_disambiguation = 1500
+# from the paper: "we inserted a 1.5 s period of silence at the beginning of each trial so that infants would have the same exposure to the visual
+# stimuli before the onset of the sentence, as in the BS12 study. Trials ended 3.5 s after the target word onset"
+# But see Figure 3, 1.5s is the silence before the sentence, but 2.02s is the time before the onset of target words
+# so for now we are using point_of_disambiguation = 2020
 
 #### (5) Trial_types table ####
-df_trials <- trial_data %>%
+df_trial_info <- trial_data %>%
   select(target, target_side) %>%
   distinct(target, target_side) %>%
   left_join(target_distractor, by = "target") %>%
@@ -289,7 +344,7 @@ df_trials <- trial_data %>%
             by = c("target" = "english_stimulus_label")) %>%
   mutate(full_phrase_language = full_phrase_language,
          dataset_id = dataset_id,
-         point_of_disambiguation = 1500, 
+         point_of_disambiguation = 2020, 
          # sound matched manually 
          # again, this is a terrible way to do this.
          # I got the English phrases from the paper and did my best to match
@@ -366,105 +421,40 @@ df_trials <- trial_data %>%
   rename("distractor_id" = "stimulus_id") %>%
   mutate(trial_type_id = seq(0,length(.$target)-1))
 
-df_trial_types <- df_trials %>%
+df_trial_types <- df_trial_info %>%
   select(-target, -distractor)
 
 #### (6) Trials table ####
-df_trials <- tibble(
-  trial_id = seq(0, length(df_trial_types$trial_type_id)-1), 
-  trial_order = 0, 
-  trial_type_id = 0
-)
+# confirmed that to one participate only see one type of trial once
+# most participants saw 32 trials with 32 words
+# Some subjects, such as OS_007 has only 17 trials, OS_050 has only 14 trials, 
+# two subjects, saw twice of some words either on the left or on the right,
+# e.g. OS_091 have 46 trials
+# tmp1 <- df_trials %>% count(lab_subject_id)
 
-# TODO: seems the order was randomized with every subject listen to 32 words as target on either left or right side
-# and the order was randomized for every subject 
+df_trials <- trial_data %>% 
+  arrange(lab_subject_id, timestamp) %>% # arrange by timestamp within each subject to get the order
+  select(lab_subject_id, target, target_side) %>%
+  distinct(lab_subject_id, target, target_side) %>%
+  left_join(df_trial_info, by = c("target","target_side")) %>%
+  select(lab_subject_id, target, target_side, trial_type_id) %>%
+  mutate(trial_id = seq(0, length(.$lab_subject_id)-1), 
+         trial_order = seq(0, length(.$lab_subject_id)-1))
 
-df_tmp1 <- trial_data %>% 
-  filter(lab_subject_id == "OS_018") %>%
-  select(target, timestamp, target_side) %>%
-  arrange(timestamp) %>%
-  distinct(target, target_side)
+# because target and target_side are still needed later for aoi_timepoints df, so we will select out
+# these two columns later
 
-df_tmp2 <- trial_data %>% 
-  filter(lab_subject_id == "OS_052") %>%
-  select(target, timestamp, target_side) %>%
-  arrange(timestamp) %>%
-  distinct(target, target_side)
-
-
-#### explore a normal tobi data file ####
-
-'''
-comment out since this segment is for sample data exploration
-apple <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t")
-apple$StudioTestName %>% unique() # List 1 v List 2
-apple$ParticipantName %>% unique() # cross check with subjects list
-apple$RecordingName %>% unique() # mostly follows subject?? (likely not a useful column)
-apple$RecordingDate %>% unique() # not useful
-apple$RecordingTimestamp %>% unique() # sample rate 3
-apple$FixationFilter %>% unique() #not useful
-apple$MediaName %>% unique() # has left versus right !!
-apple$StudioEvent %>% unique() # Start, End, NA
-apple$StudioEventData %>% unique() # left, right, NA
-apple$GazeEventType %>% unique() #Fixation, Saccade, NA
-apple$GazeEventDuration %>% unique() # in ms, one presumes  
-apple$`AOI[D]Hit` %>% unique() # NA, F, T
-apple$`AOI[T]Hit` %>% unique() # NA, T, F
-apple$`AOI[M3D1]Hit` %>% unique() #NA, 0, 1
-apple$`AOI[M3T1]Hit` %>% unique() # NA, 0, 1
-# data either has values for D&T or for M3d1/M3t1 but never both ??
-apple$X16 %>% unique() #all NA
-
-
-df1 <- apple %>% filter(ParticipantName == "OS_015")
-
-# confirmating that Unclassified gaze events are all empty
-df2 <- apple %>% 
-  filter(ParticipantName == "OS_015", GazeEventType == "Unclassified") %>%
-  select(`AOI[D]Hit`, `AOI[T]Hit`, `AOI[M3D1]Hit`, `AOI[M3T1]Hit`) %>%
-  unique() #look at one participant
-
-# how long are the stamps 
-test <- apple %>% select(ParticipantName, RecordingTimestamp, StudioEvent) %>%
-  filter(StudioEvent %in% c("MovieStart", "MovieEnd")) %>% 
-  group_by(ParticipantName) %>% 
-  summarize(start_time=min(RecordingTimestamp),
-            end_time=max(RecordingTimestamp)) %>% 
-  mutate(diff_time=end_time-start_time)
-
-# mutate gaze data column from "AOI[D|T]Hit" to target, distractor and missing
-df_apple_no <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t") %>% 
-  filter(ParticipantName == "OS_015") %>% 
-  rename(lab_subject_id = ParticipantName) %>% 
-  select(-StudioTestName, -X16, -RecordingDate, -RecordingName, -FixationFilter) %>% 
-  inner_join(subjects, c("lab_subject_id")) %>% 
-  # Assuming T means target, and D means distractor
-  # also assuming that unclassfied = missing, but saccade with no values = other (looking middle??)
-  mutate(aoi = case_when(
-    `AOI[D]Hit` == TRUE ~ "distractor",
-    `AOI[T]Hit` == TRUE ~ "target",
-    `AOI[M3D1]Hit` == 1 ~ "distractor",
-    `AOI[M3T1]Hit` == 1 ~ "target",
-    GazeEventType == "Unclassified" ~ "missing",
-    TRUE ~ "other" 
-  )) %>% 
-  select(-`AOI[D]Hit`,-`AOI[T]Hit`,-`AOI[M3D1]Hit`,-`AOI[M3T1]Hit`, -GazeEventType)
-'''
 
 #### (6) Aoi_timepoints table ####
-aoi_timepoints <- trial_data %>%
-  left_join(df_trials %>% select(target, target_side, trial_id), by = c("target","target_side")) %>%
-  mutate(aoi = case_when(aoi_target_hit == TRUE &
-                           aoi_distractor_hit == FALSE ~ "target",
-                         aoi_distractor_hit ==TRUE &
-                           aoi_target_hit == FALSE ~ "distractor",
+df_aoi_timepoints <- trial_data %>%
+  left_join(select(df_trials, -trial_type_id, -trial_order), by = c("lab_subject_id", "target","target_side")) %>%
+  left_join(select(df_administrations, lab_subject_id=subject_id, administration_id), by = c("lab_subject_id")) %>%
+  mutate(aoi = case_when(aoi_target_hit == TRUE & aoi_distractor_hit == FALSE ~ "target",
+                         aoi_distractor_hit ==TRUE & aoi_target_hit == FALSE ~ "distractor",
                          gaze_type == "Saccade" ~ "other",
                          gaze_type == "Unclassified" ~ "missing",
                          gaze_type == "Fixation" ~ "other"
-                           ))
+                           )) %>%
+  select(administration_id, t=timestamp, aoi, trial_id)
 
-aoi_timepoints %>%
-  select(gaze_type, aoi_target_hit, aoi_distractor_hit, aoi) %>%
-  distinct(gaze_type, aoi_target_hit, aoi_distractor_hit, aoi) %>%
-  View()
-
+#
