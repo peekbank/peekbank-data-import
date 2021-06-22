@@ -490,13 +490,13 @@ accs <- df_aoi_timepoints %>%
   filter(aoi %in% c("target", "distractor")) %>%
   summarise(correct = mean(aoi == "target")) %>%
   group_by(t_norm, condition_type, is_match) %>% 
-  summarise(ci = 1.96 * sd(correct) / sqrt(length(correct)), 
+  summarise(se = sd(correct) / sqrt(length(correct)), 
             correct = mean(correct))
 
 ggplot(accs, aes(x = t_norm, y = correct, col = is_match)) + 
-  facet_wrap(~condition_type) + 
-  geom_pointrange(aes(ymin = correct - ci, 
-                      ymax = correct + ci)) +
+  facet_wrap(~condition_type, ncol = 1) + 
+  geom_pointrange(aes(ymin = correct - se, 
+                      ymax = correct + se)) +
   geom_hline(yintercept = .5, lty = 2, col = "black") + 
   langcog::theme_mikabr() + 
   langcog::scale_color_solarized(name = "Age Group") + 
