@@ -32,24 +32,19 @@ remove_repeat_headers <- function(d, idx_var) {
 }
 
 # read icoder files
-d_raw_18 <- read_delim(fs::path(read_path,"FMW2013_English_18mos_n50toMF.txt"),
+d_raw_1_18 <- read_delim(fs::path(read_path,"FMW2013_English_18mos_n50toMF.txt"),
+                       delim = "\t",
+                       col_types = cols(.default = "c"))
+
+d_raw_2_18 <- read_excel(here::here(read_path,"FMW2013_English_18mos_n28toMF.xls")) 
+  
+d_raw_1_24 <- read_delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt"),
                        delim = "\t",
                        col_types = cols(.default = "c")) %>%
-  mutate(order_uniquified=Order) %>%
-  relocate(order_uniquified, .after = `Order`) %>%
-  mutate(row_number = as.numeric(row.names(.))) %>%
-  relocate(row_number, .after = `Sub Num`)
+  select(-c(X255:X4372))
 
-d_raw_24 <- read_delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt"),
-                       delim = "\t",
-                       col_types = cols(.default = "c")) %>%
-  select(-c(X255:X4372)) %>%
-  mutate(order_uniquified=Order) %>%
-  relocate(order_uniquified, .after = `Order`) %>%
-  mutate(row_number = as.numeric(row.names(.))) %>%
-  relocate(row_number, .after = `Sub Num`) 
+d_raw_2_24 <- read_excel(here::here(read_path,"FMW2013_English_24m_n21toMF.xls")) 
 
-#Need to relabel columns before merging them, I think
 
 #write relabeling functions
 relabel_cols <- function(d.raw){
