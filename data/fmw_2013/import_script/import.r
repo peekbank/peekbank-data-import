@@ -3,7 +3,7 @@ library(janitor)
 library(tidyverse)
 library(readxl)
 library(peekds)
-#library(osfr)
+library(osfr)
 
 #TODO: check
 sampling_rate_hz <- 30
@@ -45,9 +45,57 @@ d_raw_1_24 <- read_delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt")
 
 d_raw_2_24 <- read_excel(here::here(read_path,"FMW2013_English_24m_n21toMF.xls")) 
 
+relabel_cols_2_18 <- function(d.raw){
+  d_filtered <- d.raw %>%
+    select_if(~sum(!is.na(.)) > 0) %>%
+    filter(!is.na(`Sub Num`))
+  
+  d_processed <-  d_filtered %>%
+    clean_names()
+  
+  old_names <- colnames(d_processed)
+  metadata_names <- old_names[1:16]
+  pre_dis_names <- old_names[17:35]
+  post_dis_names  <- old_names[36:length(old_names)]
+  
+  pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
+                                   to = sampling_rate_ms,
+                                   by = -sampling_rate_ms) * -1,0)
+  
+  pre_dis_names_clean <- pre_dis_names %>% str_remove("...")
+  
+  colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names)
+  
+  return(d_processed)
+}
+
+relabel_cols_2_24 <- function(d.raw){
+  d_filtered <- d.raw %>%
+    select_if(~sum(!is.na(.)) > 0) %>%
+    filter(!is.na(`Sub Num`))
+  
+  d_processed <-  d_filtered %>%
+    clean_names()
+  
+  old_names <- colnames(d_processed)
+  metadata_names <- old_names[1:16]
+  pre_dis_names <- old_names[17:44]
+  post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
+  
+  pre_dis_names <- pre_dis_names %>% str_remove("...") 
+  pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
+                                   to = sampling_rate_ms,
+                                   by = -sampling_rate_ms) * -1,0)
+  
+  post_dis_names_clean <-  post_dis_names %>% str_remove("f")
+  
+  colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
+  
+  return(d_processed)
+}
 
 #write relabeling functions
-relabel_cols <- function(d.raw){
+relabel_cols_1 <- function(d.raw){
   # remove any column with all NAs (these are columns
   # where there were variable names but no eye tracking data)
   d_filtered <- d.raw %>%
@@ -55,7 +103,7 @@ relabel_cols <- function(d.raw){
     filter(!is.na(`Sub Num`)) # remove some residual NA rows
   
   # Create clean column headers --------------------------------------------------
-  d_processed <-  d_filtered %>%
+  d_processed <- d_filtered %>%
     remove_repeat_headers(idx_var = "Months") %>%
     clean_names()
   
@@ -71,7 +119,7 @@ relabel_cols <- function(d.raw){
                                    by = -sampling_rate_ms) * -1,0)
   
   
-  post_dis_names_clean <-  post_dis_names %>% str_remove("f")
+  post_dis_names_clean <- post_dis_names %>% str_remove("f")
   
   colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
   
@@ -87,8 +135,10 @@ relabel_cols <- function(d.raw){
 }
 
 #combine
-d_processed <- bind_rows( relabel_cols(d_raw_24),
-                          relabel_cols(d_raw_18)
+d_processed <- bind_rows( relabel_cols_1(d_raw_1_24),
+                          relabel_cols_1(d_raw_1_18), 
+                          relabel_cols_2_18(d_raw_2_18),
+                          relabel_cols_2_24(d_raw_2_24),
                         )
 
 

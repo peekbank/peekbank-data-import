@@ -1,0 +1,40 @@
+name	TrialOnset	trial number	sound stimulus	left image	center image	right image	target side	condition	used	TrStart	PictOn	SoundOn	TrEnd	CritOnset	CritOffset
+TL2-1	Sound	1	See the apple? Do you see it? 	apple		cookie	l	filler	no	0	0	0			
+TL2-1	Sound	2	Where's the baby? Can you see it? 	baby1		doggy1	l	familiar-1	yes	0	0	0	4500	613	4500
+TL2-1	Sound	3	Where's the car? Can you find it? 	book1		car1	r	familiar-1	yes	0	0	0	4500	623	4500
+TL2-1	Sound	4	Look at the ball. Do you like it? 	ball1		shoe1	l	familiar-1	yes	0	0	0	4500	612	4500
+TL2-1	Sound	5	Where's the doggy? Can you see it? 	baby2		doggy2	r	familiar-1	yes	0	0	0	4500	613	4500
+TL2-1	Sound	6	Look at the shoe. Do you like it? 	ball2		shoe2	r	familiar-1	yes	0	0	0	4500	616	4500
+TL2-1	Sound	7	See the birdie? Can you find it? 	kitty1		birdie1	r	familiar-1	yes	0	0	0	4500	610	4500
+TL2-1	Sound	8	Where's the book? Can you find it? 	book2		car2	l	familiar-1	yes	0	0	0	4500	604	4500
+TL2-1	Sound	9	See the kitty? Can you find it? 	kitty2		birdie2	l	familiar-1	yes	0	0	0	4500	618	4500
+TL2-1	Sound	10	Good job. Do you like the pictures? 	fish		fish	n/a	whoopie	no	0	0	0	4500		4500
+TL2-1	Sound	11	Where's the book? Can you find it? 	car3		book3	r	familiar-2	yes	0	0	0	4500	604	4500
+TL2-1	Sound	12	See the kitty? Can you find it? 	birdie3		kitty3	r	familiar-2	yes	0	0	0	4500	618	4500
+TL2-1	Sound	13	Where's the doggy? Can you see it? 	doggy3		baby3	l	familiar-2	yes	0	0	0	4500	613	4500
+TL2-1	Sound	14	Look at the ball. Do you like it? 	shoe3		ball3	r	familiar-2	yes	0	0	0	4500	612	4500
+TL2-1	Sound	15	See the birdie? Can you find it? 	birdie4		kitty4	l	familiar-2	yes	0	0	0	4500	610	4500
+TL2-1	Sound	16	Where's the baby? Can you see it? 	doggy4		baby4	r	familiar-2	yes	0	0	0	4500	613	4500
+TL2-1	Sound	17	Where's the car? Can you find it? 	car4		book4	l	familiar-2	yes	0	0	0	4500	623	4500
+TL2-1	Sound	18	Look at the shoe. Do you like it? 	shoe4		ball4	l	familiar-2	yes	0	0	0	4500	616	4500
+TL2-1	Sound	19	Do you like the pictures? Here's some more. 	cookie monster		elmo	n/a	whoopie	no	0	0	0	4500		4500
+TL2-1	Sound	20	See the birdie? Can you find it? 	kitty2		birdie2	r	familiar-3	yes	0	0	0	4500	610	4500
+TL2-1	Sound	21	Where's the book? Can you find it? 	book2		car2	l	familiar-3	yes	0	0	0	4500	604	4500
+TL2-1	Sound	22	Look at the ball. Do you like it? 	ball2		shoe2	l	familiar-3	yes	0	0	0	4500	612	4500
+TL2-1	Sound	23	Where's the doggy? Can you see it? 	baby2		doggy2	r	familiar-3	yes	0	0	0	4500	613	4500
+TL2-1	Sound	24	Where's the car? Can you find it? 	book3		car3	r	familiar-3	yes	0	0	0	4500	623	4500
+TL2-1	Sound	25	See the kitty? Can you find it? 	kitty3		birdie3	l	familiar-3	yes	0	0	0	4500	618	4500
+TL2-1	Sound	26	Look at the shoe. Do you like it? 	ball3		shoe3	r	familiar-3	yes	0	0	0	4500	616	4500
+TL2-1	Sound	27	Where's the baby? Can you see it? 	baby3		doggy3	l	familiar-3	yes	0	0	0	4500	613	4500
+TL2-1	Sound	28	tschutschu here comes the train. 	train		train	n/a	whoopie	no	0	0	0	4500		4500
+TL2-1	Sound	29	See the kitty? Can you find it? 	birdie1		kitty1	r	familiar-4	yes	0	0	0	4500	618	4500
+TL2-1	Sound	30	Look at the ball. Do you like it? 	shoe1		ball1	r	familiar-4	yes	0	0	0	4500	612	4500
+TL2-1	Sound	31	Where's the doggy? Can you see it? 	doggy1		baby1	l	familiar-4	yes	0	0	0	4500	613	4500
+TL2-1	Sound	32	See the birdie? Can you find it? 	birdie4		kitty4	l	familiar-4	yes	0	0	0	4500	610	4500
+TL2-1	Sound	33	Where's the book? Can you find it? 	car1		book1	r	familiar-4	yes	0	0	0	4500	604	4500
+TL2-1	Sound	34	Look at the shoe. Do you like it? 	shoe4		ball4	l	familiar-4	yes	0	0	0	4500	616	4500
+TL2-1	Sound	35	Where's the baby? Can you see it? 	doggy4		baby4	r	familiar-4	yes	0	0	0	4500	613	4500
+TL2-1	Sound	36	Where's the  car? Can you find it? 	car4		book4	l	familiar-4	yes	0	0	0	4500	623	4500
+															
+															
+"TrEnd & CritOffset values are estimated, not actual values"															
