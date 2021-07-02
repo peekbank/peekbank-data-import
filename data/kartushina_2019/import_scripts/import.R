@@ -263,6 +263,10 @@ rename_aois <- function(aoi_string) {
   return(aoi_string)
 }
 
+# read in the NS column data
+# read in the RecordingDate column
+# there are trials that were excluded
+
 # helper function to read in all tsv eyetracking data in a clean format
 read_trial_data <- function(file_name) {
   file_path = fs::path(experiment_path, file_name)
@@ -277,6 +281,7 @@ read_trial_data <- function(file_name) {
     rename_with(rename_aois, starts_with("aoi")) %>%
     rename(stimlist = studio_test_name, 
            lab_subject_id = participant_name,
+           lab_recording_id = recording_name,
            stimulus = media_name,
            timestamp = recording_timestamp,
            stim_onset_offset = studio_event,
@@ -500,7 +505,7 @@ ggplot(accs, aes(x = t_norm, y = correct, col = is_match)) +
   geom_hline(yintercept = .5, lty = 2, col = "black") + 
   langcog::theme_mikabr() + 
   langcog::scale_color_solarized(name = "Age Group") + 
-  xlim(-500, 3000) + 
+  xlim(-2000, 3000) + 
   xlab("Time from target word onset (msec)") + 
   ylab("Proportion correct") + 
   theme(legend.position = "bottom") 
