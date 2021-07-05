@@ -36,25 +36,33 @@ d_raw_1_18 <- read_delim(fs::path(read_path,"FMW2013_English_18mos_n50toMF.txt")
                        delim = "\t",
                        col_types = cols(.default = "c"))
 
-d_raw_2_18 <- read_excel(here::here(read_path,"FMW2013_English_18mos_n28toMF.xls")) 
+d_raw_2_18 <- read_excel(here::here(read_path,"FMW2013_English_18mos_n28toMF.xls"),
+                         col_types = "text") 
   
 d_raw_1_24 <- read_delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt"),
                        delim = "\t",
                        col_types = cols(.default = "c")) %>%
   select(-c(X255:X4372))
 
-d_raw_2_24 <- read_excel(here::here(read_path,"FMW2013_English_24m_n21toMF.xls")) 
+d_raw_2_24 <- read_excel(here::here(read_path,"FMW2013_English_24m_n21toMF.xls"),
+                         col_types = "text")
 
-
-
-relabel_cols_2_18 <- function(d.raw){
+filter_na <- function(d.raw){
   d_filtered <- d.raw %>%
     select_if(~sum(!is.na(.)) > 0) %>%
     filter(!is.na(`Sub Num`))
-  
   d_processed <-  d_filtered %>%
     clean_names()
   
+  return(d_processed)
+}
+
+organize_names <- function(d.raw){
+  
+}
+
+relabel_cols_2_18 <- function(d.raw){
+  d_processed <- filter_na(d.raw)
   old_names <- colnames(d_processed)
   metadata_names <- old_names[1:16]
   pre_dis_names <- old_names[17:35]
@@ -72,12 +80,7 @@ relabel_cols_2_18 <- function(d.raw){
 }
 
 relabel_cols_2_24 <- function(d.raw){
-  d_filtered <- d.raw %>%
-    select_if(~sum(!is.na(.)) > 0) %>%
-    filter(!is.na(`Sub Num`))
-  
-  d_processed <-  d_filtered %>%
-    clean_names()
+  d_processed <- filter_na(d.raw)
   
   old_names <- colnames(d_processed)
   metadata_names <- old_names[1:16]
@@ -98,16 +101,9 @@ relabel_cols_2_24 <- function(d.raw){
 
 #write relabeling functions
 relabel_cols_1 <- function(d.raw){
-  # remove any column with all NAs (these are columns
-  # where there were variable names but no eye tracking data)
-  d_filtered <- d.raw %>%
-    select_if(~sum(!is.na(.)) > 0) %>%
-    filter(!is.na(`Sub Num`)) # remove some residual NA rows
   
-  # Create clean column headers --------------------------------------------------
-  d_processed <- d_filtered %>%
-    remove_repeat_headers(idx_var = "Months") %>%
-    clean_names()
+  d_processed <- filter_na(d.raw)
+  d_processed <- d_processed %>% remove_repeat_headers(idx_var = "Months")
   
   
   # Relabel time bins --------------------------------------------------
@@ -147,8 +143,8 @@ d_processed <- bind_rows( relabel_cols_1(d_raw_1_24),
 #create trial_order variable by modifiying the tr_num variable
 d_processed <- d_processed  %>%
   mutate(tr_num=as.numeric(as.character(tr_num))) %>%
-  arrange(sub_num,months,order_uniquified,tr_num) %>%
-  group_by(sub_num, months,condition,order_uniquified) %>%
+  arrange(sub_num,months,order,tr_num) %>% # what to do with order_uniquified here?
+  group_by(sub_num, months,condition,order) %>%
   mutate(trial_order = seq(1, length(tr_num))) %>%
   relocate(trial_order, .after=tr_num) %>%
   ungroup()
@@ -223,15 +219,15 @@ d_tidy <- d_tidy %>%
 
 #get zero-indexed administration ids
 d_administration_ids <- d_tidy %>%
-  distinct(subject_id, sub_num, months, order_uniquified) %>%
-  arrange(subject_id, sub_num, months, order_uniquified) %>%
-  mutate(administration_id = seq(0, length(.$order_uniquified) - 1)) 
+  distinct(subject_id, sub_num, months, order) %>%
+  arrange(subject_id, sub_num, months, order) %>%
+  mutate(administration_id = seq(0, length(.$order) - 1)) 
 
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
   #order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
   #potentially make distinct based on condition if that is relevant to the study design (no condition manipulation here)
-  distinct(trial_order, target_id, distractor_id, target_side) %>%
+  distinct(trial_order, target_id, distractor_id, target_side) %>% # outdated values, could use some help here
   mutate(full_phrase = NA) %>% #unknown
   mutate(trial_type_id = seq(0, length(trial_order) - 1)) 
 
@@ -276,13 +272,14 @@ d_tidy_final %>%
   write_csv(fs::path(write_path, aoi_table_filename))
 
 ##### SUBJECTS TABLE ####
-d_tidy_final %>%
+subjects <- d_tidy_final %>% 
   distinct(subject_id, lab_subject_id,sex) %>%
   filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language="eng") %>%
   write_csv(fs::path(write_path, subject_table_filename))
+
 
 ##### ADMINISTRATIONS TABLE ####
 d_tidy_final %>%
