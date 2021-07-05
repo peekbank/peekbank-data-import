@@ -47,97 +47,171 @@ d_raw_1_24 <- read_delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt")
 d_raw_2_24 <- read_excel(here::here(read_path,"FMW2013_English_24m_n21toMF.xls"),
                          col_types = "text")
 
-filter_na <- function(d.raw){
-  d_filtered <- d.raw %>%
+#### FUNCTIONS FOR PREPROCESSING ####
+
+preprocess_raw_data <- function(dataset){
+  ## filters out NAs and cleans up column names for further processing
+  
+  d_filtered <- dataset %>%
     select_if(~sum(!is.na(.)) > 0) %>%
     filter(!is.na(`Sub Num`))
   d_processed <-  d_filtered %>%
     clean_names()
-  
   return(d_processed)
 }
 
-organize_names <- function(d.raw){
+extract_col_types <- function(dataset,col_pattern="xf") {
   
+  old_names <- colnames(dataset)
+  
+  if (col_pattern == "xf") {
+    metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
+    pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
+    post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
+  } else if (col_pattern == "xfx") {
+    metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
+    pre_dis_min_index <- which.max(str_detect(old_names, "x\\d"))
+    pre_dis_max_index <- which.min(match(str_detect(old_names, "f\\d"), TRUE))-1
+    pre_dis_names <- old_names[pre_dis_min_index:pre_dis_max_index]
+    post_dis_names  <- old_names[!(old_names %in% c(metadata_names,pre_dis_names))]
+  }
+  ### TO DO: HANDLE THIRD COLUMN STRUCTURE
+  
+  dataset_col_types <- list(metadata_names,pre_dis_names,post_dis_names)
+  names(dataset_col_types) <- c("metadata_names","pre_dis_names","post_dis_names")
+  return(dataset_col_types)
 }
 
-relabel_cols_2_18 <- function(d.raw){
-  d_processed <- filter_na(d.raw)
-  old_names <- colnames(d_processed)
-  metadata_names <- old_names[1:16]
-  pre_dis_names <- old_names[17:35]
-  post_dis_names  <- old_names[36:length(old_names)]
+relabel_time_cols <-  function(dataset, metadata_names, pre_dis_names, post_dis_names, truncation_point = length(colnames(dataset)),sampling_rate=sampling_rate_ms) {
+  ## relabels the time columns in the dataset to ms values (to prepare for pivoting to long format == 1 timepoint per row)
+  dataset_processed <- dataset
   
-  pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
-                                   to = sampling_rate_ms,
-                                   by = -sampling_rate_ms) * -1,0)
+  pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate,
+                                   to = sampling_rate,
+                                   by = -sampling_rate) * -1,digits=0)
   
-  pre_dis_names_clean <- pre_dis_names %>% str_remove("...")
+  post_dis_names_clean <- round(seq(from = 0,
+                                    to = length(post_dis_names) * sampling_rate-1,
+                                    by = sampling_rate),digits=0)
   
-  colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names)
+  colnames(dataset_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
   
-  return(d_processed)
+  ### truncate columns 
+  ## default is to keep all columns/ timepoints; specify a truncation_point to remove unneeded timepoints
+  if (truncation_point < length(colnames(dataset))) {
+    #remove
+    dataset_processed <- dataset_processed %>%
+      select(-all_of(truncation_point:length(colnames(dataset_processed))))
+  }
+  
+  return(dataset_processed)
 }
 
-relabel_cols_2_24 <- function(d.raw){
-  d_processed <- filter_na(d.raw)
-  
-  old_names <- colnames(d_processed)
-  metadata_names <- old_names[1:16]
-  pre_dis_names <- old_names[17:44]
-  post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
-  
-  pre_dis_names <- pre_dis_names %>% str_remove("...") 
-  pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
-                                   to = sampling_rate_ms,
-                                   by = -sampling_rate_ms) * -1,0)
-  
-  post_dis_names_clean <-  post_dis_names %>% str_remove("f")
-  
-  colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
-  
-  return(d_processed)
-}
+#### Process individual datasets
 
-#write relabeling functions
-relabel_cols_1 <- function(d.raw){
-  
-  d_processed <- filter_na(d.raw)
-  d_processed <- d_processed %>% remove_repeat_headers(idx_var = "Months")
-  
-  
-  # Relabel time bins --------------------------------------------------
-  old_names <- colnames(d_processed)
-  metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
-  pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
-  post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
-  
-  pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
-                                   to = sampling_rate_ms,
-                                   by = -sampling_rate_ms) * -1,0)
-  
-  
-  post_dis_names_clean <- post_dis_names %>% str_remove("f")
-  
-  colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
-  
-  
-  ### truncate columns at F3833, since trials are almost never coded later than this timepoint
-  ## TO DO: check in about this decision
-  post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
-  #remove
-  d_processed <- d_processed %>%
-    select(-all_of(post_dis_names_clean_cols_to_remove))
-  
-  return(d_processed)
-}
+## Temporary: examples of how to process individual datasets
 
-#combine
-d_processed <- bind_rows( relabel_cols_1(d_raw_1_24),
-                          relabel_cols_1(d_raw_1_18), 
-                          relabel_cols_2_18(d_raw_2_18),
-                          relabel_cols_2_24(d_raw_2_24),
-                        )
+temp <- d_raw_1_18 %>%
+  preprocess_raw_data() %>%
+  relabel_time_cols(
+    metadata_names = extract_col_types(.)[["metadata_names"]],
+    pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
+    post_dis_names = extract_col_types(.)[["post_dis_names"]],
+    truncation_point = 152
+  )
+
+temp_2_24 <- d_raw_2_24 %>%
+  preprocess_raw_data() %>%
+  relabel_time_cols(
+    metadata_names = extract_col_types(., col_pattern="xfx")[["metadata_names"]],
+    pre_dis_names = extract_col_types(., col_pattern="xfx")[["pre_dis_names"]],
+    post_dis_names = extract_col_types(., col_pattern="xfx")[["post_dis_names"]]#,
+    #fill in truncation point
+  )
+  
+# 
+# 
+# 
+# relabel_cols_2_18 <- function(d.raw){
+#   d_processed <- filter_na(d.raw)
+#   old_names <- colnames(d_processed)
+#   metadata_names <- old_names[1:16]
+#   pre_dis_names <- old_names[17:35]
+#   post_dis_names  <- old_names[36:length(old_names)]
+#   
+#   pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
+#                                    to = sampling_rate_ms,
+#                                    by = -sampling_rate_ms) * -1,0)
+#   
+#   pre_dis_names_clean <- pre_dis_names %>% str_remove("...")
+#   
+#   colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names)
+#   
+#   return(d_processed)
+# }
+# 
+# relabel_cols_2_24 <- function(d.raw){
+#   d_processed <- filter_na(d.raw)
+#   
+#   old_names <- colnames(d_processed)
+#   metadata_names <- old_names[1:16]
+#   pre_dis_names <- old_names[17:44]
+#   post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
+#   
+#   pre_dis_names <- pre_dis_names %>% str_remove("...") 
+#   pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
+#                                    to = sampling_rate_ms,
+#                                    by = -sampling_rate_ms) * -1,0)
+#   
+#   post_dis_names_clean <-  post_dis_names %>% str_remove("f")
+#   
+#   colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
+#   
+#   return(d_processed)
+# }
+# 
+# #write relabeling functions
+# relabel_cols_1 <- function(d.raw){
+#   
+#   d_processed <- filter_na(d.raw)
+#   d_processed <- d_processed %>% remove_repeat_headers(idx_var = "Months")
+#   
+#   
+#   # Relabel time bins --------------------------------------------------
+#   old_names <- colnames(d_processed)
+#   metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
+#   pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
+#   post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
+#   
+#   pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
+#                                    to = sampling_rate_ms,
+#                                    by = -sampling_rate_ms) * -1,0)
+#   
+#   
+#   post_dis_names_clean <- post_dis_names %>% str_remove("f")
+#   
+#   colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
+#   
+#   
+#   ### truncate columns at F3833, since trials are almost never coded later than this timepoint
+#   ## TO DO: check in about this decision
+#   post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
+#   #remove
+#   d_processed <- d_processed %>%
+#     select(-all_of(post_dis_names_clean_cols_to_remove))
+#   
+#   return(d_processed)
+# }
+# 
+# #combine
+# d_processed <- bind_rows( relabel_cols_1(d_raw_1_24),
+#                           relabel_cols_1(d_raw_1_18), 
+#                           relabel_cols_2_18(d_raw_2_18),
+#                           relabel_cols_2_24(d_raw_2_24),
+#                         )
+
+## combine datasets
+## TO DO: BIND TOGETHER DATASETS POST PROCESSING
 
 
 #create trial_order variable by modifiying the tr_num variable
