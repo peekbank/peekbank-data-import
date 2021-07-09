@@ -25,7 +25,7 @@ xy_table_filename <-  "xy_timepoints.csv"
 
 osf_token <- read_lines(here("osf_token.txt"))
 
-#peekds::get_raw_data(dataset_name, path = read_path)
+# peekds::get_raw_data(dataset_name, path = read_path)
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
@@ -64,14 +64,20 @@ extract_col_types <- function(dataset,col_pattern="xf") {
   
   old_names <- colnames(dataset)
   
-  if (col_pattern == "xf") {
+  if (col_pattern == "xf") { # d_raw_1_18 && d_raw_1_24
     metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
     pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
     post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
-  } else if (col_pattern == "xfx") {
+  } else if (col_pattern == "xfx") { # d_raw_2_24
     metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
     pre_dis_min_index <- which.max(str_detect(old_names, "x\\d"))
     pre_dis_max_index <- which.min(match(str_detect(old_names, "f\\d"), TRUE))-1
+    pre_dis_names <- old_names[pre_dis_min_index:pre_dis_max_index]
+    post_dis_names  <- old_names[!(old_names %in% c(metadata_names,pre_dis_names))]
+  } else if (col_pattern == "x") { # d_raw_2_18
+    metadata_names <- old_names[!str_detect(old_names, "x\\d|onset|second")]
+    pre_dis_min_index <- which.max(str_detect(old_names, "x\\d"))
+    pre_dis_max_index <- which.min(match(str_detect(old_names, "onset"), TRUE))-1
     pre_dis_names <- old_names[pre_dis_min_index:pre_dis_max_index]
     post_dis_names  <- old_names[!(old_names %in% c(metadata_names,pre_dis_names))]
   }
@@ -111,13 +117,48 @@ relabel_time_cols <-  function(dataset, metadata_names, pre_dis_names, post_dis_
 
 ## Temporary: examples of how to process individual datasets
 
-temp <- d_raw_1_18 %>%
+## TODO make function which looks at if over half of values in a column are NA and if they are, make truncate
+## point occur at that column
+
+truncation_point_calc <- function(dataset, col_pattern="xf") {
+  old_names <- colnames(dataset)
+  if (col_pattern == "x"){
+    post_dis_min_index <- which.min(match(str_detect(old_names, "Onset"), TRUE))
+  } 
+  else {
+    post_dis_min_index <- which.min(match(str_detect(old_names, "F\\d"), TRUE))
+  }
+ 
+  ratios <- colMeans(is.na(dataset))
+  truncation_point <- length(ratios)
+  for(i in 1:length(ratios)){
+    if(ratios[[i]] > 0.85 && i > post_dis_min_index){
+      truncation_point <- i
+      return(truncation_point)
+    }
+  }
+  # ratios <- dataset_col_not_na_ratio[1,]
+  #truncation_point <- which.max(match(ratios > 0.1,TRUE)) + 1
+  
+  return(truncation_point)
+}
+
+temp_1_18 <- d_raw_1_18 %>%
   preprocess_raw_data() %>%
   relabel_time_cols(
     metadata_names = extract_col_types(.)[["metadata_names"]],
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
-    truncation_point = 152
+    truncation_point = truncation_point_calc(d_raw_1_18) # 175
+  )
+
+temp_1_24 <- d_raw_1_24 %>%
+  preprocess_raw_data() %>%
+  relabel_time_cols(
+    metadata_names = extract_col_types(.)[["metadata_names"]],
+    pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
+    post_dis_names = extract_col_types(.)[["post_dis_names"]],
+    truncation_point = truncation_point_calc(d_raw_1_24) #152
   )
 
 temp_2_24 <- d_raw_2_24 %>%
@@ -125,8 +166,17 @@ temp_2_24 <- d_raw_2_24 %>%
   relabel_time_cols(
     metadata_names = extract_col_types(., col_pattern="xfx")[["metadata_names"]],
     pre_dis_names = extract_col_types(., col_pattern="xfx")[["pre_dis_names"]],
-    post_dis_names = extract_col_types(., col_pattern="xfx")[["post_dis_names"]]#,
-    #fill in truncation point
+    post_dis_names = extract_col_types(., col_pattern="xfx")[["post_dis_names"]],
+    truncation_point = truncation_point_calc(d_raw_2_24) #146
+  )
+
+temp_2_18 <- d_raw_2_18 %>%
+  preprocess_raw_data() %>%
+  relabel_time_cols(
+    metadata_names = extract_col_types(., col_pattern="x")[["metadata_names"]],
+    pre_dis_names = extract_col_types(., col_pattern="x")[["pre_dis_names"]],
+    post_dis_names = extract_col_types(., col_pattern="x")[["post_dis_names"]],
+    truncation_point = truncation_point_calc(d_raw_2_18, col_pattern="x") #149
   )
   
 # 
@@ -217,7 +267,7 @@ temp_2_24 <- d_raw_2_24 %>%
 #create trial_order variable by modifiying the tr_num variable
 d_processed <- d_processed  %>%
   mutate(tr_num=as.numeric(as.character(tr_num))) %>%
-  arrange(sub_num,months,order,tr_num) %>% # what to do with order_uniquified here?
+  arrange(sub_num,months,order,tr_num) %>% 
   group_by(sub_num, months,condition,order) %>%
   mutate(trial_order = seq(1, length(tr_num))) %>%
   relocate(trial_order, .after=tr_num) %>%
