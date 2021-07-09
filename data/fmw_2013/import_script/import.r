@@ -129,10 +129,10 @@ truncation_point_calc <- function(dataset, col_pattern="xf") {
     post_dis_min_index <- which.min(match(str_detect(old_names, "F\\d"), TRUE))
   }
  
-  ratios <- colMeans(is.na(dataset))
-  truncation_point <- length(ratios)
-  for(i in 1:length(ratios)){
-    if(ratios[[i]] > 0.85 && i > post_dis_min_index){
+  ratios_of_na <- colMeans(is.na(dataset))
+  truncation_point <- length(ratios_of_na)
+  for(i in 1:length(ratios_of_na)){
+    if(ratios_of_na[[i]] > 0.85 && i > post_dis_min_index){
       truncation_point <- i
       return(truncation_point)
     }
