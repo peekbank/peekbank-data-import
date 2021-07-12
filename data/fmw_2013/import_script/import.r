@@ -24,8 +24,7 @@ aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
 osf_token <- read_lines(here("osf_token.txt"))
-
-# peekds::get_raw_data(dataset_name, path = read_path)
+peekds::get_raw_data(dataset_name, path = read_path)
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
@@ -75,9 +74,9 @@ extract_col_types <- function(dataset,col_pattern="xf") {
     pre_dis_names <- old_names[pre_dis_min_index:pre_dis_max_index]
     post_dis_names  <- old_names[!(old_names %in% c(metadata_names,pre_dis_names))]
   } else if (col_pattern == "x") { # d_raw_2_18
-    metadata_names <- old_names[!str_detect(old_names, "x\\d|onset|second")]
-    pre_dis_min_index <- which.max(str_detect(old_names, "x\\d"))
-    pre_dis_max_index <- which.min(match(str_detect(old_names, "onset"), TRUE))-1
+    metadata_names <- old_names[!str_detect(old_names, "x\\d|word_onset_frame|x\\d_second|frames_word_starts_at_frame_20")]
+    pre_dis_min_index <- which.max(str_detect(old_names, "frames_word_starts_at_frame_20"))
+    pre_dis_max_index <- which.min(match(str_detect(old_names, "word_onset_frame"), TRUE))-1
     pre_dis_names <- old_names[pre_dis_min_index:pre_dis_max_index]
     post_dis_names  <- old_names[!(old_names %in% c(metadata_names,pre_dis_names))]
   }
@@ -113,35 +112,24 @@ relabel_time_cols <-  function(dataset, metadata_names, pre_dis_names, post_dis_
   return(dataset_processed)
 }
 
-#### Process individual datasets
 
-## Temporary: examples of how to process individual datasets
-
-## TODO make function which looks at if over half of values in a column are NA and if they are, make truncate
-## point occur at that column
-
-truncation_point_calc <- function(dataset, col_pattern="xf") {
-  old_names <- colnames(dataset)
-  if (col_pattern == "x"){
-    post_dis_min_index <- which.min(match(str_detect(old_names, "Onset"), TRUE))
-  } 
-  else {
-    post_dis_min_index <- which.min(match(str_detect(old_names, "F\\d"), TRUE))
-  }
- 
+## truncation point
+## if some set of final columns contains more NAs than our cutoff, we want to discard that run of columns
+## this function helps us compute that truncation point for the final column set by exploiting run-length encoding
+truncation_point_calc <- function(dataset, na_cutoff=1) {
+  
   ratios_of_na <- colMeans(is.na(dataset))
   truncation_point <- length(ratios_of_na)
-  for(i in 1:length(ratios_of_na)){
-    if(ratios_of_na[[i]] > 0.95 && i > post_dis_min_index){
-      truncation_point <- i
-      return(truncation_point)
-    }
+  #convert to run-length encoding (in terms of TRUE/ FALSE above NA cutoff)
+  cutoff_rle <- rle(ratios_of_na>na_cutoff)
+  if (cutoff_rle$values[length(cutoff_rle$values)]) {
+    truncation_point <- sum(cutoff_rle$lengths[1:length(cutoff_rle$values)-1])+1
   }
-  # ratios <- dataset_col_not_na_ratio[1,]
-  #truncation_point <- which.max(match(ratios > 0.1,TRUE)) + 1
   
   return(truncation_point)
 }
+
+#### Process individual datasets
 
 temp_1_18 <- d_raw_1_18 %>%
   preprocess_raw_data() %>%
@@ -176,94 +164,8 @@ temp_2_18 <- d_raw_2_18 %>%
     metadata_names = extract_col_types(., col_pattern="x")[["metadata_names"]],
     pre_dis_names = extract_col_types(., col_pattern="x")[["pre_dis_names"]],
     post_dis_names = extract_col_types(., col_pattern="x")[["post_dis_names"]],
-    truncation_point = truncation_point_calc(d_raw_2_18, col_pattern="x") #149
+    truncation_point = truncation_point_calc(d_raw_2_18) #149
   )
-  
-
-
-# 
-# 
-# 
-# relabel_cols_2_18 <- function(d.raw){
-#   d_processed <- filter_na(d.raw)
-#   old_names <- colnames(d_processed)
-#   metadata_names <- old_names[1:16]
-#   pre_dis_names <- old_names[17:35]
-#   post_dis_names  <- old_names[36:length(old_names)]
-#   
-#   pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
-#                                    to = sampling_rate_ms,
-#                                    by = -sampling_rate_ms) * -1,0)
-#   
-#   pre_dis_names_clean <- pre_dis_names %>% str_remove("...")
-#   
-#   colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names)
-#   
-#   return(d_processed)
-# }
-# 
-# relabel_cols_2_24 <- function(d.raw){
-#   d_processed <- filter_na(d.raw)
-#   
-#   old_names <- colnames(d_processed)
-#   metadata_names <- old_names[1:16]
-#   pre_dis_names <- old_names[17:44]
-#   post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
-#   
-#   pre_dis_names <- pre_dis_names %>% str_remove("...") 
-#   pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
-#                                    to = sampling_rate_ms,
-#                                    by = -sampling_rate_ms) * -1,0)
-#   
-#   post_dis_names_clean <-  post_dis_names %>% str_remove("f")
-#   
-#   colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
-#   
-#   return(d_processed)
-# }
-# 
-# #write relabeling functions
-# relabel_cols_1 <- function(d.raw){
-#   
-#   d_processed <- filter_na(d.raw)
-#   d_processed <- d_processed %>% remove_repeat_headers(idx_var = "Months")
-#   
-#   
-#   # Relabel time bins --------------------------------------------------
-#   old_names <- colnames(d_processed)
-#   metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
-#   pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
-#   post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
-#   
-#   pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
-#                                    to = sampling_rate_ms,
-#                                    by = -sampling_rate_ms) * -1,0)
-#   
-#   
-#   post_dis_names_clean <- post_dis_names %>% str_remove("f")
-#   
-#   colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
-#   
-#   
-#   ### truncate columns at F3833, since trials are almost never coded later than this timepoint
-#   ## TO DO: check in about this decision
-#   post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
-#   #remove
-#   d_processed <- d_processed %>%
-#     select(-all_of(post_dis_names_clean_cols_to_remove))
-#   
-#   return(d_processed)
-# }
-# 
-# #combine
-# d_processed <- bind_rows( relabel_cols_1(d_raw_1_24),
-#                           relabel_cols_1(d_raw_1_18), 
-#                           relabel_cols_2_18(d_raw_2_18),
-#                           relabel_cols_2_24(d_raw_2_24),
-#                         )
-
-## combine datasets
-## TO DO: BIND TOGETHER DATASETS POST PROCESSING
 
 d_processed <- bind_rows(temp_1_18, temp_1_24, temp_2_18, temp_2_24)
 
@@ -276,8 +178,11 @@ d_processed <- d_processed  %>%
   relocate(trial_order, .after=tr_num) %>%
   ungroup()
 
-d_tidy <- d_processed #%>%
-  # pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi") %>%
+d_tidy <- d_processed %>%
+  pivot_longer(names_to = "t", cols = `-600`:`-633`, values_to = "aoi") %>%
+  mutate(t=as.numeric(as.character(t))) %>%
+  arrange(sub_num, months,order,trial_order,tr_num,t)
+  #%>%
   # select(-c("-1333":"-633"))
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
