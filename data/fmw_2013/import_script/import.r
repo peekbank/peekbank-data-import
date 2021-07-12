@@ -132,7 +132,7 @@ truncation_point_calc <- function(dataset, col_pattern="xf") {
   ratios_of_na <- colMeans(is.na(dataset))
   truncation_point <- length(ratios_of_na)
   for(i in 1:length(ratios_of_na)){
-    if(ratios_of_na[[i]] > 0.85 && i > post_dis_min_index){
+    if(ratios_of_na[[i]] > 0.95 && i > post_dis_min_index){
       truncation_point <- i
       return(truncation_point)
     }
@@ -179,6 +179,8 @@ temp_2_18 <- d_raw_2_18 %>%
     truncation_point = truncation_point_calc(d_raw_2_18, col_pattern="x") #149
   )
   
+
+
 # 
 # 
 # 
@@ -263,6 +265,7 @@ temp_2_18 <- d_raw_2_18 %>%
 ## combine datasets
 ## TO DO: BIND TOGETHER DATASETS POST PROCESSING
 
+d_processed <- bind_rows(temp_1_18, temp_1_24, temp_2_18, temp_2_24)
 
 #create trial_order variable by modifiying the tr_num variable
 d_processed <- d_processed  %>%
@@ -273,10 +276,9 @@ d_processed <- d_processed  %>%
   relocate(trial_order, .after=tr_num) %>%
   ungroup()
 
-d_tidy <- d_processed %>%
-  pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi") %>%
-  select(-c("-1333":"-633"))
-
+d_tidy <- d_processed #%>%
+  # pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi") %>%
+  # select(-c("-1333":"-633"))
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
 d_tidy <- d_tidy %>%
