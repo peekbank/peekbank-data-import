@@ -224,7 +224,7 @@ stimulus_table <- d_tidy %>%
          stimulus_novelty = "familiar",
          original_stimulus_label = target_label,
          english_stimulus_label = target_label,
-         stimulus_image_path = paste0(target_image, ".pct"), # TO DO - update once images are shared/ image file path known
+         stimulus_image_path = target_image, 
          image_description = target_label,
          image_description_source = "image path",
          lab_stimulus_id = target_image
@@ -258,11 +258,9 @@ d_administration_ids <- d_tidy %>%
 
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
-  #order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
-  #potentially make distinct based on condition if that is relevant to the study design (no condition manipulation here)
-  distinct(trial_order, target_id, distractor_id, target_side) %>% # outdated values, could use some help here
+  distinct(target_id, distractor_id, target_side) %>% 
   mutate(full_phrase = NA) %>% #unknown
-  mutate(trial_type_id = seq(0, length(trial_order) - 1)) 
+  mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
@@ -281,7 +279,8 @@ d_tidy_semifinal <- d_tidy_semifinal %>%
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
   mutate(dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
-         lab_trial_id = paste(order, tr_num, sep = "-"),
+         #lab_trial_id = paste(target_label,target_image,distractor_image, sep = "-"),
+         lab_trial_id = NA,
          aoi_region_set_id = NA, # not applicable
          monitor_size_x = NA, #unknown TO DO
          monitor_size_y = NA, #unknown TO DO
@@ -343,7 +342,7 @@ d_tidy_final %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
-ttid <- d_tidy_final %>%
+trial_types <- d_tidy_final %>%
   distinct(trial_type_id,
            full_phrase,
            point_of_disambiguation,
@@ -354,7 +353,7 @@ ttid <- d_tidy_final %>%
            target_id,
            distractor_id) %>%
   mutate(full_phrase_language = "eng",
-         condition = "") %>% #no condition manipulation based on current documentation
+         condition = NA) %>% #no condition manipulation based on current documentation
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### AOI REGIONS TABLE ####
