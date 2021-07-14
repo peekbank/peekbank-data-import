@@ -24,7 +24,7 @@ aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
 osf_token <- read_lines(here("osf_token.txt"))
-peekds::get_raw_data(dataset_name, path = read_path)
+# peekds::get_raw_data(dataset_name, path = read_path)
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
@@ -55,7 +55,9 @@ preprocess_raw_data <- function(dataset){
     select_if(~sum(!is.na(.)) > 0) %>%
     filter(!is.na(`Sub Num`))
   d_processed <-  d_filtered %>%
-    clean_names()
+    remove_repeat_headers(idx_var = "Sub Num") %>%
+    clean_names() #%>%
+    #subset(., grepl('^\\d+$', .$sub_num)) #subject number column can only contain numeric values, deletes all non numeric rows
   return(d_processed)
 }
 
@@ -214,7 +216,6 @@ d_tidy <- d_tidy %>%
   mutate(distractor_image = case_when(target_side == "right" ~ left_image,
                                       TRUE ~ right_image))
 
-
 #create stimulus table
 stimulus_table <- d_tidy %>%
   distinct(target_image,target_label) %>%
@@ -244,6 +245,7 @@ d_tidy <- d_tidy %>%
 d_subject_ids <- d_tidy %>%
   distinct(sub_num) %>%
   mutate(subject_id = seq(0, length(.$sub_num) - 1))
+  
 #join
 d_tidy <- d_tidy %>%
   left_join(d_subject_ids, by = "sub_num")
@@ -309,6 +311,7 @@ subjects <- d_tidy_final %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language="eng") %>%
+  distinct(lab_subject_id, subject_id, .keep_all = TRUE) %>% # temporary fix to remove duplicates, keeps first sex reported for children labeled with two different sexes at 18 and 24 mo
   write_csv(fs::path(write_path, subject_table_filename))
 
 
@@ -340,7 +343,7 @@ d_tidy_final %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
-d_tidy_final %>%
+ttid <- d_tidy_final %>%
   distinct(trial_type_id,
            full_phrase,
            point_of_disambiguation,
