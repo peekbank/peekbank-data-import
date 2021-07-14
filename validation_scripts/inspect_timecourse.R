@@ -7,7 +7,7 @@ library(peekds)
 library(osfr)
 
 ## constants
-dataset_name = "attword_processed"
+dataset_name = "fmw_2013"
 read_path <- here("data" ,dataset_name,"processed_data")
 aoi_data <- read_csv(fs::path(read_path, "aoi_timepoints.csv"))
 trials_data <- read_csv(fs::path(read_path, "trials.csv"))
@@ -34,9 +34,6 @@ full_data <- full_data %>%
     aoi=="missing"~ NaN
   )) %>%
   mutate(aoi_new=ifelse(is.nan(aoi_new),NA,aoi_new))
-
-full_data <- full_data %>%
-  filter(age>48)
 
 ##### summarize by subject (really: administrations) ####
 summarize_by_subj <- full_data %>%
