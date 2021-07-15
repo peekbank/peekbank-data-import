@@ -221,15 +221,19 @@ stimulus_table <- d_tidy %>%
   distinct(target_image,target_label) %>%
   filter(!is.na(target_image)) %>%
   mutate(dataset_id = 0,
+         target_image = gsub("[[:digit:]]+", "", tolower(target_image)),
+         target_label = gsub("[[:digit:]]+", "", tolower(target_label)),
          stimulus_novelty = "familiar",
-         original_stimulus_label = target_label,
-         english_stimulus_label = target_label,
-         stimulus_image_path = target_image, 
-         image_description = target_label,
+         original_stimulus_label = tolower(target_label),
+         english_stimulus_label = tolower(target_label),
+         stimulus_image_path = tolower(target_image), 
+         image_description = tolower(target_label),
          image_description_source = "image path",
-         lab_stimulus_id = target_image
+         lab_stimulus_id = tolower(target_image)
   ) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
+
+
 
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
