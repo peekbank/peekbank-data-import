@@ -217,11 +217,13 @@ d_tidy <- d_tidy %>%
 
 #create stimulus table
 stimulus_table <- d_tidy %>%
+  mutate(
+    target_image = gsub("[[:digit:]]+", "", tolower(target_image)),
+    target_label = gsub("[[:digit:]]+", "", tolower(target_label))
+  ) %>%
   distinct(target_image,target_label) %>%
   filter(!is.na(target_image)) %>%
   mutate(dataset_id = 0,
-         target_image = gsub("[[:digit:]]+", "", tolower(target_image)),
-         target_label = gsub("[[:digit:]]+", "", tolower(target_label)),
          stimulus_novelty = "familiar",
          original_stimulus_label = tolower(target_label),
          english_stimulus_label = tolower(target_label),
