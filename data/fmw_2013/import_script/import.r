@@ -24,7 +24,7 @@ aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
 osf_token <- read_lines(here("osf_token.txt"))
-# peekds::get_raw_data(dataset_name, path = read_path)
+#peekds::get_raw_data(dataset_name, path = read_path)
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
@@ -65,24 +65,23 @@ extract_col_types <- function(dataset,col_pattern="xf") {
   
   old_names <- colnames(dataset)
   
-  if (col_pattern == "xf") { # d_raw_1_18 && d_raw_1_24
+  if (col_pattern == "xf") { 
     metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
     pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
     post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
-  } else if (col_pattern == "xfx") { # d_raw_2_24
+  } else if (col_pattern == "xfx") {
     metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
     pre_dis_min_index <- which.max(str_detect(old_names, "x\\d"))
     pre_dis_max_index <- which.min(match(str_detect(old_names, "f\\d"), TRUE))-1
     pre_dis_names <- old_names[pre_dis_min_index:pre_dis_max_index]
     post_dis_names  <- old_names[!(old_names %in% c(metadata_names,pre_dis_names))]
-  } else if (col_pattern == "x") { # d_raw_2_18
+  } else if (col_pattern == "x") { 
     metadata_names <- old_names[!str_detect(old_names, "x\\d|word_onset_frame|x\\d_second|frames_word_starts_at_frame_20")]
     pre_dis_min_index <- which.max(str_detect(old_names, "frames_word_starts_at_frame_20"))
     pre_dis_max_index <- which.min(match(str_detect(old_names, "word_onset_frame"), TRUE))-1
     pre_dis_names <- old_names[pre_dis_min_index:pre_dis_max_index]
     post_dis_names  <- old_names[!(old_names %in% c(metadata_names,pre_dis_names))]
   }
-  ### TO DO: HANDLE THIRD COLUMN STRUCTURE
   
   dataset_col_types <- list(metadata_names,pre_dis_names,post_dis_names)
   names(dataset_col_types) <- c("metadata_names","pre_dis_names","post_dis_names")
@@ -123,7 +122,7 @@ truncation_point_calc <- function(dataset, na_cutoff=1) {
   ratios_of_na <- colMeans(is.na(dataset))
   truncation_point <- length(ratios_of_na)
   #convert to run-length encoding (in terms of TRUE/ FALSE above NA cutoff)
-  cutoff_rle <- rle(ratios_of_na>na_cutoff)
+  cutoff_rle <- rle(ratios_of_na>=na_cutoff)
   if (cutoff_rle$values[length(cutoff_rle$values)]) {
     truncation_point <- sum(cutoff_rle$lengths[1:length(cutoff_rle$values)-1])+1
   }
@@ -139,7 +138,7 @@ temp_1_18 <- d_raw_1_18 %>%
     metadata_names = extract_col_types(.)[["metadata_names"]],
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
-    truncation_point = truncation_point_calc(d_raw_1_18) # 175
+    truncation_point = truncation_point_calc(.) 
   )
 
 temp_1_24 <- d_raw_1_24 %>%
@@ -148,7 +147,7 @@ temp_1_24 <- d_raw_1_24 %>%
     metadata_names = extract_col_types(.)[["metadata_names"]],
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
-    truncation_point = truncation_point_calc(d_raw_1_24) #152
+    truncation_point = truncation_point_calc(.) 
   )
 
 temp_2_24 <- d_raw_2_24 %>%
@@ -157,7 +156,7 @@ temp_2_24 <- d_raw_2_24 %>%
     metadata_names = extract_col_types(., col_pattern="xfx")[["metadata_names"]],
     pre_dis_names = extract_col_types(., col_pattern="xfx")[["pre_dis_names"]],
     post_dis_names = extract_col_types(., col_pattern="xfx")[["post_dis_names"]],
-    truncation_point = truncation_point_calc(d_raw_2_24) #146
+    truncation_point = truncation_point_calc(.) 
   )
 
 temp_2_18 <- d_raw_2_18 %>%
@@ -166,7 +165,7 @@ temp_2_18 <- d_raw_2_18 %>%
     metadata_names = extract_col_types(., col_pattern="x")[["metadata_names"]],
     pre_dis_names = extract_col_types(., col_pattern="x")[["pre_dis_names"]],
     post_dis_names = extract_col_types(., col_pattern="x")[["post_dis_names"]],
-    truncation_point = truncation_point_calc(d_raw_2_18) #149
+    truncation_point = truncation_point_calc(.) 
   )
 
 d_processed <- bind_rows(temp_1_18, temp_1_24, temp_2_18, temp_2_24)
@@ -178,14 +177,15 @@ d_processed <- d_processed  %>%
   group_by(sub_num, months,condition,order) %>%
   mutate(trial_order = seq(1, length(tr_num))) %>%
   relocate(trial_order, .after=tr_num) %>%
-  ungroup()
+  ungroup() %>%
+  #remove unneeded columns
+  select(-word_onset,-gap,-target_rt_sec,-dis_rt_sec,-shifts,-orig_resp)
 
 d_tidy <- d_processed %>%
-  pivot_longer(names_to = "t", cols = `-600`:`-633`, values_to = "aoi") %>%
+  pivot_longer(names_to = "t", cols = `-600`:`6533`, values_to = "aoi") %>%
   mutate(t=as.numeric(as.character(t))) %>%
   arrange(sub_num, months,order,trial_order,tr_num,t)
-  #%>%
-  # select(-c("-1333":"-633"))
+
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
 d_tidy <- d_tidy %>%
@@ -202,7 +202,6 @@ d_tidy <- d_tidy %>%
 
 
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
-
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
   select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt) %>%
