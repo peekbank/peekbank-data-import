@@ -234,9 +234,6 @@ stimulus_table <- d_tidy %>%
   ) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
-
-
-
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
 d_tidy <- d_tidy %>%
   left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('target_image' = 'lab_stimulus_id')) %>%
