@@ -1213,3 +1213,9 @@ data/mahr_coartic/raw_data/stimuli/trials.csv
 data/mahr_coartic/raw_data/subj.csv
 data/mahr_coartic/raw_data/trials.csv
 data/perry_cowpig/processed_data/datasets.csv
+data/ronfard_2021/raw_data/LWLdata_Ronfard_Wei_Rowe_04272021.csv
+data/ronfard_2021/raw_data/ronfard-2021-target-distracter-pairings.txt
+data/fmw_2013/raw_data/FMW2013_English_18mos_n28toMF.xls
+data/fmw_2013/raw_data/FMW2013_English_18mos_n50toMF.txt
+data/fmw_2013/raw_data/FMW2013_English_24m_n21toMF.xls
+data/fmw_2013/raw_data/FMW2013_English_24mos_n33toMF.txt
