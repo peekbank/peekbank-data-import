@@ -23,113 +23,211 @@ aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 osf_token <- read_lines(here("osf_token.txt"))
 
+
+#### FUNCTIONS FOR PREPROCESSING ####
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
 
+preprocess_raw_data <- function(dataset){
+  ## filters out NAs and cleans up column names for further processing
+  
+  d_filtered <- dataset %>%
+    select_if(~sum(!is.na(.)) > 0) %>%
+    filter(!is.na(`Sub Num`))
+  d_processed <-  d_filtered %>%
+    remove_repeat_headers(idx_var = "Sub Num") %>%
+    clean_names() #%>%
+  #subset(., grepl('^\\d+$', .$sub_num)) #subject number column can only contain numeric values, deletes all non numeric rows
+  return(d_processed)
+}
+
+extract_col_types <- function(dataset,col_pattern="xf") {
+  
+  old_names <- colnames(dataset)
+  
+  if (col_pattern == "xf") { 
+    metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
+    pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
+    post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
+  } else if (col_pattern == "xfx") {
+    metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
+    pre_dis_min_index <- which.max(str_detect(old_names, "x\\d"))
+    pre_dis_max_index <- which.min(match(str_detect(old_names, "f\\d"), TRUE))-1
+    pre_dis_names <- old_names[pre_dis_min_index:pre_dis_max_index]
+    post_dis_names  <- old_names[!(old_names %in% c(metadata_names,pre_dis_names))]
+  } else if (col_pattern == "x") { 
+    metadata_names <- old_names[!str_detect(old_names, "x\\d|word_onset_frame|x\\d_second|frames_word_starts_at_frame_20")]
+    pre_dis_min_index <- which.max(str_detect(old_names, "frames_word_starts_at_frame_20"))
+    pre_dis_max_index <- which.min(match(str_detect(old_names, "word_onset_frame"), TRUE))-1
+    pre_dis_names <- old_names[pre_dis_min_index:pre_dis_max_index]
+    post_dis_names  <- old_names[!(old_names %in% c(metadata_names,pre_dis_names))]
+  }
+  
+  dataset_col_types <- list(metadata_names,pre_dis_names,post_dis_names)
+  names(dataset_col_types) <- c("metadata_names","pre_dis_names","post_dis_names")
+  return(dataset_col_types)
+}
+
+relabel_time_cols <-  function(dataset, metadata_names, pre_dis_names, post_dis_names, truncation_point = length(colnames(dataset)),sampling_rate=sampling_rate_ms) {
+  ## relabels the time columns in the dataset to ms values (to prepare for pivoting to long format == 1 timepoint per row)
+  dataset_processed <- dataset
+  
+  pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate,
+                                   to = sampling_rate,
+                                   by = -sampling_rate) * -1,digits=0)
+  
+  post_dis_names_clean <- round(seq(from = 0,
+                                    to = length(post_dis_names) * sampling_rate-1,
+                                    by = sampling_rate),digits=0)
+  
+  colnames(dataset_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
+  
+  ### truncate columns 
+  ## default is to keep all columns/ timepoints; specify a truncation_point to remove unneeded timepoints
+  if (truncation_point < length(colnames(dataset))) {
+    #remove
+    dataset_processed <- dataset_processed %>%
+      select(-all_of(truncation_point:length(colnames(dataset_processed))))
+  }
+  
+  return(dataset_processed)
+}
+
+
+## truncation point
+## if some set of final columns contains more NAs than our cutoff, we want to discard that run of columns
+## this function helps us compute that truncation point for the final column set by exploiting run-length encoding
+truncation_point_calc <- function(dataset, na_cutoff=1) {
+  
+  ratios_of_na <- colMeans(is.na(dataset))
+  truncation_point <- length(ratios_of_na)
+  #convert to run-length encoding (in terms of TRUE/ FALSE above NA cutoff)
+  cutoff_rle <- rle(ratios_of_na>=na_cutoff)
+  if (cutoff_rle$values[length(cutoff_rle$values)]) {
+    truncation_point <- sum(cutoff_rle$lengths[1:length(cutoff_rle$values)-1])+1
+  }
+  
+  return(truncation_point)
+}
+
+#### Download data ####
+
 #peekds::get_raw_data(dataset_name, path = read_path)
+
+#### Read and process individual datasets ####
 
 d_raw_18 <- read_delim(fs::path(read_path, "ichart18.txt"),
                        delim = "\t")
+d_processed_18 <- d_raw_18 %>%
+  preprocess_raw_data() %>%
+  relabel_time_cols(
+    metadata_names = extract_col_types(.)[["metadata_names"]],
+    pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
+    post_dis_names = extract_col_types(.)[["post_dis_names"]],
+    truncation_point = truncation_point_calc(.) 
+  )
+
 d_raw_24 <- read_delim(fs::path(read_path, "ichart24.txt"),
-                       delim = "\t")
+                       delim = "\t") 
 
-d_raw = bind_rows(d_raw_18,d_raw_24)
+d_processed_24 <- d_raw_24 %>%
+  preprocess_raw_data() %>%
+  relabel_time_cols(
+    metadata_names = extract_col_types(.)[["metadata_names"]],
+    pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
+    post_dis_names = extract_col_types(.)[["post_dis_names"]],
+    truncation_point = truncation_point_calc(.) 
+  )
 
+#combine data
+d_processed <-  bind_rows(d_processed_18,d_processed_24)
 
-d_processed <- d_raw %>%
-  remove_repeat_headers(idx_var = "Months") %>%
-  clean_names() %>%
-  filter(!is.na(sub_num)) %>%
-  rename(target = target_image) %>%
-  mutate(target = gsub("[[:digit:]]+", "", target),
-         target_label = target,
-         l_image = gsub("[[:digit:]]+", "", l_image),
-         r_image = gsub("[[:digit:]]+", "", r_image),
-         distractor = case_when(`target` == `l_image` ~ `r_image`,
-                                `target` == `r_image` ~ `l_image`),
-         sex = case_when(sex == 'F' ~ "female",
-                         sex == 'M' ~ "male"),
-         target_side = case_when(target_side == 'r' ~ "right",
-                                 target_side == 'l' ~ "left"),
-         full_phrase = "",
-         condition = tolower(condition)) %>%
-  relocate(target_label, .after=response) %>%
-  relocate(distractor, .after=target) %>%
-  relocate(full_phrase, .after=response) %>%
-  filter(!(sub_num == "6231" & sex=="male")) %>% #one participant has different entries for sex
-  select_if(~sum(!is.na(.)) > 0)
-
-old_names <- colnames(d_processed)
-
-metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
-
-pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
-
-post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
-
-pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
-                                 to = sampling_rate_ms,
-                                 by = -sampling_rate_ms) * -1,0)
-
-post_dis_names_clean <-  post_dis_names %>% str_remove("f") 
-
-colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
-
-d_processed <- d_processed %>%
-  select(-all_of(165:length(colnames(d_processed)))) # truncated at 4000
-
-i_0 <- length(metadata_names)+1         
-i_length <- length(colnames(d_processed))
-
+#make tidy
 d_tidy <- d_processed %>%
-  pivot_longer(names_to = "t", cols = i_0:i_length, values_to = "aoi") %>%
-  mutate(t=as.numeric(as.character(t))) %>%
-  arrange(sub_num, months,order,tr_num,t)
+  pivot_longer(names_to = "t", cols = `-833`:`4433`, values_to = "aoi") %>%
+  mutate(t=as.numeric(as.character(t)),
+         tr_num=as.numeric(as.character(tr_num))) %>%
+  arrange(sub_num, months,order,order,tr_num,t)
 
+# recode 0, 1, ., - as distracter, target, other, NA [check in about this]
+# this leaves NA as NA
 d_tidy <- d_tidy %>%
+  rename(aoi_old = aoi) %>%
   mutate(aoi = case_when(
-    aoi == "0" ~ "distractor",
-    aoi == "1" ~ "target",
-    aoi == "0.5" ~ "other",
-    aoi == "." ~ "missing",
-    aoi == "-" ~ "missing",
-    is.na(aoi) ~ "missing"
+    aoi_old == "0" ~ "distractor",
+    aoi_old == "1" ~ "target",
+    aoi_old == "0.5" ~ "other",
+    aoi_old == "." ~ "missing",
+    aoi_old == "-" ~ "missing",
+    is.na(aoi_old) ~ "missing"
   )) %>%
-  mutate(t = as.numeric(t))
+  mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
 
-
+#### Clean up column names and add stimulus information based on existing columns  ####
+d_tidy <- d_tidy %>%
+  select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt,-crit_on_set,-crit_off_set) %>%
+  #left-right is from the coder's perspective - flip to participant's perspective
+  mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
+  rename(left_image = r_image, right_image=l_image) %>%
+  #rename sex values
+  #one participant has different entries for sex
+  #based on numbers reported in original article, this participant should be F
+  mutate(sex=case_when(
+    sub_num == "6231" ~ "female",
+    sex == 'F' ~ "female",
+    sex == 'M' ~ "male")) %>% 
+  #clean target_image, left_image, right_image
+  #first remove the non-recognized characters altogether
+  mutate(
+    target_image = iconv(target_image,"UTF-8",sub=""),
+    right_image = iconv(right_image,"UTF-8",sub=""),
+    left_image = iconv(left_image,"UTF-8",sub="")
+  ) %>%
+  #correct plátano, pájaro
+  mutate(
+    target_image = str_replace_all(target_image,c("pltano" =  "plátano", "pjaro" = "pájaro", "pajaro" = "pájaro")),
+    right_image = str_replace_all(right_image,c("pltano" =  "plátano", "pjaro" = "pájaro", "pajaro" = "pájaro")),
+    left_image = str_replace_all(left_image,c("pltano" =  "plátano", "pjaro" = "pájaro", "pajaro" = "pájaro")),
+  ) %>%
+  mutate(distractor_image = case_when(target_side == "right" ~ left_image,
+                                      TRUE ~ right_image)) %>%
+  #define target_label
+  mutate(target_label = str_replace_all(target_image,"[[:digit:]]+", "")) %>%
+  mutate(
+    full_phrase="" #unknown
+  )
+  
 stimulus_table <- d_tidy %>%
-  distinct(target) %>%
-  filter(!is.na(target)) %>%
+  distinct(target_image,target_label) %>%
   mutate(dataset_id = 0,
          english_stimulus_label = case_when(
-           target == "globo" ~ "balloon",
-           target == "pelota" ~ "ball",
-           target == "zapato" ~ "shoe",
-           target == "jugo" ~ "juice",
-           target == "caballo" ~ "horse",
-           target == "libro" ~ "book",
-           target == "galleta" ~ "cookie",
-           target == "perro" ~ "dog",
-           target == "cuchara" ~ "spoon",
-           target == "manzana" ~ "apple",
-           str_detect(target, 'jaro') ~ "bird",
-           str_detect(target, 'tano') ~ "banana",
-         ), # should I include a difference between the 1/2/3/4 for these objects? e.g. libro1 vs libro2 or just libro
+           target_label == "globo" ~ "balloon",
+           target_label == "pelota" ~ "ball",
+           target_label == "zapato" ~ "shoe",
+           target_label == "jugo" ~ "juice",
+           target_label == "caballo" ~ "horse",
+           target_label == "libro" ~ "book",
+           target_label == "galleta" ~ "cookie",
+           target_label == "perro" ~ "dog",
+           target_label == "cuchara" ~ "spoon",
+           target_label == "manzana" ~ "apple",
+           target_label == "pájaro" ~ "bird",
+           target_label == "plátano" ~ "banana",
+         ), 
          stimulus_novelty = "familiar", 
-         original_stimulus_label = target,
-         stimulus_image_path = target,
+         original_stimulus_label = target_label,
+         stimulus_image_path = target_image,
          image_description = english_stimulus_label,
          image_description_source = "Peekbank discretion",
-         lab_stimulus_id = target) %>%
+         lab_stimulus_id = target_image) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('target' = 'lab_stimulus_id')) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('target_image' = 'lab_stimulus_id')) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('distractor' = 'lab_stimulus_id')) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('distractor_image' = 'lab_stimulus_id')) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
@@ -164,13 +262,14 @@ d_semi <- d_semi %>%
 d_fin <- d_semi %>%
   mutate(dataset_id = 0, 
          lab_trial_id = NA,
+         condition="",
          aoi_region_set_id = NA,
          monitor_size_x = NA,
          monitor_size_y = NA,
          lab_age_units = "months",
          age = as.numeric(months),
          point_of_disambiguation = 0, 
-         tracker = "video_camera", # check
+         tracker = "video_camera",
          sample_rate = sampling_rate_hz) %>% 
   rename(lab_subject_id = sub_num,
          lab_age = months
@@ -210,7 +309,7 @@ administrations <- d_fin %>%
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
-  select(-target) %>%
+  select(-target_label,-target_image) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
@@ -222,7 +321,6 @@ trials <- d_fin %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
-
 trial_types <- d_fin %>%
   distinct(trial_type_id,
            full_phrase,
@@ -243,16 +341,84 @@ data_tab <- tibble(
   dataset_id = 0, # make zero 0 for all, check
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
-  cite = "", # check
-  shortcite = "" # check 
+  cite = "Weisleder, A., & Fernald, A. (2013). Talking to children matters: Early language experience strengthens processing and builds vocabulary. Psychological Science, 24(11), 2143–2152. https://doi.org/10.1177/0956797613488145", 
+  shortcite = "Weisleder & Fernald (2013)"
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
-
-
 
 
 # validation check ----------------------------------------------------------
 validate_for_db_import(dir_csv = write_path)
 
+#### Validation Plot
+
+#plot to validate time course (timing and accuracy plausible)
+#read data back in
+## constants
+dataset_name = "weisleder_stl"
+read_path <- here("data" ,dataset_name,"processed_data")
+aoi_data <- read_csv(fs::path(read_path, "aoi_timepoints.csv"))
+trials_data <- read_csv(fs::path(read_path, "trials.csv"))
+trial_types_data <- read_csv(fs::path(read_path, "trial_types.csv"))
+stimuli_data <- read_csv(fs::path(read_path, "stimuli.csv"))
+administrations <- read_csv(fs::path(read_path, "administrations.csv"))
+subjects <- read_csv(fs::path(read_path, "subjects.csv")) 
+#rename columns for distractor
+distractor_stimuli_data <- stimuli_data
+colnames(distractor_stimuli_data) <- paste("distractor_",colnames(stimuli_data),sep="")
+
+#join to full dataset
+full_data <- aoi_data %>%
+  left_join(administrations) %>%
+  left_join(subjects) %>%
+  left_join(trials_data) %>%
+  left_join(trial_types_data) %>%
+  left_join(stimuli_data,by=c("target_id"="stimulus_id","dataset_id")) %>%
+  left_join(distractor_stimuli_data %>% select(-distractor_dataset_id),by=c("distractor_id"="distractor_stimulus_id"))
+
+#mutate aoi and make age group
+full_data <- full_data %>%
+  mutate(aoi_new=case_when(
+    aoi=="target" ~ 1,
+    aoi=="distractor"~0,
+    aoi=="missing"~ NaN
+  )) %>%
+  mutate(aoi_new=ifelse(is.nan(aoi_new),NA,aoi_new)) %>%
+  mutate(age_group=case_when(
+    age<21 ~ "18-month-olds",
+    TRUE ~ "24-month-olds"
+  ))
+
+##### summarize by subject and age (really: administrations) ####
+summarize_by_subj_age <- full_data %>%
+  group_by(subject_id,age_group, t_norm) %>%
+  summarize(N=sum(!is.na(aoi_new)),mean_accuracy=mean(aoi_new,na.rm=TRUE))
+
+#### summarize across subjects ####
+summarize_across_subj_age <- summarize_by_subj_age %>%
+  group_by(age_group,t_norm) %>%
+  summarize(N=sum(!is.na(mean_accuracy)),
+            accuracy=mean(mean_accuracy,na.rm=TRUE),
+            sd_accuracy=sd(mean_accuracy,na.rm=TRUE))
+
+#plot (individual lines look reasonable!)
+ggplot(summarize_across_subj_age,aes(t_norm,accuracy))+
+  geom_line(data=summarize_by_subj_age,aes(y=mean_accuracy,color=as.factor(subject_id),group=as.factor(subject_id)),alpha=0.2)+
+  geom_line()+
+  geom_smooth(method="gam",se=FALSE)+
+  geom_vline(xintercept=0)+
+  geom_vline(xintercept=300,linetype="dotted")+
+  geom_hline(yintercept=0.5,linetype="dashed")+
+  theme(legend.position="none")+
+  facet_wrap(~age_group)
+#overall increase in recognition speed across age looks reasonable
+ggplot(summarize_across_subj_age,aes(t_norm,accuracy,color=age_group))+
+  geom_line()+
+  geom_smooth(method="gam",se=FALSE)+
+  geom_vline(xintercept=0)+
+  geom_vline(xintercept=300,linetype="dotted")+
+  geom_hline(yintercept=0.5,linetype="dashed")
+
+
 ## OSF INTEGRATION ###
-# put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
+put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
