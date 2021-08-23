@@ -1226,3 +1226,5 @@ data/ronfard_2021/processed_data/stimuli.csv
 data/ronfard_2021/processed_data/subjects.csv
 data/ronfard_2021/processed_data/trial_types.csv
 data/ronfard_2021/processed_data/trials.csv
+data/fmw_2013/raw_data/TLO-24A-1_TL2-24ms-order1_icoder2.txt
+data/fmw_2013/raw_data/TLO-24A-2_TL2-24ms-order2_icoder2.txt
