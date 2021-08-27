@@ -46,6 +46,16 @@ d_raw_1_24 <- read_delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt")
 d_raw_2_24 <- read_excel(here::here(read_path,"FMW2013_English_24m_n21toMF.xls"),
                          col_types = "text")
 
+d_raw_order_1 <- read_delim(fs::path(read_path,"TLO-24A-1_TL2-24ms-order1_icoder2.txt"),
+                            delim = "\t",
+                            col_types = cols(.default = "c"))
+
+d_raw_order_2 <- read_delim(fs::path(read_path,"TLO-24A-2_TL2-24ms-order2_icoder2.txt"),
+                            delim = "\t",
+                            col_types = cols(.default = "c"))
+
+d_raw_order <- bind_rows(d_raw_order_1, d_raw_order_2) %>% rename("order" = "name", "tr_num" = "trial number")
+
 #### FUNCTIONS FOR PREPROCESSING ####
 
 preprocess_raw_data <- function(dataset){
@@ -167,6 +177,67 @@ temp_2_18 <- d_raw_2_18 %>%
     post_dis_names = extract_col_types(., col_pattern="x")[["post_dis_names"]],
     truncation_point = truncation_point_calc(.) 
   )
+
+
+temp_2_24 <- temp_2_24 %>%
+  mutate(order = case_when(
+    order == "ME3-24B-1" ~ "TLOTL2-24-1",
+    order == "ME3-24B-2" ~ "TLOTL2-24-2",
+    order == "ME3-B1-SONO" ~ "TLOTL2-24-1",
+    order == "ME3-B2-SONO" ~ "TLOTL2-24-2"
+  ))
+
+# temp_2_18 <- temp_2_18 %>%
+#   mutate(order = case_when(
+#     order == "TL2-1" ~ "TO-1",
+#     order == "TL2-2" ~ "TO-2"
+#   ))
+# 
+# temp_1_18 <- temp_1_18 %>%
+#   mutate(order = case_when(
+#     order == "TL2-1A" ~ "TO-1",
+#     order == "TL2-2B" ~ "TO-2",
+#     order == "TL2-2A" ~ "TO-2",
+#     order == "TL2-1B" ~ "TO-1"
+#   ))
+# 
+# temp_1_24 <- temp_1_24 %>%
+#   mutate(order = case_when(
+#     order == "TLOTL2-24-1" ~ "TO-1",
+#     order == "TLOTL2-24-2" ~ "TO-2"
+#   ))
+
+# d_raw_order_1 <- d_raw_order_1 %>% rename("order" = "name", "tr_num" = "trial number")
+# d_raw_order_2 <- d_raw_order_2 %>% rename("order" = "name", "tr_num" = "trial number")
+
+
+
+
+temp_1_24 <- temp_1_24 %>%
+  mutate(condition = case_when(
+    condition == "Inf-Adj-Adj" ~ "Inf-Adj",
+    condition == "R-Prime-Verb" ~ "R-Prime",
+    condition == "U-Prime-Verb" ~ "U-Prime",
+    condition == "Uninf-Adj-Adj" ~ "Uninf-Adj"
+  ))
+
+d_raw_order <- d_raw_order %>%
+  mutate(condition = case_when(
+    condition == "Inf-Adj-Adj" ~ "Inf-Adj",
+    condition == "R-Prime-Verb" ~ "R-Prime",
+    condition == "U-Prime-Verb" ~ "U-Prime",
+    condition == "Uninf-Adj-Adj" ~ "Uninf-Adj"
+  ))
+
+d_raw_order$`target side` <- tolower(d_raw_order$`target side`)
+
+temp_1_24 <- temp_1_24 %>% left_join(d_raw_order, by = c("order", "tr_num", "l_image" = "left image", "r_image" = "right image", "target_side" = "target side", "condition"))
+temp_2_24 <- temp_2_24 %>% merge(d_raw_order)
+
+temp_1_18 <- temp_1_18 %>% filter(!str_detect(condition, 'Noun'))
+temp_2_18 <- temp_2_18 %>% filter(!str_detect(condition, 'Noun'))
+temp_1_24 <- temp_1_24 %>% filter(!str_detect(condition, 'Noun'))
+temp_2_24 <- temp_2_24 %>% filter(!str_detect(condition, 'Noun'))
 
 d_processed <- bind_rows(temp_1_18, temp_1_24, temp_2_18, temp_2_24)
 
@@ -392,7 +463,12 @@ data_tab <- tibble(
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
-
+### Cleanup steps
+# doggie/doggy <- keep this one, birdie/birdy
+# shoe vs blue shoe
+# red vs ball vs redball, did they ask for the red one or did they ask for the ball
+# adjective+target label phrase
+# keep encoding as noun for target_label
 
 # validation check ----------------------------------------------------------
 validate_for_db_import(dir_csv = write_path)
