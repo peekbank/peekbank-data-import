@@ -1237,3 +1237,9 @@ data/weisleder_stl/processed_data/stimuli.csv
 data/weisleder_stl/processed_data/subjects.csv
 data/weisleder_stl/processed_data/trial_types.csv
 data/weisleder_stl/processed_data/trials.csv
+data/fmw_2013/processed_data/administrations.csv
+data/fmw_2013/processed_data/aoi_timepoints.csv
+data/fmw_2013/processed_data/stimuli.csv
+data/fmw_2013/processed_data/subjects.csv
+data/fmw_2013/processed_data/trial_types.csv
+data/fmw_2013/processed_data/trials.csv

@@ -54,7 +54,8 @@ d_raw_order_2 <- read_delim(fs::path(read_path,"TLO-24A-2_TL2-24ms-order2_icoder
                             delim = "\t",
                             col_types = cols(.default = "c"))
 
-d_raw_order <- bind_rows(d_raw_order_1, d_raw_order_2) %>% rename("order" = "name", "tr_num" = "trial number")
+d_raw_order <- bind_rows(d_raw_order_1, d_raw_order_2) %>% rename("order" = "name", "tr_num" = "trial number") %>%
+  clean_names()
 
 #### FUNCTIONS FOR PREPROCESSING ####
 
@@ -149,7 +150,13 @@ temp_1_18 <- d_raw_1_18 %>%
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
     truncation_point = truncation_point_calc(.) 
-  )
+  ) %>%
+  mutate(
+    tr_num=as.numeric(tr_num),
+    crit_on_set=as.numeric(crit_on_set)) %>%
+  #point of disambiguation does not need adjustment for 18-month-olds
+  mutate(crit_onset_adjust=0) %>%
+  relocate("crit_onset_adjust",.after="crit_off_set")
 
 temp_1_24 <- d_raw_1_24 %>%
   preprocess_raw_data() %>%
@@ -158,7 +165,15 @@ temp_1_24 <- d_raw_1_24 %>%
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
     truncation_point = truncation_point_calc(.) 
-  )
+  ) %>%
+  mutate(
+    tr_num=as.numeric(tr_num),
+    crit_on_set=as.numeric(crit_on_set)) %>%
+  mutate(order_num = case_when(
+    order == "TLOTL2-24-1" ~ 1,
+    order == "TLOTL2-24-2" ~ 2
+  )) %>%
+  relocate("order_num",.after="crit_off_set")
 
 temp_2_24 <- d_raw_2_24 %>%
   preprocess_raw_data() %>%
@@ -167,7 +182,15 @@ temp_2_24 <- d_raw_2_24 %>%
     pre_dis_names = extract_col_types(., col_pattern="xfx")[["pre_dis_names"]],
     post_dis_names = extract_col_types(., col_pattern="xfx")[["post_dis_names"]],
     truncation_point = truncation_point_calc(.) 
-  )
+  ) %>%
+  mutate(
+    tr_num=as.numeric(tr_num),
+    crit_on_set=as.numeric(crit_on_set)) %>%
+  mutate(order_num = case_when(
+    order %in% c("ME3-B1-SONO","ME3-24B-1") ~ 1,
+    order %in% c("ME3-B2-SONO","ME3-24B-2") ~ 2
+  )) %>%
+  relocate("order_num",.after="crit_off_set")
 
 temp_2_18 <- d_raw_2_18 %>%
   preprocess_raw_data() %>%
@@ -176,86 +199,86 @@ temp_2_18 <- d_raw_2_18 %>%
     pre_dis_names = extract_col_types(., col_pattern="x")[["pre_dis_names"]],
     post_dis_names = extract_col_types(., col_pattern="x")[["post_dis_names"]],
     truncation_point = truncation_point_calc(.) 
-  )
+  ) %>%
+  mutate(
+    tr_num=as.numeric(tr_num)) %>%
+  #point of disambiguation does not need adjustment for 18-month-olds
+  mutate(crit_onset_adjust=0) %>%
+  relocate("crit_onset_adjust",.after="shifts")
 
+#individual order and dataset clean-up
+#unifying condition names, removing duplicated trials
+join_order <- d_raw_order %>%
+  filter(!(condition%in% c("Uninf-Adj-Adj","U-Prime-Verb"))) %>%
+  mutate(
+    tr_num=as.numeric(tr_num)
+    ) 
+#get crit onsets from temp_2_24 to add missing disambiguation point for verb prime conditions
+trial_list <- temp_2_24 %>%
+  #can ignore order because timing is identical for trial number in each order
+  distinct(tr_num,condition,crit_on_set) %>%
+  filter(!is.na(crit_on_set)) %>%
+  rename(crit_on_set_2_24=crit_on_set,condition_2_24=condition) %>%
+  mutate(tr_num=as.numeric(tr_num))
+join_order <- join_order %>%
+  left_join(trial_list) %>%
+  mutate(new_crit_onset=case_when(
+    condition=="R-Prime-Verb" ~ as.numeric(crit_on_set_2_24),
+    TRUE ~ as.numeric(crit_onset)
+  )) %>%
+  mutate(order_num = case_when(
+    order == "TLOTL2-24-1" ~ 1,
+    order == "TLOTL2-24-2" ~ 2)) %>%
+  mutate(target_side = tolower(target_side)) %>%
+  rename(condition_trial_file = condition,order_trial_file=order,l_image=left_image,r_image=right_image)
+  
+#extract noun onset for Inf-Adj-Adj trials
+#using noun onset from Uninf-Adj-Noun trials with the same sound stimulus
+noun_onset_info <- join_order %>%
+  filter(condition_trial_file!="Inf-Adj-Adj") %>%
+  distinct(sound_stimulus,new_crit_onset) %>%
+  mutate(noun_crit_onset=as.numeric(new_crit_onset)) %>%
+  select(-new_crit_onset)
+join_order <- join_order %>%
+  left_join(noun_onset_info)
+#noun_crit_onset now contains the onset of the noun for each sound stimulus
+
+#add order information to 24-month-old data
+#remove duplicate rows for temp_1_24
+temp_1_24 <- temp_1_24 %>%
+  #remove duplicated rows
+  filter(!(condition %in% c("Uninf-Adj-Adj","U-Prime-Verb"))) %>%
+  left_join(select(join_order, c("order_trial_file","tr_num","sound_stimulus","l_image","r_image","target_side","condition_trial_file","noun_crit_onset"))) %>%
+  relocate(c("order_trial_file","sound_stimulus","condition_trial_file","noun_crit_onset"),.after = "crit_off_set") %>%
+  #store how many ms to adjust crit onset by
+  mutate(crit_onset_adjust=noun_crit_onset-crit_on_set) %>%
+  relocate("crit_onset_adjust",.after="order_num")
+#fill in missing crit_on_set values in temp_2_24
+temp_2_24_crit_on_set <- temp_2_24 %>%
+  filter(!is.na(crit_on_set)) %>%
+  distinct(l_image,r_image,target_side,target_image, condition,crit_on_set)
 
 temp_2_24 <- temp_2_24 %>%
-  mutate(order = case_when(
-    order == "ME3-24B-1" ~ "TLOTL2-24-1",
-    order == "ME3-24B-2" ~ "TLOTL2-24-2",
-    order == "ME3-B1-SONO" ~ "TLOTL2-24-1",
-    order == "ME3-B2-SONO" ~ "TLOTL2-24-2"
-  ))
+  select(-crit_on_set) %>%
+  left_join(temp_2_24_crit_on_set) %>%
+  left_join(select(join_order, c("order_trial_file","tr_num","sound_stimulus","l_image","r_image","target_side","condition_trial_file","noun_crit_onset"))) %>%
+  relocate(c("order_trial_file","sound_stimulus","condition_trial_file","noun_crit_onset"),.after = "crit_off_set") %>%
+  #store how many ms to adjust crit onset by
+  mutate(crit_onset_adjust=noun_crit_onset-crit_on_set) %>%
+  relocate("crit_onset_adjust",.after="order_num")
 
-# temp_2_18 <- temp_2_18 %>%
-#   mutate(order = case_when(
-#     order == "TL2-1" ~ "TO-1",
-#     order == "TL2-2" ~ "TO-2"
-#   ))
-# 
-# temp_1_18 <- temp_1_18 %>%
-#   mutate(order = case_when(
-#     order == "TL2-1A" ~ "TO-1",
-#     order == "TL2-2B" ~ "TO-2",
-#     order == "TL2-2A" ~ "TO-2",
-#     order == "TL2-1B" ~ "TO-1"
-#   ))
-# 
-# temp_1_24 <- temp_1_24 %>%
-#   mutate(order = case_when(
-#     order == "TLOTL2-24-1" ~ "TO-1",
-#     order == "TLOTL2-24-2" ~ "TO-2"
-#   ))
-
-# d_raw_order_1 <- d_raw_order_1 %>% rename("order" = "name", "tr_num" = "trial number")
-# d_raw_order_2 <- d_raw_order_2 %>% rename("order" = "name", "tr_num" = "trial number")
-
-
-
-
-temp_1_24 <- temp_1_24 %>%
-  mutate(condition = case_when(
-    condition == "Inf-Adj-Adj" ~ "Inf-Adj",
-    condition == "R-Prime-Verb" ~ "R-Prime",
-    condition == "U-Prime-Verb" ~ "U-Prime",
-    condition == "Uninf-Adj-Adj" ~ "Uninf-Adj"
-  ))
-
-d_raw_order <- d_raw_order %>%
-  mutate(condition = case_when(
-    condition == "Inf-Adj-Adj" ~ "Inf-Adj",
-    condition == "R-Prime-Verb" ~ "R-Prime",
-    condition == "U-Prime-Verb" ~ "U-Prime",
-    condition == "Uninf-Adj-Adj" ~ "Uninf-Adj"
-  ))
-
-d_raw_order$`target side` <- tolower(d_raw_order$`target side`)
-
-temp_1_24 <- temp_1_24 %>% left_join(d_raw_order, by = c("order", "tr_num", "l_image" = "left image", "r_image" = "right image", "target_side" = "target side", "condition"))
-temp_2_24 <- temp_2_24 %>% merge(d_raw_order)
-
-temp_1_18 <- temp_1_18 %>% filter(!str_detect(condition, 'Noun'))
-temp_2_18 <- temp_2_18 %>% filter(!str_detect(condition, 'Noun'))
-temp_1_24 <- temp_1_24 %>% filter(!str_detect(condition, 'Noun'))
-temp_2_24 <- temp_2_24 %>% filter(!str_detect(condition, 'Noun'))
-
-d_processed <- bind_rows(temp_1_18, temp_1_24, temp_2_18, temp_2_24)
-
-#create trial_order variable by modifiying the tr_num variable
-d_processed <- d_processed  %>%
-  mutate(tr_num=as.numeric(as.character(tr_num))) %>%
-  arrange(sub_num,months,order,tr_num) %>% 
-  group_by(sub_num, months,condition,order) %>%
-  mutate(trial_order = seq(1, length(tr_num))) %>%
-  relocate(trial_order, .after=tr_num) %>%
-  ungroup() %>%
+#combine all files
+d_processed <- bind_rows(temp_1_18, temp_1_24, temp_2_18, temp_2_24) %>%
+  #relocate newly added columns
+  relocate(c("order_trial_file","sound_stimulus","condition_trial_file","noun_crit_onset","order_num","crit_onset_adjust"),.after = "crit_off_set") %>%
   #remove unneeded columns
-  select(-word_onset,-gap,-target_rt_sec,-dis_rt_sec,-shifts,-orig_resp)
-
+  select(-word_onset,-gap,-target_rt_sec,-dis_rt_sec,-shifts,-orig_resp) 
+  
+#make tidy
 d_tidy <- d_processed %>%
   pivot_longer(names_to = "t", cols = `-600`:`6533`, values_to = "aoi") %>%
   mutate(t=as.numeric(as.character(t))) %>%
-  arrange(sub_num, months,order,trial_order,tr_num,t)
+  arrange(sub_num, months,order,tr_num,t)
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -268,8 +291,7 @@ d_tidy <- d_tidy %>%
     aoi_old == "." ~ "missing",
     aoi_old == "-" ~ "missing",
     is.na(aoi_old) ~ "missing"
-  )) %>%
-  mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
+  )) 
 
 
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
@@ -284,33 +306,91 @@ d_tidy <- d_tidy %>%
   mutate(target_image = case_when(target_side == "right" ~ right_image,
                                   TRUE ~ left_image)) %>%
   mutate(distractor_image = case_when(target_side == "right" ~ left_image,
-                                      TRUE ~ right_image))
+                                      TRUE ~ right_image)) %>%
+  #adjust time based on crit time adjustment
+  mutate(
+    t=t-crit_onset_adjust
+  ) %>%
+  #define trial_order variable
+  mutate(
+    trial_order=tr_num
+  )
 
 #create stimulus table
 stimulus_table <- d_tidy %>%
   mutate(
-    target_image = gsub("[[:digit:]]+", "", tolower(target_image)),
-    target_label = gsub("[[:digit:]]+", "", tolower(target_label))
+    target_image = trimws(gsub("[[:digit:]]+", "", tolower(target_image))),
+    target_label = trimws(gsub("[[:digit:]]+", "", tolower(target_label)))
+  ) %>%
+  # define target label as noun
+  mutate(
+    target_label = case_when(
+      target_image %in% c("bluecup","redcup") ~ "cup",
+      target_image %in% c("redsock","bluesock") ~ "sock",
+      target_image %in% c("blueshoe","redshoe") ~ "shoe",
+      target_image %in% c("blueball","redball") ~ "ball",
+      TRUE ~ target_label
+    )
+  ) %>%
+  #unify spelling
+  mutate(
+    target_image = case_when(
+      target_image %in% c("birdie","birdy") ~ "birdy",
+      target_image %in% c("doggie","doggy") ~ "doggy",
+      TRUE ~ target_image
+    ),
+    target_label = case_when(
+      target_label %in% c("birdie","birdy") ~ "birdy",
+      target_label %in% c("doggie","doggy") ~ "doggy",
+      TRUE ~ target_label
+    ),
   ) %>%
   distinct(target_image,target_label) %>%
-  filter(!is.na(target_image)) %>%
   mutate(dataset_id = 0,
          stimulus_novelty = "familiar",
          original_stimulus_label = tolower(target_label),
          english_stimulus_label = tolower(target_label),
-         stimulus_image_path = tolower(target_image), 
-         image_description = tolower(target_label),
-         image_description_source = "image path",
+         stimulus_image_path = tolower(target_image),
+         image_description_source = "Peekbank discretion",
          lab_stimulus_id = tolower(target_image)
   ) %>%
-  mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
+  mutate( 
+    image_description = case_when(
+      target_image=="redball" ~ "red ball",
+      target_image=="blueball" ~ "blue ball",
+      target_image=="bluecup" ~ "blue cup",
+      target_image=="redcup" ~ "red cup",
+      target_image=="redsock" ~ "red sock",
+      target_image=="bluesock" ~ "blue sock",
+      target_image=="blueshoe" ~ "blue shoe",
+      target_image=="redshoe" ~ "red shoe",
+      TRUE ~ target_image
+    )) %>%
+  mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1)) %>%
+  select(-target_image,-target_label)
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('target_image' = 'lab_stimulus_id')) %>%
+  mutate(target_image_clean = trimws(gsub("[[:digit:]]+", "", tolower(target_image)))) %>%
+  #unify spelling
+  mutate(
+    target_image_clean = case_when(
+      target_image_clean %in% c("birdie","birdy") ~ "birdy",
+      target_image_clean %in% c("doggie","doggy") ~ "doggy",
+      TRUE ~ target_image_clean
+    )) %>%
+  mutate(distractor_image_clean = trimws(gsub("[[:digit:]]+", "", tolower(distractor_image)))) %>%
+  #unify spelling
+  mutate(
+    distractor_image_clean = case_when(
+      distractor_image_clean %in% c("birdie","birdy") ~ "birdy",
+      distractor_image_clean %in% c("doggie","doggy") ~ "doggy",
+      TRUE ~ distractor_image_clean
+    )) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('target_image_clean' = 'lab_stimulus_id')) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('distractor_image' = 'lab_stimulus_id')) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('distractor_image_clean' = 'lab_stimulus_id')) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
@@ -331,8 +411,7 @@ d_administration_ids <- d_tidy %>%
 
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
-  distinct(target_id, distractor_id, target_side) %>% 
-  mutate(full_phrase = NA) %>% #unknown
+  distinct(sound_stimulus,target_id, distractor_id, target_side) %>% 
   mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
 # joins
@@ -359,16 +438,17 @@ d_tidy_final <- d_tidy_semifinal %>%
          monitor_size_y = NA, #unknown TO DO
          lab_age_units = "months",
          age = as.numeric(months), # months 
-         point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz
+         point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz (and adjustment to noun onset above)
          tracker = "video_camera",
          sample_rate = sampling_rate_hz) %>% 
   rename(lab_subject_id = sub_num,
-         lab_age = months
+         lab_age = months,
+         full_phrase=sound_stimulus
   )
 
 
 ##### AOI TABLE ####
-d_tidy_final %>%
+aoi_table <- d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
   select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
   #resample timepoints
@@ -379,7 +459,6 @@ d_tidy_final %>%
 ##### SUBJECTS TABLE ####
 subjects <- d_tidy_final %>% 
   distinct(subject_id, lab_subject_id,sex) %>%
-  filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language="eng") %>%
@@ -388,7 +467,7 @@ subjects <- d_tidy_final %>%
 
 
 ##### ADMINISTRATIONS TABLE ####
-d_tidy_final %>%
+administrations <- d_tidy_final %>%
   distinct(administration_id,
            dataset_id,
            subject_id,
@@ -404,7 +483,6 @@ d_tidy_final %>%
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
-  select(-target_label, -target_image) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
@@ -429,29 +507,6 @@ trial_types <- d_tidy_final %>%
          condition = NA) %>% #no condition manipulation based on current documentation
   write_csv(fs::path(write_path, trial_types_table_filename))
 
-##### AOI REGIONS TABLE ####
-# create empty other files aoi_region_sets.csv and xy_timepoints
-# don't need 
-# tibble(administration_id = d_tidy_final$administration_id[1],
-#       aoi_region_set_id=NA,
-#        l_x_max=NA ,
-#        l_x_min=NA ,
-#        l_y_max=NA ,
-#        l_y_min=NA ,
-#        r_x_max=NA ,
-#        r_x_min=NA ,
-#        r_y_max=NA ,
-#        r_y_min=NA ) %>%
-#   write_csv(fs::path(write_path, aoi_regions_table_filename))
-
-##### XY TIMEPOINTS TABLE ####
-# d_tidy_final %>% distinct(trial_id, administration_id) %>%
-#   mutate(x = NA,
-#          y = NA,
-#          t = NA,
-#          xy_timepoint_id = 0:(n()-1)) %>%
-#   write_csv(fs::path(write_path, xy_table_filename))
-
 ##### DATASETS TABLE ####
 # write Dataset table
 data_tab <- tibble(
@@ -463,13 +518,80 @@ data_tab <- tibble(
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
-### Cleanup steps
-# doggie/doggy <- keep this one, birdie/birdy
-# shoe vs blue shoe
-# red vs ball vs redball, did they ask for the red one or did they ask for the ball
-# adjective+target label phrase
-# keep encoding as noun for target_label
-
 # validation check ----------------------------------------------------------
 validate_for_db_import(dir_csv = write_path)
 
+#### Validation Plot
+
+#plot to validate time course (timing and accuracy plausible)
+#read data back in
+## constants
+dataset_name = "fmw_2013"
+read_path <- here("data" ,dataset_name,"processed_data")
+aoi_data <- read_csv(fs::path(read_path, "aoi_timepoints.csv"))
+trials_data <- read_csv(fs::path(read_path, "trials.csv"))
+trial_types_data <- read_csv(fs::path(read_path, "trial_types.csv"))
+stimuli_data <- read_csv(fs::path(read_path, "stimuli.csv"))
+administrations <- read_csv(fs::path(read_path, "administrations.csv"))
+subjects <- read_csv(fs::path(read_path, "subjects.csv")) 
+#rename columns for distractor
+distractor_stimuli_data <- stimuli_data
+colnames(distractor_stimuli_data) <- paste("distractor_",colnames(stimuli_data),sep="")
+
+#join to full dataset
+full_data <- aoi_data %>%
+  left_join(administrations) %>%
+  left_join(subjects) %>%
+  left_join(trials_data) %>%
+  left_join(trial_types_data) %>%
+  left_join(stimuli_data,by=c("target_id"="stimulus_id","dataset_id")) %>%
+  left_join(distractor_stimuli_data %>% select(-distractor_dataset_id),by=c("distractor_id"="distractor_stimulus_id"))
+
+#mutate aoi and make age group
+full_data <- full_data %>%
+  mutate(aoi_new=case_when(
+    aoi=="target" ~ 1,
+    aoi=="distractor"~0,
+    aoi=="missing"~ NaN
+  )) %>%
+  mutate(aoi_new=ifelse(is.nan(aoi_new),NA,aoi_new)) %>%
+  mutate(age_group=case_when(
+    age<21 ~ "18-month-olds",
+    TRUE ~ "24-month-olds"
+  ))
+
+##### summarize by subject and age (really: administrations) ####
+summarize_by_subj_age <- full_data %>%
+  group_by(subject_id,age_group, t_norm) %>%
+  summarize(N=sum(!is.na(aoi_new)),mean_accuracy=mean(aoi_new,na.rm=TRUE))
+
+#### summarize across subjects ####
+summarize_across_subj_age <- summarize_by_subj_age %>%
+  group_by(age_group,t_norm) %>%
+  summarize(N=sum(!is.na(mean_accuracy)),
+            accuracy=mean(mean_accuracy,na.rm=TRUE),
+            sd_accuracy=sd(mean_accuracy,na.rm=TRUE))
+
+#plot (individual lines look reasonable!)
+ggplot(summarize_across_subj_age,aes(t_norm,accuracy))+
+  geom_line(data=summarize_by_subj_age,aes(y=mean_accuracy,color=as.factor(subject_id),group=as.factor(subject_id)),alpha=0.2)+
+  geom_line()+
+  geom_smooth(method="gam",se=FALSE)+
+  geom_vline(xintercept=0)+
+  geom_vline(xintercept=300,linetype="dotted")+
+  geom_hline(yintercept=0.5,linetype="dashed")+
+  theme(legend.position="none")+
+  xlim(-500,3500)+
+  facet_wrap(~age_group)
+#overall increase in recognition speed across age looks reasonable
+ggplot(summarize_across_subj_age,aes(t_norm,accuracy,color=age_group))+
+  geom_line()+
+  geom_smooth(method="gam",se=FALSE)+
+  geom_vline(xintercept=0)+
+  geom_vline(xintercept=300,linetype="dotted")+
+  geom_hline(yintercept=0.5,linetype="dashed")+
+  xlim(-500,3500)
+
+
+## OSF INTEGRATION ###
+put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
