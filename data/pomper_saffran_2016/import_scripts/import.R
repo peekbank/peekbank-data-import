@@ -12,7 +12,7 @@ library(osfr)
 sampling_rate_hz <- 30
 sampling_rate_ms <- 33
 dataset_name = "pomper_saffran_2016"
-read_path <- here("data",dataset_name,"full_dataset")
+read_path <- here("data",dataset_name,"raw_data/")
 write_path <- here("data",dataset_name, "processed_data/")
 
 # processed data filenames
@@ -53,6 +53,10 @@ d_filtered <- d_raw %>%
 d_processed <-  d_filtered %>%
   remove_repeat_headers(idx_var = "Months") %>%
   clean_names()
+
+# remove excluded participants
+d_processed <- d_processed %>% 
+  filter(is.na(prescreen_notes))
 
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
