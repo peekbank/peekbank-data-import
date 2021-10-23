@@ -82,11 +82,6 @@ d_processed <-  d_filtered %>%
   remove_repeat_headers(idx_var = "Months") %>%
   clean_names()
 
-
-# Remove excluded participants -------------------------------------------------
-d_processed <- d_processed %>% 
-  filter(is.na(prescreen_notes))
-
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
 metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]

@@ -1243,3 +1243,7 @@ data/fmw_2013/processed_data/stimuli.csv
 data/fmw_2013/processed_data/subjects.csv
 data/fmw_2013/processed_data/trial_types.csv
 data/fmw_2013/processed_data/trials.csv
+data/adams_marchman_2018/processed_data/administrations.csv
+data/adams_marchman_2018/processed_data/subjects.csv
+data/adams_marchman_2018/processed_data/trial_types.csv
+data/adams_marchman_2018/processed_data/trials.csv
