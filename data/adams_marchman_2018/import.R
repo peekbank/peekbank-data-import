@@ -103,14 +103,13 @@ post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_
 d_processed <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
 
-#create trial_order variable by modifiying the tr_num variable
+#remove prescreened trials
+d_processed <- d_processed %>%
+  filter(is.na(prescreen_notes))
+
+#create trial_order variable as tr_num variable
 d_processed <- d_processed  %>%
-  mutate(tr_num=as.numeric(as.character(tr_num))) %>%
-  arrange(sub_num,months,order_uniquified,tr_num) %>%
-  group_by(sub_num, months,order_uniquified) %>%
-  mutate(trial_order = seq(1, length(tr_num))) %>%
-  relocate(trial_order, .after=tr_num) %>%
-  ungroup()
+  mutate(trial_order=as.numeric(as.character(tr_num))) 
 
 # Convert to long format --------------------------------------------------
 d_tidy <- d_processed %>%
@@ -260,14 +259,14 @@ stimulus_table %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
-d_tidy_final %>%
+trials <- d_tidy_final %>%
   distinct(trial_id,
            trial_order,
            trial_type_id) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
-d_tidy_final %>%
+trial_types <- d_tidy_final %>%
   distinct(trial_type_id,
            full_phrase,
            point_of_disambiguation,
