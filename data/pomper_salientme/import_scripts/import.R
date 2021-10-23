@@ -14,7 +14,7 @@ sampling_rate_ms <- 33 # 33 ms
 dataset_name = "pomper_salientme"
 participant_file_name <- "SalientME_Participants_deID.xlsx"
 data_file_name <- "SME_Final.txt"
-read_path <- here("data",dataset_name,"raw_data")
+read_path <- here("data",dataset_name,"raw_data/")
 write_path <- here("data",dataset_name, "processed_data/")
 
 # processed data filenames
@@ -55,6 +55,11 @@ d_processed <- d_raw %>%
   select_if(~sum(!is.na(.)) > 0) %>%
   remove_repeat_headers(idx_var = "Months") %>%
   clean_names()
+
+# remove excluded participants
+d_processed <- d_processed %>% 
+  filter(is.na(prescreen_notes))
+  
 
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
