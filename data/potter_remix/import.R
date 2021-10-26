@@ -90,6 +90,11 @@ d_processed <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
 
 
+#remove prescreened trials
+d_processed <- d_processed %>%
+  filter(is.na(prescreen_notes))
+
+
 # Convert to long format --------------------------------------------------
 
 # get idx of first time series

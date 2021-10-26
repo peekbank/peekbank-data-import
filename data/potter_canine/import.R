@@ -65,7 +65,7 @@ trial_orders <- trial_orders %>%
   select(order,tr_num,sound_stimulus) # select just the columns we need - really only need sound_stimulus, everything else important already in main icoder file
 
 d_processed <- d_processed %>%
-  mutate(tr_num=as.numeric(tr_num)) %>% #make trial number numeric
+  mutate(tr_num=as.numeric(as.character(tr_num))) %>% #make trial number numeric
   left_join(trial_orders,by=c("order","tr_num")) %>%
   relocate(c(order, tr_num,sound_stimulus),.after = `sub_num`)
 
@@ -89,6 +89,10 @@ post_dis_names_clean_cols_to_remove <- post_dis_names_clean[110:length(post_dis_
 #remove
 d_processed <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
+
+#remove prescreened trials
+d_processed <- d_processed %>%
+  filter(is.na(prescreen_notes))
 
 # Convert to long format --------------------------------------------------
 
