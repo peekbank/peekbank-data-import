@@ -54,7 +54,7 @@ d_processed <-  d_filtered %>%
   remove_repeat_headers(idx_var = "Months") %>%
   clean_names()
 
-# remove excluded participants
+# remove excluded trials
 d_processed <- d_processed %>% 
   filter(is.na(prescreen_notes))
 
@@ -96,7 +96,7 @@ mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
 
 
 # Go through counterbalancing files, tidy, and concatenate into one structure ----------------------------------------
-order_read_path <- here("data",dataset_name,"full_dataset", "orders")
+order_read_path <- here("data",dataset_name,"raw_data", "orders")
 order_files = dir(order_read_path)
 count_files = 0
 for (o in order_files) {
@@ -140,7 +140,7 @@ color_carrier_phrases = all_orders_cleaned %>%
   distinct(target_word, target_image, carrier_try, full_phrase, SoundStimulus)
 
 # ## Load noun carrier phrases from .csv
-all_carrier_phrases <- read_csv(here("data",dataset_name,"full_dataset", "carrier_phrases.csv")) %>% # only has nouns
+all_carrier_phrases <- read_csv(here("data",dataset_name,"raw_data", "carrier_phrases.csv")) %>% # only has nouns
   mutate(target_word = lab_stimulus_id, target_image = lab_stimulus_id,  full_phrase = paste0(carrier_phrase,' ', lab_stimulus_id)) %>%
   select(target_word, target_image, full_phrase) %>%
   full_join(color_carrier_phrases) %>%
