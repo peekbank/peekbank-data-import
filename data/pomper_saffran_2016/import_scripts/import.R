@@ -232,7 +232,7 @@ d_tidy_semifinal <- d_tidy %>%
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy_semifinal %>%
   distinct(tr_num, trial_type_id) %>%
-  mutate(trial_order = as.numeric(tr_num) - 1,
+  mutate(trial_order = as.numeric(tr_num),
          trial_id = seq(0, nrow(.) - 1))
 
 # join in trial_id
