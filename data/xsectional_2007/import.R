@@ -24,7 +24,7 @@ trial_types_table_filename <- "trial_types.csv"
 trials_table_filename <- "trials.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
-osf_token <- read_lines(here("osf_token.txt"))
+# osf_token <- read_lines(here("osf_token.txt"))
 
 
 remove_repeat_headers <- function(d, idx_var) {
@@ -83,7 +83,7 @@ d_processed <- d_raw  %>%
   mutate(tr_num = as.numeric(as.character(tr_num))) %>%
   arrange(sub_num, months, order, tr_num) %>%
   group_by(sub_num, months, order) %>%
-  mutate(trial_order = seq(1, length(tr_num))) %>%
+  mutate(trial_order = tr_num) %>%
   relocate(trial_order, .after=tr_num) %>%
   ungroup()
 
