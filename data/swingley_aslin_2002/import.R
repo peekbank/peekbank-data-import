@@ -45,6 +45,10 @@ d_processed <-  d_raw %>%
   #(helps ease column renaming below)
   rename(target_looking_crit = pct36to2)
 
+# remove excluded trials
+d_processed <- d_processed %>% 
+  filter(is.na(prescreen_notes))
+
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
 metadata_names <- old_names[!str_detect(old_names,"tm|t\\d")]
