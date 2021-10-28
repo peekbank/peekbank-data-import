@@ -72,6 +72,10 @@ post_dis_names_clean_cols_to_remove <- post_dis_names_clean[110:length(post_dis_
 d_processed_cleaned <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
 
+# remove excluded trials
+d_processed_cleaned <- d_processed_cleaned %>% 
+  filter(is.na(prescreen_notes))
+
 # Convert to long format --------------------------------------------------
 
 # get idx of first time series
