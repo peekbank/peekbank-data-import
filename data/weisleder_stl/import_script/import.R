@@ -143,6 +143,10 @@ d_processed_24 <- d_raw_24 %>%
 #combine data
 d_processed <-  bind_rows(d_processed_18,d_processed_24)
 
+# remove excluded participants
+d_processed <- d_processed %>% 
+  filter(is.na(prescreen_notes))
+
 #make tidy
 d_tidy <- d_processed %>%
   pivot_longer(names_to = "t", cols = `-833`:`4433`, values_to = "aoi") %>%
