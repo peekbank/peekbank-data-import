@@ -23,7 +23,7 @@ trials_table_filename <- "trials.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 #peekds::get_raw_data(dataset_name, path = read_path)
 
 remove_repeat_headers <- function(d, idx_var) {
@@ -40,8 +40,8 @@ d_raw_2_18 <- read_excel(here::here(read_path,"FMW2013_English_18mos_n28toMF.xls
   
 d_raw_1_24 <- read_delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt"),
                        delim = "\t",
-                       col_types = cols(.default = "c")) %>%
-  select(-c(X255:X4372))
+                       col_types = cols(.default = "c")) #%>%
+            # not working:  select(-c(X255:X4372))
 
 d_raw_2_24 <- read_excel(here::here(read_path,"FMW2013_English_24m_n21toMF.xls"),
                          col_types = "text")
@@ -273,7 +273,11 @@ d_processed <- bind_rows(temp_1_18, temp_1_24, temp_2_18, temp_2_24) %>%
   relocate(c("order_trial_file","sound_stimulus","condition_trial_file","noun_crit_onset","order_num","crit_onset_adjust"),.after = "crit_off_set") %>%
   #remove unneeded columns
   select(-word_onset,-gap,-target_rt_sec,-dis_rt_sec,-shifts,-orig_resp) 
-  
+
+# remove excluded participants
+d_processed <- d_processed %>% 
+  filter(is.na(prescreen_notes))
+
 #make tidy
 d_tidy <- d_processed %>%
   pivot_longer(names_to = "t", cols = `-600`:`6533`, values_to = "aoi") %>%
@@ -308,13 +312,9 @@ d_tidy <- d_tidy %>%
   mutate(distractor_image = case_when(target_side == "right" ~ left_image,
                                       TRUE ~ right_image)) %>%
   #adjust time based on crit time adjustment
-  mutate(
-    t=t-crit_onset_adjust
-  ) %>%
+  mutate(t=t-crit_onset_adjust) %>%
   #define trial_order variable
-  mutate(
-    trial_order=tr_num
-  )
+  mutate(trial_order=tr_num)
 
 #create stimulus table
 stimulus_table <- d_tidy %>%
