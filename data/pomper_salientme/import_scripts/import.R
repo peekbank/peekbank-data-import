@@ -56,11 +56,6 @@ d_processed <- d_raw %>%
   remove_repeat_headers(idx_var = "Months") %>%
   clean_names()
 
-# remove excluded participants
-d_processed <- d_processed %>% 
-  filter(is.na(prescreen_notes))
-  
-
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
 metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
@@ -85,6 +80,12 @@ post_dis_names_clean_cols_to_remove <- post_dis_names_clean[133:length(post_dis_
 #remove
 d_processed <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
+
+# remove excluded trials
+d_processed <- d_processed %>% 
+  filter(is.na(prescreen_notes))
+
+
 # Convert to long format --------------------------------------------------
 # get idx of first time series
 first_t_idx <- length(metadata_names) + 1            
@@ -283,7 +284,7 @@ d_administration_ids <- d_tidy %>%
 d_trial_ids <- d_tidy %>%
   distinct(tr_num, condition,full_phrase, target_id, distractor_id, target_side) %>%
   arrange(tr_num) %>%
-  mutate(trial_order=tr_num) %>% 
+  mutate(trial_order=as.numeric(tr_num)) %>% 
   mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
 
 # create zero-indexed ids for trial_types
