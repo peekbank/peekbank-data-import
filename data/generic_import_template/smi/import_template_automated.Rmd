@@ -164,7 +164,7 @@ x_max <- as.numeric(as.character(screen_xy[1]))
 y_max <- as.numeric(as.character(screen_xy[2]))
 ```
 
-We also want to get administrations information. Note that you will need to look at your data and determine the units in which age is recorded, and adjust the processing script accordingly. If the ages in your dataset were in days or years (to decimal precision), you'd need to convert to months, by dividing by 365.25 or multiplying by 12 respectively. If the ages in your dataset are in whole number years, convert to midway through that year in months, e.g., 2 years would become 2*12 + 6 = 30 months. This is so that we don't systematically underestimate the age of children whose ages are recorded in whole years.
+We also want to get administrations information. Note that you will need to look at your data and determine the units in which age is recorded, and adjust the processing script accordingly. If the ages in your dataset were in days or years (to decimal precision), you'd need to convert to months, by dividing by 365.25 or multiplying by 12 respectively. If the ages in your dataset are in whole number years, convert to midway through that year in months, e.g., 2 years would become 2*12 + 6 = 30 months. This is so that we don't systematically underestimate the age of children whose ages are recorded in whole years. If this is true of your dataset, `lab_age_units` should be coded as "whole years".
 
 ```{r admins}
 # create administration info 
