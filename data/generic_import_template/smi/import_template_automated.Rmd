@@ -3,7 +3,7 @@ title: "import_template_automated"
 output: html_document
 ---
 
-This is a template for importing eyetracking datasets to a peekbank schema compliant format with raw output files from automated eyetracking systems, such as SMI. In this template, we are using dataset *reflook_socword* as the example. 
+This is a template for importing eyetracking datasets to a peekbank schema compliant format with raw output files from automated eyetracking systems, such as SMI. In this template, we are using dataset *reflook_socword* as the example. This template relies on helper functions in the file import_helpers.R. Note that while we've tried to make these helper functions multipurpose, you'll likely need to adapt them to your dataset as you go.
 
 For automated coded eyetracking datasets, we will have nine processed tables at the end of this script: datasets, administrations, subjects, trial_types, trials, stimuli, xy_timepoints, aoi_region_sets, aoi_timepoints.
 <!-- have not checked against tobii, eyelink, etc, add later -->
@@ -162,7 +162,11 @@ screen_xy <- str_split(monitor_xy, "x") %>%
   unlist()
 x_max <- as.numeric(as.character(screen_xy[1]))
 y_max <- as.numeric(as.character(screen_xy[2]))
+```
 
+We also want to get administrations information. Note that you will need to look at your data and determine the units in which age is recorded, and adjust the processing script accordingly. If the ages in your dataset were in days or years (to decimal precision), you'd need to convert to months, by dividing by 365.25 or multiplying by 12 respectively. If the ages in your dataset are in whole number years, convert to midway through that year in months, e.g., 2 years would become 2*12 + 6 = 30 months. This is so that we don't systematically underestimate the age of children whose ages are recorded in whole years.
+
+```{r admins}
 # create administration info 
 administration.data <- process_subjects_info(participant_file_path) %>%
     dplyr::select(lab_subject_id, age, lab_age, lab_age_units) %>%
