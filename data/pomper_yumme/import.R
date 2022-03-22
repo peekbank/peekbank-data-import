@@ -122,7 +122,6 @@ d_tidy <- d_tidy %>%
   mutate(target_label = target_image,
          distractor_label = distractor_image) 
 
-# GK done up to here
 
 #### write out tables ####
 
@@ -140,37 +139,35 @@ stimulus_table <- d_tidy %>%
       original_stimulus_label = stimulus_image_path
   ) %>%
   mutate(
-    stimulus_novelty = case_when(
-    str_detect(original_stimulus_label, "novel") ~ "novel",
-    TRUE ~ "familiar"),
-    stimulus_id = seq(0, nrow(.) - 1),
+    stimulus_novelty = case_when(str_detect(original_stimulus_label, "novel") ~ "novel",
+                                 TRUE ~ "familiar"),
+    stimulus_id = seq(0, nrow(.) - 1)
   )
-  
-#spoken labels for novel words: sprock, jang, pifo, tever. But how do I figure out which correspond
-# to novel1, novel2, novel3, and novel4? #leave a fixme placeholder, leave as novel1-4. Leave a placeholder for
-# spoken label
+
+# FixMe original_stimulus_label:
+# spoken labels for novel words: sprock, jang, pifo, tever. 
+# but which correspond to novel1, novel2, novel3, and novel4? 
+# leave as novel1-4 for now
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on the "target labels"
 # put all targets and distractors together as stimulus labels (each has unique row)
 
 d_tidy <- d_tidy %>%
   mutate(
-    target_image = case_when(
-    target_image == "black" ~ "empty",
-    TRUE ~ target_image
-    ),
+    target_image = case_when(target_image == "black" ~ "empty",
+                             TRUE ~ target_image),
     target_label = target_image,
-    distractor_image = case_when(
-    distractor_image  == "black" ~ "empty",
-    TRUE ~ target_image
-   )
-)
+    distractor_image = case_when(distractor_image  == "black" ~ "empty",
+                                 TRUE ~ target_image)
+    )
 
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(stimulus_id, original_stimulus_label), by=c('target_image' = 'original_stimulus_label')) %>%
+  left_join(stimulus_table %>% select(stimulus_id, original_stimulus_label), 
+            by=c('target_image' = 'original_stimulus_label')) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(stimulus_id, original_stimulus_label), by=c('distractor_image' = 'original_stimulus_label')) %>%
+  left_join(stimulus_table %>% select(stimulus_id, original_stimulus_label), 
+            by=c('distractor_image' = 'original_stimulus_label')) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
@@ -181,9 +178,10 @@ d_subject_ids <- d_tidy %>%
 #join
 d_tidy <- d_tidy %>%
   left_join(d_subject_ids, by = "sub_num")
+
 #get zero-indexed administration ids
 d_administration_ids <- d_tidy %>%
-  distinct(sub_num,subject_id,months) %>%
+  distinct(sub_num, subject_id, months) %>%
   mutate(administration_id = seq(0, nrow(.) - 1)) 
 
 # create zero-indexed ids for trials
@@ -205,6 +203,7 @@ d_tidy_semifinal <- d_tidy %>%
   left_join(d_administration_ids) %>%
   left_join(d_trial_type_ids) %>%
   left_join(d_trial_ids)
+
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
@@ -229,17 +228,18 @@ aoi_timepoints <- d_tidy_final %>%
   select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) 
-  # %>% error at this line
-  # write_csv(fs::path(write_path, aoi_table_filename))
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
+  write_csv(fs::path(write_path, aoi_table_filename))
+
 
 ##### SUBJECTS TABLE ####
 subjects <- d_tidy_final %>%
-  distinct(subject_id, lab_subject_id,sex) %>%
+  distinct(subject_id, lab_subject_id, sex) %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-    native_language = "eng") #%>%
-  #write_csv(fs::path(write_path, subject_table_filename))
+    native_language = "eng") %>%
+  write_csv(fs::path(write_path, subject_table_filename))
+
 
 ##### ADMINISTRATIONS TABLE ####
 administrations <- d_tidy_final %>%
@@ -253,13 +253,14 @@ administrations <- d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "eyetracking") #%>%
-  # write_csv(fs::path(write_path, administrations_table_filename))
+  mutate(coding_method = "eyetracking") %>%
+  write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
-# error with write path
-# stimulus_table %>%
-  # write_csv(fs::path(write_path, stimuli_table_filename))
+stimulus_table %>%
+  write_csv(fs::path(write_path, stimuli_table_filename))
+
+# GK good to here 3/22/22
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
@@ -274,18 +275,40 @@ trial_types <- d_tidy_final %>%
     dataset_id,
     target_id,
     distractor_id) %>%
-  mutate(full_phrase_language = "eng")  # %>%
-  # write_csv(fs::path(write_path, trial_types_table_filename))
+  mutate(full_phrase_language = "eng")  %>%
+  write_csv(fs::path(write_path, trial_types_table_filename))
+
+# FixMe: full_phrase missing
 
 ##### TRIALS TABLE ####
 trials_table <- d_tidy_final %>% 
   distinct(trial_id, trial_type_id, tr_num) %>%
-  rename(trial_order = tr_num) # %>%
-  # write_csv(fs::path(write_path, trials_table_filename))
+  rename(trial_order = tr_num) %>%
+  write_csv(fs::path(write_path, trials_table_filename))
+
+# do we no longer need empty AOI regions and XY timepoints files?
 
 ##### AOI REGIONS TABLE ####
+# create empty other files aoi_region_sets.csv and xy_timepoints
+# tibble(administration_id = d_tidy_final$administration_id[1],
+#       aoi_region_set_id=NA,
+#        l_x_max=NA 
+#        l_x_min=NA ,
+#        l_y_max=NA ,
+#        l_y_min=NA ,
+#        r_x_max=NA ,
+#        r_x_min=NA ,
+#        r_y_max=NA ,
+#        r_y_min=NA ) %>%
+#   write_csv(fs::path(write_path, aoi_regions_table_filename))
 
 ##### XY TIMEPOINTS TABLE ####
+# d_tidy_final %>% distinct(trial_id, administration_id) %>%
+#   mutate(x = NA,
+#          y = NA,
+#          t = NA,
+#          xy_timepoint_id = 0:(n()-1)) %>%
+#   write_csv(fs::path(write_path, xy_table_filename))
 
 ##### DATASETS TABLE ####
 # replace with correct citation
@@ -294,9 +317,8 @@ data_tab <- tibble(
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Pomper, R. & Saffran, J. R. (2018). Familiar object salience affects novel word learning. Child Development, 90(2). doi:10.1111/cdev.13053",
-  shortcite = "Pomper & Saffran (2018)"
-) # %>%
-  # write_csv(fs::path(write_path, dataset_table_filename))
+  shortcite = "Pomper & Saffran (2018)")  %>%
+  write_csv(fs::path(write_path, dataset_table_filename))
 
 
 # validation check ----------------------------------------------------------
