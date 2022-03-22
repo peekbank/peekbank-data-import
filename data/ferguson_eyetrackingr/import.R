@@ -94,9 +94,9 @@ administrations <- proc_data %>%
          dataset_id = 0, 
          lab_age = age, 
          lab_age_units = "months", 
-         #monitor_size_x = 1280, # 57.3 x 45 cm
-         #monitor_size_y = 1024, # (doesn't say pixel resolution -- ask Brock)
-         sample_rate = 60, # 60 Hz
+         monitor_size_x = 1920, # 57.3 x 45 cm 
+         monitor_size_y = 1080, 
+         sample_rate = 60, # Hz
          tracker = "Tobii T60XL", # from paper
          coding_method = "eyetracking") 
 
