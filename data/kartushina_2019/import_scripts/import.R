@@ -14,6 +14,8 @@ library(janitor)
 dataset_name <- "kartushina_2019"
 dataset_id <- 0
 subject_info <- "Participants_info_70sbj.xlsx"
+subject_final_list <- "50_subjects_paper.txt"
+stimulus_onset_info <- "Word_onset.txt"
 OSF_ADDRESS <- "pr6wu"
 full_phrase_language <- "nor"
 possible_delims <- c("\t",",")
@@ -53,6 +55,9 @@ df_subjects_info <- read_excel(fs::path(exp_info_path, subject_info)) %>%
   filter(lab_subject_id!="Average") # has 70 -- not sure which of the various exclusions this applies
 # there's a final sample of 50 in paper after various exclusions
 
+# read inm the final 50 subjects that were used in the paper
+df_subjects_final <- read.csv(fs::path(exp_info_path, subject_final_list))
+
 df_subjects <- df_subjects_info %>% 
   mutate(sex = case_when(Gender=="F" ~ "female", Gender=="M" ~ "male", T ~"unspecified"), 
          subject_id = seq(0, length(.$lab_subject_id)-1), 
@@ -70,7 +75,8 @@ df_subjects <- df_subjects_info %>%
 # because control trials are in a strange different format
 all_data_files <- list.files(experiment_path)
 stimuli_words <- str_remove(all_data_files, ".tsv")
-
+df_stimuli_words_onset <- read.csv(fs::path(exp_info_path, stimulus_onset_info), header = TRUE, sep = "\t")
+names(df_stimuli_words_onset) <- c('target', 'point_of_disambiguation') 
 # no other distractor vs target info was found in the raw data, so pair information was typed in from the paper
 # For more information, please reference Table 1 as well as section 2.2.2 
 # Overall, the experiment is a 2 by 2 design with Context and Frequency conditions 
@@ -289,9 +295,9 @@ read_trial_data <- function(file_name) {
            gaze_duration = gaze_event_duration) %>%
     mutate(aoi_target_hit = as.logical(aoi_target_hit),
            aoi_distractor_hit = as.logical(aoi_distractor_hit),
-           aoi_distractor_hit = if_else(is.na(aoi_distractor_hit), 
+           aoi_distractor_hit = ifelse(is.na(aoi_distractor_hit), 
                                         aoi_distractor_hit_1, aoi_distractor_hit),
-           aoi_target_hit = if_else(is.na(aoi_target_hit), 
+           aoi_target_hit = ifelse(is.na(aoi_target_hit), 
                                     aoi_target_hit_1, aoi_target_hit)) %>%
     select(stimlist, lab_subject_id, stimulus, timestamp, gaze_type,
            gaze_duration, aoi_distractor_hit, aoi_target_hit)
@@ -319,6 +325,7 @@ subject_list <- unique(trial_data$lab_subject_id)
 
 df_administrations <- df_subjects_info %>%
   filter(.$lab_subject_id %in% subject_list) %>% # filter out subjects that were not included in the trial data
+  filter(.$lab_subject_id %in% df_subjects_final$final_subjects) %>% # filter out subjects not used in the final paper
   select(subject_id = lab_subject_id, lab_age) %>%
   mutate(
     administration_id = seq(0, length(.$subject_id)-1), 
@@ -332,7 +339,6 @@ df_administrations <- df_subjects_info %>%
     coding_method = "preprocessed eyetracking"
   )
 
-
 # from the paper: "we inserted a 1.5 s period of silence at the beginning of each trial so that infants would have the same exposure to the visual
 # stimuli before the onset of the sentence, as in the BS12 study. Trials ended 3.5 s after the target word onset"
 # But see Figure 3, 1.5s is the silence before the sentence, but 2.02s is the time before the onset of target words
@@ -345,9 +351,9 @@ df_trial_info <- trial_data %>%
   left_join(target_distractor, by = "target") %>%
   left_join(df_stimuli %>% select(english_stimulus_label, original_stimulus_label), 
             by = c("target" = "english_stimulus_label")) %>%
+  left_join(df_stimuli_words_onset, by = "target") %>%
   mutate(full_phrase_language = full_phrase_language,
          dataset_id = dataset_id,
-         point_of_disambiguation = 2020, 
          aoi_region_set_id = NA, 
          # sound matched manually 
          # again, this is a terrible way to do this.
@@ -471,6 +477,7 @@ df_trials <- df_trials %>%
 #### write all the tables to `.csv` files and validate them ####
 # output path
 output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
+dir.create(fs::path(output_path), showWarnings = FALSE)
 
 write_csv(df_dataset, file = here(output_path, "datasets.csv"))
 write_csv(df_subjects, file = here(output_path, "subjects.csv"))
