@@ -176,71 +176,6 @@ df_stimuli <- df_stimuli %>%
                                              english_stimulus_label == "carpet" ~ "teppe")
   )
 
-##################################
-# here we read in the eyetracking data 
-
-# what do datafiles look like 
-# based on inspection of the control trial data, we ignored the control data
-# sample_data <- read_delim(fs::path(control_path, "house.txt"), delim="\t")
-
-####################################################################
-#### This section of codes are for exploring one eye tracking files.
-#### explore a normal tobi data file ####
-####################################################################
-apple <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t")
-apple$StudioTestName %>% unique() # List 1 v List 2
-apple$ParticipantName %>% unique() # cross check with subjects list
-apple$RecordingName %>% unique() # mostly follows subject?? (likely not a useful column)
-apple$RecordingDate %>% unique() # not useful
-apple$RecordingTimestamp %>% unique() # sample rate 3
-apple$FixationFilter %>% unique() #not useful
-apple$MediaName %>% unique() # has left versus right !!
-apple$StudioEvent %>% unique() # Start, End, NA
-apple$StudioEventData %>% unique() # left, right, NA
-apple$GazeEventType %>% unique() #Fixation, Saccade, NA
-apple$GazeEventDuration %>% unique() # in ms, one presumes  
-apple$`AOI[D]Hit` %>% unique() # NA, F, T
-apple$`AOI[T]Hit` %>% unique() # NA, T, F
-apple$`AOI[M3D1]Hit` %>% unique() #NA, 0, 1
-apple$`AOI[M3T1]Hit` %>% unique() # NA, 0, 1
-# data either has values for D&T or for M3d1/M3t1 but never both ??
-apple$X16 %>% unique() #all NA
-
-
-df1 <- apple %>% filter(ParticipantName == "OS_015")
-
-# confirmating that Unclassified gaze events are all empty
-df2 <- apple %>% 
-  filter(ParticipantName == "OS_015", GazeEventType == "Unclassified") %>%
-  select(`AOI[D]Hit`, `AOI[T]Hit`, `AOI[M3D1]Hit`, `AOI[M3T1]Hit`) %>%
-  unique() #look at one participant
-
-# how long are the stamps 
-test_trialtime <- apple %>% select(ParticipantName, RecordingTimestamp, StudioEvent, StudioEventData) %>%
-  filter(StudioEvent %in% c("MovieStart", "MovieEnd")) %>% 
-  group_by(ParticipantName, StudioEventData) %>% 
-  summarize(start_time=min(RecordingTimestamp),
-            end_time=max(RecordingTimestamp)) %>% 
-  mutate(diff_time=end_time-start_time)
-
-# mutate gaze data column from "AOI[D|T]Hit" to target, distractor and missing
-df_apple_no <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t") %>% 
-  filter(ParticipantName == "OS_091") %>% 
-  rename(lab_subject_id = ParticipantName) %>% 
-  select(-StudioTestName, -X16, -RecordingDate, -RecordingName, -FixationFilter) %>% 
-  inner_join(df_subjects_info, c("lab_subject_id")) %>% 
-  # Assuming T means target, and D means distractor
-  # also assuming that unclassfied = missing, but saccade with no values = other (looking middle??)
-  mutate(aoi = case_when(
-    `AOI[D]Hit` == TRUE ~ "distractor",
-    `AOI[T]Hit` == TRUE ~ "target",
-    `AOI[M3D1]Hit` == 1 ~ "distractor",
-    `AOI[M3T1]Hit` == 1 ~ "target",
-    GazeEventType == "Unclassified" ~ "missing",
-    TRUE ~ "other" 
-  )) %>% 
-  select(-`AOI[D]Hit`,-`AOI[T]Hit`,-`AOI[M3D1]Hit`,-`AOI[M3T1]Hit`, -GazeEventType)
-
 ####################################################################
 # Data columns
 # - StudioTestName: List 1 or List 2 (which columns contain the relevant AOIs varies by List)
@@ -323,9 +258,10 @@ trial_data <- trial_data %>%
 #   (binocular) of 300 Hz and a screen resolution of 1920 × 1080 pixels."
 subject_list <- unique(trial_data$lab_subject_id)
 
+# Here we include all the subjects, even the ones that were excluded from the original paper
+# filter(.$lab_subject_id %in% df_subjects_final$final_subjects) %>% # filter out subjects not used in the final paper
 df_administrations <- df_subjects_info %>%
   filter(.$lab_subject_id %in% subject_list) %>% # filter out subjects that were not included in the trial data
-  filter(.$lab_subject_id %in% df_subjects_final$final_subjects) %>% # filter out subjects not used in the final paper
   select(subject_id = lab_subject_id, lab_age) %>%
   mutate(
     administration_id = seq(0, length(.$subject_id)-1), 
