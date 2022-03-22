@@ -354,6 +354,7 @@ df_trial_info <- trial_data %>%
   left_join(df_stimuli_words_onset, by = "target") %>%
   mutate(full_phrase_language = full_phrase_language,
          dataset_id = dataset_id,
+         lab_trial_id = NA, 
          aoi_region_set_id = NA, 
          # sound matched manually 
          # again, this is a terrible way to do this.
@@ -495,8 +496,9 @@ accs <- df_aoi_timepoints %>%
   left_join(df_administrations) %>%
   left_join(df_trials) %>%
   left_join(df_trial_types) %>%
-  mutate(condition_type = if_else(str_detect(condition, "context"), "context", "frequency"),
-         is_match = if_else(str_detect(condition, "match"), "match", "related")) %>% 
+  mutate(condition_type = ifelse(str_detect(condition, "context"), "context", "frequency"),
+         is_match = ifelse(str_detect(condition, "match"), "match", "related")) %>% 
+  filter(administration_id %in% df_administrations$administration_id) %>% 
   # mutate(age_group = ifelse(age < mean(age), "13-17", "17-20")) %>%
   group_by(t_norm, administration_id, condition_type, is_match) %>% 
   filter(aoi %in% c("target", "distractor")) %>%
@@ -509,8 +511,7 @@ ggplot(accs, aes(x = t_norm, y = correct, col = is_match)) +
   facet_wrap(~condition_type, ncol = 1) + 
   geom_pointrange(aes(ymin = correct - se, 
                       ymax = correct + se)) +
-  geom_hline(yintercept = .5, lty = 2, col = "black") + 
-  langcog::theme_mikabr() + 
+  geom_hline(yintercept = .5, lty = 2, col = "black") + #  langcog::theme_mikabr() + 
   langcog::scale_color_solarized(name = "Age Group") + 
   xlim(-2000, 3000) + 
   xlab("Time from target word onset (msec)") + 
