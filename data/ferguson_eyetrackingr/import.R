@@ -16,6 +16,10 @@ data_path <- here("data",dataset_name,"raw_data")
 output_path <- here("data",dataset_name,"processed_data")
 # http://www.eyetracking-r.com/docs/word_recognition
 
+# no distractor information (Trial contains 6 unique values specifying target, e.g. "FamiliarBottle")
+# AOI: 811 x 713 pixel around each object image -- but what is the resolution of the screen?
+# full AOI XY-coordinates would also be nice
+
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
@@ -44,8 +48,10 @@ proc_data <- raw_data %>%
   rename(age = Age,
          original_stimulus_label = Trial) %>%
   mutate(lab_subject_id = ParticipantName,
+         dataset_id = 0,
          native_language = "eng",
          sex = factor(Sex, levels = c('M','F'), labels = c('male','female')),
+         stimulus_novelty = "familiar", # we only have the 6 familiar trials
          english_stimulus_label = case_when(original_stimulus_label=="FamiliarBottle" ~ "bottle",
                                             original_stimulus_label=="FamiliarDog" ~ "dog",
                                             original_stimulus_label=="FamiliarHorse" ~ "horse",
@@ -71,25 +77,30 @@ subjects %>% write_csv(fs::path(output_path, subject_table_filename))
 
 ### 3. STIMULI TABLE 
 stimuli <- proc_data %>% 
+  mutate(stimulus_image_path = original_stimulus_label,
+         lab_stimulus_id = original_stimulus_label) %>%
   select(original_stimulus_label, english_stimulus_label, stimulus_novelty, 
          stimulus_image_path, lab_stimulus_id, dataset_id) %>%
   distinct() %>%
   mutate(stimulus_id = 0:(n() - 1))
+stimuli %>% write_csv(fs::path(output_path, stimuli_table_filename))
 
+# complete through here
 
 ### 4. ADMINISTRATIONS TABLE 
-administrations <- ... %>%
+administrations <- proc_data %>%
   mutate(administration_id = 0:(n() - 1), 
          subject_id = 0:(n() - 1), 
          dataset_id = 0, 
-         age = ..., 
-         lab_age = ..., 
-         lab_age_units = "months", # SAMPLE
-         monitor_size_x = 1280, # SAMPLE
-         monitor_size_y = 1024, # SAMPLE
-         sample_rate = 500, # SAMPLE
-         tracker = "Eyelink 1000+", # SAMPLE
-         coding_method = "eyetracking") # SAMPLE
+         lab_age = age, 
+         lab_age_units = "months", 
+         monitor_size_x = 1920, # 57.3 x 45 cm 
+         monitor_size_y = 1080, 
+         sample_rate = 60, # Hz
+         tracker = "Tobii T60XL", # from paper
+         coding_method = "eyetracking") 
+
+
 
 ### 5. TRIAL TYPES TABLE 
 trial_types <- ... %>%
@@ -123,9 +134,7 @@ aoi_timepoints <- ... %>%
   peekds::resample_times(table_type = "aoi_timepoints") 
 
 ################## WRITING AND VALIDATION ##################
-write_csv(dataset, file = here(output_path, "datasets.csv"))
-write_csv(subjects, file = here(output_path, "subjects.csv"))
-write_csv(stimuli, file = here(output_path,  "stimuli.csv"))
+
 write_csv(administrations, file = here(output_path, "administrations.csv"))
 write_csv(trial_types, file = here(output_path, "trial_types.csv"))
 write_csv(trials, file = here(output_path, "trials.csv"))
