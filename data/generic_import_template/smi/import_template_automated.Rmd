@@ -276,6 +276,7 @@ That's it! Now, we'll write all the tables to `.csv` files and validate them to 
 
 ```{r write-all, message = FALSE, warning = FALSE}
 output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
+
 # create the directory if not exist
 # dir.create(fs::path(output_path), showWarnings = FALSE)
 
