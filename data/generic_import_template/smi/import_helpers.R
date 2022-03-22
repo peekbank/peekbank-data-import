@@ -26,6 +26,10 @@ extract_smi_info <- function(file_path,parameter_name) {
 
 #### Table 2: Participant Info/ Demographics ####
 
+# Note: If lab age units are months, no processing is needed. 
+# If lab age units are days, divide by 365.25
+# If lab age units are years to decimal precision, multiply by 12
+# If lab age units are whole years, multiply by 12 and add 6
 process_subjects_info <- function(file_path) {
   data <- read.csv(file_path)%>%
     dplyr::select(subid, age, gender)%>%

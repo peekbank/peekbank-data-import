@@ -184,6 +184,8 @@ d_tidy <- d_tidy %>%
 
 Now our big table has all the IDs we need. Let's add a few columns and do some renaming in this table to make it consistent with the schema. We'll make the final tables that will be saved as .csv files and uploaded to Peekbank by making distinct selections from this big table.
 
+Note here that since the desired age format is in months, we don't need to do any processing to get age in the right units. If the ages in your dataset were in days or years (to decimal precision), you'd need to convert to months, by dividing by 365.25 or multiplying by 12 respectively. However, if the ages in your dataset were in days or years (to decimal precision), you'd need to convert to months. If the ages in your dataset are in whole number years, convert to midway through that year in months, e.g., 2 years would become 2*12 + 6 = 30 months. This is so that we don't systematically underestimate the age of children whose ages are recorded in whole years. If this is true of your dataset, `lab_age_units` should be coded as "whole years".
+
 ```{r renaming, message = FALSE, warning = FALSE}
 d_tidy <- d_tidy %>%
   mutate(dataset_id = 0, # dataset id is always zero since there's only one dataset
