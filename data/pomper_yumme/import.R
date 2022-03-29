@@ -27,6 +27,11 @@ xy_table_filename <-  "xy_timepoints.csv"
 osf_token <- read_lines(here("osf_token.txt"))
 
 
+
+# phrase from paper: e.g. "Find the pifo" <- 12 familiar, 4 novel words
+# but for an additional 12 familiar trials, "Where's the cat?" 
+# so which is it??
+
 # download datata from osf
 #peekds::get_raw_data(dataset_name, path = read_path)
 
@@ -120,33 +125,40 @@ d_tidy <- d_tidy %>%
   mutate(distractor_image = case_when(target_side == "right" ~ left_image,
                                       TRUE ~ right_image)) %>%
   mutate(target_label = target_image,
-         distractor_label = distractor_image) 
-
+         distractor_label = distractor_image,
+         full_phrase = "Where's the _?", # see paper: sometimes was "Find the _"
+         dataset_id = 0) 
+# image_description, image_description_source, 
 
 #### write out tables ####
 
 #create stimulus table
 # only some of the labels showed up, is that a mistake before this?
-# need to fix size (getting an error)
 stimulus_table <- d_tidy %>%
   distinct(target_image, distractor_image) %>% 
   pivot_longer(cols=c(target_image, distractor_image), names_to="image_type",values_to="stimulus_image_path") %>%
   distinct(stimulus_image_path) %>%
-  mutate( stimulus_image_path = case_when(
+  mutate(stimulus_image_path = case_when(
       # assume "black" in table means empty target/distractor, based on interpretation of data
       stimulus_image_path == "black" ~ "empty",
       TRUE ~ stimulus_image_path),
-      original_stimulus_label = stimulus_image_path
+      original_stimulus_label = stimulus_image_path,
+      english_stimulus_label = original_stimulus_label
   ) %>%
-  mutate(
-    stimulus_novelty = case_when(str_detect(original_stimulus_label, "novel") ~ "novel",
-                                 TRUE ~ "familiar"),
-    stimulus_id = seq(0, nrow(.) - 1)
-  )
+  mutate(stimulus_novelty = case_when(str_detect(original_stimulus_label, "novel") ~ "novel", TRUE ~ "familiar"),
+         stimulus_id = seq(0, nrow(.) - 1),
+         image_description_source = "experiment documentation",
+         image_description = case_when(str_detect(original_stimulus_label, "novel") ~ "unfamiliar object",
+                                       TRUE ~ original_stimulus_label),
+         lab_stimulus_id = original_stimulus_label,
+         dataset_id = 0)
 
 # FixMe original_stimulus_label:
 # spoken labels for novel words: sprock, jang, pifo, tever. 
 # but which correspond to novel1, novel2, novel3, and novel4? 
+# update: Martin got trial_lists.zip, which has 2 sets of 8 trial list files (v4 and v5), from which
+# we *can* extract the correspondence between each novel object (1-4) and the four novel words...but will be a pain,
+# and not clear that it's of interest to anyone
 # leave as novel1-4 for now
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on the "target labels"
@@ -266,7 +278,7 @@ stimulus_table %>%
 trial_types <- d_tidy_final %>%
   distinct(
     trial_type_id,
-    # full_phrase,
+    full_phrase,
     point_of_disambiguation,
     target_side,
     lab_trial_id,
@@ -292,7 +304,7 @@ trials_table <- d_tidy_final %>%
 # create empty other files aoi_region_sets.csv and xy_timepoints
 # tibble(administration_id = d_tidy_final$administration_id[1],
 #       aoi_region_set_id=NA,
-#        l_x_max=NA 
+#        l_x_max=NA ,
 #        l_x_min=NA ,
 #        l_y_max=NA ,
 #        l_y_min=NA ,
@@ -325,4 +337,4 @@ data_tab <- tibble(
 validate_for_db_import(dir_csv = write_path)
 
 ## OSF INTEGRATION ###
-put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
+#put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
