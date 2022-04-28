@@ -14,6 +14,8 @@ library(janitor)
 dataset_name <- "kartushina_2019"
 dataset_id <- 0
 subject_info <- "Participants_info_70sbj.xlsx"
+subject_final_list <- "50_subjects_paper.txt"
+stimulus_onset_info <- "Word_onset.txt"
 OSF_ADDRESS <- "pr6wu"
 full_phrase_language <- "nor"
 possible_delims <- c("\t",",")
@@ -53,6 +55,9 @@ df_subjects_info <- read_excel(fs::path(exp_info_path, subject_info)) %>%
   filter(lab_subject_id!="Average") # has 70 -- not sure which of the various exclusions this applies
 # there's a final sample of 50 in paper after various exclusions
 
+# read inm the final 50 subjects that were used in the paper
+df_subjects_final <- read.csv(fs::path(exp_info_path, subject_final_list))
+
 df_subjects <- df_subjects_info %>% 
   mutate(sex = case_when(Gender=="F" ~ "female", Gender=="M" ~ "male", T ~"unspecified"), 
          subject_id = seq(0, length(.$lab_subject_id)-1), 
@@ -70,7 +75,8 @@ df_subjects <- df_subjects_info %>%
 # because control trials are in a strange different format
 all_data_files <- list.files(experiment_path)
 stimuli_words <- str_remove(all_data_files, ".tsv")
-
+df_stimuli_words_onset <- read.csv(fs::path(exp_info_path, stimulus_onset_info), header = TRUE, sep = "\t")
+names(df_stimuli_words_onset) <- c('target', 'point_of_disambiguation') 
 # no other distractor vs target info was found in the raw data, so pair information was typed in from the paper
 # For more information, please reference Table 1 as well as section 2.2.2 
 # Overall, the experiment is a 2 by 2 design with Context and Frequency conditions 
@@ -170,71 +176,6 @@ df_stimuli <- df_stimuli %>%
                                              english_stimulus_label == "carpet" ~ "teppe")
   )
 
-##################################
-# here we read in the eyetracking data 
-
-# what do datafiles look like 
-# based on inspection of the control trial data, we ignored the control data
-# sample_data <- read_delim(fs::path(control_path, "house.txt"), delim="\t")
-
-####################################################################
-#### This section of codes are for exploring one eye tracking files.
-#### explore a normal tobi data file ####
-####################################################################
-apple <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t")
-apple$StudioTestName %>% unique() # List 1 v List 2
-apple$ParticipantName %>% unique() # cross check with subjects list
-apple$RecordingName %>% unique() # mostly follows subject?? (likely not a useful column)
-apple$RecordingDate %>% unique() # not useful
-apple$RecordingTimestamp %>% unique() # sample rate 3
-apple$FixationFilter %>% unique() #not useful
-apple$MediaName %>% unique() # has left versus right !!
-apple$StudioEvent %>% unique() # Start, End, NA
-apple$StudioEventData %>% unique() # left, right, NA
-apple$GazeEventType %>% unique() #Fixation, Saccade, NA
-apple$GazeEventDuration %>% unique() # in ms, one presumes  
-apple$`AOI[D]Hit` %>% unique() # NA, F, T
-apple$`AOI[T]Hit` %>% unique() # NA, T, F
-apple$`AOI[M3D1]Hit` %>% unique() #NA, 0, 1
-apple$`AOI[M3T1]Hit` %>% unique() # NA, 0, 1
-# data either has values for D&T or for M3d1/M3t1 but never both ??
-apple$X16 %>% unique() #all NA
-
-
-df1 <- apple %>% filter(ParticipantName == "OS_015")
-
-# confirmating that Unclassified gaze events are all empty
-df2 <- apple %>% 
-  filter(ParticipantName == "OS_015", GazeEventType == "Unclassified") %>%
-  select(`AOI[D]Hit`, `AOI[T]Hit`, `AOI[M3D1]Hit`, `AOI[M3T1]Hit`) %>%
-  unique() #look at one participant
-
-# how long are the stamps 
-test_trialtime <- apple %>% select(ParticipantName, RecordingTimestamp, StudioEvent, StudioEventData) %>%
-  filter(StudioEvent %in% c("MovieStart", "MovieEnd")) %>% 
-  group_by(ParticipantName, StudioEventData) %>% 
-  summarize(start_time=min(RecordingTimestamp),
-            end_time=max(RecordingTimestamp)) %>% 
-  mutate(diff_time=end_time-start_time)
-
-# mutate gaze data column from "AOI[D|T]Hit" to target, distractor and missing
-df_apple_no <- read_delim(fs::path(experiment_path, "apple.tsv"), delim="\t") %>% 
-  filter(ParticipantName == "OS_091") %>% 
-  rename(lab_subject_id = ParticipantName) %>% 
-  select(-StudioTestName, -X16, -RecordingDate, -RecordingName, -FixationFilter) %>% 
-  inner_join(df_subjects_info, c("lab_subject_id")) %>% 
-  # Assuming T means target, and D means distractor
-  # also assuming that unclassfied = missing, but saccade with no values = other (looking middle??)
-  mutate(aoi = case_when(
-    `AOI[D]Hit` == TRUE ~ "distractor",
-    `AOI[T]Hit` == TRUE ~ "target",
-    `AOI[M3D1]Hit` == 1 ~ "distractor",
-    `AOI[M3T1]Hit` == 1 ~ "target",
-    GazeEventType == "Unclassified" ~ "missing",
-    TRUE ~ "other" 
-  )) %>% 
-  select(-`AOI[D]Hit`,-`AOI[T]Hit`,-`AOI[M3D1]Hit`,-`AOI[M3T1]Hit`, -GazeEventType)
-
 ####################################################################
 # Data columns
 # - StudioTestName: List 1 or List 2 (which columns contain the relevant AOIs varies by List)
@@ -289,9 +230,9 @@ read_trial_data <- function(file_name) {
            gaze_duration = gaze_event_duration) %>%
     mutate(aoi_target_hit = as.logical(aoi_target_hit),
            aoi_distractor_hit = as.logical(aoi_distractor_hit),
-           aoi_distractor_hit = if_else(is.na(aoi_distractor_hit), 
+           aoi_distractor_hit = ifelse(is.na(aoi_distractor_hit), 
                                         aoi_distractor_hit_1, aoi_distractor_hit),
-           aoi_target_hit = if_else(is.na(aoi_target_hit), 
+           aoi_target_hit = ifelse(is.na(aoi_target_hit), 
                                     aoi_target_hit_1, aoi_target_hit)) %>%
     select(stimlist, lab_subject_id, stimulus, timestamp, gaze_type,
            gaze_duration, aoi_distractor_hit, aoi_target_hit)
@@ -317,6 +258,8 @@ trial_data <- trial_data %>%
 #   (binocular) of 300 Hz and a screen resolution of 1920 × 1080 pixels."
 subject_list <- unique(trial_data$lab_subject_id)
 
+# Here we include all the subjects, even the ones that were excluded from the original paper
+# filter(.$lab_subject_id %in% df_subjects_final$final_subjects) %>% # filter out subjects not used in the final paper
 df_administrations <- df_subjects_info %>%
   filter(.$lab_subject_id %in% subject_list) %>% # filter out subjects that were not included in the trial data
   select(subject_id = lab_subject_id, lab_age) %>%
@@ -332,7 +275,6 @@ df_administrations <- df_subjects_info %>%
     coding_method = "preprocessed eyetracking"
   )
 
-
 # from the paper: "we inserted a 1.5 s period of silence at the beginning of each trial so that infants would have the same exposure to the visual
 # stimuli before the onset of the sentence, as in the BS12 study. Trials ended 3.5 s after the target word onset"
 # But see Figure 3, 1.5s is the silence before the sentence, but 2.02s is the time before the onset of target words
@@ -345,9 +287,10 @@ df_trial_info <- trial_data %>%
   left_join(target_distractor, by = "target") %>%
   left_join(df_stimuli %>% select(english_stimulus_label, original_stimulus_label), 
             by = c("target" = "english_stimulus_label")) %>%
+  left_join(df_stimuli_words_onset, by = "target") %>%
   mutate(full_phrase_language = full_phrase_language,
          dataset_id = dataset_id,
-         point_of_disambiguation = 2020, 
+         lab_trial_id = NA, 
          aoi_region_set_id = NA, 
          # sound matched manually 
          # again, this is a terrible way to do this.
@@ -471,6 +414,7 @@ df_trials <- df_trials %>%
 #### write all the tables to `.csv` files and validate them ####
 # output path
 output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
+dir.create(fs::path(output_path), showWarnings = FALSE)
 
 write_csv(df_dataset, file = here(output_path, "datasets.csv"))
 write_csv(df_subjects, file = here(output_path, "subjects.csv"))
@@ -488,8 +432,9 @@ accs <- df_aoi_timepoints %>%
   left_join(df_administrations) %>%
   left_join(df_trials) %>%
   left_join(df_trial_types) %>%
-  mutate(condition_type = if_else(str_detect(condition, "context"), "context", "frequency"),
-         is_match = if_else(str_detect(condition, "match"), "match", "related")) %>% 
+  mutate(condition_type = ifelse(str_detect(condition, "context"), "context", "frequency"),
+         is_match = ifelse(str_detect(condition, "match"), "match", "related")) %>% 
+  filter(administration_id %in% df_administrations$administration_id) %>% 
   # mutate(age_group = ifelse(age < mean(age), "13-17", "17-20")) %>%
   group_by(t_norm, administration_id, condition_type, is_match) %>% 
   filter(aoi %in% c("target", "distractor")) %>%
@@ -502,8 +447,7 @@ ggplot(accs, aes(x = t_norm, y = correct, col = is_match)) +
   facet_wrap(~condition_type, ncol = 1) + 
   geom_pointrange(aes(ymin = correct - se, 
                       ymax = correct + se)) +
-  geom_hline(yintercept = .5, lty = 2, col = "black") + 
-  langcog::theme_mikabr() + 
+  geom_hline(yintercept = .5, lty = 2, col = "black") + #  langcog::theme_mikabr() + 
   langcog::scale_color_solarized(name = "Age Group") + 
   xlim(-2000, 3000) + 
   xlab("Time from target word onset (msec)") + 

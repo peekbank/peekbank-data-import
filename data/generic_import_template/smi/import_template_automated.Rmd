@@ -272,10 +272,13 @@ aoi_timepoints_data %>%
   kable() %>% kable_styling()
 ```
 
-That's it! Now, we'll write all the tables to `.csv` files and validate them to make sure they adhere to the schema. The osf write are commented out so you don't accidentally write a bunch of stuff when running this script. There you have it--that's how to import a Peekbank eyetracker dataset.
+That's it! Now, we'll write all the tables to `.csv` files and validate them to make sure they adhere to the schema. The write_csv and osf write are commented out so you don't accidentally write a bunch of stuff when running this script. There you have it--that's how to import a Peekbank eyetracker dataset.
 
 ```{r write-all, message = FALSE, warning = FALSE}
 output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
+
+# create the directory if not exist
+# dir.create(fs::path(output_path), showWarnings = FALSE)
 
 # write_csv(df_dataset, file = here(output_path, "datasets.csv"))
 # write_csv(subjects_data, file = here(output_path, "subjects.csv"))
