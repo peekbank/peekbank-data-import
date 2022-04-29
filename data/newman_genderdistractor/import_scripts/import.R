@@ -85,7 +85,7 @@ read_subject_demographic_data <- function(subjects_filepath){
     rename(lab_subject_id = particip_number,
            sex = gender,
            lab_age = lab_age) %>%
-    mutate(part_group = subjects_filepath)
+    mutate(participant_file = subjects_filepath)
   return(demo_data)
 }
 
@@ -112,17 +112,19 @@ raw_demo_data <-bind_rows(lapply(subj_data_list, read_subject_demographic_data))
 #generate trial numbers
 looking_data <- raw_looking_data %>%
   # create a trial_order at each beginning of trial for each participant
-  group_by(subject_file, part_group) %>%
+  group_by(subject_file) %>%
   mutate(trial_order_num = cumsum(look == "B")-1) %>%
   ungroup() %>%
-  fill(trial_order_num)
+  fill(c(trial_order_num, part_group))
 
 
 # Check that there are the correct number of trials per participant
 # 3 participants have <20 trials 26VS, 20J, 4HS
-looking_data %>% group_by(subject_file, part_group) %>%
-  summarize(num_trials= max(trial_order_num)) %>%
-  filter(num_trials != 19)
+#TODO: for now, remove these participants because we're not sure of their trial order...
+looking_data <- looking_data %>% 
+  group_by(subject_file) %>%
+  mutate(num_trials= max(trial_order_num)) %>%
+  filter(num_trials == 19)
 
 
 first_last_look <- looking_data %>% 
@@ -157,40 +159,221 @@ looking_data_tidy <- looking_data %>%
   #turn into a tidy long format with a row for each frame
   mutate(frame = map2(start_frame, end_frame, seq)) %>%
   unnest(frame) %>%
-  select(look, frame, subject_file, trial_order_num) %>%
+  select(look, frame, subject_file, trial_order_num, part_group) %>%
   # NOTE: There are some (~30) frames in this dataset which have two conflicting looks
   # Here we are just taking the preceeding look for these conflicts
   group_by(across(c(-look))) %>%
   slice(1) %>%
   ungroup()
 
-
 #add "missing" for the missing frames between looks
 looking_data_tidy <- trial_intervals %>% 
   left_join(looking_data_tidy) %>%
   # TODO: Double check flipping left and right!
   #fill in NAs with missing
-  mutate(look = case_when(look == "L" ~ "R",
-                          look == "R" ~ "L",
+  mutate(look = case_when(look == "L" ~ "L",
+                          look == "R" ~ "R",
                           TRUE ~ "missing")) %>%
   group_by(subject_file, trial_order_num) %>%
   mutate(running_frame = frame - min(frame)) %>% 
+  ungroup()
+
+## CLEAN DATA
+#trial info
+trials_tidy <- raw_trials_data %>% 
+  mutate(trial_order = stringr::str_extract(trial_group, "\\d+")) %>%
+  group_by(trial_order) %>%
+  mutate(trial_order_num = seq(0, 19)) %>%
   ungroup() %>%
+  rename(full_phrase = target_audio,
+         target_side = correct_answer,
+         genderdistractor = distractor) %>%
+  mutate(target_side = case_when(target_side == "left" ~ "left",
+                                 target_side == "right" ~ "right",
+                                 TRUE ~ "ambig"),
+         #these are flipped to be the coder's perspective?
+         target = case_when(target_side == "left" ~ image_right,
+                            target_side == "right" ~ image_left,
+                            TRUE ~ "ambig"),
+         distractor = case_when(target_side == "left" ~ image_left,
+                                target_side == "right" ~ image_right,
+                                TRUE ~ "ambig")) %>%
+  rename(lab_trial_id = x7)
+
+demo_data_tidy <- raw_demo_data %>%
+  mutate(sex = case_when(sex == "F" ~ "female",
+                         sex == "M" ~ "male",
+                         is.na(sex) ~ "missing",
+                         TRUE ~ "other"),
+         native_language = "eng")
+
+looking_participant_column <- looking_data_tidy %>% 
+  rename(looking_part_group = part_group) %>%
+  filter(!is.na(looking_part_group)) %>%
+  select(subject_file, looking_part_group) %>%
+  distinct() %>%
   separate(col = subject_file, 
            into = c("lab_subject_id",
                     "study",
                     "other_stuff",
-                    "trial_group"),
-           sep = "_", remove = F)
+                    "trial"),
+           sep = "_", remove = F) %>%
+  #TODO: this can be found in the participant demo info, not needed here
+  mutate(file_trial_group = case_when(str_detect(study, "(?i)order") ~ study,
+                                      str_detect(other_stuff, "(?i)order") ~ other_stuff,
+                                      str_detect(trial, "(?i)order") ~ trial)) %>%
+  mutate(file_trial_group = stringr::str_extract(file_trial_group, "\\d+")) %>% 
+  select(subject_file, lab_subject_id, file_trial_group, looking_part_group)
 
-#shift some of the string parsing around
-looking_data_tidy_clean <- looking_data_tidy %>% 
-  mutate(trial_group = case_when(str_detect(study, "(?i)order") ~ study,
-                                 str_detect(other_stuff, "(?i)order") ~ other_stuff,
-                                 TRUE ~ trial_group))  %>%
-  #filter out participants where we don't have their order
-  filter(!is.na(trial_group)) %>%
-  mutate(trial_group = stringr::str_remove(trial_group, pattern = ".xls"),
-         trial_group = paste("ORDER", 
-                             str_remove(trial_group, pattern = "(?i)order"))) %>%
-  mutate(t = running_frame * sample_rate_ms)
+demo_data_tidy <- demo_data_tidy %>% 
+  full_join(looking_participant_column) %>% 
+  filter(!is.na(subject_file)) %>%
+  mutate(trial_order = ifelse(is.na(file_trial_group), order, file_trial_group)) %>%
+# fix lab age based on participant file group
+ mutate(lab_age = ifelse(is.na(lab_age), 
+                         case_when(looking_part_group == "16 month olds, with 10 dB SNR" ~ 16.5,
+                            looking_part_group == "16 month olds, with 5 dB SNR" ~ 16.5,
+                            looking_part_group == "30 month olds, 0 dB SNR" ~ 30.5,
+                            looking_part_group == "30 month olds, 5 dB SNR" ~ 30.5,
+                            TRUE ~ lab_age), lab_age))
+
+d_tidy <- looking_data_tidy %>% 
+  left_join(demo_data_tidy) %>% 
+  filter(!is.na(trial_order)) %>%
+  replace_na(list(native_language = "eng",
+                  sex = "unspecified"))
+
+d_tidy <- d_tidy %>% 
+  select(trial_order_num, trial_order, everything()) %>%
+  left_join(trials_tidy)  %>%
+  #recode looking aoi can flip back here...
+  mutate(aoi = case_when(look == "L" & target_side == "left" ~ "target",
+                         look == "L" & target_side == "right" ~ "distractor",
+                         look == "R" & target_side == "right" ~ "target",
+                         look == "R" & target_side == "left" ~ "distractor",
+                         target_side == "ambig" ~ "ambig",
+                         TRUE ~ look),
+         db_condition = case_when(looking_part_group == "16 month olds, with 10 dB SNR" ~ "10db",
+                                  looking_part_group == "16 month olds, with 5 dB SNR" ~ "5db",
+                                  looking_part_group == "30 month olds, 0 dB SNR" ~ "0db",
+                                  looking_part_group == "30 month olds, 5 dB SNR" ~ "5db",
+                                  TRUE ~ "unknown"),
+         condition = paste0(genderdistractor, "_", db_condition)) %>%
+  filter(target_side != "ambig")
+
+# build tables!
+datasets_table = tibble(
+  dataset_id = dataset_id,
+  lab_dataset_id = dataset_name,
+  dataset_name = dataset_name,
+  cite = "Newman, R., &  Morini, G. (2017). Effect of the relationship between target and masker sex on infants' recognition of speech. The Journal of the Acoustical Society of America 141, EL164 (2017); doi: 10.1121/1.4976498",
+  shortcite = "Newman et al. (2017)"
+)
+
+datasets_table %>% write_csv(here(write_path, "datasets.csv"))
+
+stimuli_table <- rbind(trials_tidy %>% 
+                         select(original_stimulus_label = target),
+                       trials_tidy %>% 
+                         select(original_stimulus_label = distractor)) %>%
+  distinct() %>%
+  mutate(english_stimulus_label = original_stimulus_label,
+         stimulus_novelty = "familiar",
+         stimulus_image_path = NA,
+         image_description = english_stimulus_label,
+         image_description_source = "Peekbank discretion",
+         lab_stimulus_id = english_stimulus_label,
+         stimulus_id = row_number()-1,
+         dataset_id = dataset_id)
+
+stimuli_table %>% write_csv(here(write_path, "stimuli.csv"))
+
+d_tidy <- d_tidy %>% 
+  left_join(stimuli_table %>% select(original_stimulus_label, 
+                                     stimulus_id), 
+            by = c('target' = 'original_stimulus_label')) %>%
+  mutate(target = stimulus_id) %>%
+  select(-stimulus_id, target_id = target) %>%
+  left_join(stimuli_table %>% select(original_stimulus_label, 
+                                     stimulus_id), 
+            by = c('distractor' = 'original_stimulus_label')) %>%
+  mutate(distractor = stimulus_id) %>%
+  select(-stimulus_id, distractor_id = distractor)
+
+subjects_table <- d_tidy %>% 
+  distinct(sex, native_language, lab_subject_id) %>%
+  replace_na(list(native_language = "eng",
+                  sex = "unspecified")) %>%
+  mutate(subject_id = row_number()-1)
+
+d_tidy <- d_tidy %>% left_join(subjects_table) %>% 
+  select(-c(order, id_number,race_ethnicity, 
+            due_date, 
+            drop_yes_or_leave_blank_if_no:fussiness_rating))
+
+subjects_table %>% write_csv(here(write_path, "subjects.csv"))
+
+administrations_table <- d_tidy %>% 
+  distinct(subject_id, lab_age) %>%
+  mutate(age = lab_age,
+         lab_age_units = "months",
+         sample_rate = 30,
+         tracker = "supercoder",
+         coding_method = "manual gaze coding",
+         administration_id = row_number()-1,
+         dataset_id = dataset_id,
+         monitor_size_x = NA,
+         monitor_size_y = NA) %>%
+  select(administration_id, dataset_id, subject_id, age, 
+         lab_age, lab_age_units, monitor_size_x, 
+         monitor_size_y, sample_rate, tracker, coding_method)
+
+
+administrations_table %>% write_csv(here(write_path, "administrations.csv"))
+
+#join back in
+d_tidy <- d_tidy %>% left_join(administrations_table %>% select(subject_id, administration_id))
+
+
+trail_type_ids <- d_tidy %>% 
+  distinct(target_id, distractor_id, 
+           full_phrase, target_side, lab_trial_id, condition) %>%
+  mutate(trial_type_id = row_number()-1)
+
+
+d_tidy <- d_tidy %>% left_join(trail_type_ids)
+
+trial_types_table <- trail_type_ids %>% 
+  mutate(full_phrase_language = "eng",
+         point_of_disambiguation = point_of_disambiguation,
+         dataset_id = dataset_id,
+         aoi_region_set_id = NA)
+
+
+trial_types_table %>% write_csv(here(write_path, "trial_types.csv"))
+
+trials_table <- d_tidy %>% 
+  distinct(trial_order_num, trial_type_id) %>%
+  mutate(trial_id = row_number()-1) %>%
+  rename(trial_order = trial_order_num)
+
+
+trials_table %>% write_csv(here(write_path, "trials.csv"))
+
+d_tidy <- d_tidy %>% 
+  select(-trial_order) %>%
+  rename(trial_order = trial_order_num) %>%
+  left_join(trials_table)
+
+
+aoi_table <- d_tidy %>% 
+  mutate(point_of_disambiguation = point_of_disambiguation,
+         t = running_frame * sample_rate_ms) %>%
+  select(trial_id, aoi, t, administration_id, point_of_disambiguation) %>%
+  rezero_times() %>%
+  normalize_times() %>%
+  resample_times(table_type = "aoi_timepoints")
+
+aoi_table %>% write_csv(here(write_path, "aoi_timepoints.csv"))
+
+peekds::validate_for_db_import(dir_csv = write_path)
