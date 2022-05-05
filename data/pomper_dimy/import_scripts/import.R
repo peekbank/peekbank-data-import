@@ -12,8 +12,8 @@ sample_rate_ms = 1000/60
 sample_rate_hertz = 60
 
 # CHECK THESE
-monitor_size_x = NA_integer_
-monitor_size_y = NA_integer_
+monitor_size_x = 1920
+monitor_size_y = 1080
 dataset_id = 0
 
 ### processed data filenames ###
@@ -39,15 +39,17 @@ osf_token <- read_lines(here("osf_token.txt"))
 if(length(list.files(read_path)) == 0 ) {
   get_raw_data(lab_dataset_id = lab_dataset_id, path = read_path, osf_address = "pr6wu")}
 
+# data created Tobii, processed with pygaze
+
 # read in study data
 pilot1_data <- read_tsv(here(paste("data/",lab_dataset_id,"/raw_data/DimY_v1_GazeData_n36.txt", sep=''))) %>% 
   mutate(study = "pilot1") %>%
-  select(TimeStamp, GazePointX, GazePointY, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
+  select(TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
          Condition, TargetImage, TargetObjectPos, DistracterImage, DistracterObjectPos, Audio)
 
 pilot2_data <- read_tsv(here(paste("data/",lab_dataset_id,"/raw_data/DimY_v2_GazeData_n47.txt", sep=''))) %>% 
   mutate(study = "pilot2") %>%
-  select(TimeStamp, GazePointX, GazePointY, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
+  select(TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
          Condition, TargetImage, TargetObjectPos, DistracterImage, DistracterObjectPos, Audio)
 
 study_data <- rbind(pilot1_data, pilot2_data)
@@ -62,10 +64,43 @@ pilot2_participants <- read.csv(here(paste("data/",lab_dataset_id,"/raw_data/par
 
 participant_data <- rbind(pilot1_participants, pilot2_participants)
 
-# we seem to be missing the x,y coordinates of the left and right images, and we don't have AOI codes 
-# so got stuck here
+# we seem to be missing the x,y coordinates of the left and right images
 
-############################# LEFT OFF HERE ##################################
+d_tidy <- study_data %>%
+  rename(aoi_old = Accuracy, t = TimeStamp) %>%
+  mutate(aoi = case_when(
+    aoi_old == "0" ~ "distractor",
+    aoi_old == "1" ~ "target",
+    aoi_old == "0.5" ~ "other",
+    LookAOI == "away" ~ "other",
+    aoi_old == "." ~ "missing",
+    aoi_old == "-" ~ "missing",
+    is.na(aoi_old) ~ "missing"
+  )) %>%
+  mutate(t = as.numeric(t)) 
+
+image_path <- 'images/'
+jpg <- '.jpg'
+
+
+stimulus_table <- d_tidy %>%
+  distinct(TargetImage, DistracterImage) %>% 
+  pivot_longer(cols=c(TargetImage, DistracterImage), names_to="image_type",values_to="original_stimulus_label") %>%
+  distinct(original_stimulus_label) %>%
+  mutate(stimulus_image_path = paste(image_path, original_stimulus_label, jpg, sep = '')) %>%
+  mutate(
+    # HOW TO DETERMINE NOVELTY OF STIMULI?
+    # stimulus_novelty = 
+    
+    stimulus_id = seq(0, nrow(.) - 1),
+    ## NEED SPOKEN LABELS FOR NOVEL WORDS
+    english_stimulus_label = str_remove_all(original_stimulus_label, "[12]"),
+    english_stimulus_label = str_remove_all(english_stimulus_label, "_left"),
+    english_stimulus_label = str_remove_all(english_stimulus_label, "_right")
+                                          
+  )
+
+
 
 ### ------- TABLE GENERATION ------- ###
 
