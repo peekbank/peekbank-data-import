@@ -1,4 +1,6 @@
-# process Pomper YummME data
+# import Pomper YummME data for Peekbank
+# George Kachergis
+# 3/22/2022
 ## libraries
 library(here)
 library(janitor)
@@ -335,6 +337,11 @@ data_tab <- tibble(
 
 # validation check ----------------------------------------------------------
 validate_for_db_import(dir_csv = write_path)
+# Warning messages:
+#1: In validate_for_db_import(dir_csv = write_path) :
+#  Cannot find required file: /Users/gkacherg/Documents/GitHub/peekbank-data-import/data/pomper_yumme/processed_data/aoi_region_sets.csv
+#2: In validate_for_db_import(dir_csv = write_path) :
+#  Cannot find required file: /Users/gkacherg/Documents/GitHub/peekbank-data-import/data/pomper_yumme/processed_data/xy_timepoints.csv
 
 ## OSF INTEGRATION ###
-#put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
+put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
