@@ -23,11 +23,11 @@ library(glue)
 Then, set up general parameters and file paths. In this step, we will also download the raw files if they are not on our local machine.
 
 Note that 5_1 and 5_2 are designations for Experiment 1 (the two orders). 5_3 and 5_4 are Experiment 2. 
+This information will be saved as conditions in table trial_types table.
 
 ```{r parameters, message = FALSE, warning = FALSE}
 dataset_name <- "nordmeyer_negtracker_2014"
 project_root <- here::here()
-source(here("data/nordmeyer_negtracker_2014/import_scripts/import_helpers.R"))
 dataset_id <- 0
 file_ext = '.txt'
 OSF_ADDRESS <- "pr6wu"
@@ -37,6 +37,7 @@ raw_data_path <- fs::path(project_root, "data", dataset_name, "raw_data")
 full_dataset_path <- fs::path(raw_data_path, "full_dataset")
 exp_info_path <- fs::path(raw_data_path, "experiment_info")
 aoi_path <- fs::path(raw_data_path, "test_aois")
+source(fs::path(project_root, "data", dataset_name, "import_scripts", "import_helpers.R"))
 
 # only download raw data if it's not on your local machine
 if(length(list.files(full_dataset_path)) == 0 & length(list.files(exp_info_path)) == 0) {
@@ -112,6 +113,8 @@ df_dataset %>%
 
 This is the code from `https://github.com/anordmey/Negtracker/blob/master/materials/analysis/negtracker_makeLongData.R`
 
+Let's create df_administrations and df_subjects from participant info file.
+
 ```{r}
 #Load in demographics
 demographics <- read_csv(participant_file_path) |>
@@ -124,6 +127,14 @@ demographics |>
   group_by(experiment, agegroup) |>
   count() |>
   kable()
+
+df_subjects <- demographics |>
+  mutate(native_language = "eng") |>
+  mutate(lab_subject_id = subid) |>
+  mutate(sex = gender) |>
+  mutate(subject_id = seq(0,length(subid)-1)) |>
+  select(subject_id, sex, native_language, lab_subject_id)
+  
 ```
 
 This filtering gets us a list that reproduces the original numbers from the paper for each experiment. (Note this is kids included **before** trial-level exclusions). 
@@ -292,7 +303,12 @@ Next, let's create the stimulus table.
 Note that we need to load in distractor stimuli AND we need to add a "nothing" stimulus. 
 
 ```{r stimuli, message = FALSE, warning = FALSE}
-expt_2_distractors <- read_csv(paste0(exp_info_path, "/experiment_2_distractors.csv"))
+expt_2_distractors <- read_csv(paste0(exp_info_path, "/experiment_2_distractors.csv")) |>
+  mutate(target = sapply(strsplit(trial, '_'), `[`, 1)) |>
+  mutate(side = case_when(substrRight(trial, 4, 4) == "L"))
+
+tmp <- sapply(strsplit(expt_2_distractors$trial, '_'), `[`, 1) 
+
 items <- unique(all_data$item)
 singulars <- c("carrot", "cookie", "cake","spoon","bucket","organge","lollipop","car",
                "kite","banana","fish","balloon","apple","ball","ice cream","flower")
