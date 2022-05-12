@@ -12,7 +12,7 @@ sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
 dataset_name = "bacon_gendercues"
 read_path <- here::here("data" ,dataset_name,"raw_data")
-write_path <- here::here("data",dataset_name, "processed_data")
+write_path <- here::here("data",dataset_name, "processed_data","")
 
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
