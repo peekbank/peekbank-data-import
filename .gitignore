@@ -1247,3 +1247,10 @@ data/adams_marchman_2018/processed_data/administrations.csv
 data/adams_marchman_2018/processed_data/subjects.csv
 data/adams_marchman_2018/processed_data/trial_types.csv
 data/adams_marchman_2018/processed_data/trials.csv
+data/bacon_gendercues/processed_data/administrations.csv
+data/bacon_gendercues/processed_data/aoi_timepoints.csv
+data/bacon_gendercues/processed_data/datasets.csv
+data/bacon_gendercues/processed_data/stimuli.csv
+data/bacon_gendercues/processed_data/subjects.csv
+data/bacon_gendercues/processed_data/trial_types.csv
+data/bacon_gendercues/processed_data/trials.csv
