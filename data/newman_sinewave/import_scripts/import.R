@@ -121,7 +121,7 @@ looking_data <- looking_data %>%
                                   trial_order_num+1, 
                                   trial_order_num))
 
-# we want spread the dataframe so that there is a look per frame row
+# we want to spread the dataframe so that there is a look per frame row
 # but the B (Begin) and S (Stop) timepoints only have a start_frame, so we impute the end frame
 # based on when the looking time codings begin...
 
