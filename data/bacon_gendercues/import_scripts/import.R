@@ -32,6 +32,7 @@ osf_token <- read_lines(here("osf_token.txt"))
 
 # read processed eyetracking files
 d_raw <- read_delim(fs::path(read_path, "InfantLang.GenderCuesData_n38.txt"),
+                    col_types = cols(Sex = col_character()),
                     delim = "\t") 
 
 # clean names
@@ -62,9 +63,13 @@ d_tidy <- d_tidy %>%
 # Clean up column names and add stimulus information based on existing columns  ----------------------------------------
 d_tidy <- d_tidy %>%
   #remove unneeded columns
-  select(-max_n,-lost_n, -percent_missing_frames,-has_sibs,-num_sibs,-num_male_sibs,-num_fem_sibs,-childcare,-sib_dif_sex,-cdi_comprehends,-cdi_says) %>%
+  select(-max_n,-lost_n, -percent_missing_frames,
+         -has_sibs,-num_sibs,-num_male_sibs,-num_fem_sibs,
+         -childcare,-sib_dif_sex,-cdi_comprehends,-cdi_says) %>%
   #left-right is from the coder's perspective - flip to participant's perspective - CHECK THIS!!!
-  mutate(target_side = factor(target_side, levels = c('Left','Right'), labels = c('right','left'))) %>%
+  mutate(target_side = factor(target_side, 
+                              levels = c('Left','Right'), 
+                              labels = c('right','left'))) %>%
   mutate(
     left_image = case_when(
       target_side == "left" ~ target,
