@@ -40,8 +40,8 @@ d_raw_2_18 <- read_excel(here::here(read_path,"FMW2013_English_18mos_n28toMF.xls
   
 d_raw_1_24 <- read_delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt"),
                        delim = "\t",
-                       col_types = cols(.default = "c")) #%>%
-            # not working:  select(-c(X255:X4372))
+                       col_types = cols(.default = "c")) %>%
+  select(-c("...255":"...4372"))
 
 d_raw_2_24 <- read_excel(here::here(read_path,"FMW2013_English_24m_n21toMF.xls"),
                          col_types = "text")
