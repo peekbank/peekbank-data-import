@@ -262,7 +262,8 @@ subject_list <- unique(trial_data$lab_subject_id)
 # filter(.$lab_subject_id %in% df_subjects_final$final_subjects) %>% # filter out subjects not used in the final paper
 df_administrations <- df_subjects_info %>%
   filter(.$lab_subject_id %in% subject_list) %>% # filter out subjects that were not included in the trial data
-  select(subject_id = lab_subject_id, lab_age) %>%
+  left_join(df_subjects) %>%
+  select(subject_id, lab_age) %>%
   mutate(
     administration_id = seq(0, length(.$subject_id)-1), 
     dataset_id = dataset_id, 
