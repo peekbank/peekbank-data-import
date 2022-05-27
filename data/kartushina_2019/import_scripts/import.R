@@ -261,8 +261,9 @@ subject_list <- unique(trial_data$lab_subject_id)
 # Here we include all the subjects, even the ones that were excluded from the original paper
 # filter(.$lab_subject_id %in% df_subjects_final$final_subjects) %>% # filter out subjects not used in the final paper
 df_administrations <- df_subjects_info %>%
+  left_join(df_subjects, by = "lab_subject_id") %>%
   filter(.$lab_subject_id %in% subject_list) %>% # filter out subjects that were not included in the trial data
-  select(subject_id = lab_subject_id, lab_age) %>%
+  select(lab_subject_id, subject_id, lab_age) %>%
   mutate(
     administration_id = seq(0, length(.$subject_id)-1), 
     dataset_id = dataset_id, 
@@ -395,7 +396,7 @@ df_trials <- trial_data %>%
 df_aoi_timepoints <- trial_data %>%
   left_join(select(df_trials, -trial_order), by = c("lab_subject_id", "target", "target_side")) %>%
   left_join(select(df_trial_types, trial_type_id, point_of_disambiguation), by = c("trial_type_id")) %>%
-  left_join(select(df_administrations, lab_subject_id=subject_id, administration_id), by = c("lab_subject_id")) %>%
+  left_join(select(df_administrations, lab_subject_id, administration_id), by = c("lab_subject_id")) %>%
   mutate(aoi = case_when(aoi_target_hit == TRUE & aoi_distractor_hit == FALSE ~ "target",
                          aoi_distractor_hit ==TRUE & aoi_target_hit == FALSE ~ "distractor",
                          gaze_type == "Saccade" ~ "other",
@@ -410,6 +411,9 @@ df_aoi_timepoints <- trial_data %>%
 
 df_trials <- df_trials %>%
   select(-target, -target_side)
+
+df_administrations <- df_administrations %>%
+  select(-lab_subject_id)
 
 #### write all the tables to `.csv` files and validate them ####
 # output path
@@ -447,8 +451,7 @@ ggplot(accs, aes(x = t_norm, y = correct, col = is_match)) +
   facet_wrap(~condition_type, ncol = 1) + 
   geom_pointrange(aes(ymin = correct - se, 
                       ymax = correct + se)) +
-  geom_hline(yintercept = .5, lty = 2, col = "black") + #  langcog::theme_mikabr() + 
-  langcog::scale_color_solarized(name = "Age Group") + 
+  geom_hline(yintercept = .5, lty = 2, col = "black") + #  langcog::theme_mikabr() + langcog::scale_color_solarized(name = "Age Group") + 
   xlim(-2000, 3000) + 
   xlab("Time from target word onset (msec)") + 
   ylab("Proportion correct") + 
