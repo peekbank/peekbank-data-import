@@ -138,13 +138,20 @@ stimulus_table <- d_tidy %>%
   #distinct(target_image,target_label,cond,type) %>%
   distinct(target_image,target_label,cond) %>%
   mutate(dataset_id = 0,
-         stimulus_novelty = "familiar",
+         #stimulus_novelty = "familiar",
          original_stimulus_label = target_label,
          english_stimulus_label = target_label,
          stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
          image_description = stimulus_image_path,
          image_description_source = "experiment documentation",
          lab_stimulus_id = paste(cond,target_image,target_label,sep="_")
+  ) %>%
+  #MZ decision point: make mispronounced stimuli "novel" - can revisit this decision if we get more options
+  mutate(
+    stimulus_novelty = case_when(
+      cond == "mp" ~ "novel",
+      TRUE ~ "familiar"
+    )
   ) %>%
   arrange(stimulus_image_path, original_stimulus_label) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
