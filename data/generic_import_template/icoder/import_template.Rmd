@@ -312,5 +312,56 @@ That's it! Now we write all the files and validate that they fit the schema. The
 #write_csv(datasets, fs::path(write_path, dataset_table_filename))
 
 # validation check
-#validate_for_db_import(dir_csv = write_path)
+# validate_for_db_import(dir_csv = write_path)
 ```
+
+Finally, once the data passes a validation check, it's useful to plot the data to see if it passes the "eyecheck" of what looking-while-listening data typically looks like (and e.g. to compare it to existing plots if the dataset is from a published paper). Here's an example of this visual "validation check"
+
+```{r}
+#### Plot Timecourse #### 
+
+#rename columns for distractor
+distractor_stimulus_table <- stimulus_table
+colnames(distractor_stimulus_table) <- paste("distractor_",colnames(stimulus_table),sep="")
+
+#join to full dataset
+full_data <- aoi_table %>%
+  left_join(administrations) %>%
+  left_join(trials_table) %>%
+  left_join(trial_types_table) %>%
+  left_join(stimulus_table,by=c("target_id"="stimulus_id","dataset_id")) %>%
+  left_join(distractor_stimulus_table %>% select(-distractor_dataset_id),by=c("distractor_id"="distractor_stimulus_id"))
+
+#mutate aoi
+full_data <- full_data %>%
+  mutate(aoi_new=case_when(
+    aoi=="target" ~ 1,
+    aoi=="distractor"~0,
+    aoi=="missing"~ NaN
+  )) %>%
+  mutate(aoi_new=ifelse(is.nan(aoi_new),NA,aoi_new))
+
+##### summarize by subject (really: administrations) ####
+summarize_by_subj <- full_data %>%
+  group_by(administration_id, t_norm) %>%
+  summarize(N=sum(!is.na(aoi_new)),mean_accuracy=mean(aoi_new,na.rm=TRUE))
+
+#### summarize across subjects ####
+summarize_across_subj <- summarize_by_subj %>%
+  group_by(t_norm) %>%
+  summarize(N=sum(!is.na(mean_accuracy)),
+         accuracy=mean(mean_accuracy,na.rm=TRUE),
+         sd_accuracy=sd(mean_accuracy,na.rm=TRUE))
+
+#plot (remove data points where not a lot of subjects contributed, to avoid discontinuities in the slope)
+ggplot(filter(summarize_across_subj,N>length(unique(full_data$administration_id))/3),aes(t_norm,accuracy))+
+  geom_line(data=filter(summarize_by_subj,N>10),aes(y=mean_accuracy,color=as.factor(administration_id),group=as.factor(administration_id)),alpha=0.2)+
+  geom_line()+
+  geom_smooth(method="gam",se=FALSE)+
+  geom_vline(xintercept=0)+
+  geom_vline(xintercept=300,linetype="dotted")+
+  geom_hline(yintercept=0.5,linetype="dashed")+
+  theme(legend.position="none")
+```
+
+Once all validation checks are passed, data should be uploaded to the Open Science Framework project page (https://osf.io/pr6wu/).
