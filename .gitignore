@@ -1255,3 +1255,6 @@ data/bacon_gendercues/processed_data/subjects.csv
 data/bacon_gendercues/processed_data/trial_types.csv
 data/bacon_gendercues/processed_data/trials.csv
 data/fmw_2013/processed_data/datasets.csv
+data/fernald_marchman_2012/raw_data/TL2-18ABoriginalicharts1-122toMF.txt
+data/fernald_marchman_2012/raw_data/TL224ABAlltrialsnonov1-123toMF.txt
+data/fernald_marchman_2012/raw_data/TL230ABoriginalichartsn1-121toMF.txt
