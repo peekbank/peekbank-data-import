@@ -29,13 +29,8 @@ aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 osf_token <- read_lines(here("osf_token.txt"))
 
-
-remove_repeat_headers <- function(d, idx_var) {
-  d[d[,idx_var] != idx_var,]
-}
-
 # download datata from osf
-peekds::get_raw_data(dataset_name, path = read_path)
+#peekds::get_raw_data(dataset_name, path = read_path)
 
 # read raw icoder files
 #18-month-olds
@@ -96,6 +91,8 @@ d_processed_24 <-  d_filtered_24 %>%
 d_processed_30 <-  d_filtered_30 %>%
   clean_names()
 
+d_processed <- d_processed_30
+
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
 metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
@@ -110,9 +107,9 @@ post_dis_names_clean <-  post_dis_names %>% str_remove("f")
 
 colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
 
-### truncate columns at F3833, since trials are almost never coded later than this timepoint
+### truncate columns at F4967, since trials are almost never coded later than this timepoint
 ## TO DO: check in about this decision
-post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
+post_dis_names_clean_cols_to_remove <- post_dis_names_clean[151:length(post_dis_names_clean)]
 #remove
 d_processed <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
@@ -127,7 +124,7 @@ d_processed <- d_processed  %>%
 
 # Convert to long format --------------------------------------------------
 d_tidy <- d_processed %>%
-  pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi")
+  pivot_longer(names_to = "t", cols = `-1300`:`4967`, values_to = "aoi")
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -139,18 +136,30 @@ d_tidy <- d_tidy %>%
     aoi_old == "0.5" ~ "other",
     aoi_old == "." ~ "missing",
     aoi_old == "-" ~ "missing",
-    is.na(aoi_old) ~ "missing"
+    is.na(aoi_old) ~ "missing",
+    TRUE ~ "missing"
   )) %>%
   mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
 
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
 
 d_tidy <- d_tidy %>%
-  filter(!is.na(sub_num)) %>%
-  select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt) %>%
+  select(-prescreen_notes,
+         -gap,
+         -word_onset,
+         -gap,
+         -target_rt_sec,
+         -dis_rt_sec,
+         -shifts,
+         -crit_on_set,
+         -crit_off_set,
+         -frames_word_starts_at_frame_45,
+         -first_shift_gap,
+         -rt
+         ) %>%
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
-  rename(left_image = r_image, right_image=l_image) %>%
+  rename(left_image=r_image,right_image=l_image) %>%
   mutate(target_label = target_image) %>%
   rename(target_image_old = target_image) %>% # since target image doesn't seem to be the specific image identifier
   mutate(target_image = case_when(target_side == "right" ~ right_image,
@@ -161,12 +170,12 @@ d_tidy <- d_tidy %>%
 #create stimulus table
 stimulus_table <- d_tidy %>%
   distinct(target_image,target_label) %>%
-  filter(!is.na(target_image)) %>%
   mutate(dataset_id = 0,
-         stimulus_novelty = "familiar",
+         stimulus_novelty = case_when(
+           "familiar",
          original_stimulus_label = target_label,
          english_stimulus_label = target_label,
-         stimulus_image_path = paste0(target_image, ".pct"), # TO DO - update once images are shared/ image file path known
+         stimulus_image_path = target_image, 
          image_description = target_label,
          image_description_source = "image path",
          lab_stimulus_id = target_image

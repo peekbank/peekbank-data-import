@@ -103,13 +103,14 @@ post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_
 d_processed <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
 
-#remove prescreened trials
-d_processed <- d_processed %>%
-  filter(is.na(prescreen_notes))
-
 #create trial_order variable as tr_num variable
 d_processed <- d_processed  %>%
   mutate(trial_order=as.numeric(as.character(tr_num))) 
+
+#add overall row number (collapsing across 16- and 18-month-old data) to track unique instances
+d_processed <- d_processed %>%
+  mutate(overall_row_number = as.numeric(row.names(.))) %>%
+  relocate(overall_row_number, .after = `sub_num`)
 
 # Convert to long format --------------------------------------------------
 d_tidy <- d_processed %>%
@@ -133,7 +134,7 @@ d_tidy <- d_tidy %>%
 
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
-  select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt) %>%
+  select(-c_image,-response,-condition, -first_shift_gap,-rt) %>%
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
   rename(left_image = r_image, right_image=l_image) %>%
@@ -143,6 +144,14 @@ d_tidy <- d_tidy %>%
                                       TRUE ~ left_image)) %>%
   mutate(distractor_image = case_when(target_side == "right" ~ left_image,
                                       TRUE ~ right_image))
+
+# add exclusion information
+d_tidy <- d_tidy %>%
+  mutate(excluded = case_when(
+    is.na(prescreen_notes) ~ FALSE,
+    TRUE ~ TRUE
+  )) %>%
+  rename(exclusion_reason = prescreen_notes)
 
 #create stimulus table
 stimulus_table <- d_tidy %>%
@@ -197,7 +206,7 @@ d_tidy_semifinal <- d_tidy %>%
 
 #get zero-indexed trial ids for the trials table
 d_trial_ids <- d_tidy_semifinal %>%
-  distinct(trial_order,trial_type_id) %>%
+  distinct(overall_row_number,sub_num,order_uniquified,trial_order,trial_type_id) %>%
   mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
 
 #join
@@ -262,7 +271,9 @@ stimulus_table %>%
 trials <- d_tidy_final %>%
   distinct(trial_id,
            trial_order,
-           trial_type_id) %>%
+           trial_type_id,
+           excluded,
+           exclusion_reason) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
@@ -277,7 +288,8 @@ trial_types <- d_tidy_final %>%
            target_id,
            distractor_id) %>%
     mutate(full_phrase_language = "eng",
-           condition = "") %>% #no condition manipulation based on current documentation
+           condition = "", #no condition manipulation based on current documentation
+           vanilla_trial = TRUE) %>% #all trials are vanilla
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### AOI REGIONS TABLE ####
