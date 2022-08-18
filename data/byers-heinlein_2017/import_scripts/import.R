@@ -65,7 +65,8 @@ data_tab <- tibble(
   dataset_name = dataset_name, 
   lab_dataset_id = NA, # internal name from the lab (if known)
   cite = "Byers-Heinlein, K., Morin-Lessard, E., & Lew-Williams, C. (2017). Bilingual infants control their languages as they listen. Proceedings of the National Academy of Sciences, 114(34), 9032-9037.",
-  shortcite = "Byers-Heinlein et al. 2017"
+  shortcite = "Byers-Heinlein et al. 2017",
+  aux_data = NA
 ) %>% 
   write_csv(fs::path(output_path, "datasets.csv"))
 
@@ -155,15 +156,27 @@ d_tidy <- raw %>%
   filter(t >= 0#, # a few -13.. ## alternative would be to use the rezeroing process
          )
 
+aux_data <- subj_info %>% select(lab_subject_id = id,
+                                 eng_exposure = per_eng,
+                                 eng_ws_prod = cdi_prod_eng,
+                                 fre_exposure = per_fr,
+                                 fre_ws_prod = cdi_prod_fr) %>% 
+  rowwise(lab_subject_id) %>%
+  summarize(sub_aux_data= toJSON(across(ends_with("exposure"))),
+            admin_aux_data = toJSON(across(ends_with("prod"))))
+
 # subjects table
 subjects <- d_tidy %>%
   distinct(lab_subject_id, sex) %>%
   mutate(native_language = "eng, fre") %>% 
   mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
+  left_join(aux_data %>% select(lab_subject_id, aux_data = sub_aux_data)) %>%
   write_csv(fs::path(output_path, "subjects.csv"))
 #join subject_id back in with d_tidy
 d_tidy <- d_tidy %>%
   left_join(subjects)
+
+
 
 # administrations table
 administrations <-d_tidy %>%
@@ -178,11 +191,14 @@ administrations <-d_tidy %>%
          monitor_size_x = monitor_size_x,
          monitor_size_y = monitor_size_y,
          sample_rate = sample_rate) %>% 
+  left_join(aux_data %>% 
+              left_join(subjects %>% select(lab_subject_id, subject_id)) %>%
+              select(subject_id, aux_data = admin_aux_data)) %>%
   write_csv(fs::path(output_path, "administrations.csv"))
 
 #add administrations back in to keep ids consistent
 d_tidy <- d_tidy %>%
-  left_join(administrations)
+  left_join(administrations %>% select(-aux_data))
 
 # stimulus table 
 ## now constructed fully using the trial order .csv info (in the past: constructed "by hand")
@@ -233,6 +249,7 @@ stimuli <- unique_targets %>%
     image_description = stimulus_image_path,
     image_description_source = "experiment documentation"
   ) %>% 
+  mutate(aux_data = NA) %>%
   write_csv(fs::path(output_path, "stimuli.csv"))
 
 # rejoin stimulus and distractor ids for creating trials tables
@@ -248,6 +265,7 @@ d_tidy_final <- d_tidy %>%
 d_trial_type_ids <- d_tidy_final %>%
   distinct(target_id, distractor_id, target_side, carrier_language, target_language,lab_trial_id, condition) %>% 
   mutate(trial_type_id = seq(0, n() - 1))
+
 #join with d_tidy_final
 d_tidy_final <- d_tidy_final %>%
   left_join(d_trial_type_ids)
@@ -256,6 +274,7 @@ d_tidy_final <- d_tidy_final %>%
 d_trial_ids <- d_tidy_final %>%
   distinct(trial_number, target_id, distractor_id, target_side, carrier_language, target_language,lab_trial_id, condition,trial_type_id) %>%
   mutate(trial_id = seq(0, length(.$trial_number) - 1))
+
 #join with d_tidy_final
 d_tidy_final <- d_tidy_final %>%
   left_join(d_trial_ids)
@@ -311,6 +330,7 @@ trials <- d_tidy_final %>%
   mutate(trial_order=trial_number) %>%
  distinct(trial_id, trial_order, trial_type_id) %>% 
   arrange(trial_id, trial_type_id, trial_order) %>%
+  mutate(aux_data = NA) %>%
  write_csv(fs::path(output_path, "trials.csv"))
 
 #### Trial Types Table ####
@@ -327,6 +347,7 @@ trial_types <- d_tidy_final %>%
     dataset_id,
     target_id,
     distractor_id) %>% 
+  mutate(aux_data = NA) %>%
   arrange(trial_type_id) %>%
   write_csv(fs::path(output_path, "trial_types.csv"))
   
@@ -364,8 +385,6 @@ xy_timepoints <- d_tidy_final %>%
 
 # validation check ----------------------------------------------------------
 validate_for_db_import(dir_csv = output_path)
-
-
 
 #### Upload to OSF
 #put_processed_data(osf_token, dataset_name, paste0(output_path,'/'), osf_address = "pr6wu")
