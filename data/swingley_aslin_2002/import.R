@@ -4,6 +4,7 @@ library(here)
 library(janitor)
 library(tidyverse)
 library(readxl)
+library(rjson)
 library(peekds)
 library(osfr)
 
@@ -27,7 +28,7 @@ xy_table_filename <-  "xy_timepoints.csv"
 osf_token <- read_lines(here("osf_token.txt"))
 
 # download datata from osf
-# peekds::get_raw_data(dataset_name, path = read_path)
+ peekds::get_raw_data(dataset_name, path = read_path)
 
 
 # read raw icoder files
@@ -44,10 +45,6 @@ d_processed <-  d_raw %>%
   #rename column tracking looking to target during critical window
   #(helps ease column renaming below)
   rename(target_looking_crit = pct36to2)
-
-# remove excluded trials
-d_processed <- d_processed %>% 
-  filter(is.na(prescreen_notes))
 
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
@@ -68,7 +65,6 @@ post_dis_names_clean <-  post_dis_names %>%
   as.numeric()*1000
 
 colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
-
 
 # Convert to long format --------------------------------------------------
 d_tidy <- d_processed %>%
@@ -227,8 +223,17 @@ aoi_timepoints <- d_tidy_final %>%
 
 ##### SUBJECTS TABLE ####
 subjects <- d_tidy_final %>%
-  distinct(subject_id, lab_subject_id,sex,native_language) %>%
+  distinct(subject_id, lab_subject_id,sex,native_language) %>% 
+  mutate(aux_data = NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
+
+admin_aux <- subj_raw %>% 
+  left_join(subjects, by = c("subj" = "lab_subject_id")) %>%
+  select(subject_id,
+         eng_wg_comp = cdi.und,
+         eng_wg_prod = cdi.say) %>% 
+  rowwise(subject_id) %>% 
+  summarize(aux_data= toJSON(across()))
 
 ##### ADMINISTRATIONS TABLE ####
 d_tidy_final %>%
@@ -243,11 +248,13 @@ d_tidy_final %>%
            sample_rate,
            tracker,
            coding_method) %>%
+  left_join(admin_aux) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimuli <- stimulus_table %>%
   select(-cond,-target_label, -target_image) %>%
+  mutate(aux_data = NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
@@ -255,6 +262,9 @@ trials <- d_tidy_final %>%
   distinct(trial_id,
            trial_order,
            trial_type_id) %>%
+  mutate(excluded = FALSE,
+         exclusion_reason = NA,
+         aux_data = NA) %>% #no notes or exlusions
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
@@ -270,6 +280,8 @@ trial_types <- d_tidy_final %>%
            dataset_id,
            target_id,
            distractor_id) %>%
+  mutate(aux_data = NA,
+         vanilla_trial = ifelse(condition == "m-e" | condition == "m-h", FALSE, TRUE)) %>%
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### AOI REGIONS TABLE ####
@@ -302,10 +314,10 @@ dataset <- tibble(
   dataset_name = dataset_name,
   lab_dataset_id = unique(d_tidy_final$expt), # internal name from the lab (if known)
   cite = "Swingley, D., & Aslin, R. N. (2002). Lexical Neighborhoods and the Word-Form Representations of 14-Month-Olds. Psychological Science, 13(5), 480-484. https://doi.org/10.1111/1467-9280.00485",
-  shortcite = "Swingley & Aslin (2002)"
+  shortcite = "Swingley & Aslin (2002)",
+  aux_data = NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
-
 
 
 # validation check ----------------------------------------------------------

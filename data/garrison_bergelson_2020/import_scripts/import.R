@@ -6,6 +6,7 @@
 
 library(tidyverse)
 library(here)
+library(stringr)
 library(peekds) 
 library(osfr)
 
@@ -29,7 +30,8 @@ dataset <- tibble(dataset_id = 0,
                   dataset_name = "garrison_bergelson_2020",
                   name = "garrison_bergelson_2020", 
                   shortcite = "Garrison et al. (2020)", 
-                  cite = "Garrison, H., Baudet, G., Breitfeld, E., Aberman, A., & Bergelson, E. (2020). Familiarity plays a small role in noun comprehension at 12-18 months. Infancy, 25, 458-477.")
+                  cite = "Garrison, H., Baudet, G., Breitfeld, E., Aberman, A., & Bergelson, E. (2020). Familiarity plays a small role in noun comprehension at 12-18 months. Infancy, 25, 458-477.",
+                  aux_data = NA)
 
 ### 2. SUBJECTS TABLE 
 demographics <- read_csv(here(data_path, "yoursmy_ages.csv")) %>% 
@@ -43,7 +45,9 @@ subjects <- demographics %>%
          native_language = "eng", 
          Sex = ifelse(Sex == "M", "male", "female")) %>%
   rename(lab_subject_id = SubjectNumber, 
-         sex = Sex)
+         sex = Sex) %>%
+  mutate(aux_data = NA)
+  
 
 ### 3. STIMULI TABLE 
 stimuli <- d %>%
@@ -63,9 +67,22 @@ stimuli <- d %>%
   select(original_stimulus_label, english_stimulus_label, stimulus_novelty, 
          stimulus_image_path, lab_stimulus_id, dataset_id, image_description,image_description_source) %>%
   distinct() %>%
-  mutate(stimulus_id = 0:(n() - 1))
+  mutate(stimulus_id = 0:(n() - 1),
+         aux_data = NA)
 
 ### 4. ADMINISTRATIONS TABLE 
+
+raw_cdi_data <- read_csv(here(data_path, "yoursmy_CDI_data_b_clean.csv"))
+
+cdi_data <- raw_cdi_data %>% 
+  mutate(lab_subject_id = paste0("y", str_pad(subject_id, 2, pad = "0")))  %>% 
+  select(lab_subject_id, 
+         eng_wg_comp = `Words Understood`, 
+         eng_wg_prod = `Words Produced`) %>%
+  left_join(subjects %>% select(subject_id, lab_subject_id)) %>% 
+  rowwise(c(subject_id, lab_subject_id)) %>% 
+  summarize(aux_data= toJSON(across()))
+
 administrations <- demographics %>%
   mutate(administration_id = 0:(n() - 1), 
          subject_id = 0:(n() - 1), 
@@ -77,7 +94,8 @@ administrations <- demographics %>%
          monitor_size_y = 1024,
          sample_rate = 500,
          tracker = "Eyelink 1000+",
-         coding_method = "eyetracking")
+         coding_method = "eyetracking") %>% 
+  left_join(cdi_data)
 
 ### 5. TRIAL TYPES TABLE 
 trial_info <- d %>%
@@ -96,7 +114,8 @@ trial_info <- d %>%
          lab_trial_id = NA,
          full_phrase_language = "eng", 
          aoi_region_set_id = 0, 
-         dataset_id = 0) 
+         dataset_id = 0,
+         aux_data = NA) 
 
 trial_types <- trial_info %>%
   rename(point_of_disambiguation = TargetOnset, 
@@ -113,13 +132,15 @@ trial_types <- trial_info %>%
   rename(distractor_id = stimulus_id) %>%
     select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
            target_side, lab_trial_id, condition, aoi_region_set_id, dataset_id, 
-           distractor_id, target_id)
+           distractor_id, target_id) %>%
+  mutate(aux_data = NA)
 
 ### 6. TRIALS TABLE 
 trials <- trial_info %>%
   select(Trial, trial_type_id) %>%
   rename(trial_order = Trial) %>%
-  mutate(trial_id = 0:(n() - 1)) 
+  mutate(trial_id = 0:(n() - 1),
+         aux_data = NA) 
 
 ### 7. AOI REGION SETS TABLE
 # recall screen is 1280 x 1024
@@ -146,7 +167,7 @@ timepoints <- d %>%
   left_join(trial_info) %>% 
   left_join(trials) %>%
   left_join(subjects) %>%
-  left_join(administrations) %>%
+  left_join(administrations %>% select(-aux_data)) %>%
   mutate(point_of_disambiguation = TargetOnset)
 
 xy_timepoints <- timepoints %>%
@@ -199,3 +220,4 @@ aoi_timepoints %>%
   ylim(.4, .75) + 
   geom_hline(aes(yintercept = .5), lty = 2) +
   theme_bw()
+
