@@ -24,7 +24,7 @@ aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
 #osf_token <- read_lines(here("osf_token.txt"))
-#peekds::get_raw_data(dataset_name, path = read_path)
+peekds::get_raw_data(dataset_name, path = read_path)
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
@@ -38,10 +38,12 @@ d_raw_1_18 <- read_delim(fs::path(read_path,"FMW2013_English_18mos_n50toMF.txt")
 d_raw_2_18 <- read_excel(here::here(read_path,"FMW2013_English_18mos_n28toMF.xls"),
                          col_types = "text") 
   
-d_raw_1_24 <- read_delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt"),
-                       delim = "\t",
-                       col_types = cols(.default = "c")) %>%
-  select(-c("...255":"...4372"))
+# d_raw_1_24 <- read.delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt"),
+#                        col_types = cols(.default = "c"),delim="\t") 
+d_raw_1_24 <- read.delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt"),
+                       sep="\t") %>%
+  select(-c("X.40":"X.4157")) %>%
+  rename(`Sub Num` = Sub.Num)
 
 d_raw_2_24 <- read_excel(here::here(read_path,"FMW2013_English_24m_n21toMF.xls"),
                          col_types = "text")
@@ -77,12 +79,12 @@ extract_col_types <- function(dataset,col_pattern="xf") {
   old_names <- colnames(dataset)
   
   if (col_pattern == "xf") { 
-    metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
-    pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
+    metadata_names <- old_names[!str_detect(old_names,"x\\d|x_\\d|^x$|f\\d")]
+    pre_dis_names <- old_names[str_detect(old_names, "x\\d|x_\\d|^x$")]
     post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
   } else if (col_pattern == "xfx") {
-    metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
-    pre_dis_min_index <- which.max(str_detect(old_names, "x\\d"))
+    metadata_names <- old_names[!str_detect(old_names,"x\\d|x_\\d|^x$|f\\d")]
+    pre_dis_min_index <- which.max(str_detect(old_names, "x\\d|x_\\d|^x$"))
     pre_dis_max_index <- which.min(match(str_detect(old_names, "f\\d"), TRUE))-1
     pre_dis_names <- old_names[pre_dis_min_index:pre_dis_max_index]
     post_dis_names  <- old_names[!(old_names %in% c(metadata_names,pre_dis_names))]
