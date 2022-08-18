@@ -61,7 +61,8 @@ datasets_table = tibble(
   lab_dataset_id = lab_dataset_id,
   dataset_name = lab_dataset_id,
   cite = "Mahr, T., McMillan, B. T. M., Saffran, J. R., Ellis Weismer, S., & Edwards, J. (2015). Anticipatory coarticulation facilitates word recognition in toddlers. Cognition, 142, 345-350.",
-  shortcite = "Mahr et al. (2015)"
+  shortcite = "Mahr et al. (2015)",
+  aux_data = NA
 )
 #rename and reorder data
 ### subjects table ###
@@ -69,11 +70,12 @@ subjects_table <- subjects %>%
   rename(lab_subject_id = Subj,
          lab_age = Age,
          cdi = CDI) %>% 
-  #filter out excluded subjects
-  filter(is.na(Exclude)) %>%
+  #filter out excluded subjects TODO: exclude by trial instead
+  #filter(is.na(Exclude)) %>%
   mutate(subject_id = seq(0, nrow(.)-1, 1),
          sex = "unspecified",
-         native_language = "eng") %>% select(lab_subject_id, lab_age, cdi, subject_id, sex, native_language)
+         native_language = "eng") %>% select(lab_subject_id, lab_age, cdi, subject_id, sex, native_language) %>%
+  mutate(aux_data = NA)
 
 #build administrations table
 administrations_table <- subjects_table %>% 
@@ -86,7 +88,8 @@ administrations_table <- subjects_table %>%
          monitor_size_y = monitor_size_y,
          sample_rate = sample_rate_hertz,
          tracker = "Tobii",
-         coding_method = "eyetracking")
+         coding_method = "eyetracking",
+         aux_data = NA)
 
 #AOI region sets
 aoi_region_sets <- tibble(aoi_region_set_id = 0,
@@ -107,7 +110,8 @@ stimuli_table <- tibble(lab_stimulus_id = unique(append(stimuli_trials$ImageLFil
          image_description = english_stimulus_label,
          image_description_source = "experiment documentation",
          stimulus_image_path = paste0("/stimuli/images/", lab_stimulus_id, ".png", sep = ""),
-         dataset_id = dataset_id)
+         dataset_id = dataset_id,
+         aux_data = NA)
 
 
 find_phrase_part <- function(file_part){
@@ -208,6 +212,7 @@ aoi_timepoints = all_timepoints_table %>%
 
 ### Clean up tables and prepare for import! ------------------------------------
 mega_trials %>% distinct(trial_type_id, trial_order, trial_id)%>%
+  mutate(aux_data = NA) %>%
   write_csv(paste0(write_path, "/", trials_table_filename))
 
 mega_trials %>% 
@@ -217,6 +222,7 @@ mega_trials %>%
            point_of_disambiguation, target_side,
            lab_trial_id, condition, aoi_region_set_id,
            dataset_id, distractor_id, target_id) %>%
+  mutate(aux_data = NA) %>%
   write_csv(paste0(write_path, "/", trial_types_filename))
 
 #administrations table
@@ -233,7 +239,10 @@ administrations_table <- administrations_table %>%
          tracker = as.character(tracker),
          coding_method = as.character(coding_method)) %>% 
   select(administration_id, dataset_id, subject_id, age, lab_age, lab_age_units,
-         monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method) %>% 
+         monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method, eng_wsshort_produced = cdi) %>% 
+  rowwise(administration_id) %>% 
+  mutate(aux_data= toJSON(across(eng_wsshort_produced)),
+         aux_data = ifelse(is.na(eng_wsshort_produced), NA, aux_data)) %>%
   write_csv(paste0(write_path, "/", administrations_table_filename))
 
 #datasets table
@@ -243,7 +252,7 @@ datasets_table <- datasets_table %>%
          dataset_name = as.character(dataset_name),
          cite = as.character(cite),
          shortcite = as.character(shortcite)) %>%
-  select(dataset_id, lab_dataset_id, dataset_name, cite, shortcite) %>% 
+  select(dataset_id, lab_dataset_id, dataset_name, cite, shortcite, aux_data) %>% 
   write_csv(paste0(write_path, "/", datasets_table_filename))
 
 #subjects table
@@ -252,7 +261,7 @@ subjects_table <- subjects_table %>%
          sex = as.character(sex),
          native_language = as.character(native_language),
          lab_subject_id = as.character(lab_subject_id)) %>% 
-  select(subject_id, sex, native_language, lab_subject_id) %>% 
+  select(subject_id, sex, native_language, lab_subject_id, aux_data) %>% 
   write_csv(paste0(write_path, "/", subject_table_filename))
 
 #xy_timepoints
@@ -301,10 +310,9 @@ stimuli_table <- stimuli_table %>%
          dataset_id = as.integer(dataset_id)) %>%
   select(stimulus_id, original_stimulus_label, english_stimulus_label,
          stimulus_novelty, stimulus_image_path, lab_stimulus_id, dataset_id,
-         image_description, image_description_source) %>%
+         image_description, image_description_source, aux_data) %>%
   write_csv(paste0(write_path, "/", stimuli_table_filename))
 
 
 peekds::validate_for_db_import(write_path)
 peekds::put_processed_data(osf_token, lab_dataset_id, path = glue::glue("{write_path}/"))
-
