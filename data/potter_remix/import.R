@@ -89,12 +89,6 @@ post_dis_names_clean_cols_to_remove <- post_dis_names_clean[119:length(post_dis_
 d_processed <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
 
-
-#remove prescreened trials
-d_processed <- d_processed %>%
-  filter(is.na(prescreen_notes))
-
-
 # Convert to long format --------------------------------------------------
 
 # get idx of first time series
@@ -123,7 +117,7 @@ d_tidy <- d_tidy %>%
 # Clean up column names and add stimulus information based on existing columns  ----------------------------------------
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
-  select(-prescreen_notes, -c_image,-response, -first_shift_gap,-rt) %>%
+  select(-c_image,-response, -first_shift_gap,-rt) %>%
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
   mutate(r_image=tolower(r_image),  l_image=tolower(l_image), target_image=tolower(target_image)) %>%
@@ -189,6 +183,19 @@ d_tidy <- d_tidy %>%
   left_join(sound_stimuli) %>%
   rename(full_phrase=sound_stimulus)
 
+# add exclusion information
+d_tidy <- d_tidy %>%
+  mutate(excluded = case_when(
+    is.na(prescreen_notes) ~ FALSE,
+    prescreen_notes == "Video" ~ FALSE, #not sure what this note means, assuming no exclusion
+    prescreen_notes == "All Good" ~ FALSE,
+    TRUE ~ TRUE
+  )) %>%
+  mutate(exclusion_reason = case_when(
+    prescreen_notes== "Equipment Malfunction" ~ tolower(prescreen_notes),
+    TRUE ~ NA_character_)
+    )# %>%
+  #select(-prescreen_notes)
 
 #create stimulus table
 stimulus_table <- d_tidy %>%
@@ -229,10 +236,13 @@ d_tidy <- d_tidy %>%
 d_administration_ids <- d_tidy %>%
   distinct(sub_num,administration_num,subject_id,months) %>%
   mutate(administration_id = seq(0, length(.$administration_num) - 1)) 
+#join in administration_id
+d_tidy <- d_tidy %>%
+  left_join(d_administration_ids)
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  distinct(tr_num, full_phrase,target_id, distractor_id, target_side) %>%
+  distinct(administration_id,tr_num, full_phrase,target_id, distractor_id, target_side) %>%
   mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
 
 # create zero-indexed ids for trial_types
@@ -248,6 +258,10 @@ d_tidy_semifinal <- d_tidy %>%
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
+  mutate(vanilla_trial = case_when(
+    condition == "mix" ~ FALSE,
+    condition == "same" ~ TRUE
+  )) %>%
   mutate(dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
          lab_trial_id = paste(target_label,target_image,distractor_image, sep = "-"),
          aoi_region_set_id = NA, # not applicable
@@ -280,7 +294,8 @@ subjects <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-    native_language = "spa, eng") %>%
+    native_language = "spa, eng",
+    subject_aux_data =NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -295,11 +310,13 @@ administrations <- d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "manual gaze coding") %>%
+  mutate(coding_method = "manual gaze coding",
+         administration_aux_data = NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
+  mutate(stimulus_aux_data = NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 ##### TRIAL TYPES TABLE ####
@@ -314,11 +331,13 @@ trial_types <- d_tidy_final %>%
      aoi_region_set_id,
      dataset_id,
      target_id,
-     distractor_id) %>%
+     distractor_id,
+     vanilla_trial) %>%
     mutate(full_phrase_language = case_when(
       str_detect(condition,"english_to")  ~ "eng",
       str_detect(condition,"spanish_to") ~ "spa",
-      TRUE ~ NA_character_)) %>%
+      TRUE ~ NA_character_),
+      trial_type_aux_data = NA) %>%
     write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### TRIALS TABLE ####
@@ -327,8 +346,11 @@ trial_types <- d_tidy_final %>%
 # trial_type_id	ForeignKey	row identifier for the trial_types table indexing from zero
 
 trials_table <- d_tidy_final %>% 
-  distinct(trial_id, trial_type_id, tr_num) %>%
+  distinct(trial_id, trial_type_id, tr_num,
+           excluded,
+           exclusion_reason) %>%
   rename(trial_order = tr_num) %>%
+  mutate(trial_aux_data = NA) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### AOI REGIONS TABLE ####
@@ -361,7 +383,8 @@ data_tab <- tibble(
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Potter, C.E., Fourakis, E., Morin-Lessard, E., Byers-Heinlein, K., & Lew-Williams, C. (2019). Bilingual toddlers' comprehension of mixed sentences is asymmetrical across their two languages. Developmental Science, 22(4), e12794. https://doi.org/10.1111/desc.12794",
-  shortcite = "Potter et al. (2019)"
+  shortcite = "Potter et al. (2019)",
+  dataset_aux_data = NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 

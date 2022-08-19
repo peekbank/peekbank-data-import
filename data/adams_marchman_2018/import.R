@@ -333,8 +333,6 @@ data_tab <- tibble(
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
-
-
 # validation check ----------------------------------------------------------
 validate_for_db_import(dir_csv = write_path)
 
