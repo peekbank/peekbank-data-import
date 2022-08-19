@@ -28,7 +28,7 @@ xy_table_filename <-  "xy_timepoints.csv"
 osf_token <- read_lines(here("osf_token.txt"))
 
 # download datata from osf
- peekds::get_raw_data(dataset_name, path = read_path)
+#peekds::get_raw_data(dataset_name, path = read_path)
 
 
 # read raw icoder files
@@ -183,7 +183,7 @@ d_tidy <- d_tidy %>%
 
 #get zero-indexed trial ids for the trials table
 d_trial_ids <- d_tidy %>%
-  distinct(trial,trial_type_id) %>%
+  distinct(administration_id,trial,trial_type_id) %>%
   mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
 
 #join
@@ -224,7 +224,7 @@ aoi_timepoints <- d_tidy_final %>%
 ##### SUBJECTS TABLE ####
 subjects <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex,native_language) %>% 
-  mutate(aux_data = NA) %>%
+  mutate(subject_aux_data = NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 admin_aux <- subj_raw %>% 
@@ -233,7 +233,7 @@ admin_aux <- subj_raw %>%
          eng_wg_comp = cdi.und,
          eng_wg_prod = cdi.say) %>% 
   rowwise(subject_id) %>% 
-  summarize(aux_data= toJSON(across()))
+  summarize(administration_aux_data= toJSON(across()))
 
 ##### ADMINISTRATIONS TABLE ####
 d_tidy_final %>%
@@ -254,7 +254,7 @@ d_tidy_final %>%
 ##### STIMULUS TABLE ####
 stimuli <- stimulus_table %>%
   select(-cond,-target_label, -target_image) %>%
-  mutate(aux_data = NA) %>%
+  mutate(stimulus_aux_data = NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
@@ -264,7 +264,7 @@ trials <- d_tidy_final %>%
            trial_type_id) %>%
   mutate(excluded = FALSE,
          exclusion_reason = NA,
-         aux_data = NA) %>% #no notes or exlusions
+         trial_aux_data = NA) %>% #no notes or exlusions
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
@@ -280,7 +280,7 @@ trial_types <- d_tidy_final %>%
            dataset_id,
            target_id,
            distractor_id) %>%
-  mutate(aux_data = NA,
+  mutate(trial_type_aux_data = NA,
          vanilla_trial = ifelse(condition == "m-e" | condition == "m-h", FALSE, TRUE)) %>%
   write_csv(fs::path(write_path, trial_types_table_filename))
 
@@ -315,7 +315,7 @@ dataset <- tibble(
   lab_dataset_id = unique(d_tidy_final$expt), # internal name from the lab (if known)
   cite = "Swingley, D., & Aslin, R. N. (2002). Lexical Neighborhoods and the Word-Form Representations of 14-Month-Olds. Psychological Science, 13(5), 480-484. https://doi.org/10.1111/1467-9280.00485",
   shortcite = "Swingley & Aslin (2002)",
-  aux_data = NA
+  dataset_aux_data = NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
