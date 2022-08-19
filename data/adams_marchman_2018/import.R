@@ -245,7 +245,7 @@ d_tidy_final %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language="eng",
-    aux_data = NA) %>%
+    subject_aux_data = NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -261,13 +261,13 @@ d_tidy_final %>%
            sample_rate,
            tracker) %>%
   mutate(coding_method = "manual gaze coding",
-         aux_data = NA) %>%
+         administration_aux_data = NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
   select(-target_label, -target_image) %>%
-  mutate(aux_data=NA) %>%
+  mutate(stimulus_aux_data=NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
@@ -277,7 +277,7 @@ trials <- d_tidy_final %>%
            trial_type_id,
            excluded,
            exclusion_reason) %>%
-  mutate(aux_data = NA) %>%
+  mutate(trial_aux_data = NA) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
@@ -293,8 +293,8 @@ trial_types <- d_tidy_final %>%
            distractor_id) %>%
     mutate(full_phrase_language = "eng",
            condition = "", #no condition manipulation based on current documentation
-           vanilla_trial = TRUE#,
-           #aux_data = NA
+           vanilla_trial = TRUE,
+           trial_type_aux_data = NA
            ) %>% #all trials are vanilla
   write_csv(fs::path(write_path, trial_types_table_filename))
 
@@ -329,7 +329,7 @@ data_tab <- tibble(
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Adams, K. A., Marchman, V. A., Loi, E. C., Ashland, M. D., Fernald, A., & Feldman, H. M. (2018). Caregiver talk and medical risk as predictors of language outcomes in full term and preterm toddlers. Child Development, 89(5), 1674-1690. https://doi.org/10.1111/cdev.12818",
   shortcite = "Adams et al. (2018)",
-  aux_data = NA
+  dataset_aux_data = NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
