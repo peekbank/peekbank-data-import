@@ -7,6 +7,7 @@ library(readxl)
 library(janitor)
 library(feather)
 library(tidyverse)
+library(rjson)
 #devtools::install_github("langcog/peekds")
 library(peekds) 
 library(osfr)
@@ -66,7 +67,7 @@ data_tab <- tibble(
   lab_dataset_id = NA, # internal name from the lab (if known)
   cite = "Byers-Heinlein, K., Morin-Lessard, E., & Lew-Williams, C. (2017). Bilingual infants control their languages as they listen. Proceedings of the National Academy of Sciences, 114(34), 9032-9037.",
   shortcite = "Byers-Heinlein et al. 2017",
-  aux_data = NA
+  dataset_aux_data = NA
 ) %>% 
   write_csv(fs::path(output_path, "datasets.csv"))
 
@@ -131,7 +132,10 @@ trial_order <- trial_order %>%
       is.na(distractor_word) & target_language=="English" ~ distractor_word_english,
       is.na(distractor_word) & target_language=="French" ~ distractor_word_french,
       TRUE ~ distractor_word
-    )
+    ),
+    vanilla_trial = case_when(trial_type == "filler" ~ TRUE,
+                              trial_type == "same" ~ TRUE,
+                              TRUE ~ FALSE)
   )
 
 # Basic dataset filtering and cleaning up
@@ -162,15 +166,15 @@ aux_data <- subj_info %>% select(lab_subject_id = id,
                                  fre_exposure = per_fr,
                                  fre_ws_prod = cdi_prod_fr) %>% 
   rowwise(lab_subject_id) %>%
-  summarize(sub_aux_data= toJSON(across(ends_with("exposure"))),
-            admin_aux_data = toJSON(across(ends_with("prod"))))
+  summarize(subject_aux_data= toJSON(across(ends_with("exposure"))),
+            administration_aux_data = toJSON(across(ends_with("prod"))))
 
 # subjects table
 subjects <- d_tidy %>%
   distinct(lab_subject_id, sex) %>%
   mutate(native_language = "eng, fre") %>% 
   mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
-  left_join(aux_data %>% select(lab_subject_id, aux_data = sub_aux_data)) %>%
+  left_join(aux_data %>% select(lab_subject_id,subject_aux_data)) %>%
   write_csv(fs::path(output_path, "subjects.csv"))
 #join subject_id back in with d_tidy
 d_tidy <- d_tidy %>%
@@ -193,12 +197,12 @@ administrations <-d_tidy %>%
          sample_rate = sample_rate) %>% 
   left_join(aux_data %>% 
               left_join(subjects %>% select(lab_subject_id, subject_id)) %>%
-              select(subject_id, aux_data = admin_aux_data)) %>%
+              select(subject_id, administration_aux_data)) %>%
   write_csv(fs::path(output_path, "administrations.csv"))
 
 #add administrations back in to keep ids consistent
 d_tidy <- d_tidy %>%
-  left_join(administrations %>% select(-aux_data))
+  left_join(administrations)
 
 # stimulus table 
 ## now constructed fully using the trial order .csv info (in the past: constructed "by hand")
@@ -249,7 +253,7 @@ stimuli <- unique_targets %>%
     image_description = stimulus_image_path,
     image_description_source = "experiment documentation"
   ) %>% 
-  mutate(aux_data = NA) %>%
+  mutate(stimulus_aux_data = NA) %>%
   write_csv(fs::path(output_path, "stimuli.csv"))
 
 # rejoin stimulus and distractor ids for creating trials tables
@@ -272,8 +276,10 @@ d_tidy_final <- d_tidy_final %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy_final %>%
-  distinct(trial_number, target_id, distractor_id, target_side, carrier_language, target_language,lab_trial_id, condition,trial_type_id) %>%
-  mutate(trial_id = seq(0, length(.$trial_number) - 1))
+  distinct(trial_number, target_id, distractor_id, target_side, carrier_language, target_language,lab_trial_id, condition, trial_type_id) %>%
+  mutate(excluded = FALSE,
+         exclusion_reason = NA,
+         trial_id = seq(0, length(.$trial_number) - 1))
 
 #join with d_tidy_final
 d_tidy_final <- d_tidy_final %>%
@@ -328,9 +334,9 @@ d_tidy_final <- d_tidy_final %>%
 # trial_type_id	ForeignKey	row identifier for the trial_types table indexing from zero
 trials <- d_tidy_final %>%
   mutate(trial_order=trial_number) %>%
- distinct(trial_id, trial_order, trial_type_id) %>% 
+ distinct(trial_id, trial_order, trial_type_id, excluded, exclusion_reason) %>% 
   arrange(trial_id, trial_type_id, trial_order) %>%
-  mutate(aux_data = NA) %>%
+  mutate(trial_aux_data = NA) %>%
  write_csv(fs::path(output_path, "trials.csv"))
 
 #### Trial Types Table ####
@@ -346,8 +352,9 @@ trial_types <- d_tidy_final %>%
     aoi_region_set_id,
     dataset_id,
     target_id,
-    distractor_id) %>% 
-  mutate(aux_data = NA) %>%
+    distractor_id, 
+    vanilla_trial) %>% 
+  mutate(trial_type_aux_data = NA) %>%
   arrange(trial_type_id) %>%
   write_csv(fs::path(output_path, "trial_types.csv"))
   
