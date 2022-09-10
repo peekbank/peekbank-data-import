@@ -35,11 +35,34 @@ remove_repeat_headers <- function(d, idx_var) {
 # download datata from osf
 # peekds::get_raw_data(dataset_name, path = read_path)
 
+
+# read & organize order files --------------------------------------------------
+orderpath <- paste(read_path,'/orders/',sep="")
+orderfilescolors <- list.files(path=orderpath, pattern="Colors_order.txt", full.names=TRUE)
+orderfileslabels <- list.files(path=orderpath, pattern="Labels_order.txt", full.names=TRUE)
+orderfilesspeakers <- list.files(path=orderpath, pattern="Speakers_order.txt", full.names=TRUE)
+orderlistcolors <- lapply(orderfilescolors, FUN=read.delim, header=TRUE)
+orderlistlabels <- lapply(orderfileslabels, FUN=read.delim, header=TRUE)
+orderlistspeakers <- lapply(orderfilesspeakers, FUN=read.delim, header=TRUE)
+
+# bind orders for each condition, add character to subject numbers
+orderscolors <- Reduce(full_join,orderlistcolors)
+orderscolors$subject_num <- sub("^", "C", orderscolors$subject_num)
+orderslabels <- Reduce(full_join,orderlistlabels)
+orderslabels$subject_num <- sub("^", "L", orderslabels$subject_num)
+ordersspeakers <- Reduce(full_join,orderlistspeakers)
+ordersspeakers$subject_num <- sub("^", "S", ordersspeakers$subject_num)
+
+# create df with all order info (test trials)
+orders <- bind_rows(orderscolors,orderslabels,ordersspeakers)
+orders <- orders[orders$condition %in% c('TestFam', 'TestNov'), ]
+orders <- orders %>% select(-token1,-token2,-token3,-token4,-token5,-token6,-token7)
+
+
 # read raw icoder file
 d_raw <- read_csv(fs::path(read_path, "Baumgartner2014_trialData.csv")) %>%
   mutate(row_number = as.numeric(row.names(.))) %>% # not sure if this is needed... might remove
   relocate(row_number, .after = `Subject`) # not sure if this is needed... might remove
-
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
@@ -92,12 +115,11 @@ d_tidy <- d_tidy %>%
 
 
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
-## NEED TO CHECK TO SEE IF IMAGE LABELS NEED TO BE FLIPPED OR NOT
 
 d_tidy <- d_tidy %>%
   filter(!is.na(subject)) %>%
-  select(-c_image,-response,-condition, -first_shift_gap,-rt) %>%
-  #left-right is from the coder's perspective - flip to participant's perspective IS THIS TRUE FOR MY DATA??
+  select(-condition_trial_num, -vq_rating, -response, -first_shift_gap,-rt) %>%
+  #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
   rename(left_image = r_image, right_image=l_image) %>%
   mutate(target_label = target_image) %>%
@@ -107,4 +129,4 @@ d_tidy <- d_tidy %>%
   mutate(distractor_image = case_when(target_side == "right" ~ left_image,
                                       TRUE ~ right_image))
 
-
+## left off here ^. need to check what this code is doing before proceeding
