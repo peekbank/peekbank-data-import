@@ -33,7 +33,6 @@ remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
 
-
 # only download data if it's not on your machine
 # if(length(list.files(read_path)) == 0 && length(list.files(paste0(read_path, "/orders"))) == 0) {
 #   get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
@@ -93,7 +92,6 @@ d_tidy <- d_tidy %>%
     is.na(aoi_old) ~ "missing"
   )) %>%
 mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
-
 
 # Go through counterbalancing files, tidy, and concatenate into one structure ----------------------------------------
 order_read_path <- here("data",dataset_name,"raw_data", "orders")
@@ -271,7 +269,8 @@ aoi_timepoints <- d_tidy_final %>%
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id, sex) %>%
   mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-         native_language = "eng") %>%
+         native_language = "eng") %>% 
+  mutate(subject_aux_data = NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -287,6 +286,7 @@ d_tidy_final %>%
            sample_rate,
            tracker) %>%
   mutate(coding_method = "manual gaze coding") %>%
+  mutate(administration_aux_data = NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
@@ -294,6 +294,7 @@ stimulus_table %>%
   mutate(english_stimulus_label = target_word) %>%
   rename(original_stimulus_label = target_word) %>%
   select(-trial_type, -target_image) %>%
+  mutate(stimulus_aux_data = NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 
@@ -312,8 +313,9 @@ trial_types <- d_tidy_final %>%
            distractor_label,
            target_label, 
            trial_type_id) %>%
-  mutate(#trial_type_id = seq(0, nrow(.) - 1),
-         full_phrase_language = "eng") %>%
+  mutate(full_phrase_language = "eng", 
+         trial_type_aux_data = NA,
+         vanilla_trial = TRUE) %>%
   select(-distractor_label, -target_label) %>%
   write_csv(fs::path(write_path, trial_types_table_filename))
 
@@ -357,7 +359,8 @@ data_tab <- tibble(
   lab_dataset_id = "SwitchingCues", # internal name from the lab (if known)
   cite = "Pomper, R., & Saffran, J. R. (2016). Roses are red, socks are blue: Switching dimensions disrupts young children's language comprehension. Plos one, 11(6), e0158459.
 Chicago",
-  shortcite = "Pomper & Saffran (2016)"
+  shortcite = "Pomper & Saffran (2016)",
+  dataset_aux_data = NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
