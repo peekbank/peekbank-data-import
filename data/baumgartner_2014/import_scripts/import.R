@@ -201,7 +201,7 @@ d_administration_ids <- d_tidy %>%
 # create zero-indexed ids for trial_types (QUESTION: DOES FRAME MATTER? Martin says yes)
 d_trial_type_ids <- d_tidy %>%
   #order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
-  #potentially make distinct based on condition if that is relevant to the study design (no condition manipulation here)
+  #potentially make distinct based on condition if that is relevant to the study design 
   distinct(target_id, distractor_id, target_label, targetside, frame) %>%
   mutate(full_phrase = paste(target_label, frame, target_label)) %>% 
   mutate(trial_type_id = seq(0, length(target_id) - 1)) 
@@ -211,8 +211,46 @@ d_tidy_semifinal <- d_tidy %>%
   left_join(d_administration_ids) %>%
   left_join(d_trial_type_ids) 
 
-##-----------LEFT OFF HERE----------------
-#get zero-indexed trial ids for the trials table (ISN'T THIS WHAT trial_type_id IS???)
+#get zero-indexed trial ids for the trials table 
 d_trial_ids <- d_tidy_semifinal %>%
-  distinct(overall_row_number,subject,trial_type_id) %>%
+  distinct(row_number,subject,trial_type_id) %>%
   mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
+
+#join
+d_tidy_semifinal <- d_tidy_semifinal %>%
+  left_join(d_trial_ids)
+
+# add some more variables to match schema
+d_tidy_final <- d_tidy_semifinal %>%
+  mutate(dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
+         lab_trial_id = paste(condition, target_label, distractor_image, sep = "-"),
+         aoi_region_set_id = NA, # not applicable
+         monitor_size_x = 1365, 
+         monitor_size_y = 768, 
+         lab_age_units = "months",
+         age = as.numeric(months), # months 
+         point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz
+         tracker = "iCoder",
+         sample_rate = 30) %>% 
+  rename(lab_subject_id = subject,
+         lab_age = months
+  )
+
+##### AOI TABLE ####
+d_tidy_final %>%
+  rename(t_norm = t) %>% # original data centered at point of disambiguation
+  select(t_norm, aoi, trial_id, administration_id, lab_subject_id) %>%
+  #resample timepoints
+  resample_times(table_type="aoi_timepoints") %>%
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
+  write_csv(fs::path(write_path, aoi_table_filename))
+
+##### SUBJECTS TABLE ####
+d_tidy_final %>%
+  distinct(subject_id, lab_subject_id, sex) %>%
+  mutate(
+    sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
+    native_language="eng",
+    subject_aux_data = NA) %>% #NOTE: add CDI data (upload data to OSF)
+  write_csv(fs::path(write_path, subject_table_filename))
+
