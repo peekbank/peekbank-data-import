@@ -8,7 +8,12 @@ library(peekds)
 library(osfr)
 
 # NOTES: used Adams Marchman import script as starting point/reference
-# PROCEDURE: infants were habituated to 2 novel object/label pairs (e.g,. FribbleA/"lif", FribbleB/"neem"). Then tested in looking while listening paradigm on novel words and familiar words (e.g., baby, doggy, ball). Audio on test trials was presented as "[Target_label]! [Frame][Target_label]? (e.g., Baby! Where's the baby?)
+
+# ------- PROCEDURE: ---------
+# infants were habituated to 2 novel object/label pairs (e.g,. FribbleA/"lif", FribbleB/"neem"). 
+# there were 3 habituation conditions: 1) Labels (single exemplar of novel object and single token of novel label); 2) Colors (7 exemplars of novel object - varying in color - and single token of novel label); 3) Speakers (single exemplar of novel object and 7 tokens of novel label - varying in speaker).
+# infants then tested in looking while listening paradigm on novel words and familiar words (e.g., baby, doggy, ball). 
+# audio on test trials was presented as "[Target_label]! [Frame][Target_label]? (e.g., Baby! Where's the baby?). 
 
 
 ## constants
@@ -115,11 +120,15 @@ d_merged <- merge(x = orders, y = d_processed, by = c("subject", "trial", "test_
 # remove unneeded columns (e.g., flipped R/L stim info from icoder data; keep correct R/L stim info from order df) 
 d_merged <- d_merged %>%
   select(-l_image, -r_image, -target_side) %>%
-  rename(stimulus_novelty = test_condition)
+  rename(stimulus_novelty = test_condition) 
 
+# set factor levels for trial type (familiar/novel)
 d_merged$stimulus_novelty <- as.factor(d_merged$stimulus_novelty)
 levels(d_merged$stimulus_novelty) <- c("familiar", "novel")
 
+#create trial_order variable as tr_num variable
+d_merged <- d_merged  %>%
+  mutate(trial_order=as.numeric(as.character(trial))) 
 
 # Convert to long format --------------------------------------------------
 d_tidy <- d_merged %>%
@@ -143,10 +152,12 @@ d_tidy <- d_tidy %>%
 # Clean up column names and inclusion/exclusion info based on existing columnns ----------------------------------------
 d_tidy <- d_tidy %>%
   filter(!is.na(subject)) %>%
-  rename(target_side = targetside) %>%
-  select(-condition_trial_num, -vq_rating, -response, -first_shift_gap,-rt) %>%
   rename(exclusion_reason = exclude) %>%
-  rename(study_condition = condition)
+  rename(study_condition = condition) %>%
+  mutate(target_side = case_when(
+    targetside == "L" ~ "left",
+    targetside == "R" ~ "right")) %>%
+  select(-condition_trial_num, -vq_rating, -response, -first_shift_gap,-rt)
 
 # add exclude column
 d_tidy$excluded <- case_when(d_tidy$include_filter == 1 ~ FALSE,
@@ -171,10 +182,9 @@ stimulus_table <- d_tidy %>%
   mutate(dataset_id = 0,
          original_stimulus_label = target_label,
          english_stimulus_label = target_label,
-         stimulus_image_path = "tbd", 
-         # paste0(target_image, ".mov"), # TO DO - update once images are shared/ image file path known
+         stimulus_image_path = "tbd", # stimulus name depends on target, distractor, and side of target, will need to generate. For now, all stimuli are in zipped file in OSF project directory; # paste0(target_image, ".mov"), # TO DO - update once images are shared/ image file path known
          image_description = target_label,
-         image_description_source = "test/imageL_imageR.mov",
+         image_description_source = "image path",
          lab_stimulus_id = target_image
   ) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
@@ -214,7 +224,7 @@ d_administration_ids <- d_tidy %>%
 d_trial_type_ids <- d_tidy %>%
   #order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
   #potentially make distinct based on condition if that is relevant to the study design 
-  distinct(target_id, distractor_id, target_label, target_side, frame) %>%
+  distinct(condition, trial_order, target_id, distractor_id, target_label, target_side, frame) %>% # NOTE: not sure why trial_order included here, copied from Adams/Marchman
   mutate(full_phrase = paste(target_label, frame, target_label)) %>% 
   mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
@@ -279,28 +289,30 @@ d_tidy_final %>%
            sample_rate,
            tracker) %>%
   mutate(coding_method = "manual gaze coding",
-         aux_data = NA) %>%
+         administration_aux_data = NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
   select(-target_label, -target_image) %>%
-  mutate(aux_data=NA) %>%
+  mutate(stimulus_aux_data=NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
 trials <- d_tidy_final %>%
   distinct(trial_id,
+           trial_order,
            trial,
            trial_type_id,
            excluded,
            exclusion_reason) %>%
-  mutate(aux_data = NA) %>%
+  mutate(trial_aux_data = NA) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
   distinct(trial_type_id,
+           condition,
            full_phrase,
            point_of_disambiguation,
            target_side,
@@ -309,9 +321,30 @@ trial_types <- d_tidy_final %>%
            dataset_id,
            target_id,
            distractor_id,
-           condition,
            vanilla_trial) %>%
-  mutate(full_phrase_language = "eng"
-         #aux_data = NA
+  mutate(full_phrase_language = "eng",
+         trial_type_aux_data = NA
   ) %>% #all trials are vanilla
   write_csv(fs::path(write_path, trial_types_table_filename))
+
+##### AOI REGIONS TABLE ####
+# ----- DON'T NEED --------
+
+##### XY TIMEPOINTS TABLE ####
+# ----- DON'T NEED --------
+
+##### DATASETS TABLE ####
+# write Dataset table
+data_tab <- tibble(
+  dataset_id = 0, # make zero 0 for all
+  dataset_name = dataset_name,
+  lab_dataset_id = dataset_name, # internal name from the lab (if known)
+  cite = "Baumgartner, H. A. (2014). Understanding the Role of Non-Contrastive Variability in Word Learning and Visual Attention in Infancy (UMI 3685177). [Doctoral dissertation, University of California, Davis]. ProQuest Dissertations Publishing.",
+  shortcite = "Baumgartner (2014)",
+  dataset_aux_data = NA
+) %>%
+  write_csv(fs::path(write_path, dataset_table_filename))
+
+# validation check ----------------------------------------------------------
+validate_for_db_import(dir_csv = write_path)
+

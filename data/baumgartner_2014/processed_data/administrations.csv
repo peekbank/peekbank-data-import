@@ -1,4 +1,4 @@
-lab_age,subject_id,administration_id,dataset_id,monitor_size_x,monitor_size_y,lab_age_units,age,tracker,sample_rate,coding_method,aux_data
+lab_age,subject_id,administration_id,dataset_id,monitor_size_x,monitor_size_y,lab_age_units,age,tracker,sample_rate,coding_method,administration_aux_data
 12,0,0,0,1365,768,months,12,iCoder,30,manual gaze coding,NA
 12,1,1,0,1365,768,months,12,iCoder,30,manual gaze coding,NA
 12,2,2,0,1365,768,months,12,iCoder,30,manual gaze coding,NA
