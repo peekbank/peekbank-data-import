@@ -143,15 +143,27 @@ d_tidy <- d_tidy %>%
 # Clean up column names and inclusion/exclusion info based on existing columnns ----------------------------------------
 d_tidy <- d_tidy %>%
   filter(!is.na(subject)) %>%
+  rename(target_side = targetside) %>%
   select(-condition_trial_num, -vq_rating, -response, -first_shift_gap,-rt) %>%
   rename(exclusion_reason = exclude) %>%
-  rename(included = include_filter)
+  rename(study_condition = condition)
+
+# add exclude column
+d_tidy$excluded <- case_when(d_tidy$include_filter == 1 ~ FALSE,
+                            TRUE ~ TRUE
+                            )
   
 # convert exclusion to factor
 d_tidy$exclusion_reason <- as.factor(d_tidy$exclusion_reason)
 levels(d_tidy$exclusion_reason) <- c("included", "< 50% looking on trial", "no looking 1st target window (367-2333ms)", "no looking 2nd target window (4500-5967", "no pre-onset looking")
 
-
+d_tidy <- d_tidy %>%
+  mutate(vanilla_trial = case_when(
+    stimulus_novelty == "novel" ~ FALSE,
+                            TRUE ~ TRUE),
+    condition = paste(study_condition, stimulus_novelty, sep="_")
+  )
+         
 # CREATE STIMULUS TABLE ----------------------------------------
 stimulus_table <- d_tidy %>%
   distinct(target_image,target_label,stimulus_novelty) %>%
@@ -202,7 +214,7 @@ d_administration_ids <- d_tidy %>%
 d_trial_type_ids <- d_tidy %>%
   #order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
   #potentially make distinct based on condition if that is relevant to the study design 
-  distinct(target_id, distractor_id, target_label, targetside, frame) %>%
+  distinct(target_id, distractor_id, target_label, target_side, frame) %>%
   mutate(full_phrase = paste(target_label, frame, target_label)) %>% 
   mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
@@ -254,3 +266,52 @@ d_tidy_final %>%
     subject_aux_data = NA) %>% #NOTE: add CDI data (upload data to OSF)
   write_csv(fs::path(write_path, subject_table_filename))
 
+##### ADMINISTRATIONS TABLE ####
+d_tidy_final %>%
+  distinct(administration_id,
+           dataset_id,
+           subject_id,
+           age,
+           lab_age,
+           lab_age_units,
+           monitor_size_x,
+           monitor_size_y,
+           sample_rate,
+           tracker) %>%
+  mutate(coding_method = "manual gaze coding",
+         aux_data = NA) %>%
+  write_csv(fs::path(write_path, administrations_table_filename))
+
+##### STIMULUS TABLE ####
+stimulus_table %>%
+  select(-target_label, -target_image) %>%
+  mutate(aux_data=NA) %>%
+  write_csv(fs::path(write_path, stimuli_table_filename))
+
+#### TRIALS TABLE ####
+trials <- d_tidy_final %>%
+  distinct(trial_id,
+           trial,
+           trial_type_id,
+           excluded,
+           exclusion_reason) %>%
+  mutate(aux_data = NA) %>%
+  write_csv(fs::path(write_path, trials_table_filename))
+
+##### TRIAL TYPES TABLE ####
+trial_types <- d_tidy_final %>%
+  distinct(trial_type_id,
+           full_phrase,
+           point_of_disambiguation,
+           target_side,
+           lab_trial_id,
+           aoi_region_set_id,
+           dataset_id,
+           target_id,
+           distractor_id,
+           condition,
+           vanilla_trial) %>%
+  mutate(full_phrase_language = "eng"
+         #aux_data = NA
+  ) %>% #all trials are vanilla
+  write_csv(fs::path(write_path, trial_types_table_filename))
