@@ -1,0 +1,11 @@
+stimulus_novelty,dataset_id,original_stimulus_label,english_stimulus_label,stimulus_image_path,image_description,image_description_source,lab_stimulus_id,stimulus_id,aux_data
+familiar,0,Shoe,Shoe,tbd,Shoe,test/imageL_imageR.mov,Shoe,0,NA
+novel,0,Lif,Lif,tbd,Lif,test/imageL_imageR.mov,FribbleA,1,NA
+novel,0,Neem,Neem,tbd,Neem,test/imageL_imageR.mov,FribbleB,2,NA
+familiar,0,Dog,Dog,tbd,Dog,test/imageL_imageR.mov,Dog,3,NA
+familiar,0,Baby,Baby,tbd,Baby,test/imageL_imageR.mov,Baby,4,NA
+familiar,0,Car,Car,tbd,Car,test/imageL_imageR.mov,Car,5,NA
+familiar,0,Kitty,Kitty,tbd,Kitty,test/imageL_imageR.mov,Kitty,6,NA
+novel,0,Neem,Neem,tbd,Neem,test/imageL_imageR.mov,FribbleA,7,NA
+familiar,0,Ball,Ball,tbd,Ball,test/imageL_imageR.mov,Ball,8,NA
+novel,0,Lif,Lif,tbd,Lif,test/imageL_imageR.mov,FribbleB,9,NA
