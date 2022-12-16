@@ -18,3 +18,4 @@ Infants then tested in looking while listening paradigm on novel words and famil
 Not sure what should go here (tried to make comments in code)
 
 5. Importing ambiguity
+QUESTION ABOUT TRIAL ORDER AND TRIAL TYPE ID (COMMENT IN CODE, LINE)

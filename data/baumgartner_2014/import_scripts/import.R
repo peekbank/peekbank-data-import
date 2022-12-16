@@ -128,7 +128,7 @@ levels(d_merged$stimulus_novelty) <- c("familiar", "novel")
 
 #create trial_order variable as tr_num variable
 d_merged <- d_merged  %>%
-  mutate(trial_order=as.numeric(as.character(trial))) 
+  mutate(trial_order=trial) 
 
 # Convert to long format --------------------------------------------------
 d_tidy <- d_merged %>%
@@ -224,7 +224,7 @@ d_administration_ids <- d_tidy %>%
 d_trial_type_ids <- d_tidy %>%
   #order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
   #potentially make distinct based on condition if that is relevant to the study design 
-  distinct(condition, trial_order, target_id, distractor_id, target_label, target_side, frame) %>% # NOTE: not sure why trial_order included here, copied from Adams/Marchman
+  distinct(condition, trial_order, target_id, distractor_id, target_label, target_side, frame) %>% # NOTE: not sure why trial_order included here, copied from Adams/Marchman. it doesn't seem like this is getting preserved in d_trial_type_ids???
   mutate(full_phrase = paste(target_label, frame, target_label)) %>% 
   mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
