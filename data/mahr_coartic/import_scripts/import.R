@@ -5,6 +5,7 @@ library(peekds)
 library(dplyr)
 library(stringr)
 library(osfr)
+library(jsonlite)
 
 ### general params. ###
 lab_dataset_id = "mahr_coartic"

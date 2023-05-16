@@ -7,7 +7,7 @@ library(peekds)
 library(osfr)
 
 ## constants
-dataset_name = "potter_remix"
+dataset_name = "mahr_coartic"
 read_path <- here("data" ,dataset_name,"processed_data")
 aoi_data <- read_csv(fs::path(read_path, "aoi_timepoints.csv"))
 trials_data <- read_csv(fs::path(read_path, "trials.csv"))

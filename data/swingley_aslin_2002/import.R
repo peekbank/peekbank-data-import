@@ -264,7 +264,7 @@ trials <- d_tidy_final %>%
            trial_type_id) %>%
   mutate(excluded = FALSE,
          exclusion_reason = NA,
-         trial_aux_data = NA) %>% #no notes or exlusions
+         trial_aux_data = NA) %>% #no notes or exclusions
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####

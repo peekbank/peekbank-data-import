@@ -72,10 +72,6 @@ post_dis_names_clean_cols_to_remove <- post_dis_names_clean[110:length(post_dis_
 d_processed_cleaned <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
 
-# remove excluded trials
-d_processed_cleaned <- d_processed_cleaned %>% 
-  filter(is.na(prescreen_notes))
-
 # Convert to long format --------------------------------------------------
 
 # get idx of first time series
@@ -104,7 +100,7 @@ d_tidy <- d_tidy %>%
 # Clean up column names and add stimulus information based on existing columns  ----------------------------------------
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
-  select(-prescreen_notes, -c_image,-response, -first_shift_gap,-rt) %>% # retain condition in order to distinguish animals with typical and atypical color patterning
+  select(-c_image,-response, -first_shift_gap,-rt) %>% # retain condition in order to distinguish animals with typical and atypical color patterning
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
   rename(left_image = r_image, right_image=l_image) %>%
@@ -174,9 +170,13 @@ d_administration_ids <- d_tidy %>%
   distinct(sub_num,administration_num,subject_id,months) %>%
   mutate(administration_id = seq(0, length(.$administration_num) - 1))
 
+#join
+d_tidy <- d_tidy %>%
+  left_join(d_administration_ids)
+
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  distinct(order, tr_num, condition, target_id, distractor_id, target_side) %>%
+  distinct(administration_id,order, tr_num, condition, target_id, distractor_id, target_side) %>%
   arrange(order,tr_num) %>%
   mutate(trial_order=tr_num) %>% # potentially revisit depending on whether these should be sequential (rather than ordered and matching the trial number from the original study)
   mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
@@ -189,7 +189,6 @@ d_trial_type_ids <- d_tidy %>%
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
-  left_join(d_administration_ids) %>%
   left_join(d_trial_ids) %>%
   left_join(d_trial_type_ids)
 
@@ -223,7 +222,8 @@ d_tidy_final %>%
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-         native_language="eng") %>%
+         native_language="eng",
+         subject_aux_data = NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -238,7 +238,8 @@ d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "manual gaze coding") %>%
+  mutate(coding_method = "manual gaze coding",
+         administration_aux_data=NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
@@ -252,22 +253,41 @@ stimulus_table %>%
          image_description_source,
          lab_stimulus_id,
          dataset_id) %>%
+  mutate(stimulus_aux_data = NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
 d_tidy_final %>%
+  mutate(trial_aux_data = NA) %>%
+  mutate(
+    excluded = case_when(
+      is.na(prescreen_notes) | prescreen_notes == "All Good" ~ FALSE,
+      TRUE ~ TRUE
+    ),
+    exclusion_reason = case_when(
+      is.na(prescreen_notes) | prescreen_notes == "All Good" ~ NA_character_,
+      TRUE ~ prescreen_notes
+    )
+  ) %>%
   distinct(trial_id,
            trial_order,
-           trial_type_id) %>%
+           trial_type_id,
+           trial_aux_data,
+           excluded,
+           exclusion_reason) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
 d_tidy_final %>%
+  mutate(trial_type_aux_data = NA,
+         vanilla_trial = ifelse(condition_new == "atypical_color", FALSE, TRUE)) %>%
   distinct(trial_type_id,
            full_phrase,
            point_of_disambiguation,
            target_side,
            condition_new,
+           trial_type_aux_data,
+           vanilla_trial,
            aoi_region_set_id,
            lab_trial_id,
            dataset_id,
@@ -307,7 +327,8 @@ data_tab <- tibble(
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Perry, L. K., & Saffran, J. R. (2017). Is a pink cow still a cow? Individual differences in toddlers' vocabulary knowledge and lexical representations. Cognitive Science, 41(4), 1090-1105. doi: 10.1111/cogs.12370",
-  shortcite = "Perry & Saffran (2017)"
+  shortcite = "Perry & Saffran (2017)",
+  dataset_aux_data = NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
