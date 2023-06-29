@@ -1425,3 +1425,10 @@ data/baumgartner_2014/raw_data/orders/S6_FribbleSpeakers_order.txt
 data/baumgartner_2014/raw_data/orders/S7_FribbleSpeakers_order.txt
 data/baumgartner_2014/raw_data/orders/S8_FribbleSpeakers_order.txt
 data/baumgartner_2014/raw_data/orders/S9_FribbleSpeakers_order.txt
+data/valleau_2018/processed_data/administrations.csv
+data/valleau_2018/processed_data/aoi_timepoints.csv
+data/valleau_2018/processed_data/datasets.csv
+data/valleau_2018/processed_data/stimuli.csv
+data/valleau_2018/processed_data/subjects.csv
+data/valleau_2018/processed_data/trial_types.csv
+data/valleau_2018/processed_data/trials.csv
