@@ -10,7 +10,6 @@ library(peekds)
 library(osfr)
 library(DT)
 library(kableExtra)
-library(git2r)
 library(stringr)
 library(dplyr)
 library(tidyr)
@@ -198,21 +197,21 @@ aoi_timepoints<- d_tidy %>%
 View(aoi_timepoints)
 
 # add missing data points between rows
-generate_missing_values <- function(aoi_timepoints) {
-  missing_values <- aoi_timepoints %>%
-    group_by(group_id = cumsum(t_norm < lag(t_norm, default = -Inf))) %>%
-    complete(t_norm = seq(min(t_norm), max(t_norm), 1)) %>%
-    fill(administration_id, trial_id, aoi) %>%
-    ungroup() %>%
-    select(-group_id)%>%
-    return(missing_values)}
-aoi_timepoints <- aoi_timepoints %>%
-  group_by(group_id = cumsum(t_norm < lag(t_norm, default = -Inf))) %>%
-  group_modify(~generate_missing_values(.x)) %>%
-  ungroup() %>%
-  select(-group_id)%>%
-  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
-  #write_csv(fs::path(write_path, "aoi_timepoints.csv"))
+# generate_missing_values <- function(aoi_timepoints) {
+#   missing_values <- aoi_timepoints %>%
+#     group_by(group_id = cumsum(t_norm < lag(t_norm, default = -Inf))) %>%
+#     complete(t_norm = seq(min(t_norm), max(t_norm), 1)) %>%
+#     fill(administration_id, trial_id, aoi) %>%
+#     ungroup() %>%
+#     select(-group_id)%>%
+#     return(missing_values)}
+# aoi_timepoints <- aoi_timepoints %>%
+#   group_by(group_id = cumsum(t_norm < lag(t_norm, default = -Inf))) %>%
+#   group_modify(~generate_missing_values(.x)) %>%
+#   ungroup() %>%
+#   select(-group_id)%>%
+#   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
+#   #write_csv(fs::path(write_path, "aoi_timepoints.csv"))
 View(aoi_timepoints)
 
 #merge together for d_tidy
