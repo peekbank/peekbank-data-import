@@ -20,7 +20,7 @@ dataset_name = "valleau_2018"
 dataset_id <- 0 # doesn't matter (use 0)
 read_path <- here("data",dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data/")
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 OSF_ADDRESS <- "pr6wu"
 
 
@@ -225,6 +225,11 @@ validate_for_db_import(dir_csv = write_path)
 put_processed_data(osf_token, "valleau_2018", write_path, osf_address="pr6wu")
 
 ############### Plot Timecourse ###############
+full_data <- aoi_timepoints %>%
+  left_join(administrations) %>%
+  left_join(trials) %>%
+  left_join(trial_types) %>%
+  left_join(stimulus_table,by=c("target_id"="stimulus_id","dataset_id")) 
 
 #Modify summarize_by_subj section
 summarize_by_subj <- full_data %>%
