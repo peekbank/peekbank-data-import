@@ -8,8 +8,6 @@ library(tidyverse)
 library(readxl)
 library(peekds)
 library(osfr)
-library(DT)
-library(kableExtra)
 library(stringr)
 library(dplyr)
 library(tidyr)
@@ -41,9 +39,6 @@ trials_table_filename <- "trials.csv"
 #  {dir.create(read_path, recursive = TRUE)} 
 #peekds::get_raw_data(dataset_name, path = read_path)
 
-################### OSF integration
-
-put_processed_data(osf_token, "valleau_2018", write_path, osf_address = "pr6wu")
 
 
 
@@ -222,16 +217,12 @@ write_csv(trials, fs::path(write_path,"trials.csv" ))
 write_csv(trial_types, fs::path(write_path, "trial_types.csv"))
 write_csv(datasets, fs::path(write_path, "datasets.csv"))
 
-<<<<<<< Updated upstream
- 
-###############validation check
-=======
-detach(package, unload = TRUE, character.only = FALSE)
-#validation check
 
->>>>>>> Stashed changes
+###############validation check
 validate_for_db_import(dir_csv = write_path)
 
+################### OSF integration
+put_processed_data(osf_token, "processed_data", write_path, osf_address="pr6wu")
 
 
 
