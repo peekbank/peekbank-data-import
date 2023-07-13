@@ -19,7 +19,7 @@ sampling_rate_hz <- 60 #(reverse-engineered from timestamps)
 dataset_name = "valleau_2018"
 dataset_id <- 0 # doesn't matter (use 0)
 read_path <- here("data",dataset_name,"raw_data")
-write_path <- here("data",dataset_name, "processed_data")
+write_path <- here("data",dataset_name, "processed_data/")
 osf_token <- read_lines(here("osf_token.txt"))
 OSF_ADDRESS <- "pr6wu"
 
@@ -223,8 +223,6 @@ validate_for_db_import(dir_csv = write_path)
 
 ################### OSF integration
 put_processed_data(osf_token, "valleau_2018", write_path, osf_address="pr6wu")
-
-
 
 ############### Plot Timecourse ###############
 
