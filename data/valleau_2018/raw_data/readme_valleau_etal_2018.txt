@@ -3,6 +3,12 @@ Valleau, M. J., Konishi, H., Golinkoff, R. M., Hirsh-Pasek, K., & Arunachalam, S
 
 Equipment: Tobii T60XL
 
+Data structure: 
+1)the original data contains a baseline and response subphases. We only used the data for the response subphase. The data starts from 300ms of the response subphrase, which is also the disambiguation point.
+
+2) the original data does not have columns for the target picture and target side. The authors shared the experiment videos with us, so we got the target picture and target side information from the video and saved the information in the file "stimuli_lookup_table.
+
+
 Carrier phrases: "The audio for noun trials consisted of simple carrier phrases (e.g., "Where is the cookie!"), whereas for verb trials, it varied by whether the depicted event involved one or two participants; one-participant events were queried with intransitive syntax (e.g., "Where is she clapping?"), and two-participant events were queried with transitive syntax (e.g., "Where is she bouncing the ball?"). The carrier frames varied in this way because we used what we thought was the most discourse-natural query for the different event types. For both event types, we also included queries in neutral syntax (e.g., "Find clapping!")."
 
 Trial structure: still images (noun trials) or dynamic videos (verb trials) appeared on the screen during the Salience phase, then disappeared with a central fixation star and the test query (e.g., where is the ...); the images or videos reappeared during the Response phase
