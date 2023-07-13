@@ -1,4 +1,4 @@
-﻿condition,trial,left,right,target_image,baseline,query,full_phrases
+﻿condition,trial,left,right,target_image,baseline,query,full_phrase
 A,1,cookie,banana,cookie,Do you see?  ,Can you show me the cookie?,Where is the cookie?  Let's find the cookie.
 A,2,fish,donut,donut,"Oh, look!",Where is the donut?,Do you see the donut? Show me the donut.
 A,3,firetruck,bird,firetruck,Wow!,Find the firetruck,"Where is the firetruck? Look, see the firetruck?"
