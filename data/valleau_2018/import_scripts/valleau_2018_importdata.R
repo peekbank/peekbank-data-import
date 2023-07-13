@@ -230,7 +230,7 @@ put_processed_data(osf_token, "valleau_2018", write_path, osf_address="pr6wu")
 
 #Modify summarize_by_subj section
 summarize_by_subj <- full_data %>%
-filter(aoi != "others")%>%
+filter(aoi != "other")%>%
 group_by(t_norm, nv) %>%
 summarize(N = sum(!is.na(aoi)),
 mean_accuracy = mean(aoi == "target", na.rm = TRUE))
