@@ -222,8 +222,14 @@ write_csv(trials, fs::path(write_path,"trials.csv" ))
 write_csv(trial_types, fs::path(write_path, "trial_types.csv"))
 write_csv(datasets, fs::path(write_path, "datasets.csv"))
 
+<<<<<<< Updated upstream
  
 ###############validation check
+=======
+detach(package, unload = TRUE, character.only = FALSE)
+#validation check
+
+>>>>>>> Stashed changes
 validate_for_db_import(dir_csv = write_path)
 
 
