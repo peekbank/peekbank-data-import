@@ -77,7 +77,7 @@ d_tidy <- d_raw %>%
   mutate(distractor_image = ifelse(target_image == image1, image2, image1))%>%# add distractor column
   mutate(trial_order = ifelse(trial_order == "Forward", 1, 2))%>%#recode trial order to numbers
   mutate(aoi = case_when(target == 1 ~ "target",distractor == 1 ~ "distractor",track_loss == 1 ~ "track_loss", target == 0 & distractor == 0 & track_loss == 0 ~ "other"))# add aoi column. 
-View(d_tidy)
+
 
 
 ## add the full_phrase information in the "stimuli" file to the d_tidy
@@ -85,13 +85,13 @@ lookup_table <- read_delim(fs::path(read_path, "stimuli_lookup_table.csv"),delim
   mutate(target_side = if_else(target_image == left, "left", "right"))%>%#add target side column 
   select(-baseline,-query)%>% 
   mutate_all(~ str_replace_all(., "\\s", ""))
-View(lookup_table)
+
 
 
 # add lookup_table to big table
 d_tidy <- d_tidy %>%
   left_join(lookup_table, by = c("condition", "target_image"))
-View(d_tidy)
+
 
 ######## Make 9 Peekbank tables #########
 #### (1) datasets ####
@@ -102,7 +102,7 @@ datasets <- tibble(
   cite="Valleau, M. J., Konishi, H., Golinkoff, R. M., Hirsh-Pasek, K., & Arunachalam, S. (2018). An eye-tracking study of receptive verb knowledge in toddlers. Journal of speech, language, and hearing research, 61(12), 2917-2933.",
   shortcite="Valleau et al. (2018)")%>%
   mutate(dataset_aux_data = "NA")
-View(datasets)
+
 
 #### (2) subjects ####
 subjects <- d_tidy %>%
@@ -114,7 +114,7 @@ subjects <- d_tidy %>%
 View(subjects)
 #joint subjects table back to the big table  
 d_tidy <- d_tidy %>% left_join(subjects,by = "lab_subject_id")
-View(d_tidy)
+
 
 
 #### (3) stimuli ####
@@ -132,7 +132,7 @@ stimulus_table <- d_tidy %>%
     image_description_source = "experiment documentation") %>%
     mutate(stimulus_id = row_number() - 1)%>%
     select(-lab_trial_id, -target_label) 
-View(stimulus_table)
+
 
 
 #### (4) trial types ####
@@ -145,7 +145,7 @@ d_tidy <- d_tidy %>%
   left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by = c('distractor_image' = 'lab_stimulus_id')) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
-View(d_tidy)
+
 
 #create trial types table
 trial_types <- d_tidy %>%
@@ -157,11 +157,11 @@ trial_types <- d_tidy %>%
   mutate(vanilla_trial = "FALSE")%>%
   mutate(aoi_region_set_id = "NA")%>%
   mutate(trial_type_aux_data = "NA")
-View(trial_types)
+
 
 # join in trial type IDs #
 d_tidy <- d_tidy %>% left_join(trial_types) 
-View(d_tidy)
+
 
 
 #### (5) trials ##############
@@ -191,11 +191,11 @@ administrations <- subjects %>%
   select(administration_id, dataset_id, subject_id, lab_age,lab_age_units, age, 
          monitor_size_x, monitor_size_y, sample_rate, tracker,administration_aux_data,
          coding_method)
-View(administrations)
+
 #join to the big table
 d_tidy <- d_tidy %>% left_join(administrations, by = c("dataset_id", "subject_id"))
-View(administrations)
-View(d_tidy)
+
+
 
 #### (7) aoi_timepoints #######
 aoi_timepoints<- d_tidy %>%
@@ -203,7 +203,7 @@ aoi_timepoints<- d_tidy %>%
   rename(t_norm = time_from_subphase_onset)%>%
   mutate(t_norm = as.numeric(t_norm))%>%
   resample_times(table_type = "aoi_timepoints") 
-View(aoi_timepoints)
+
 #merge together for d_tidy
 d_tidy <- aoi_timepoints %>% left_join(trials, by = "trial_id") %>%
   left_join(administrations) %>% left_join(subjects)
@@ -222,7 +222,7 @@ write_csv(datasets, fs::path(write_path, "datasets.csv"))
 validate_for_db_import(dir_csv = write_path)
 
 ################### OSF integration
-put_processed_data(osf_token, "processed_data", write_path, osf_address="pr6wu")
+put_processed_data(osf_token, "valleau_2018", write_path, osf_address="pr6wu")
 
 
 
@@ -234,7 +234,6 @@ filter(aoi != "others")%>%
 group_by(t_norm, nv) %>%
 summarize(N = sum(!is.na(aoi)),
 mean_accuracy = mean(aoi == "target", na.rm = TRUE))
-View(summarize_by_subj)
 
 #Modify summarize_across_subj section
 summarize_across_subj <- summarize_by_subj %>%
@@ -244,8 +243,6 @@ summarize_across_subj <- summarize_by_subj %>%
     accuracy = mean(mean_accuracy, na.rm = TRUE),
     sd_accuracy = sd(mean_accuracy, na.rm = TRUE))
     
-
-View(summarize_across_subj)
 # # Modify plot section
 ggplot(summarize_across_subj, aes(x = t_norm, y = accuracy, color = nv)) +
   geom_errorbar(aes(ymin = accuracy - sd_accuracy, ymax = accuracy + sd_accuracy), width = 0.1) +
