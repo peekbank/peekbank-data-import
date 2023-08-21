@@ -66,6 +66,7 @@ stimulus_table <- d_tidy %>%
   distinct(target) %>%
   filter(!is.na(target)) %>%
   mutate(dataset_id = 0,
+  			stimulus_aux_data = NA,  		
            stimulus_novelty = "familiar", 
            original_stimulus_label = target,
            english_stimulus_label = target,
@@ -144,7 +145,7 @@ aoi_timepoints <- d_fin %>%
 subjects <- d_fin %>% 
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(
-    native_language="eng") %>%
+    native_language="eng", subject_aux_data=NA) %>%   
   write_csv(fs::path(write_path, subject_table_filename))
 
 
@@ -160,12 +161,13 @@ administrations <- d_fin %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "manual gaze coding") %>%
+  mutate(coding_method = "manual gaze coding", administration_aux_data=NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
   select(-target) %>%
+  mutate(stimulus_aux_data=NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
@@ -173,7 +175,8 @@ trials <- d_fin %>%
   distinct(trial_id,
            trial_no,
            trial_type_id) %>%
-  rename(trial_order=trial_no) %>%
+  rename(trial_order=trial_no)  %>%
+  mutate(trial_aux_data=NA, excluded=NA, exclusion_reason=NA) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
@@ -188,7 +191,7 @@ trial_types <- d_fin %>%
            target_id,
            distractor_id) %>%
   mutate(full_phrase_language = "eng",
-         condition = NA) %>% #no condition manipulation based on current documentation
+         condition = NA, vanilla_trial=T, trial_type_aux_data = NA) %>% #no condition manipulation based on current documentation
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### DATASETS TABLE ####
@@ -199,7 +202,7 @@ data_tab <- tibble(
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Ronfard, S., Wei, R., & Rowe, M. (2021). Uncovering the linguistic, social, and cognitive skills underlying processing efficiency as measured by the looking-while-listening paradigm. Journal of Child Language, 1-24.", 
   shortcite = "Ronfard, Wei, & Rowe (2021)" 
-) %>%
+) %>% mutate(dataset_aux_data = NA) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
 
