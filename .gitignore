@@ -5,6 +5,7 @@
 *DS_Store
 osf_token.txt
 */raw_data/*
+data/reflook_v4/raw_data/full_dataset/*
 data/pomper_saffran_2016/full_dataset/carrier_phrases.csv
 data/pomper_saffran_2016/full_dataset/orders/SwitchingCues_CN1A.txt
 data/pomper_saffran_2016/full_dataset/orders/SwitchingCues_CN1B.txt

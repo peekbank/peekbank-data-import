@@ -1,596 +1,275 @@
 trial_type_id,condition,full_phrase,point_of_disambiguation,target_side,lab_trial_id,aoi_region_set_id,dataset_id,target_id,distractor_id,vanilla_trial,full_phrase_language,trial_type_aux_data
-0,Colors_familiar,Shoe Wheresthe_ Shoe,0,left,Colors_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-1,Colors_novel,Lif Wheresthe_ Lif,0,left,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-2,Colors_novel,Neem Canyoufindthe_ Neem,0,right,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-3,Colors_familiar,Dog Canyoufindthe_ Dog,0,right,Colors_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-4,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-5,Colors_familiar,Baby Canyoufindthe_ Baby,0,right,Colors_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-6,Colors_novel,Neem Wheresthe_ Neem,0,left,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-7,Colors_familiar,Car Canyoufindthe_ Car,0,left,Colors_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-8,Colors_familiar,Kitty Canyoufindthe_ Kitty,0,right,Colors_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-9,Colors_novel,Neem Canyoufindthe_ Neem,0,left,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-10,Colors_familiar,Ball Wheresthe_ Ball,0,left,Colors_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-11,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-12,Colors_familiar,Dog Wheresthe_ Dog,0,left,Colors_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-13,Colors_novel,Lif Wheresthe_ Lif,0,left,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-14,Colors_familiar,Car Canyoufindthe_ Car,0,right,Colors_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-15,Colors_novel,Neem Canyoufindthe_ Neem,0,right,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-16,Colors_familiar,Ball Canyoufindthe_ Ball,0,right,Colors_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-17,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-18,Colors_novel,Neem Canyoufindthe_ Neem,0,left,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-19,Colors_familiar,Shoe Wheresthe_ Shoe,0,left,Colors_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-20,Colors_novel,Neem Wheresthe_ Neem,0,right,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-21,Colors_familiar,Dog Canyoufindthe_ Dog,0,right,Colors_familiar-Dog-Shoe,NA,0,3,0,TRUE,eng,NA
-22,Colors_familiar,Kitty Canyoufindthe_ Kitty,0,left,Colors_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-23,Colors_novel,Lif Wheresthe_ Lif,0,left,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-24,Colors_familiar,Kitty Canyoufindthe_ Kitty,0,left,Colors_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-25,Colors_familiar,Shoe Wheresthe_ Shoe,0,right,Colors_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-26,Colors_novel,Neem Canyoufindthe_ Neem,0,right,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-27,Colors_novel,Neem Wheresthe_ Neem,0,left,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-28,Colors_familiar,Car Canyoufindthe_ Car,0,left,Colors_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-29,Colors_familiar,Dog Canyoufindthe_ Dog,0,right,Colors_familiar-Dog-Baby,NA,0,3,4,TRUE,eng,NA
-30,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-31,Colors_familiar,Shoe Canyoufindthe_ Shoe,0,left,Colors_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-32,Colors_novel,Neem Wheresthe_ Neem,0,right,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-33,Colors_novel,Lif Canyoufindthe_ Lif,0,left,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-34,Colors_familiar,Dog Wheresthe_ Dog,0,right,Colors_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-35,Colors_familiar,Ball Canyoufindthe_ Ball,0,left,Colors_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-36,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-37,Colors_familiar,Kitty Canyoufindthe_ Kitty,0,right,Colors_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-38,Colors_novel,Neem Wheresthe_ Neem,0,left,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-39,Colors_familiar,Shoe Canyoufindthe_ Shoe,0,right,Colors_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-40,Colors_novel,Neem Wheresthe_ Neem,0,left,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-41,Colors_novel,Lif Canyoufindthe_ Lif,0,right,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-42,Colors_familiar,Baby Wheresthe_ Baby,0,left,Colors_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-43,Colors_familiar,Kitty Canyoufindthe_ Kitty,0,left,Colors_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-44,Colors_familiar,Ball Canyoufindthe_ Ball,0,right,Colors_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-45,Colors_novel,Neem Wheresthe_ Neem,0,right,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-46,Colors_familiar,Dog Canyoufindthe_ Dog,0,left,Colors_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-47,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-48,Colors_familiar,Kitty Wheresthe_ Kitty,0,right,Colors_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-49,Colors_novel,Neem Canyoufindthe_ Neem,0,left,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-50,Colors_familiar,Ball Wheresthe_ Ball,0,right,Colors_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-51,Colors_novel,Lif Wheresthe_ Lif,0,left,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-52,Colors_novel,Neem Canyoufindthe_ Neem,0,right,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-53,Colors_familiar,Baby Canyoufindthe_ Baby,0,left,Colors_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-54,Colors_novel,Lif Canyoufindthe_ Lif,0,right,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-55,Colors_familiar,Shoe Wheresthe_ Shoe,0,right,Colors_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-56,Colors_novel,Neem Wheresthe_ Neem,0,left,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-57,Colors_novel,Lif Canyoufindthe_ Lif,0,left,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-58,Colors_familiar,Kitty Wheresthe_ Kitty,0,right,Colors_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-59,Colors_familiar,Car Canyoufindthe_ Car,0,left,Colors_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-60,Colors_familiar,Ball Wheresthe_ Ball,0,left,Colors_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-61,Colors_novel,Lif Canyoufindthe_ Lif,0,left,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-62,Colors_familiar,Car Wheresthe_ Car,0,right,Colors_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-63,Colors_novel,Neem Canyoufindthe_ Neem,0,right,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-64,Colors_novel,Lif Canyoufindthe_ Lif,0,right,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-65,Colors_familiar,Baby Wheresthe_ Baby,0,left,Colors_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-66,Colors_familiar,Kitty Wheresthe_ Kitty,0,right,Colors_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-67,Colors_novel,Neem Canyoufindthe_ Neem,0,left,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-68,Colors_familiar,Shoe Wheresthe_ Shoe,0,left,Colors_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-69,Colors_novel,Lif Canyoufindthe_ Lif,0,right,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-70,Colors_familiar,Car Wheresthe_ Car,0,left,Colors_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-71,Colors_novel,Neem Canyoufindthe_ Neem,0,right,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-72,Colors_novel,Lif Canyoufindthe_ Lif,0,left,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-73,Colors_familiar,Kitty Wheresthe_ Kitty,0,right,Colors_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-74,Colors_familiar,Car Wheresthe_ Car,0,right,Colors_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-75,Colors_novel,Neem Canyoufindthe_ Neem,0,right,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-76,Colors_familiar,Kitty Wheresthe_ Kitty,0,left,Colors_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-77,Colors_novel,Lif Canyoufindthe_ Lif,0,left,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-78,Colors_familiar,Ball Canyoufindthe_ Ball,0,left,Colors_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-79,Colors_novel,Neem Wheresthe_ Neem,0,left,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-80,Colors_familiar,Baby Wheresthe_ Baby,0,right,Colors_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-81,Colors_novel,Lif Canyoufindthe_ Lif,0,right,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-82,Colors_familiar,Shoe Canyoufindthe_ Shoe,0,left,Colors_familiar-Shoe-Dog,NA,0,0,3,TRUE,eng,NA
-83,Colors_novel,Neem Wheresthe_ Neem,0,left,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-84,Colors_familiar,Dog Canyoufindthe_ Dog,0,right,Colors_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-85,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-86,Colors_familiar,Car Wheresthe_ Car,0,right,Colors_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-87,Colors_novel,Lif Canyoufindthe_ Lif,0,left,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-88,Colors_familiar,Baby Canyoufindthe_ Baby,0,left,Colors_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-89,Colors_novel,Neem Wheresthe_ Neem,0,right,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-90,Colors_familiar,Car Wheresthe_ Car,0,right,Colors_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-91,Colors_novel,Neem Canyoufindthe_ Neem,0,right,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-92,Colors_familiar,Baby Wheresthe_ Baby,0,left,Colors_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-93,Colors_novel,Lif Canyoufindthe_ Lif,0,left,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-94,Colors_novel,Neem Wheresthe_ Neem,0,left,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-95,Colors_familiar,Dog Canyoufindthe_ Dog,0,right,Colors_familiar-Dog-Baby,NA,0,3,4,TRUE,eng,NA
-96,Colors_familiar,Ball Wheresthe_ Ball,0,left,Colors_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-97,Colors_novel,Lif Canyoufindthe_ Lif,0,right,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-98,Colors_familiar,Dog Wheresthe_ Dog,0,right,Colors_familiar-Dog-Shoe,NA,0,3,0,TRUE,eng,NA
-99,Colors_familiar,Kitty Canyoufindthe_ Kitty,0,left,Colors_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-100,Colors_familiar,Shoe Canyoufindthe_ Shoe,0,left,Colors_familiar-Shoe-Dog,NA,0,0,3,TRUE,eng,NA
-101,Colors_novel,Neem Wheresthe_ Neem,0,right,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-102,Colors_familiar,Car Canyoufindthe_ Car,0,right,Colors_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-103,Colors_novel,Lif Wheresthe_ Lif,0,left,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-104,Colors_familiar,Car Wheresthe_ Car,0,right,Colors_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-105,Colors_familiar,Baby Wheresthe_ Baby,0,left,Colors_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-106,Colors_novel,Lif Canyoufindthe_ Lif,0,right,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-107,Colors_familiar,Shoe Canyoufindthe_ Shoe,0,right,Colors_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-108,Colors_familiar,Kitty Wheresthe_ Kitty,0,right,Colors_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-109,Colors_novel,Lif Wheresthe_ Lif,0,left,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-110,Colors_familiar,Dog Canyoufindthe_ Dog,0,left,Colors_familiar-Dog-Baby,NA,0,3,4,TRUE,eng,NA
-111,Colors_familiar,Car Wheresthe_ Car,0,right,Colors_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-112,Colors_novel,Neem Canyoufindthe_ Neem,0,left,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-113,Colors_novel,Lif Canyoufindthe_ Lif,0,right,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-114,Colors_familiar,Car Wheresthe_ Car,0,left,Colors_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-115,Colors_novel,Lif Wheresthe_ Lif,0,left,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-116,Colors_familiar,Shoe Canyoufindthe_ Shoe,0,left,Colors_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-117,Colors_novel,Neem Wheresthe_ Neem,0,right,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-118,Colors_familiar,Baby Canyoufindthe_ Baby,0,right,Colors_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-119,Colors_familiar,Baby Canyoufindthe_ Baby,0,left,Colors_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-120,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-121,Colors_familiar,Shoe Canyoufindthe_ Shoe,0,right,Colors_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-122,Colors_familiar,Car Canyoufindthe_ Car,0,right,Colors_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-123,Colors_familiar,Kitty Wheresthe_ Kitty,0,left,Colors_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-124,Colors_familiar,Dog Canyoufindthe_ Dog,0,right,Colors_familiar-Dog-Baby,NA,0,3,4,TRUE,eng,NA
-125,Colors_familiar,Shoe Canyoufindthe_ Shoe,0,right,Colors_familiar-Shoe-Ball,NA,0,0,8,TRUE,eng,NA
-126,Colors_familiar,Kitty Wheresthe_ Kitty,0,right,Colors_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-127,Colors_novel,Lif Wheresthe_ Lif,0,left,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-128,Colors_familiar,Baby Canyoufindthe_ Baby,0,left,Colors_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-129,Colors_familiar,Ball Canyoufindthe_ Ball,0,right,Colors_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-130,Colors_novel,Lif Canyoufindthe_ Lif,0,right,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-131,Colors_familiar,Shoe Wheresthe_ Shoe,0,left,Colors_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-132,Colors_novel,Neem Wheresthe_ Neem,0,left,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-133,Colors_novel,Neem Wheresthe_ Neem,0,right,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-134,Colors_familiar,Shoe Canyoufindthe_ Shoe,0,right,Colors_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-135,Colors_familiar,Dog Wheresthe_ Dog,0,right,Colors_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-136,Colors_familiar,Ball Canyoufindthe_ Ball,0,left,Colors_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-137,Colors_novel,Neem Canyoufindthe_ Neem,0,left,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-138,Colors_familiar,Baby Canyoufindthe_ Baby,0,right,Colors_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-139,Colors_familiar,Car Wheresthe_ Car,0,left,Colors_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-140,Colors_novel,Neem Canyoufindthe_ Neem,0,left,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-141,Colors_familiar,Kitty Canyoufindthe_ Kitty,0,right,Colors_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-142,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-143,Colors_familiar,Shoe Wheresthe_ Shoe,0,left,Colors_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-144,Colors_familiar,Car Wheresthe_ Car,0,left,Colors_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-145,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-146,Colors_familiar,Baby Canyoufindthe_ Baby,0,right,Colors_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-147,Colors_familiar,Kitty Canyoufindthe_ Kitty,0,right,Colors_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-148,Colors_novel,Neem Canyoufindthe_ Neem,0,right,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-149,Colors_familiar,Car Canyoufindthe_ Car,0,right,Colors_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-150,Colors_novel,Neem Wheresthe_ Neem,0,right,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-151,Colors_novel,Lif Wheresthe_ Lif,0,left,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-152,Colors_familiar,Baby Canyoufindthe_ Baby,0,left,Colors_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-153,Colors_familiar,Kitty Wheresthe_ Kitty,0,left,Colors_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-154,Colors_familiar,Ball Canyoufindthe_ Ball,0,left,Colors_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-155,Colors_novel,Neem Canyoufindthe_ Neem,0,left,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-156,Colors_familiar,Kitty Wheresthe_ Kitty,0,left,Colors_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-157,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-158,Colors_familiar,Baby Canyoufindthe_ Baby,0,right,Colors_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-159,Colors_familiar,Shoe Wheresthe_ Shoe,0,right,Colors_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-160,Colors_familiar,Dog Canyoufindthe_ Dog,0,left,Colors_familiar-Dog-Shoe,NA,0,3,0,TRUE,eng,NA
-161,Colors_familiar,Kitty Canyoufindthe_ Kitty,0,right,Colors_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-162,Colors_novel,Neem Wheresthe_ Neem,0,left,Colors_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-163,Colors_familiar,Car Wheresthe_ Car,0,left,Colors_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-164,Colors_familiar,Baby Canyoufindthe_ Baby,0,right,Colors_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-165,Colors_familiar,Kitty Wheresthe_ Kitty,0,left,Colors_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-166,Colors_familiar,Ball Canyoufindthe_ Ball,0,right,Colors_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-167,Colors_novel,Lif Canyoufindthe_ Lif,0,right,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-168,Colors_familiar,Car Wheresthe_ Car,0,left,Colors_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-169,Colors_familiar,Car Canyoufindthe_ Car,0,right,Colors_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-170,Colors_familiar,Shoe Canyoufindthe_ Shoe,0,left,Colors_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-171,Colors_novel,Lif Wheresthe_ Lif,0,left,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-172,Colors_novel,Lif Wheresthe_ Lif,0,right,Colors_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-173,Colors_familiar,Dog Canyoufindthe_ Dog,0,right,Colors_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-174,Colors_familiar,Ball Canyoufindthe_ Ball,0,left,Colors_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-175,Colors_novel,Neem Canyoufindthe_ Neem,0,left,Colors_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-176,Colors_familiar,Dog Wheresthe_ Dog,0,right,Colors_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-177,Colors_novel,Lif Canyoufindthe_ Lif,0,left,Colors_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-178,Colors_familiar,Shoe Wheresthe_ Shoe,0,left,Colors_familiar-Shoe-Dog,NA,0,0,3,TRUE,eng,NA
-179,Colors_familiar,Kitty Canyoufindthe_ Kitty,0,right,Colors_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-180,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,left,Labels_familiar-Shoe-Ball,NA,0,0,8,TRUE,eng,NA
-181,Labels_novel,Neem Wheresthe_ Neem,0,left,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-182,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-183,Labels_familiar,Baby Canyoufindthe_ Baby,0,right,Labels_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-184,Labels_familiar,Ball Canyoufindthe_ Ball,0,right,Labels_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-185,Labels_novel,Neem Wheresthe_ Neem,0,right,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-186,Labels_familiar,Kitty Wheresthe_ Kitty,0,left,Labels_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-187,Labels_novel,Lif Canyoufindthe_ Lif,0,left,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-188,Labels_familiar,Shoe Wheresthe_ Shoe,0,left,Labels_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-189,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-190,Labels_familiar,Ball Canyoufindthe_ Ball,0,right,Labels_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-191,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-192,Labels_familiar,Kitty Wheresthe_ Kitty,0,right,Labels_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-193,Labels_novel,Lif Canyoufindthe_ Lif,0,left,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-194,Labels_familiar,Baby Canyoufindthe_ Baby,0,left,Labels_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-195,Labels_novel,Neem Wheresthe_ Neem,0,right,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-196,Labels_familiar,Dog Canyoufindthe_ Dog,0,right,Labels_familiar-Dog-Ball,NA,0,3,8,TRUE,eng,NA
-197,Labels_novel,Lif Wheresthe_ Lif,0,left,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-198,Labels_novel,Neem Canyoufindthe_ Neem,0,right,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-199,Labels_familiar,Car Wheresthe_ Car,0,left,Labels_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-200,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-201,Labels_familiar,Baby Wheresthe_ Baby,0,right,Labels_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-202,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-203,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,left,Labels_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-204,Labels_familiar,Car Canyoufindthe_ Car,0,left,Labels_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-205,Labels_novel,Neem Wheresthe_ Neem,0,right,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-206,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,right,Labels_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-207,Labels_novel,Lif Wheresthe_ Lif,0,left,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-208,Labels_familiar,Baby Wheresthe_ Baby,0,right,Labels_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-209,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-210,Labels_familiar,Dog Canyoufindthe_ Dog,0,left,Labels_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-211,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-212,Labels_familiar,Dog Canyoufindthe_ Dog,0,left,Labels_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-213,Labels_novel,Neem Wheresthe_ Neem,0,left,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-214,Labels_familiar,Shoe Wheresthe_ Shoe,0,right,Labels_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-215,Labels_novel,Lif Canyoufindthe_ Lif,0,right,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-216,Labels_novel,Lif Wheresthe_ Lif,0,left,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-217,Labels_familiar,Car Wheresthe_ Car,0,left,Labels_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-218,Labels_familiar,Ball Canyoufindthe_ Ball,0,right,Labels_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-219,Labels_novel,Neem Canyoufindthe_ Neem,0,right,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-220,Labels_familiar,Shoe Wheresthe_ Shoe,0,left,Labels_familiar-Shoe-Ball,NA,0,0,8,TRUE,eng,NA
-221,Labels_novel,Lif Canyoufindthe_ Lif,0,left,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-222,Labels_familiar,Baby Canyoufindthe_ Baby,0,right,Labels_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-223,Labels_novel,Neem Wheresthe_ Neem,0,right,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-224,Labels_familiar,Ball Canyoufindthe_ Ball,0,left,Labels_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-225,Labels_familiar,Kitty Wheresthe_ Kitty,0,right,Labels_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-226,Labels_familiar,Baby Canyoufindthe_ Baby,0,left,Labels_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-227,Labels_familiar,Ball Canyoufindthe_ Ball,0,right,Labels_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-228,Labels_novel,Neem Wheresthe_ Neem,0,left,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-229,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,left,Labels_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-230,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-231,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,right,Labels_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-232,Labels_familiar,Ball Canyoufindthe_ Ball,0,left,Labels_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-233,Labels_novel,Lif Wheresthe_ Lif,0,left,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-234,Labels_familiar,Car Canyoufindthe_ Car,0,right,Labels_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-235,Labels_familiar,Dog Wheresthe_ Dog,0,right,Labels_familiar-Dog-Ball,NA,0,3,8,TRUE,eng,NA
-236,Labels_novel,Neem Wheresthe_ Neem,0,left,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-237,Labels_novel,Lif Canyoufindthe_ Lif,0,right,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-238,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,left,Labels_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-239,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-240,Labels_familiar,Dog Canyoufindthe_ Dog,0,right,Labels_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-241,Labels_novel,Neem Wheresthe_ Neem,0,left,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-242,Labels_familiar,Kitty Wheresthe_ Kitty,0,right,Labels_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-243,Labels_novel,Lif Canyoufindthe_ Lif,0,left,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-244,Labels_familiar,Car Canyoufindthe_ Car,0,left,Labels_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-245,Labels_novel,Neem Wheresthe_ Neem,0,right,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-246,Labels_familiar,Shoe Wheresthe_ Shoe,0,right,Labels_familiar-Shoe-Ball,NA,0,0,8,TRUE,eng,NA
-247,Labels_novel,Neem Canyoufindthe_ Neem,0,right,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-248,Labels_novel,Lif Canyoufindthe_ Lif,0,left,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-249,Labels_familiar,Dog Wheresthe_ Dog,0,left,Labels_familiar-Dog-Ball,NA,0,3,8,TRUE,eng,NA
-250,Labels_familiar,Ball Canyoufindthe_ Ball,0,right,Labels_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-251,Labels_novel,Lif Canyoufindthe_ Lif,0,right,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-252,Labels_novel,Neem Wheresthe_ Neem,0,left,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-253,Labels_familiar,Car Wheresthe_ Car,0,left,Labels_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-254,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,right,Labels_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-255,Labels_novel,Lif Wheresthe_ Lif,0,left,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-256,Labels_novel,Neem Canyoufindthe_ Neem,0,right,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-257,Labels_familiar,Baby Wheresthe_ Baby,0,left,Labels_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-258,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-259,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,left,Labels_familiar-Shoe-Dog,NA,0,0,3,TRUE,eng,NA
-260,Labels_novel,Neem Wheresthe_ Neem,0,left,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-261,Labels_familiar,Shoe Wheresthe_ Shoe,0,left,Labels_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-262,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-263,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-264,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,right,Labels_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-265,Labels_familiar,Ball Canyoufindthe_ Ball,0,left,Labels_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-266,Labels_novel,Neem Wheresthe_ Neem,0,right,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-267,Labels_familiar,Baby Wheresthe_ Baby,0,right,Labels_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-268,Labels_novel,Lif Canyoufindthe_ Lif,0,left,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-269,Labels_familiar,Dog Wheresthe_ Dog,0,left,Labels_familiar-Dog-Shoe,NA,0,3,0,TRUE,eng,NA
-270,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-271,Labels_familiar,Ball Canyoufindthe_ Ball,0,right,Labels_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-272,Labels_familiar,Car Canyoufindthe_ Car,0,right,Labels_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-273,Labels_novel,Lif Wheresthe_ Lif,0,left,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-274,Labels_novel,Neem Canyoufindthe_ Neem,0,right,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-275,Labels_familiar,Shoe Wheresthe_ Shoe,0,left,Labels_familiar-Shoe-Ball,NA,0,0,8,TRUE,eng,NA
-276,Labels_familiar,Ball Wheresthe_ Ball,0,left,Labels_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-277,Labels_novel,Lif Canyoufindthe_ Lif,0,right,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-278,Labels_familiar,Baby Wheresthe_ Baby,0,right,Labels_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-279,Labels_novel,Neem Canyoufindthe_ Neem,0,right,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-280,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,right,Labels_familiar-Shoe-Dog,NA,0,0,3,TRUE,eng,NA
-281,Labels_novel,Lif Wheresthe_ Lif,0,left,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-282,Labels_familiar,Kitty Wheresthe_ Kitty,0,left,Labels_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-283,Labels_familiar,Baby Canyoufindthe_ Baby,0,left,Labels_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-284,Labels_novel,Neem Wheresthe_ Neem,0,right,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-285,Labels_familiar,Ball Canyoufindthe_ Ball,0,left,Labels_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-286,Labels_familiar,Shoe Wheresthe_ Shoe,0,right,Labels_familiar-Shoe-Dog,NA,0,0,3,TRUE,eng,NA
-287,Labels_familiar,Ball Canyoufindthe_ Ball,0,left,Labels_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-288,Labels_familiar,Baby Canyoufindthe_ Baby,0,right,Labels_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-289,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,right,Labels_familiar-Shoe-Dog,NA,0,0,3,TRUE,eng,NA
-290,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-291,Labels_familiar,Dog Canyoufindthe_ Dog,0,left,Labels_familiar-Dog-Ball,NA,0,3,8,TRUE,eng,NA
-292,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-293,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-294,Labels_familiar,Car Wheresthe_ Car,0,left,Labels_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-295,Labels_novel,Neem Wheresthe_ Neem,0,right,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-296,Labels_familiar,Ball Canyoufindthe_ Ball,0,right,Labels_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-297,Labels_familiar,Baby Wheresthe_ Baby,0,left,Labels_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-298,Labels_novel,Neem Wheresthe_ Neem,0,right,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-299,Labels_novel,Lif Canyoufindthe_ Lif,0,left,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-300,Labels_familiar,Car Canyoufindthe_ Car,0,right,Labels_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-301,Labels_familiar,Dog Wheresthe_ Dog,0,left,Labels_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-302,Labels_novel,Lif Canyoufindthe_ Lif,0,right,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-303,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,right,Labels_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-304,Labels_novel,Neem Wheresthe_ Neem,0,left,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-305,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-306,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,left,Labels_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-307,Labels_novel,Neem Wheresthe_ Neem,0,right,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-308,Labels_familiar,Baby Canyoufindthe_ Baby,0,right,Labels_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-309,Labels_familiar,Kitty Wheresthe_ Kitty,0,right,Labels_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-310,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,left,Labels_familiar-Shoe-Ball,NA,0,0,8,TRUE,eng,NA
-311,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-312,Labels_familiar,Ball Canyoufindthe_ Ball,0,right,Labels_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-313,Labels_familiar,Baby Wheresthe_ Baby,0,left,Labels_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-314,Labels_familiar,Dog Wheresthe_ Dog,0,right,Labels_familiar-Dog-Ball,NA,0,3,8,TRUE,eng,NA
-315,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,left,Labels_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-316,Labels_novel,Lif Canyoufindthe_ Lif,0,right,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-317,Labels_familiar,Car Canyoufindthe_ Car,0,left,Labels_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-318,Labels_familiar,Ball Wheresthe_ Ball,0,right,Labels_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-319,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,right,Labels_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-320,Labels_novel,Lif Canyoufindthe_ Lif,0,left,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-321,Labels_novel,Neem Wheresthe_ Neem,0,right,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-322,Labels_familiar,Dog Canyoufindthe_ Dog,0,left,Labels_familiar-Dog-Baby,NA,0,3,4,TRUE,eng,NA
-323,Labels_familiar,Ball Wheresthe_ Ball,0,right,Labels_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-324,Labels_familiar,Kitty Wheresthe_ Kitty,0,right,Labels_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-325,Labels_familiar,Baby Canyoufindthe_ Baby,0,left,Labels_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-326,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-327,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,right,Labels_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-328,Labels_novel,Neem Canyoufindthe_ Neem,0,right,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-329,Labels_novel,Lif Wheresthe_ Lif,0,left,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-330,Labels_familiar,Ball Wheresthe_ Ball,0,right,Labels_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-331,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-332,Labels_novel,Lif Wheresthe_ Lif,0,right,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-333,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,right,Labels_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-334,Labels_familiar,Dog Canyoufindthe_ Dog,0,left,Labels_familiar-Dog-Ball,NA,0,3,8,TRUE,eng,NA
-335,Labels_novel,Neem Wheresthe_ Neem,0,left,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-336,Labels_familiar,Baby Canyoufindthe_ Baby,0,left,Labels_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-337,Labels_familiar,Car Canyoufindthe_ Car,0,right,Labels_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-338,Labels_novel,Lif Wheresthe_ Lif,0,left,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-339,Labels_familiar,Car Wheresthe_ Car,0,right,Labels_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-340,Labels_familiar,Dog Canyoufindthe_ Dog,0,left,Labels_familiar-Dog-Shoe,NA,0,3,0,TRUE,eng,NA
-341,Labels_novel,Lif Canyoufindthe_ Lif,0,left,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-342,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,left,Labels_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-343,Labels_familiar,Baby Wheresthe_ Baby,0,right,Labels_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-344,Labels_familiar,Ball Canyoufindthe_ Ball,0,left,Labels_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-345,Labels_novel,Lif Wheresthe_ Lif,0,left,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-346,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,right,Labels_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-347,Labels_novel,Lif Canyoufindthe_ Lif,0,right,Labels_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-348,Labels_familiar,Car Wheresthe_ Car,0,right,Labels_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-349,Labels_familiar,Dog Wheresthe_ Dog,0,left,Labels_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-350,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-351,Labels_familiar,Car Canyoufindthe_ Car,0,left,Labels_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-352,Labels_familiar,Baby Canyoufindthe_ Baby,0,right,Labels_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-353,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-354,Labels_familiar,Kitty Wheresthe_ Kitty,0,left,Labels_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-355,Labels_familiar,Dog Wheresthe_ Dog,0,right,Labels_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-356,Labels_familiar,Car Canyoufindthe_ Car,0,right,Labels_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-357,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,left,Labels_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-358,Labels_familiar,Ball Wheresthe_ Ball,0,left,Labels_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-359,Labels_familiar,Dog Wheresthe_ Dog,0,right,Labels_familiar-Dog-Baby,NA,0,3,4,TRUE,eng,NA
-360,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-361,Labels_familiar,Shoe Wheresthe_ Shoe,0,left,Labels_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-362,Labels_familiar,Car Canyoufindthe_ Car,0,right,Labels_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-363,Labels_familiar,Ball Wheresthe_ Ball,0,left,Labels_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-364,Labels_familiar,Kitty Wheresthe_ Kitty,0,left,Labels_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-365,Labels_familiar,Shoe Canyoufindthe_ Shoe,0,right,Labels_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-366,Labels_familiar,Baby Wheresthe_ Baby,0,right,Labels_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-367,Labels_novel,Neem Canyoufindthe_ Neem,0,left,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-368,Labels_familiar,Ball Canyoufindthe_ Ball,0,left,Labels_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-369,Labels_familiar,Ball Wheresthe_ Ball,0,left,Labels_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-370,Labels_novel,Lif Canyoufindthe_ Lif,0,right,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-371,Labels_familiar,Shoe Wheresthe_ Shoe,0,right,Labels_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-372,Labels_novel,Neem Canyoufindthe_ Neem,0,right,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-373,Labels_novel,Lif Canyoufindthe_ Lif,0,left,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-374,Labels_familiar,Dog Wheresthe_ Dog,0,right,Labels_familiar-Dog-Shoe,NA,0,3,0,TRUE,eng,NA
-375,Labels_familiar,Car Canyoufindthe_ Car,0,left,Labels_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-376,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,left,Labels_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-377,Labels_familiar,Baby Wheresthe_ Baby,0,right,Labels_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-378,Labels_familiar,Baby Canyoufindthe_ Baby,0,right,Labels_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-379,Labels_familiar,Kitty Wheresthe_ Kitty,0,left,Labels_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-380,Labels_novel,Neem Canyoufindthe_ Neem,0,right,Labels_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-381,Labels_familiar,Dog Canyoufindthe_ Dog,0,left,Labels_familiar-Dog-Ball,NA,0,3,8,TRUE,eng,NA
-382,Labels_familiar,Car Canyoufindthe_ Car,0,right,Labels_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-383,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,left,Labels_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-384,Labels_novel,Lif Canyoufindthe_ Lif,0,right,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-385,Labels_novel,Lif Wheresthe_ Lif,0,left,Labels_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-386,Labels_familiar,Ball Canyoufindthe_ Ball,0,left,Labels_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-387,Labels_novel,Neem Canyoufindthe_ Neem,0,right,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-388,Labels_familiar,Ball Canyoufindthe_ Ball,0,right,Labels_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-389,Labels_familiar,Shoe Wheresthe_ Shoe,0,left,Labels_familiar-Shoe-Ball,NA,0,0,8,TRUE,eng,NA
-390,Labels_familiar,Kitty Wheresthe_ Kitty,0,left,Labels_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-391,Labels_novel,Neem Canyoufindthe_ Neem,0,right,Labels_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-392,Labels_familiar,Baby Canyoufindthe_ Baby,0,right,Labels_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-393,Labels_familiar,Car Canyoufindthe_ Car,0,left,Labels_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-394,Labels_familiar,Baby Wheresthe_ Baby,0,right,Labels_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-395,Labels_familiar,Dog Wheresthe_ Dog,0,right,Labels_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-396,Labels_familiar,Kitty Canyoufindthe_ Kitty,0,left,Labels_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-397,Speakers_familiar,Ball Wheresthe_ Ball,0,left,Speakers_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-398,Speakers_novel,Lif Canyoufindthe_ Lif,0,right,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-399,Speakers_familiar,Car Canyoufindthe_ Car,0,right,Speakers_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-400,Speakers_novel,Neem Wheresthe_ Neem,0,left,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-401,Speakers_familiar,Dog Canyoufindthe_ Dog,0,left,Speakers_familiar-Dog-Shoe,NA,0,3,0,TRUE,eng,NA
-402,Speakers_novel,Neem Wheresthe_ Neem,0,right,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-403,Speakers_familiar,Kitty Wheresthe_ Kitty,0,right,Speakers_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-404,Speakers_novel,Lif Canyoufindthe_ Lif,0,left,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-405,Speakers_familiar,Baby Canyoufindthe_ Baby,0,left,Speakers_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-406,Speakers_novel,Neem Wheresthe_ Neem,0,right,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-407,Speakers_novel,Lif Wheresthe_ Lif,0,left,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-408,Speakers_familiar,Dog Canyoufindthe_ Dog,0,right,Speakers_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-409,Speakers_novel,Lif Wheresthe_ Lif,0,right,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-410,Speakers_familiar,Car Canyoufindthe_ Car,0,right,Speakers_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-411,Speakers_novel,Neem Canyoufindthe_ Neem,0,left,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-412,Speakers_familiar,Ball Wheresthe_ Ball,0,left,Speakers_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-413,Speakers_familiar,Baby Canyoufindthe_ Baby,0,left,Speakers_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-414,Speakers_novel,Lif Wheresthe_ Lif,0,left,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-415,Speakers_novel,Neem Canyoufindthe_ Neem,0,right,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-416,Speakers_familiar,Ball Wheresthe_ Ball,0,right,Speakers_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-417,Speakers_novel,Lif Canyoufindthe_ Lif,0,right,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-418,Speakers_familiar,Kitty Wheresthe_ Kitty,0,left,Speakers_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-419,Speakers_familiar,Shoe Wheresthe_ Shoe,0,right,Speakers_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-420,Speakers_novel,Neem Canyoufindthe_ Neem,0,left,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-421,Speakers_familiar,Shoe Canyoufindthe_ Shoe,0,left,Speakers_familiar-Shoe-Ball,NA,0,0,8,TRUE,eng,NA
-422,Speakers_novel,Neem Canyoufindthe_ Neem,0,left,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-423,Speakers_novel,Lif Wheresthe_ Lif,0,right,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-424,Speakers_familiar,Dog Wheresthe_ Dog,0,right,Speakers_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-425,Speakers_novel,Neem Wheresthe_ Neem,0,right,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-426,Speakers_familiar,Baby Wheresthe_ Baby,0,right,Speakers_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-427,Speakers_novel,Lif Canyoufindthe_ Lif,0,left,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-428,Speakers_familiar,Ball Canyoufindthe_ Ball,0,left,Speakers_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-429,Speakers_familiar,Shoe Wheresthe_ Shoe,0,left,Speakers_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-430,Speakers_novel,Lif Wheresthe_ Lif,0,right,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-431,Speakers_novel,Neem Canyoufindthe_ Neem,0,left,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-432,Speakers_familiar,Car Canyoufindthe_ Car,0,right,Speakers_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-433,Speakers_novel,Neem Canyoufindthe_ Neem,0,right,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-434,Speakers_familiar,Kitty Canyoufindthe_ Kitty,0,right,Speakers_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-435,Speakers_familiar,Baby Wheresthe_ Baby,0,left,Speakers_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-436,Speakers_novel,Lif Wheresthe_ Lif,0,left,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-437,Speakers_familiar,Shoe Wheresthe_ Shoe,0,right,Speakers_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-438,Speakers_novel,Neem Canyoufindthe_ Neem,0,left,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-439,Speakers_familiar,Car Wheresthe_ Car,0,left,Speakers_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-440,Speakers_novel,Neem Wheresthe_ Neem,0,right,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-441,Speakers_familiar,Dog Canyoufindthe_ Dog,0,right,Speakers_familiar-Dog-Ball,NA,0,3,8,TRUE,eng,NA
-442,Speakers_novel,Lif Wheresthe_ Lif,0,left,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-443,Speakers_familiar,Baby Canyoufindthe_ Baby,0,left,Speakers_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-444,Speakers_familiar,Car Canyoufindthe_ Car,0,left,Speakers_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-445,Speakers_familiar,Dog Wheresthe_ Dog,0,right,Speakers_familiar-Dog-Shoe,NA,0,3,0,TRUE,eng,NA
-446,Speakers_novel,Neem Canyoufindthe_ Neem,0,left,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-447,Speakers_familiar,Kitty Canyoufindthe_ Kitty,0,right,Speakers_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-448,Speakers_novel,Lif Wheresthe_ Lif,0,left,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-449,Speakers_familiar,Ball Canyoufindthe_ Ball,0,left,Speakers_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-450,Speakers_novel,Neem Wheresthe_ Neem,0,right,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-451,Speakers_familiar,Baby Wheresthe_ Baby,0,left,Speakers_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-452,Speakers_novel,Lif Canyoufindthe_ Lif,0,right,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-453,Speakers_familiar,Kitty Canyoufindthe_ Kitty,0,right,Speakers_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-454,Speakers_novel,Neem Wheresthe_ Neem,0,left,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-455,Speakers_novel,Lif Canyoufindthe_ Lif,0,left,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-456,Speakers_familiar,Shoe Wheresthe_ Shoe,0,left,Speakers_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-457,Speakers_familiar,Car Canyoufindthe_ Car,0,right,Speakers_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-458,Speakers_familiar,Dog Canyoufindthe_ Dog,0,right,Speakers_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-459,Speakers_novel,Neem Wheresthe_ Neem,0,left,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-460,Speakers_familiar,Kitty Wheresthe_ Kitty,0,left,Speakers_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-461,Speakers_familiar,Car Wheresthe_ Car,0,right,Speakers_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-462,Speakers_familiar,Ball Canyoufindthe_ Ball,0,left,Speakers_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-463,Speakers_novel,Lif Canyoufindthe_ Lif,0,left,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-464,Speakers_familiar,Baby Wheresthe_ Baby,0,right,Speakers_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-465,Speakers_novel,Neem Canyoufindthe_ Neem,0,right,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-466,Speakers_familiar,Dog Wheresthe_ Dog,0,left,Speakers_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-467,Speakers_novel,Lif Canyoufindthe_ Lif,0,left,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-468,Speakers_familiar,Car Wheresthe_ Car,0,right,Speakers_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-469,Speakers_novel,Neem Canyoufindthe_ Neem,0,left,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-470,Speakers_novel,Lif Wheresthe_ Lif,0,right,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-471,Speakers_familiar,Shoe Canyoufindthe_ Shoe,0,left,Speakers_familiar-Shoe-Dog,NA,0,0,3,TRUE,eng,NA
-472,Speakers_familiar,Shoe Canyoufindthe_ Shoe,0,right,Speakers_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-473,Speakers_novel,Lif Canyoufindthe_ Lif,0,left,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-474,Speakers_novel,Neem Wheresthe_ Neem,0,right,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-475,Speakers_familiar,Ball Wheresthe_ Ball,0,left,Speakers_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-476,Speakers_novel,Neem Wheresthe_ Neem,0,left,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-477,Speakers_familiar,Kitty Wheresthe_ Kitty,0,right,Speakers_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-478,Speakers_novel,Lif Canyoufindthe_ Lif,0,right,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-479,Speakers_familiar,Dog Canyoufindthe_ Dog,0,left,Speakers_familiar-Dog-Baby,NA,0,3,4,TRUE,eng,NA
-480,Speakers_familiar,Car Canyoufindthe_ Car,0,right,Speakers_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-481,Speakers_novel,Lif Canyoufindthe_ Lif,0,left,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-482,Speakers_familiar,Kitty Wheresthe_ Kitty,0,left,Speakers_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-483,Speakers_novel,Neem Wheresthe_ Neem,0,right,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-484,Speakers_familiar,Baby Canyoufindthe_ Baby,0,left,Speakers_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-485,Speakers_novel,Neem Wheresthe_ Neem,0,left,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-486,Speakers_familiar,Ball Canyoufindthe_ Ball,0,right,Speakers_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-487,Speakers_novel,Lif Wheresthe_ Lif,0,right,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-488,Speakers_familiar,Ball Canyoufindthe_ Ball,0,right,Speakers_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-489,Speakers_novel,Neem Wheresthe_ Neem,0,right,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-490,Speakers_familiar,Shoe Wheresthe_ Shoe,0,right,Speakers_familiar-Shoe-Ball,NA,0,0,8,TRUE,eng,NA
-491,Speakers_novel,Lif Canyoufindthe_ Lif,0,right,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-492,Speakers_familiar,Baby Canyoufindthe_ Baby,0,left,Speakers_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-493,Speakers_novel,Neem Wheresthe_ Neem,0,left,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-494,Speakers_familiar,Shoe Canyoufindthe_ Shoe,0,right,Speakers_familiar-Shoe-Ball,NA,0,0,8,TRUE,eng,NA
-495,Speakers_familiar,Kitty Canyoufindthe_ Kitty,0,left,Speakers_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-496,Speakers_familiar,Baby Wheresthe_ Baby,0,left,Speakers_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-497,Speakers_novel,Lif Canyoufindthe_ Lif,0,right,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-498,Speakers_familiar,Ball Wheresthe_ Ball,0,right,Speakers_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-499,Speakers_novel,Neem Canyoufindthe_ Neem,0,left,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-500,Speakers_novel,Lif Wheresthe_ Lif,0,right,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-501,Speakers_familiar,Car Canyoufindthe_ Car,0,left,Speakers_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-502,Speakers_familiar,Kitty Wheresthe_ Kitty,0,right,Speakers_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-503,Speakers_novel,Lif Canyoufindthe_ Lif,0,left,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-504,Speakers_novel,Neem Canyoufindthe_ Neem,0,right,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-505,Speakers_familiar,Baby Wheresthe_ Baby,0,left,Speakers_familiar-Baby-Dog,NA,0,4,3,TRUE,eng,NA
-506,Speakers_familiar,Car Wheresthe_ Car,0,right,Speakers_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-507,Speakers_novel,Neem Canyoufindthe_ Neem,0,right,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-508,Speakers_familiar,Dog Wheresthe_ Dog,0,left,Speakers_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-509,Speakers_familiar,Kitty Canyoufindthe_ Kitty,0,right,Speakers_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-510,Speakers_familiar,Ball Wheresthe_ Ball,0,left,Speakers_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-511,Speakers_familiar,Ball Wheresthe_ Ball,0,right,Speakers_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-512,Speakers_novel,Lif Wheresthe_ Lif,0,left,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-513,Speakers_familiar,Kitty Canyoufindthe_ Kitty,0,left,Speakers_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-514,Speakers_familiar,Baby Wheresthe_ Baby,0,right,Speakers_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-515,Speakers_novel,Neem Canyoufindthe_ Neem,0,right,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-516,Speakers_familiar,Baby Canyoufindthe_ Baby,0,right,Speakers_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-517,Speakers_familiar,Shoe Wheresthe_ Shoe,0,left,Speakers_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-518,Speakers_novel,Neem Canyoufindthe_ Neem,0,right,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-519,Speakers_familiar,Ball Canyoufindthe_ Ball,0,left,Speakers_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-520,Speakers_novel,Neem Wheresthe_ Neem,0,left,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-521,Speakers_familiar,Dog Wheresthe_ Dog,0,right,Speakers_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-522,Speakers_novel,Lif Wheresthe_ Lif,0,left,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-523,Speakers_familiar,Shoe Wheresthe_ Shoe,0,right,Speakers_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-524,Speakers_familiar,Kitty Wheresthe_ Kitty,0,left,Speakers_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-525,Speakers_novel,Lif Canyoufindthe_ Lif,0,right,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-526,Speakers_familiar,Ball Wheresthe_ Ball,0,right,Speakers_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-527,Speakers_novel,Neem Canyoufindthe_ Neem,0,left,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-528,Speakers_familiar,Dog Wheresthe_ Dog,0,right,Speakers_familiar-Dog-Ball,NA,0,3,8,TRUE,eng,NA
-529,Speakers_novel,Neem Wheresthe_ Neem,0,left,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-530,Speakers_novel,Lif Canyoufindthe_ Lif,0,right,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-531,Speakers_familiar,Shoe Canyoufindthe_ Shoe,0,left,Speakers_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-532,Speakers_familiar,Kitty Wheresthe_ Kitty,0,right,Speakers_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-533,Speakers_familiar,Car Wheresthe_ Car,0,left,Speakers_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-534,Speakers_familiar,Dog Wheresthe_ Dog,0,right,Speakers_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-535,Speakers_familiar,Shoe Canyoufindthe_ Shoe,0,left,Speakers_familiar-Shoe-Dog,NA,0,0,3,TRUE,eng,NA
-536,Speakers_familiar,Kitty Canyoufindthe_ Kitty,0,right,Speakers_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-537,Speakers_novel,Neem Wheresthe_ Neem,0,right,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-538,Speakers_familiar,Ball Canyoufindthe_ Ball,0,left,Speakers_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-539,Speakers_familiar,Kitty Wheresthe_ Kitty,0,left,Speakers_familiar-Kitty-Shoe,NA,0,6,0,TRUE,eng,NA
-540,Speakers_familiar,Car Wheresthe_ Car,0,right,Speakers_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-541,Speakers_novel,Neem Canyoufindthe_ Neem,0,left,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-542,Speakers_familiar,Dog Canyoufindthe_ Dog,0,right,Speakers_familiar-Dog-Baby,NA,0,3,4,TRUE,eng,NA
-543,Speakers_novel,Neem Canyoufindthe_ Neem,0,right,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-544,Speakers_familiar,Ball Wheresthe_ Ball,0,left,Speakers_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-545,Speakers_familiar,Baby Wheresthe_ Baby,0,left,Speakers_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-546,Speakers_novel,Lif Canyoufindthe_ Lif,0,right,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-547,Speakers_familiar,Car Wheresthe_ Car,0,right,Speakers_familiar-Car-Dog,NA,0,5,3,TRUE,eng,NA
-548,Speakers_familiar,Ball Wheresthe_ Ball,0,right,Speakers_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-549,Speakers_familiar,Kitty Wheresthe_ Kitty,0,left,Speakers_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-550,Speakers_familiar,Baby Canyoufindthe_ Baby,0,left,Speakers_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-551,Speakers_novel,Lif Wheresthe_ Lif,0,right,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-552,Speakers_familiar,Dog Wheresthe_ Dog,0,right,Speakers_familiar-Dog-Ball,NA,0,3,8,TRUE,eng,NA
-553,Speakers_novel,Neem Canyoufindthe_ Neem,0,right,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-554,Speakers_familiar,Car Wheresthe_ Car,0,left,Speakers_familiar-Car-Shoe,NA,0,5,0,TRUE,eng,NA
-555,Speakers_novel,Lif Canyoufindthe_ Lif,0,left,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-556,Speakers_familiar,Baby Canyoufindthe_ Baby,0,right,Speakers_familiar-Baby-Shoe,NA,0,4,0,TRUE,eng,NA
-557,Speakers_familiar,Car Wheresthe_ Car,0,left,Speakers_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-558,Speakers_familiar,Ball Canyoufindthe_ Ball,0,left,Speakers_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-559,Speakers_novel,Lif Wheresthe_ Lif,0,left,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-560,Speakers_familiar,Dog Canyoufindthe_ Dog,0,right,Speakers_familiar-Dog-Baby,NA,0,3,4,TRUE,eng,NA
-561,Speakers_novel,Lif Canyoufindthe_ Lif,0,right,Speakers_novel-Lif-FribbleA,NA,0,9,7,FALSE,eng,NA
-562,Speakers_familiar,Kitty Wheresthe_ Kitty,0,right,Speakers_familiar-Kitty-Dog,NA,0,6,3,TRUE,eng,NA
-563,Speakers_familiar,Ball Wheresthe_ Ball,0,left,Speakers_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-564,Speakers_familiar,Dog Wheresthe_ Dog,0,left,Speakers_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-565,Speakers_familiar,Ball Canyoufindthe_ Ball,0,left,Speakers_familiar-Ball-Dog,NA,0,8,3,TRUE,eng,NA
-566,Speakers_familiar,Car Wheresthe_ Car,0,left,Speakers_familiar-Car-Ball,NA,0,5,8,TRUE,eng,NA
-567,Speakers_familiar,Baby Canyoufindthe_ Baby,0,right,Speakers_familiar-Baby-Car,NA,0,4,5,TRUE,eng,NA
-568,Speakers_familiar,Dog Wheresthe_ Dog,0,right,Speakers_familiar-Dog-Kitty,NA,0,3,6,TRUE,eng,NA
-569,Speakers_novel,Neem Wheresthe_ Neem,0,left,Speakers_novel-Neem-FribbleB,NA,0,7,9,FALSE,eng,NA
-570,Speakers_novel,Neem Wheresthe_ Neem,0,right,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-571,Speakers_familiar,Dog Wheresthe_ Dog,0,left,Speakers_familiar-Dog-Shoe,NA,0,3,0,TRUE,eng,NA
-572,Speakers_familiar,Ball Canyoufindthe_ Ball,0,right,Speakers_familiar-Ball-Shoe,NA,0,8,0,TRUE,eng,NA
-573,Speakers_novel,Lif Wheresthe_ Lif,0,right,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-574,Speakers_familiar,Ball Wheresthe_ Ball,0,left,Speakers_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-575,Speakers_novel,Lif Canyoufindthe_ Lif,0,left,Speakers_novel-Lif-FribbleB,NA,0,1,2,FALSE,eng,NA
-576,Speakers_familiar,Dog Canyoufindthe_ Dog,0,right,Speakers_familiar-Dog-Baby,NA,0,3,4,TRUE,eng,NA
-577,Speakers_familiar,Kitty Canyoufindthe_ Kitty,0,right,Speakers_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-578,Speakers_familiar,Shoe Canyoufindthe_ Shoe,0,left,Speakers_familiar-Shoe-Dog,NA,0,0,3,TRUE,eng,NA
-579,Speakers_familiar,Dog Canyoufindthe_ Dog,0,left,Speakers_familiar-Dog-Baby,NA,0,3,4,TRUE,eng,NA
-580,Speakers_familiar,Ball Canyoufindthe_ Ball,0,right,Speakers_familiar-Ball-Car,NA,0,8,5,TRUE,eng,NA
-581,Speakers_familiar,Shoe Wheresthe_ Shoe,0,right,Speakers_familiar-Shoe-Car,NA,0,0,5,TRUE,eng,NA
-582,Speakers_familiar,Kitty Canyoufindthe_ Kitty,0,left,Speakers_familiar-Kitty-Baby,NA,0,6,4,TRUE,eng,NA
-583,Speakers_familiar,Car Canyoufindthe_ Car,0,left,Speakers_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
-584,Speakers_novel,Neem Wheresthe_ Neem,0,left,Speakers_novel-Neem-FribbleA,NA,0,2,1,FALSE,eng,NA
-585,Speakers_familiar,Kitty Canyoufindthe_ Kitty,0,right,Speakers_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-586,Speakers_familiar,Shoe Canyoufindthe_ Shoe,0,right,Speakers_familiar-Shoe-Kitty,NA,0,0,6,TRUE,eng,NA
-587,Speakers_familiar,Dog Canyoufindthe_ Dog,0,right,Speakers_familiar-Dog-Ball,NA,0,3,8,TRUE,eng,NA
-588,Speakers_familiar,Shoe Canyoufindthe_ Shoe,0,left,Speakers_familiar-Shoe-Baby,NA,0,0,4,TRUE,eng,NA
-589,Speakers_familiar,Baby Canyoufindthe_ Baby,0,left,Speakers_familiar-Baby-Kitty,NA,0,4,6,TRUE,eng,NA
-590,Speakers_familiar,Ball Wheresthe_ Ball,0,right,Speakers_familiar-Ball-Kitty,NA,0,8,6,TRUE,eng,NA
-591,Speakers_familiar,Dog Wheresthe_ Dog,0,left,Speakers_familiar-Dog-Car,NA,0,3,5,TRUE,eng,NA
-592,Speakers_familiar,Shoe Wheresthe_ Shoe,0,right,Speakers_familiar-Shoe-Ball,NA,0,0,8,TRUE,eng,NA
-593,Speakers_familiar,Kitty Wheresthe_ Kitty,0,left,Speakers_familiar-Kitty-Ball,NA,0,6,8,TRUE,eng,NA
-594,Speakers_familiar,Car Canyoufindthe_ Car,0,right,Speakers_familiar-Car-Baby,NA,0,5,4,TRUE,eng,NA
+0,Colors_familiar,shoe! Where's the shoe?,0,left,Colors_familiar-shoe-Kitty,NA,0,0,6,TRUE,eng,NA
+1,Colors_novel,lif! Where's the lif?,0,left,Colors_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+2,Colors_novel,neem! Can you find the neem?,0,right,Colors_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+3,Colors_familiar,dog! Can you find the dog?,0,right,Colors_familiar-dog-Car,NA,0,3,5,TRUE,eng,NA
+4,Colors_novel,lif! Where's the lif?,0,right,Colors_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+5,Colors_familiar,baby! Can you find the baby?,0,right,Colors_familiar-baby-Dog,NA,0,4,3,TRUE,eng,NA
+6,Colors_novel,neem! Where's the neem?,0,left,Colors_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+7,Colors_familiar,car! Can you find the car?,0,left,Colors_familiar-car-Dog,NA,0,5,3,TRUE,eng,NA
+8,Colors_familiar,kitty! Can you find the kitty?,0,right,Colors_familiar-kitty-Baby,NA,0,6,4,TRUE,eng,NA
+9,Colors_novel,neem! Can you find the neem?,0,left,Colors_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+10,Colors_familiar,ball! Where's the ball?,0,left,Colors_familiar-ball-Dog,NA,0,8,3,TRUE,eng,NA
+11,Colors_novel,lif! Where's the lif?,0,right,Colors_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+12,Colors_familiar,dog! Where's the dog?,0,left,Colors_familiar-dog-Car,NA,0,3,5,TRUE,eng,NA
+13,Colors_novel,lif! Where's the lif?,0,left,Colors_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+14,Colors_familiar,car! Can you find the car?,0,right,Colors_familiar-car-Shoe,NA,0,5,0,TRUE,eng,NA
+15,Colors_novel,neem! Can you find the neem?,0,right,Colors_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+16,Colors_familiar,ball! Can you find the ball?,0,right,Colors_familiar-ball-Car,NA,0,8,5,TRUE,eng,NA
+17,Colors_familiar,shoe! Where's the shoe?,0,left,Colors_familiar-shoe-Baby,NA,0,0,4,TRUE,eng,NA
+18,Colors_novel,neem! Where's the neem?,0,right,Colors_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+19,Colors_familiar,dog! Can you find the dog?,0,right,Colors_familiar-dog-Shoe,NA,0,3,0,TRUE,eng,NA
+20,Colors_familiar,kitty! Can you find the kitty?,0,left,Colors_familiar-kitty-Shoe,NA,0,6,0,TRUE,eng,NA
+21,Colors_familiar,kitty! Can you find the kitty?,0,left,Colors_familiar-kitty-Baby,NA,0,6,4,TRUE,eng,NA
+22,Colors_familiar,shoe! Where's the shoe?,0,right,Colors_familiar-shoe-Car,NA,0,0,5,TRUE,eng,NA
+23,Colors_familiar,car! Can you find the car?,0,left,Colors_familiar-car-Shoe,NA,0,5,0,TRUE,eng,NA
+24,Colors_familiar,dog! Can you find the dog?,0,right,Colors_familiar-dog-Baby,NA,0,3,4,TRUE,eng,NA
+25,Colors_familiar,shoe! Can you find the shoe?,0,left,Colors_familiar-shoe-Baby,NA,0,0,4,TRUE,eng,NA
+26,Colors_novel,neem! Where's the neem?,0,right,Colors_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+27,Colors_novel,lif! Can you find the lif?,0,left,Colors_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+28,Colors_familiar,dog! Where's the dog?,0,right,Colors_familiar-dog-Car,NA,0,3,5,TRUE,eng,NA
+29,Colors_familiar,ball! Can you find the ball?,0,left,Colors_familiar-ball-Dog,NA,0,8,3,TRUE,eng,NA
+30,Colors_familiar,kitty! Can you find the kitty?,0,right,Colors_familiar-kitty-Shoe,NA,0,6,0,TRUE,eng,NA
+31,Colors_familiar,shoe! Can you find the shoe?,0,right,Colors_familiar-shoe-Kitty,NA,0,0,6,TRUE,eng,NA
+32,Colors_novel,neem! Where's the neem?,0,left,Colors_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+33,Colors_novel,lif! Can you find the lif?,0,right,Colors_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+34,Colors_familiar,baby! Where's the baby?,0,left,Colors_familiar-baby-Kitty,NA,0,4,6,TRUE,eng,NA
+35,Colors_familiar,kitty! Can you find the kitty?,0,left,Colors_familiar-kitty-Ball,NA,0,6,8,TRUE,eng,NA
+36,Colors_familiar,ball! Can you find the ball?,0,right,Colors_familiar-ball-Kitty,NA,0,8,6,TRUE,eng,NA
+37,Colors_familiar,dog! Can you find the dog?,0,left,Colors_familiar-dog-Car,NA,0,3,5,TRUE,eng,NA
+38,Colors_familiar,kitty! Where's the kitty?,0,right,Colors_familiar-kitty-Baby,NA,0,6,4,TRUE,eng,NA
+39,Colors_novel,neem! Can you find the neem?,0,left,Colors_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+40,Colors_familiar,ball! Where's the ball?,0,right,Colors_familiar-ball-Shoe,NA,0,8,0,TRUE,eng,NA
+41,Colors_familiar,baby! Can you find the baby?,0,left,Colors_familiar-baby-Kitty,NA,0,4,6,TRUE,eng,NA
+42,Colors_familiar,shoe! Where's the shoe?,0,right,Colors_familiar-shoe-Baby,NA,0,0,4,TRUE,eng,NA
+43,Colors_novel,lif! Can you find the lif?,0,left,Colors_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+44,Colors_familiar,kitty! Where's the kitty?,0,right,Colors_familiar-kitty-Shoe,NA,0,6,0,TRUE,eng,NA
+45,Colors_familiar,ball! Where's the ball?,0,left,Colors_familiar-ball-Shoe,NA,0,8,0,TRUE,eng,NA
+46,Colors_familiar,car! Where's the car?,0,right,Colors_familiar-car-Dog,NA,0,5,3,TRUE,eng,NA
+47,Colors_familiar,baby! Where's the baby?,0,left,Colors_familiar-baby-Dog,NA,0,4,3,TRUE,eng,NA
+48,Colors_familiar,kitty! Where's the kitty?,0,right,Colors_familiar-kitty-Dog,NA,0,6,3,TRUE,eng,NA
+49,Colors_familiar,car! Where's the car?,0,left,Colors_familiar-car-Shoe,NA,0,5,0,TRUE,eng,NA
+50,Colors_familiar,kitty! Where's the kitty?,0,left,Colors_familiar-kitty-Dog,NA,0,6,3,TRUE,eng,NA
+51,Colors_familiar,ball! Can you find the ball?,0,left,Colors_familiar-ball-Car,NA,0,8,5,TRUE,eng,NA
+52,Colors_familiar,baby! Where's the baby?,0,right,Colors_familiar-baby-Dog,NA,0,4,3,TRUE,eng,NA
+53,Colors_novel,lif! Can you find the lif?,0,right,Colors_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+54,Colors_familiar,shoe! Can you find the shoe?,0,left,Colors_familiar-shoe-Dog,NA,0,0,3,TRUE,eng,NA
+55,Colors_familiar,dog! Can you find the dog?,0,right,Colors_familiar-dog-Kitty,NA,0,3,6,TRUE,eng,NA
+56,Colors_familiar,baby! Can you find the baby?,0,left,Colors_familiar-baby-Car,NA,0,4,5,TRUE,eng,NA
+57,Colors_familiar,car! Where's the car?,0,right,Colors_familiar-car-Ball,NA,0,5,8,TRUE,eng,NA
+58,Colors_familiar,ball! Where's the ball?,0,left,Colors_familiar-ball-Kitty,NA,0,8,6,TRUE,eng,NA
+59,Colors_familiar,dog! Where's the dog?,0,right,Colors_familiar-dog-Shoe,NA,0,3,0,TRUE,eng,NA
+60,Colors_familiar,car! Can you find the car?,0,right,Colors_familiar-car-Baby,NA,0,5,4,TRUE,eng,NA
+61,Colors_familiar,shoe! Can you find the shoe?,0,right,Colors_familiar-shoe-Baby,NA,0,0,4,TRUE,eng,NA
+62,Colors_familiar,dog! Can you find the dog?,0,left,Colors_familiar-dog-Baby,NA,0,3,4,TRUE,eng,NA
+63,Colors_familiar,car! Where's the car?,0,right,Colors_familiar-car-Baby,NA,0,5,4,TRUE,eng,NA
+64,Colors_familiar,car! Where's the car?,0,left,Colors_familiar-car-Baby,NA,0,5,4,TRUE,eng,NA
+65,Colors_familiar,shoe! Can you find the shoe?,0,left,Colors_familiar-shoe-Kitty,NA,0,0,6,TRUE,eng,NA
+66,Colors_familiar,baby! Can you find the baby?,0,right,Colors_familiar-baby-Kitty,NA,0,4,6,TRUE,eng,NA
+67,Colors_familiar,baby! Can you find the baby?,0,left,Colors_familiar-baby-Shoe,NA,0,4,0,TRUE,eng,NA
+68,Colors_familiar,kitty! Where's the kitty?,0,left,Colors_familiar-kitty-Ball,NA,0,6,8,TRUE,eng,NA
+69,Colors_familiar,shoe! Can you find the shoe?,0,right,Colors_familiar-shoe-Ball,NA,0,0,8,TRUE,eng,NA
+70,Colors_familiar,shoe! Where's the shoe?,0,left,Colors_familiar-shoe-Car,NA,0,0,5,TRUE,eng,NA
+71,Colors_familiar,shoe! Can you find the shoe?,0,right,Colors_familiar-shoe-Car,NA,0,0,5,TRUE,eng,NA
+72,Colors_familiar,dog! Where's the dog?,0,right,Colors_familiar-dog-Kitty,NA,0,3,6,TRUE,eng,NA
+73,Colors_familiar,kitty! Can you find the kitty?,0,right,Colors_familiar-kitty-Dog,NA,0,6,3,TRUE,eng,NA
+74,Colors_familiar,car! Where's the car?,0,left,Colors_familiar-car-Ball,NA,0,5,8,TRUE,eng,NA
+75,Colors_familiar,ball! Can you find the ball?,0,left,Colors_familiar-ball-Kitty,NA,0,8,6,TRUE,eng,NA
+76,Colors_familiar,shoe! Where's the shoe?,0,right,Colors_familiar-shoe-Kitty,NA,0,0,6,TRUE,eng,NA
+77,Colors_familiar,dog! Can you find the dog?,0,left,Colors_familiar-dog-Shoe,NA,0,3,0,TRUE,eng,NA
+78,Colors_familiar,baby! Can you find the baby?,0,right,Colors_familiar-baby-Car,NA,0,4,5,TRUE,eng,NA
+79,Colors_familiar,kitty! Where's the kitty?,0,left,Colors_familiar-kitty-Baby,NA,0,6,4,TRUE,eng,NA
+80,Colors_familiar,ball! Can you find the ball?,0,right,Colors_familiar-ball-Dog,NA,0,8,3,TRUE,eng,NA
+81,Colors_familiar,shoe! Where's the shoe?,0,left,Colors_familiar-shoe-Dog,NA,0,0,3,TRUE,eng,NA
+82,Labels_familiar,shoe! Can you find the shoe?,0,left,Labels_familiar-shoe-Ball,NA,0,0,8,TRUE,eng,NA
+83,Labels_novel,neem! Where's the neem?,0,left,Labels_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+84,Labels_novel,lif! Where's the lif?,0,right,Labels_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+85,Labels_familiar,baby! Can you find the baby?,0,right,Labels_familiar-baby-Shoe,NA,0,4,0,TRUE,eng,NA
+86,Labels_familiar,ball! Can you find the ball?,0,right,Labels_familiar-ball-Car,NA,0,8,5,TRUE,eng,NA
+87,Labels_novel,neem! Where's the neem?,0,right,Labels_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+88,Labels_familiar,kitty! Where's the kitty?,0,left,Labels_familiar-kitty-Baby,NA,0,6,4,TRUE,eng,NA
+89,Labels_novel,lif! Can you find the lif?,0,left,Labels_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+90,Labels_familiar,shoe! Where's the shoe?,0,left,Labels_familiar-shoe-Kitty,NA,0,0,6,TRUE,eng,NA
+91,Labels_novel,neem! Can you find the neem?,0,left,Labels_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+92,Labels_familiar,ball! Can you find the ball?,0,right,Labels_familiar-ball-Shoe,NA,0,8,0,TRUE,eng,NA
+93,Labels_familiar,kitty! Where's the kitty?,0,right,Labels_familiar-kitty-Ball,NA,0,6,8,TRUE,eng,NA
+94,Labels_familiar,baby! Can you find the baby?,0,left,Labels_familiar-baby-Kitty,NA,0,4,6,TRUE,eng,NA
+95,Labels_familiar,dog! Can you find the dog?,0,right,Labels_familiar-dog-Ball,NA,0,3,8,TRUE,eng,NA
+96,Labels_novel,lif! Where's the lif?,0,left,Labels_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+97,Labels_novel,neem! Can you find the neem?,0,right,Labels_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+98,Labels_familiar,car! Where's the car?,0,left,Labels_familiar-car-Dog,NA,0,5,3,TRUE,eng,NA
+99,Labels_novel,lif! Where's the lif?,0,right,Labels_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+100,Labels_familiar,baby! Where's the baby?,0,right,Labels_familiar-baby-Dog,NA,0,4,3,TRUE,eng,NA
+101,Labels_novel,neem! Can you find the neem?,0,left,Labels_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+102,Labels_familiar,kitty! Can you find the kitty?,0,left,Labels_familiar-kitty-Ball,NA,0,6,8,TRUE,eng,NA
+103,Labels_familiar,car! Can you find the car?,0,left,Labels_familiar-car-Shoe,NA,0,5,0,TRUE,eng,NA
+104,Labels_familiar,kitty! Can you find the kitty?,0,right,Labels_familiar-kitty-Dog,NA,0,6,3,TRUE,eng,NA
+105,Labels_novel,lif! Where's the lif?,0,left,Labels_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+106,Labels_familiar,baby! Where's the baby?,0,right,Labels_familiar-baby-Shoe,NA,0,4,0,TRUE,eng,NA
+107,Labels_familiar,dog! Can you find the dog?,0,left,Labels_familiar-dog-Kitty,NA,0,3,6,TRUE,eng,NA
+108,Labels_familiar,dog! Can you find the dog?,0,left,Labels_familiar-dog-Car,NA,0,3,5,TRUE,eng,NA
+109,Labels_novel,neem! Where's the neem?,0,left,Labels_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+110,Labels_familiar,shoe! Where's the shoe?,0,right,Labels_familiar-shoe-Baby,NA,0,0,4,TRUE,eng,NA
+111,Labels_novel,lif! Can you find the lif?,0,right,Labels_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+112,Labels_familiar,car! Where's the car?,0,left,Labels_familiar-car-Ball,NA,0,5,8,TRUE,eng,NA
+113,Labels_familiar,ball! Can you find the ball?,0,right,Labels_familiar-ball-Dog,NA,0,8,3,TRUE,eng,NA
+114,Labels_familiar,shoe! Where's the shoe?,0,left,Labels_familiar-shoe-Ball,NA,0,0,8,TRUE,eng,NA
+115,Labels_novel,lif! Can you find the lif?,0,left,Labels_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+116,Labels_familiar,baby! Can you find the baby?,0,right,Labels_familiar-baby-Dog,NA,0,4,3,TRUE,eng,NA
+117,Labels_novel,neem! Where's the neem?,0,right,Labels_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+118,Labels_familiar,ball! Can you find the ball?,0,left,Labels_familiar-ball-Car,NA,0,8,5,TRUE,eng,NA
+119,Labels_familiar,baby! Can you find the baby?,0,left,Labels_familiar-baby-Dog,NA,0,4,3,TRUE,eng,NA
+120,Labels_familiar,shoe! Can you find the shoe?,0,left,Labels_familiar-shoe-Baby,NA,0,0,4,TRUE,eng,NA
+121,Labels_familiar,kitty! Can you find the kitty?,0,right,Labels_familiar-kitty-Shoe,NA,0,6,0,TRUE,eng,NA
+122,Labels_familiar,ball! Can you find the ball?,0,left,Labels_familiar-ball-Kitty,NA,0,8,6,TRUE,eng,NA
+123,Labels_familiar,car! Can you find the car?,0,right,Labels_familiar-car-Baby,NA,0,5,4,TRUE,eng,NA
+124,Labels_familiar,dog! Where's the dog?,0,right,Labels_familiar-dog-Ball,NA,0,3,8,TRUE,eng,NA
+125,Labels_novel,lif! Can you find the lif?,0,right,Labels_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+126,Labels_familiar,dog! Can you find the dog?,0,right,Labels_familiar-dog-Car,NA,0,3,5,TRUE,eng,NA
+127,Labels_familiar,kitty! Where's the kitty?,0,right,Labels_familiar-kitty-Dog,NA,0,6,3,TRUE,eng,NA
+128,Labels_familiar,car! Can you find the car?,0,left,Labels_familiar-car-Dog,NA,0,5,3,TRUE,eng,NA
+129,Labels_familiar,shoe! Where's the shoe?,0,right,Labels_familiar-shoe-Ball,NA,0,0,8,TRUE,eng,NA
+130,Labels_novel,neem! Can you find the neem?,0,right,Labels_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+131,Labels_familiar,dog! Where's the dog?,0,left,Labels_familiar-dog-Ball,NA,0,3,8,TRUE,eng,NA
+132,Labels_familiar,car! Where's the car?,0,left,Labels_familiar-car-Baby,NA,0,5,4,TRUE,eng,NA
+133,Labels_familiar,baby! Where's the baby?,0,left,Labels_familiar-baby-Dog,NA,0,4,3,TRUE,eng,NA
+134,Labels_familiar,shoe! Can you find the shoe?,0,left,Labels_familiar-shoe-Dog,NA,0,0,3,TRUE,eng,NA
+135,Labels_familiar,shoe! Where's the shoe?,0,left,Labels_familiar-shoe-Car,NA,0,0,5,TRUE,eng,NA
+136,Labels_familiar,kitty! Can you find the kitty?,0,right,Labels_familiar-kitty-Baby,NA,0,6,4,TRUE,eng,NA
+137,Labels_familiar,ball! Can you find the ball?,0,left,Labels_familiar-ball-Shoe,NA,0,8,0,TRUE,eng,NA
+138,Labels_familiar,baby! Where's the baby?,0,right,Labels_familiar-baby-Car,NA,0,4,5,TRUE,eng,NA
+139,Labels_familiar,dog! Where's the dog?,0,left,Labels_familiar-dog-Shoe,NA,0,3,0,TRUE,eng,NA
+140,Labels_familiar,car! Can you find the car?,0,right,Labels_familiar-car-Shoe,NA,0,5,0,TRUE,eng,NA
+141,Labels_familiar,ball! Where's the ball?,0,left,Labels_familiar-ball-Shoe,NA,0,8,0,TRUE,eng,NA
+142,Labels_familiar,shoe! Can you find the shoe?,0,right,Labels_familiar-shoe-Dog,NA,0,0,3,TRUE,eng,NA
+143,Labels_familiar,kitty! Where's the kitty?,0,left,Labels_familiar-kitty-Dog,NA,0,6,3,TRUE,eng,NA
+144,Labels_familiar,baby! Can you find the baby?,0,left,Labels_familiar-baby-Shoe,NA,0,4,0,TRUE,eng,NA
+145,Labels_familiar,ball! Can you find the ball?,0,left,Labels_familiar-ball-Dog,NA,0,8,3,TRUE,eng,NA
+146,Labels_familiar,shoe! Where's the shoe?,0,right,Labels_familiar-shoe-Dog,NA,0,0,3,TRUE,eng,NA
+147,Labels_familiar,baby! Can you find the baby?,0,right,Labels_familiar-baby-Kitty,NA,0,4,6,TRUE,eng,NA
+148,Labels_familiar,dog! Can you find the dog?,0,left,Labels_familiar-dog-Ball,NA,0,3,8,TRUE,eng,NA
+149,Labels_familiar,car! Where's the car?,0,left,Labels_familiar-car-Shoe,NA,0,5,0,TRUE,eng,NA
+150,Labels_familiar,baby! Where's the baby?,0,left,Labels_familiar-baby-Shoe,NA,0,4,0,TRUE,eng,NA
+151,Labels_familiar,car! Can you find the car?,0,right,Labels_familiar-car-Ball,NA,0,5,8,TRUE,eng,NA
+152,Labels_familiar,dog! Where's the dog?,0,left,Labels_familiar-dog-Car,NA,0,3,5,TRUE,eng,NA
+153,Labels_familiar,kitty! Can you find the kitty?,0,left,Labels_familiar-kitty-Shoe,NA,0,6,0,TRUE,eng,NA
+154,Labels_familiar,shoe! Can you find the shoe?,0,left,Labels_familiar-shoe-Kitty,NA,0,0,6,TRUE,eng,NA
+155,Labels_familiar,ball! Where's the ball?,0,right,Labels_familiar-ball-Dog,NA,0,8,3,TRUE,eng,NA
+156,Labels_familiar,shoe! Can you find the shoe?,0,right,Labels_familiar-shoe-Car,NA,0,0,5,TRUE,eng,NA
+157,Labels_familiar,dog! Can you find the dog?,0,left,Labels_familiar-dog-Baby,NA,0,3,4,TRUE,eng,NA
+158,Labels_familiar,ball! Where's the ball?,0,right,Labels_familiar-ball-Car,NA,0,8,5,TRUE,eng,NA
+159,Labels_familiar,kitty! Where's the kitty?,0,right,Labels_familiar-kitty-Shoe,NA,0,6,0,TRUE,eng,NA
+160,Labels_familiar,baby! Can you find the baby?,0,left,Labels_familiar-baby-Car,NA,0,4,5,TRUE,eng,NA
+161,Labels_familiar,ball! Where's the ball?,0,right,Labels_familiar-ball-Shoe,NA,0,8,0,TRUE,eng,NA
+162,Labels_familiar,car! Can you find the car?,0,right,Labels_familiar-car-Dog,NA,0,5,3,TRUE,eng,NA
+163,Labels_familiar,car! Where's the car?,0,right,Labels_familiar-car-Ball,NA,0,5,8,TRUE,eng,NA
+164,Labels_familiar,dog! Can you find the dog?,0,left,Labels_familiar-dog-Shoe,NA,0,3,0,TRUE,eng,NA
+165,Labels_familiar,kitty! Can you find the kitty?,0,left,Labels_familiar-kitty-Dog,NA,0,6,3,TRUE,eng,NA
+166,Labels_familiar,car! Where's the car?,0,right,Labels_familiar-car-Shoe,NA,0,5,0,TRUE,eng,NA
+167,Labels_familiar,dog! Where's the dog?,0,left,Labels_familiar-dog-Kitty,NA,0,3,6,TRUE,eng,NA
+168,Labels_familiar,car! Can you find the car?,0,left,Labels_familiar-car-Baby,NA,0,5,4,TRUE,eng,NA
+169,Labels_familiar,kitty! Where's the kitty?,0,left,Labels_familiar-kitty-Ball,NA,0,6,8,TRUE,eng,NA
+170,Labels_familiar,dog! Where's the dog?,0,right,Labels_familiar-dog-Car,NA,0,3,5,TRUE,eng,NA
+171,Labels_familiar,ball! Where's the ball?,0,left,Labels_familiar-ball-Kitty,NA,0,8,6,TRUE,eng,NA
+172,Labels_familiar,dog! Where's the dog?,0,right,Labels_familiar-dog-Baby,NA,0,3,4,TRUE,eng,NA
+173,Labels_familiar,ball! Where's the ball?,0,left,Labels_familiar-ball-Car,NA,0,8,5,TRUE,eng,NA
+174,Labels_familiar,shoe! Can you find the shoe?,0,right,Labels_familiar-shoe-Kitty,NA,0,0,6,TRUE,eng,NA
+175,Labels_familiar,baby! Where's the baby?,0,right,Labels_familiar-baby-Kitty,NA,0,4,6,TRUE,eng,NA
+176,Labels_familiar,ball! Where's the ball?,0,left,Labels_familiar-ball-Dog,NA,0,8,3,TRUE,eng,NA
+177,Labels_familiar,shoe! Where's the shoe?,0,right,Labels_familiar-shoe-Car,NA,0,0,5,TRUE,eng,NA
+178,Labels_familiar,dog! Where's the dog?,0,right,Labels_familiar-dog-Shoe,NA,0,3,0,TRUE,eng,NA
+179,Labels_familiar,kitty! Can you find the kitty?,0,left,Labels_familiar-kitty-Baby,NA,0,6,4,TRUE,eng,NA
+180,Labels_familiar,car! Can you find the car?,0,left,Labels_familiar-car-Ball,NA,0,5,8,TRUE,eng,NA
+181,Labels_familiar,dog! Where's the dog?,0,right,Labels_familiar-dog-Kitty,NA,0,3,6,TRUE,eng,NA
+182,Speakers_familiar,ball! Where's the ball?,0,left,Speakers_familiar-ball-Kitty,NA,0,8,6,TRUE,eng,NA
+183,Speakers_novel,lif! Can you find the lif?,0,right,Speakers_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+184,Speakers_familiar,car! Can you find the car?,0,right,Speakers_familiar-car-Shoe,NA,0,5,0,TRUE,eng,NA
+185,Speakers_novel,neem! Where's the neem?,0,left,Speakers_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+186,Speakers_familiar,dog! Can you find the dog?,0,left,Speakers_familiar-dog-Shoe,NA,0,3,0,TRUE,eng,NA
+187,Speakers_novel,neem! Where's the neem?,0,right,Speakers_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+188,Speakers_familiar,kitty! Where's the kitty?,0,right,Speakers_familiar-kitty-Shoe,NA,0,6,0,TRUE,eng,NA
+189,Speakers_novel,lif! Can you find the lif?,0,left,Speakers_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+190,Speakers_familiar,baby! Can you find the baby?,0,left,Speakers_familiar-baby-Shoe,NA,0,4,0,TRUE,eng,NA
+191,Speakers_novel,neem! Where's the neem?,0,right,Speakers_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+192,Speakers_novel,lif! Where's the lif?,0,left,Speakers_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+193,Speakers_familiar,dog! Can you find the dog?,0,right,Speakers_familiar-dog-Kitty,NA,0,3,6,TRUE,eng,NA
+194,Speakers_novel,lif! Where's the lif?,0,right,Speakers_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+195,Speakers_familiar,car! Can you find the car?,0,right,Speakers_familiar-car-Baby,NA,0,5,4,TRUE,eng,NA
+196,Speakers_novel,neem! Can you find the neem?,0,left,Speakers_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+197,Speakers_familiar,baby! Can you find the baby?,0,left,Speakers_familiar-baby-Kitty,NA,0,4,6,TRUE,eng,NA
+198,Speakers_novel,lif! Where's the lif?,0,left,Speakers_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+199,Speakers_novel,neem! Can you find the neem?,0,right,Speakers_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+200,Speakers_familiar,ball! Where's the ball?,0,right,Speakers_familiar-ball-Kitty,NA,0,8,6,TRUE,eng,NA
+201,Speakers_familiar,kitty! Where's the kitty?,0,left,Speakers_familiar-kitty-Shoe,NA,0,6,0,TRUE,eng,NA
+202,Speakers_familiar,shoe! Where's the shoe?,0,right,Speakers_familiar-shoe-Baby,NA,0,0,4,TRUE,eng,NA
+203,Speakers_novel,neem! Can you find the neem?,0,left,Speakers_novel-neem-FribbleA,NA,0,2,1,FALSE,eng,NA
+204,Speakers_familiar,shoe! Can you find the shoe?,0,left,Speakers_familiar-shoe-Ball,NA,0,0,8,TRUE,eng,NA
+205,Speakers_familiar,dog! Where's the dog?,0,right,Speakers_familiar-dog-Kitty,NA,0,3,6,TRUE,eng,NA
+206,Speakers_familiar,baby! Where's the baby?,0,right,Speakers_familiar-baby-Kitty,NA,0,4,6,TRUE,eng,NA
+207,Speakers_novel,lif! Can you find the lif?,0,left,Speakers_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+208,Speakers_familiar,ball! Can you find the ball?,0,left,Speakers_familiar-ball-Kitty,NA,0,8,6,TRUE,eng,NA
+209,Speakers_familiar,shoe! Where's the shoe?,0,left,Speakers_familiar-shoe-Kitty,NA,0,0,6,TRUE,eng,NA
+210,Speakers_familiar,car! Can you find the car?,0,right,Speakers_familiar-car-Ball,NA,0,5,8,TRUE,eng,NA
+211,Speakers_novel,neem! Can you find the neem?,0,right,Speakers_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+212,Speakers_familiar,kitty! Can you find the kitty?,0,right,Speakers_familiar-kitty-Dog,NA,0,6,3,TRUE,eng,NA
+213,Speakers_familiar,baby! Where's the baby?,0,left,Speakers_familiar-baby-Kitty,NA,0,4,6,TRUE,eng,NA
+214,Speakers_familiar,shoe! Where's the shoe?,0,right,Speakers_familiar-shoe-Kitty,NA,0,0,6,TRUE,eng,NA
+215,Speakers_familiar,car! Where's the car?,0,left,Speakers_familiar-car-Baby,NA,0,5,4,TRUE,eng,NA
+216,Speakers_familiar,dog! Can you find the dog?,0,right,Speakers_familiar-dog-Ball,NA,0,3,8,TRUE,eng,NA
+217,Speakers_familiar,car! Can you find the car?,0,left,Speakers_familiar-car-Shoe,NA,0,5,0,TRUE,eng,NA
+218,Speakers_familiar,dog! Where's the dog?,0,right,Speakers_familiar-dog-Shoe,NA,0,3,0,TRUE,eng,NA
+219,Speakers_familiar,kitty! Can you find the kitty?,0,right,Speakers_familiar-kitty-Ball,NA,0,6,8,TRUE,eng,NA
+220,Speakers_familiar,ball! Can you find the ball?,0,left,Speakers_familiar-ball-Dog,NA,0,8,3,TRUE,eng,NA
+221,Speakers_familiar,baby! Where's the baby?,0,left,Speakers_familiar-baby-Shoe,NA,0,4,0,TRUE,eng,NA
+222,Speakers_novel,lif! Can you find the lif?,0,right,Speakers_novel-lif-FribbleA,NA,0,9,7,FALSE,eng,NA
+223,Speakers_familiar,kitty! Can you find the kitty?,0,right,Speakers_familiar-kitty-Shoe,NA,0,6,0,TRUE,eng,NA
+224,Speakers_novel,neem! Where's the neem?,0,left,Speakers_novel-neem-FribbleB,NA,0,7,9,FALSE,eng,NA
+225,Speakers_familiar,dog! Can you find the dog?,0,right,Speakers_familiar-dog-Car,NA,0,3,5,TRUE,eng,NA
+226,Speakers_familiar,car! Where's the car?,0,right,Speakers_familiar-car-Dog,NA,0,5,3,TRUE,eng,NA
+227,Speakers_familiar,ball! Can you find the ball?,0,left,Speakers_familiar-ball-Shoe,NA,0,8,0,TRUE,eng,NA
+228,Speakers_familiar,baby! Where's the baby?,0,right,Speakers_familiar-baby-Dog,NA,0,4,3,TRUE,eng,NA
+229,Speakers_familiar,dog! Where's the dog?,0,left,Speakers_familiar-dog-Kitty,NA,0,3,6,TRUE,eng,NA
+230,Speakers_familiar,car! Where's the car?,0,right,Speakers_familiar-car-Baby,NA,0,5,4,TRUE,eng,NA
+231,Speakers_novel,lif! Where's the lif?,0,right,Speakers_novel-lif-FribbleB,NA,0,1,2,FALSE,eng,NA
+232,Speakers_familiar,shoe! Can you find the shoe?,0,left,Speakers_familiar-shoe-Dog,NA,0,0,3,TRUE,eng,NA
+233,Speakers_familiar,shoe! Can you find the shoe?,0,right,Speakers_familiar-shoe-Car,NA,0,0,5,TRUE,eng,NA
+234,Speakers_familiar,ball! Where's the ball?,0,left,Speakers_familiar-ball-Car,NA,0,8,5,TRUE,eng,NA
+235,Speakers_familiar,dog! Can you find the dog?,0,left,Speakers_familiar-dog-Baby,NA,0,3,4,TRUE,eng,NA
+236,Speakers_familiar,baby! Can you find the baby?,0,left,Speakers_familiar-baby-Car,NA,0,4,5,TRUE,eng,NA
+237,Speakers_familiar,ball! Can you find the ball?,0,right,Speakers_familiar-ball-Dog,NA,0,8,3,TRUE,eng,NA
+238,Speakers_familiar,ball! Can you find the ball?,0,right,Speakers_familiar-ball-Car,NA,0,8,5,TRUE,eng,NA
+239,Speakers_familiar,shoe! Where's the shoe?,0,right,Speakers_familiar-shoe-Ball,NA,0,0,8,TRUE,eng,NA
+240,Speakers_familiar,shoe! Can you find the shoe?,0,right,Speakers_familiar-shoe-Ball,NA,0,0,8,TRUE,eng,NA
+241,Speakers_familiar,kitty! Can you find the kitty?,0,left,Speakers_familiar-kitty-Dog,NA,0,6,3,TRUE,eng,NA
+242,Speakers_familiar,ball! Where's the ball?,0,right,Speakers_familiar-ball-Shoe,NA,0,8,0,TRUE,eng,NA
+243,Speakers_familiar,car! Can you find the car?,0,left,Speakers_familiar-car-Baby,NA,0,5,4,TRUE,eng,NA
+244,Speakers_familiar,kitty! Where's the kitty?,0,right,Speakers_familiar-kitty-Ball,NA,0,6,8,TRUE,eng,NA
+245,Speakers_familiar,baby! Where's the baby?,0,left,Speakers_familiar-baby-Dog,NA,0,4,3,TRUE,eng,NA
+246,Speakers_familiar,ball! Where's the ball?,0,right,Speakers_familiar-ball-Dog,NA,0,8,3,TRUE,eng,NA
+247,Speakers_familiar,baby! Where's the baby?,0,right,Speakers_familiar-baby-Shoe,NA,0,4,0,TRUE,eng,NA
+248,Speakers_familiar,baby! Can you find the baby?,0,right,Speakers_familiar-baby-Car,NA,0,4,5,TRUE,eng,NA
+249,Speakers_familiar,shoe! Where's the shoe?,0,left,Speakers_familiar-shoe-Car,NA,0,0,5,TRUE,eng,NA
+250,Speakers_familiar,ball! Can you find the ball?,0,left,Speakers_familiar-ball-Car,NA,0,8,5,TRUE,eng,NA
+251,Speakers_familiar,dog! Where's the dog?,0,right,Speakers_familiar-dog-Car,NA,0,3,5,TRUE,eng,NA
+252,Speakers_familiar,kitty! Where's the kitty?,0,left,Speakers_familiar-kitty-Dog,NA,0,6,3,TRUE,eng,NA
+253,Speakers_familiar,dog! Where's the dog?,0,right,Speakers_familiar-dog-Ball,NA,0,3,8,TRUE,eng,NA
+254,Speakers_familiar,shoe! Can you find the shoe?,0,left,Speakers_familiar-shoe-Car,NA,0,0,5,TRUE,eng,NA
+255,Speakers_familiar,kitty! Where's the kitty?,0,right,Speakers_familiar-kitty-Dog,NA,0,6,3,TRUE,eng,NA
+256,Speakers_familiar,car! Where's the car?,0,left,Speakers_familiar-car-Dog,NA,0,5,3,TRUE,eng,NA
+257,Speakers_familiar,car! Where's the car?,0,right,Speakers_familiar-car-Ball,NA,0,5,8,TRUE,eng,NA
+258,Speakers_familiar,dog! Can you find the dog?,0,right,Speakers_familiar-dog-Baby,NA,0,3,4,TRUE,eng,NA
+259,Speakers_familiar,ball! Where's the ball?,0,left,Speakers_familiar-ball-Dog,NA,0,8,3,TRUE,eng,NA
+260,Speakers_familiar,baby! Where's the baby?,0,left,Speakers_familiar-baby-Car,NA,0,4,5,TRUE,eng,NA
+261,Speakers_familiar,kitty! Where's the kitty?,0,left,Speakers_familiar-kitty-Ball,NA,0,6,8,TRUE,eng,NA
+262,Speakers_familiar,car! Where's the car?,0,left,Speakers_familiar-car-Shoe,NA,0,5,0,TRUE,eng,NA
+263,Speakers_familiar,baby! Can you find the baby?,0,right,Speakers_familiar-baby-Shoe,NA,0,4,0,TRUE,eng,NA
+264,Speakers_familiar,car! Where's the car?,0,left,Speakers_familiar-car-Ball,NA,0,5,8,TRUE,eng,NA
+265,Speakers_familiar,ball! Where's the ball?,0,left,Speakers_familiar-ball-Shoe,NA,0,8,0,TRUE,eng,NA
+266,Speakers_familiar,dog! Where's the dog?,0,left,Speakers_familiar-dog-Car,NA,0,3,5,TRUE,eng,NA
+267,Speakers_familiar,dog! Where's the dog?,0,left,Speakers_familiar-dog-Shoe,NA,0,3,0,TRUE,eng,NA
+268,Speakers_familiar,ball! Can you find the ball?,0,right,Speakers_familiar-ball-Shoe,NA,0,8,0,TRUE,eng,NA
+269,Speakers_familiar,kitty! Can you find the kitty?,0,right,Speakers_familiar-kitty-Baby,NA,0,6,4,TRUE,eng,NA
+270,Speakers_familiar,shoe! Where's the shoe?,0,right,Speakers_familiar-shoe-Car,NA,0,0,5,TRUE,eng,NA
+271,Speakers_familiar,kitty! Can you find the kitty?,0,left,Speakers_familiar-kitty-Baby,NA,0,6,4,TRUE,eng,NA
+272,Speakers_familiar,shoe! Can you find the shoe?,0,right,Speakers_familiar-shoe-Kitty,NA,0,0,6,TRUE,eng,NA
+273,Speakers_familiar,shoe! Can you find the shoe?,0,left,Speakers_familiar-shoe-Baby,NA,0,0,4,TRUE,eng,NA

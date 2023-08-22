@@ -1,11 +1,11 @@
 stimulus_novelty,dataset_id,original_stimulus_label,english_stimulus_label,stimulus_image_path,image_description,image_description_source,lab_stimulus_id,stimulus_id,stimulus_aux_data
-familiar,0,Shoe,Shoe,tbd,Shoe,image path,Shoe,0,NA
-novel,0,Lif,Lif,tbd,Lif,image path,FribbleA,1,NA
-novel,0,Neem,Neem,tbd,Neem,image path,FribbleB,2,NA
-familiar,0,Dog,Dog,tbd,Dog,image path,Dog,3,NA
-familiar,0,Baby,Baby,tbd,Baby,image path,Baby,4,NA
-familiar,0,Car,Car,tbd,Car,image path,Car,5,NA
-familiar,0,Kitty,Kitty,tbd,Kitty,image path,Kitty,6,NA
-novel,0,Neem,Neem,tbd,Neem,image path,FribbleA,7,NA
-familiar,0,Ball,Ball,tbd,Ball,image path,Ball,8,NA
-novel,0,Lif,Lif,tbd,Lif,image path,FribbleB,9,NA
+familiar,0,shoe,shoe,tbd,shoe,image path,Shoe,0,NA
+novel,0,lif,lif,tbd,lif,image path,FribbleA,1,NA
+novel,0,neem,neem,tbd,neem,image path,FribbleB,2,NA
+familiar,0,dog,dog,tbd,dog,image path,Dog,3,NA
+familiar,0,baby,baby,tbd,baby,image path,Baby,4,NA
+familiar,0,car,car,tbd,car,image path,Car,5,NA
+familiar,0,kitty,kitty,tbd,kitty,image path,Kitty,6,NA
+novel,0,neem,neem,tbd,neem,image path,FribbleA,7,NA
+familiar,0,ball,ball,tbd,ball,image path,Ball,8,NA
+novel,0,lif,lif,tbd,lif,image path,FribbleB,9,NA
