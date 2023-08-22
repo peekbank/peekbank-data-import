@@ -1,798 +1,798 @@
-trial,exclusion_reason,trial_order,excluded,trial_type_id,trial_id,trial_aux_data
-1,included,1,FALSE,0,0,NA
-2,included,2,FALSE,1,1,NA
-3,included,3,FALSE,2,2,NA
-4,included,4,FALSE,3,3,NA
-5,no looking 1st target window (367-2333ms),5,TRUE,4,4,NA
-6,included,6,FALSE,5,5,NA
-7,included,7,FALSE,6,6,NA
-8,included,8,FALSE,7,7,NA
-1,included,1,FALSE,8,8,NA
-2,included,2,FALSE,9,9,NA
-3,included,3,FALSE,10,10,NA
-4,included,4,FALSE,11,11,NA
-5,included,5,FALSE,12,12,NA
-6,included,6,FALSE,13,13,NA
-7,included,7,FALSE,14,14,NA
-8,included,8,FALSE,15,15,NA
-1,included,1,FALSE,16,16,NA
-2,included,2,FALSE,17,17,NA
-3,< 50% looking on trial,3,TRUE,18,18,NA
-4,included,4,FALSE,19,19,NA
-5,included,5,FALSE,20,20,NA
-6,included,6,FALSE,21,21,NA
-7,included,7,FALSE,22,22,NA
-8,included,8,FALSE,23,23,NA
-1,included,1,FALSE,24,24,NA
-2,included,2,FALSE,1,25,NA
-3,included,3,FALSE,25,26,NA
-4,included,4,FALSE,26,27,NA
-5,included,5,FALSE,27,28,NA
-6,included,6,FALSE,28,29,NA
-7,included,7,FALSE,29,30,NA
-8,included,8,FALSE,30,31,NA
-1,no looking 2nd target window (4500-5967,1,TRUE,31,32,NA
-2,included,2,FALSE,32,33,NA
-3,included,3,FALSE,33,34,NA
-4,included,4,FALSE,34,35,NA
-5,no looking 2nd target window (4500-5967,5,TRUE,35,36,NA
-6,included,6,FALSE,36,37,NA
-7,included,7,FALSE,37,38,NA
-8,included,8,FALSE,38,39,NA
-1,included,1,FALSE,39,40,NA
-2,included,2,FALSE,40,41,NA
-3,included,3,FALSE,41,42,NA
-4,included,4,FALSE,42,43,NA
-5,included,5,FALSE,43,44,NA
-6,included,6,FALSE,13,45,NA
-7,included,7,FALSE,44,46,NA
-8,included,8,FALSE,45,47,NA
-1,included,1,FALSE,46,48,NA
-2,included,2,FALSE,47,49,NA
-3,included,3,FALSE,48,50,NA
-4,< 50% looking on trial,4,TRUE,49,51,NA
-5,included,5,FALSE,50,52,NA
-6,< 50% looking on trial,6,TRUE,51,53,NA
-7,no looking 2nd target window (4500-5967,7,TRUE,52,54,NA
-8,included,8,FALSE,7,55,NA
-1,included,1,FALSE,53,56,NA
-2,included,2,FALSE,54,57,NA
-3,included,3,FALSE,55,58,NA
-4,included,4,FALSE,56,59,NA
-5,included,5,FALSE,57,60,NA
-6,included,6,FALSE,58,61,NA
-7,included,7,FALSE,59,62,NA
-8,included,8,FALSE,45,63,NA
-1,included,1,FALSE,60,64,NA
-2,< 50% looking on trial,2,TRUE,61,65,NA
-3,included,3,FALSE,62,66,NA
-4,< 50% looking on trial,4,TRUE,63,67,NA
-5,included,5,FALSE,64,68,NA
-6,included,6,FALSE,65,69,NA
-7,included,7,FALSE,66,70,NA
-8,< 50% looking on trial,8,TRUE,67,71,NA
-2,included,2,FALSE,9,72,NA
-3,included,3,FALSE,68,73,NA
-4,< 50% looking on trial,4,TRUE,69,74,NA
-5,included,5,FALSE,70,75,NA
-6,included,6,FALSE,71,76,NA
-7,included,7,FALSE,72,77,NA
-8,included,8,FALSE,73,78,NA
-1,included,1,FALSE,74,79,NA
-2,included,2,FALSE,75,80,NA
-3,included,3,FALSE,76,81,NA
-4,included,4,FALSE,77,82,NA
-5,included,5,FALSE,78,83,NA
-6,included,6,FALSE,79,84,NA
-7,included,7,FALSE,80,85,NA
-8,included,8,FALSE,81,86,NA
-1,included,1,FALSE,82,87,NA
-2,included,2,FALSE,83,88,NA
-3,included,3,FALSE,84,89,NA
-4,included,4,FALSE,85,90,NA
-5,included,5,FALSE,86,91,NA
-6,< 50% looking on trial,6,TRUE,87,92,NA
-7,included,7,FALSE,88,93,NA
-8,< 50% looking on trial,8,TRUE,89,94,NA
-1,included,1,FALSE,90,95,NA
-2,no looking 2nd target window (4500-5967,2,TRUE,91,96,NA
-3,included,3,FALSE,92,97,NA
-4,< 50% looking on trial,4,TRUE,93,98,NA
-5,included,5,FALSE,94,99,NA
-6,included,6,FALSE,95,100,NA
-7,included,7,FALSE,96,101,NA
-8,no looking 1st target window (367-2333ms),8,TRUE,97,102,NA
-1,included,1,FALSE,98,103,NA
-2,< 50% looking on trial,2,TRUE,54,104,NA
-3,included,3,FALSE,99,105,NA
-4,included,4,FALSE,56,106,NA
-5,included,5,FALSE,100,107,NA
-6,included,6,FALSE,101,108,NA
-7,included,7,FALSE,102,109,NA
-8,< 50% looking on trial,8,TRUE,23,110,NA
-1,included,1,FALSE,24,111,NA
-2,included,2,FALSE,75,112,NA
-3,included,3,FALSE,103,113,NA
-4,included,4,FALSE,104,114,NA
-5,included,5,FALSE,105,115,NA
-6,included,6,FALSE,79,116,NA
-7,included,7,FALSE,106,117,NA
-8,included,8,FALSE,107,118,NA
-1,included,1,FALSE,82,119,NA
-2,included,2,FALSE,75,120,NA
-3,included,3,FALSE,108,121,NA
-4,included,4,FALSE,109,122,NA
-5,included,5,FALSE,27,123,NA
-6,included,6,FALSE,110,124,NA
-7,< 50% looking on trial,7,TRUE,106,125,NA
-8,included,8,FALSE,111,126,NA
-1,included,1,FALSE,98,127,NA
-2,included,2,FALSE,112,128,NA
-3,included,3,FALSE,113,129,NA
-4,included,4,FALSE,114,130,NA
-5,included,5,FALSE,115,131,NA
-6,included,6,FALSE,116,132,NA
-7,included,7,FALSE,117,133,NA
-8,included,8,FALSE,118,134,NA
-1,included,1,FALSE,119,135,NA
-2,included,2,FALSE,40,136,NA
-3,< 50% looking on trial,3,TRUE,120,137,NA
-4,included,4,FALSE,121,138,NA
-5,< 50% looking on trial,5,TRUE,20,139,NA
-6,no pre-onset looking,6,TRUE,122,140,NA
-7,< 50% looking on trial,7,TRUE,72,141,NA
-8,included,8,FALSE,123,142,NA
-1,included,1,FALSE,60,143,NA
-2,included,2,FALSE,1,144,NA
-3,included,3,FALSE,2,145,NA
-4,included,4,FALSE,124,146,NA
-5,included,5,FALSE,125,147,NA
-6,included,6,FALSE,36,148,NA
-7,included,7,FALSE,22,149,NA
-1,included,1,FALSE,126,150,NA
-2,included,2,FALSE,127,151,NA
-3,included,3,FALSE,128,152,NA
-4,included,4,FALSE,63,153,NA
-5,included,5,FALSE,129,154,NA
-6,< 50% looking on trial,6,TRUE,130,155,NA
-7,included,7,FALSE,131,156,NA
-8,included,8,FALSE,132,157,NA
-1,included,1,FALSE,119,158,NA
-2,included,2,FALSE,1,159,NA
-3,included,3,FALSE,133,160,NA
-4,included,4,FALSE,134,161,NA
-5,included,5,FALSE,135,162,NA
-6,included,6,FALSE,36,163,NA
-7,included,7,FALSE,136,164,NA
-8,included,8,FALSE,137,165,NA
-1,included,1,FALSE,138,166,NA
-2,included,2,FALSE,127,167,NA
-3,included,3,FALSE,139,168,NA
-4,included,4,FALSE,63,169,NA
-5,included,5,FALSE,140,170,NA
-6,included,6,FALSE,141,171,NA
-7,included,7,FALSE,142,172,NA
-8,included,8,FALSE,143,173,NA
-1,included,1,FALSE,144,174,NA
-2,included,2,FALSE,112,175,NA
-3,included,3,FALSE,145,176,NA
-4,included,4,FALSE,146,177,NA
-5,< 50% looking on trial,5,TRUE,115,178,NA
-6,included,6,FALSE,147,179,NA
-7,included,7,FALSE,96,180,NA
-8,< 50% looking on trial,8,TRUE,148,181,NA
-1,included,1,FALSE,149,182,NA
-2,included,2,FALSE,150,183,NA
-3,< 50% looking on trial,3,TRUE,151,184,NA
-4,included,4,FALSE,152,185,NA
-5,included,5,FALSE,129,186,NA
-6,included,6,FALSE,130,187,NA
-7,included,7,FALSE,153,188,NA
-8,< 50% looking on trial,8,TRUE,132,189,NA
-1,included,1,FALSE,149,190,NA
-2,included,2,FALSE,32,191,NA
-3,included,3,FALSE,154,192,NA
-4,included,4,FALSE,109,193,NA
-5,included,5,FALSE,155,194,NA
-6,included,6,FALSE,156,195,NA
-7,included,7,FALSE,157,196,NA
-8,included,8,FALSE,158,197,NA
-1,included,1,FALSE,159,198,NA
-2,included,2,FALSE,91,199,NA
-3,included,3,FALSE,151,200,NA
-4,included,4,FALSE,160,201,NA
-5,included,5,FALSE,161,202,NA
-6,included,6,FALSE,130,203,NA
-7,included,7,FALSE,162,204,NA
-8,included,8,FALSE,163,205,NA
-1,included,1,FALSE,164,206,NA
-2,< 50% looking on trial,2,TRUE,1,207,NA
-3,< 50% looking on trial,3,TRUE,2,208,NA
-4,included,4,FALSE,165,209,NA
-5,included,5,FALSE,166,210,NA
-6,no looking 2nd target window (4500-5967,6,TRUE,167,211,NA
-7,included,7,FALSE,6,212,NA
-8,included,8,FALSE,168,213,NA
-1,included,1,FALSE,169,214,NA
-2,included,2,FALSE,150,215,NA
-3,included,3,FALSE,170,216,NA
-4,included,4,FALSE,171,217,NA
-5,included,5,FALSE,172,218,NA
-6,included,6,FALSE,65,219,NA
-7,included,7,FALSE,173,220,NA
-8,included,8,FALSE,67,221,NA
-1,included,1,FALSE,174,222,NA
-2,included,2,FALSE,47,223,NA
-3,included,3,FALSE,175,224,NA
-4,included,4,FALSE,176,225,NA
-5,included,5,FALSE,177,226,NA
-6,included,6,FALSE,178,227,NA
-7,included,7,FALSE,117,228,NA
-8,included,8,FALSE,179,229,NA
-1,included,1,FALSE,180,230,NA
-2,included,2,FALSE,181,231,NA
-3,included,3,FALSE,182,232,NA
-4,included,4,FALSE,183,233,NA
-5,included,5,FALSE,184,234,NA
-6,included,6,FALSE,185,235,NA
-7,included,7,FALSE,186,236,NA
-8,included,8,FALSE,187,237,NA
-1,included,1,FALSE,188,238,NA
-2,included,2,FALSE,189,239,NA
-3,included,3,FALSE,190,240,NA
-4,< 50% looking on trial,4,TRUE,191,241,NA
-5,included,5,FALSE,192,242,NA
-6,included,6,FALSE,193,243,NA
-7,included,7,FALSE,194,244,NA
-8,< 50% looking on trial,8,TRUE,195,245,NA
-1,included,1,FALSE,196,246,NA
-2,included,2,FALSE,197,247,NA
-3,included,3,FALSE,198,248,NA
-4,included,4,FALSE,199,249,NA
-5,< 50% looking on trial,5,TRUE,200,250,NA
-6,included,6,FALSE,201,251,NA
-7,< 50% looking on trial,7,TRUE,202,252,NA
-8,included,8,FALSE,203,253,NA
-1,included,1,FALSE,204,254,NA
-2,included,2,FALSE,205,255,NA
-3,included,3,FALSE,206,256,NA
-4,included,4,FALSE,207,257,NA
-5,included,5,FALSE,208,258,NA
-6,included,6,FALSE,209,259,NA
-7,included,7,FALSE,210,260,NA
-8,included,8,FALSE,211,261,NA
-1,included,1,FALSE,212,262,NA
-2,included,2,FALSE,213,263,NA
-3,included,3,FALSE,214,264,NA
-4,included,4,FALSE,215,265,NA
-5,included,5,FALSE,216,266,NA
-6,included,6,FALSE,217,267,NA
-7,included,7,FALSE,218,268,NA
-8,included,8,FALSE,219,269,NA
-1,included,1,FALSE,220,270,NA
-2,included,2,FALSE,221,271,NA
-3,included,3,FALSE,222,272,NA
-4,included,4,FALSE,223,273,NA
-5,included,5,FALSE,200,274,NA
-6,included,6,FALSE,224,275,NA
-7,included,7,FALSE,202,276,NA
-8,included,8,FALSE,225,277,NA
-1,included,1,FALSE,226,278,NA
-2,< 50% looking on trial,2,TRUE,197,279,NA
-3,included,3,FALSE,227,280,NA
-4,included,4,FALSE,223,281,NA
-5,included,5,FALSE,228,282,NA
-6,included,6,FALSE,229,283,NA
-7,< 50% looking on trial,7,TRUE,230,284,NA
-8,included,8,FALSE,231,285,NA
-1,included,1,FALSE,232,286,NA
-2,included,2,FALSE,205,287,NA
-3,included,3,FALSE,233,288,NA
-4,included,4,FALSE,234,289,NA
-5,included,5,FALSE,235,290,NA
-6,< 50% looking on trial,6,TRUE,236,291,NA
-7,< 50% looking on trial,7,TRUE,237,292,NA
-8,included,8,FALSE,238,293,NA
-1,included,1,FALSE,226,294,NA
-2,included,2,FALSE,239,295,NA
-3,included,3,FALSE,240,296,NA
-4,included,4,FALSE,241,297,NA
-5,included,5,FALSE,242,298,NA
-6,included,6,FALSE,243,299,NA
-7,included,7,FALSE,244,300,NA
-8,included,8,FALSE,245,301,NA
-1,included,1,FALSE,246,302,NA
-2,included,2,FALSE,247,303,NA
-3,included,3,FALSE,248,304,NA
-4,included,4,FALSE,249,305,NA
-5,included,5,FALSE,250,306,NA
-6,included,6,FALSE,251,307,NA
-7,included,7,FALSE,252,308,NA
-8,included,8,FALSE,253,309,NA
-1,included,1,FALSE,254,310,NA
-2,included,2,FALSE,255,311,NA
-3,included,3,FALSE,256,312,NA
-4,included,4,FALSE,257,313,NA
-5,included,5,FALSE,258,314,NA
-6,included,6,FALSE,259,315,NA
-7,included,7,FALSE,218,316,NA
-8,included,8,FALSE,260,317,NA
-1,included,1,FALSE,261,318,NA
-2,included,2,FALSE,262,319,NA
-3,no looking 2nd target window (4500-5967,3,TRUE,263,320,NA
-4,included,4,FALSE,264,321,NA
-5,included,5,FALSE,265,322,NA
-6,included,6,FALSE,266,323,NA
-7,included,7,FALSE,267,324,NA
-8,< 50% looking on trial,8,TRUE,268,325,NA
-1,included,1,FALSE,269,326,NA
-2,included,2,FALSE,239,327,NA
-3,< 50% looking on trial,3,TRUE,270,328,NA
-4,included,4,FALSE,271,329,NA
-5,included,5,FALSE,272,330,NA
-6,included,6,FALSE,273,331,NA
-7,included,7,FALSE,274,332,NA
-8,included,8,FALSE,275,333,NA
-1,included,1,FALSE,276,334,NA
-2,< 50% looking on trial,2,TRUE,277,335,NA
-3,< 50% looking on trial,3,TRUE,270,336,NA
-4,no looking 2nd target window (4500-5967,4,TRUE,278,337,NA
-5,< 50% looking on trial,5,TRUE,279,338,NA
-6,< 50% looking on trial,6,TRUE,280,339,NA
-7,< 50% looking on trial,7,TRUE,281,340,NA
-8,included,8,FALSE,282,341,NA
-1,included,1,FALSE,254,342,NA
-2,< 50% looking on trial,2,TRUE,181,343,NA
-3,< 50% looking on trial,3,TRUE,182,344,NA
-4,included,4,FALSE,283,345,NA
-5,< 50% looking on trial,5,TRUE,284,346,NA
-6,included,6,FALSE,285,347,NA
-7,< 50% looking on trial,7,TRUE,286,348,NA
-8,< 50% looking on trial,8,TRUE,187,349,NA
-1,included,1,FALSE,287,350,NA
-2,included,2,FALSE,197,351,NA
-3,included,3,FALSE,288,352,NA
-4,included,4,FALSE,223,353,NA
-5,included,5,FALSE,289,354,NA
-6,included,6,FALSE,290,355,NA
-7,included,7,FALSE,202,356,NA
-8,included,8,FALSE,282,357,NA
-1,included,1,FALSE,291,358,NA
-2,included,2,FALSE,292,359,NA
-3,included,3,FALSE,214,360,NA
-4,included,4,FALSE,293,361,NA
-5,included,5,FALSE,294,362,NA
-6,included,6,FALSE,193,363,NA
-7,included,7,FALSE,295,364,NA
-8,included,8,FALSE,296,365,NA
-1,included,1,FALSE,297,366,NA
-2,included,2,FALSE,298,367,NA
-3,included,3,FALSE,299,368,NA
-4,included,4,FALSE,300,369,NA
-5,included,5,FALSE,301,370,NA
-6,included,6,FALSE,302,371,NA
-7,included,7,FALSE,303,372,NA
-8,included,8,FALSE,304,373,NA
-1,included,1,FALSE,287,374,NA
-2,included,2,FALSE,262,375,NA
-3,< 50% looking on trial,3,TRUE,214,376,NA
-4,< 50% looking on trial,4,TRUE,305,377,NA
-5,< 50% looking on trial,5,TRUE,216,378,NA
-6,included,6,FALSE,306,379,NA
-7,included,7,FALSE,307,380,NA
-8,no looking 2nd target window (4500-5967,8,TRUE,308,381,NA
-1,included,1,FALSE,309,382,NA
-2,included,2,FALSE,239,383,NA
-3,included,3,FALSE,310,384,NA
-4,included,4,FALSE,311,385,NA
-5,included,5,FALSE,216,386,NA
-6,included,6,FALSE,312,387,NA
-7,included,7,FALSE,274,388,NA
-8,included,8,FALSE,313,389,NA
-1,included,1,FALSE,314,390,NA
-2,no looking 2nd target window (4500-5967,2,TRUE,247,391,NA
-3,included,3,FALSE,233,392,NA
-4,included,4,FALSE,315,393,NA
-5,included,5,FALSE,316,394,NA
-6,included,6,FALSE,317,395,NA
-7,included,7,FALSE,252,396,NA
-8,included,8,FALSE,318,397,NA
-1,included,1,FALSE,319,398,NA
-2,included,2,FALSE,320,399,NA
-3,included,3,FALSE,321,400,NA
-4,included,4,FALSE,199,401,NA
-5,included,5,FALSE,316,402,NA
-6,included,6,FALSE,322,403,NA
-7,included,7,FALSE,323,404,NA
-8,included,8,FALSE,260,405,NA
-1,included,1,FALSE,324,406,NA
-2,included,2,FALSE,247,407,NA
-3,included,3,FALSE,233,408,NA
-4,included,4,FALSE,325,409,NA
-5,included,5,FALSE,265,410,NA
-6,included,6,FALSE,326,411,NA
-7,included,7,FALSE,252,412,NA
-8,included,8,FALSE,327,413,NA
-1,included,1,FALSE,314,414,NA
-2,< 50% looking on trial,2,TRUE,328,415,NA
-3,included,3,FALSE,310,416,NA
-4,< 50% looking on trial,4,TRUE,329,417,NA
-5,included,5,FALSE,330,418,NA
-6,included,6,FALSE,331,419,NA
-7,included,7,FALSE,244,420,NA
-8,included,8,FALSE,332,421,NA
-1,included,1,FALSE,333,422,NA
-2,included,2,FALSE,292,423,NA
-3,included,3,FALSE,334,424,NA
-4,< 50% looking on trial,4,TRUE,335,425,NA
-5,included,5,FALSE,284,426,NA
-6,included,6,FALSE,336,427,NA
-7,included,7,FALSE,337,428,NA
-8,< 50% looking on trial,8,TRUE,338,429,NA
-1,included,1,FALSE,339,430,NA
-2,included,2,FALSE,262,431,NA
-3,no looking 2nd target window (4500-5967,3,TRUE,340,432,NA
-4,included,4,FALSE,305,433,NA
-5,included,5,FALSE,341,434,NA
-6,included,6,FALSE,342,435,NA
-7,included,7,FALSE,307,436,NA
-8,included,8,FALSE,343,437,NA
-1,included,1,FALSE,344,438,NA
-2,included,2,FALSE,298,439,NA
-3,included,3,FALSE,345,440,NA
-4,included,4,FALSE,346,441,NA
-5,included,5,FALSE,347,442,NA
-6,included,6,FALSE,348,443,NA
-7,included,7,FALSE,349,444,NA
-8,included,8,FALSE,350,445,NA
-1,included,1,FALSE,351,446,NA
-2,included,2,FALSE,255,447,NA
-3,< 50% looking on trial,3,TRUE,321,448,NA
-4,included,4,FALSE,352,449,NA
-5,included,5,FALSE,353,450,NA
-6,included,6,FALSE,354,451,NA
-7,< 50% looking on trial,7,TRUE,237,452,NA
-8,included,8,FALSE,355,453,NA
-1,included,1,FALSE,356,454,NA
-2,< 50% looking on trial,2,TRUE,255,455,NA
-3,< 50% looking on trial,3,TRUE,321,456,NA
-4,included,4,FALSE,357,457,NA
-5,included,5,FALSE,358,458,NA
-6,< 50% looking on trial,6,TRUE,251,459,NA
-7,< 50% looking on trial,7,TRUE,359,460,NA
-8,< 50% looking on trial,8,TRUE,360,461,NA
-1,included,1,FALSE,196,462,NA
-2,included,2,FALSE,189,463,NA
-3,included,3,FALSE,361,464,NA
-4,included,4,FALSE,191,465,NA
-5,included,5,FALSE,362,466,NA
-6,no looking 2nd target window (4500-5967,6,TRUE,193,467,NA
-7,included,7,FALSE,295,468,NA
-8,included,8,FALSE,363,469,NA
-1,included,1,FALSE,364,470,NA
-2,included,2,FALSE,320,471,NA
-3,included,3,FALSE,321,472,NA
-4,included,4,FALSE,365,473,NA
-5,included,5,FALSE,258,474,NA
-6,included,6,FALSE,366,475,NA
-7,included,7,FALSE,367,476,NA
-8,included,8,FALSE,368,477,NA
-1,included,1,FALSE,369,478,NA
-2,included,2,FALSE,181,479,NA
-3,included,3,FALSE,370,480,NA
-4,included,4,FALSE,264,481,NA
-5,included,5,FALSE,371,482,NA
-6,included,6,FALSE,372,483,NA
-7,< 50% looking on trial,7,TRUE,373,484,NA
-8,included,8,FALSE,313,485,NA
-1,included,1,FALSE,374,486,NA
-2,included,2,FALSE,277,487,NA
-3,included,3,FALSE,375,488,NA
-4,included,4,FALSE,241,489,NA
-5,included,5,FALSE,376,490,NA
-6,< 50% looking on trial,6,TRUE,243,491,NA
-7,included,7,FALSE,377,492,NA
-8,included,8,FALSE,245,493,NA
-1,included,1,FALSE,378,494,NA
-2,included,2,FALSE,197,495,NA
-3,included,3,FALSE,379,496,NA
-4,included,4,FALSE,380,497,NA
-5,included,5,FALSE,381,498,NA
-6,included,6,FALSE,290,499,NA
-7,included,7,FALSE,382,500,NA
-8,included,8,FALSE,304,501,NA
-1,included,1,FALSE,383,502,NA
-2,included,2,FALSE,181,503,NA
-3,included,3,FALSE,214,504,NA
-4,included,4,FALSE,384,505,NA
-5,included,5,FALSE,385,506,NA
-6,included,6,FALSE,366,507,NA
-7,included,7,FALSE,386,508,NA
-8,< 50% looking on trial,8,TRUE,387,509,NA
-1,included,1,FALSE,388,510,NA
-2,included,2,FALSE,181,511,NA
-3,included,3,FALSE,389,512,NA
-4,included,4,FALSE,384,513,NA
-5,included,5,FALSE,385,514,NA
-6,included,6,FALSE,390,515,NA
-7,included,7,FALSE,391,516,NA
-8,included,8,FALSE,392,517,NA
-1,included,1,FALSE,393,518,NA
-2,included,2,FALSE,239,519,NA
-3,included,3,FALSE,394,520,NA
-4,included,4,FALSE,311,521,NA
-5,included,5,FALSE,395,522,NA
-6,included,6,FALSE,243,523,NA
-7,included,7,FALSE,307,524,NA
-8,included,8,FALSE,396,525,NA
-1,included,1,FALSE,397,526,NA
-2,no looking 2nd target window (4500-5967,2,TRUE,398,527,NA
-3,no looking 2nd target window (4500-5967,3,TRUE,399,528,NA
-4,< 50% looking on trial,4,TRUE,400,529,NA
-5,included,5,FALSE,401,530,NA
-6,< 50% looking on trial,6,TRUE,402,531,NA
-7,included,7,FALSE,403,532,NA
-8,< 50% looking on trial,8,TRUE,404,533,NA
-1,included,1,FALSE,405,534,NA
-2,included,2,FALSE,406,535,NA
-3,included,3,FALSE,407,536,NA
-4,included,4,FALSE,408,537,NA
-5,included,5,FALSE,409,538,NA
-6,included,6,FALSE,410,539,NA
-7,included,7,FALSE,411,540,NA
-8,included,8,FALSE,412,541,NA
-1,included,1,FALSE,413,542,NA
-2,included,2,FALSE,414,543,NA
-3,included,3,FALSE,415,544,NA
-4,included,4,FALSE,416,545,NA
-5,included,5,FALSE,417,546,NA
-6,included,6,FALSE,418,547,NA
-7,included,7,FALSE,419,548,NA
-8,< 50% looking on trial,8,TRUE,420,549,NA
-1,included,1,FALSE,421,550,NA
-2,included,2,FALSE,422,551,NA
-3,< 50% looking on trial,3,TRUE,423,552,NA
-4,included,4,FALSE,424,553,NA
-5,included,5,FALSE,425,554,NA
-6,included,6,FALSE,426,555,NA
-7,< 50% looking on trial,7,TRUE,427,556,NA
-8,< 50% looking on trial,8,TRUE,428,557,NA
-1,< 50% looking on trial,1,TRUE,429,558,NA
-2,included,2,FALSE,430,559,NA
-3,included,3,FALSE,431,560,NA
-4,included,4,FALSE,432,561,NA
-5,included,5,FALSE,433,562,NA
-6,included,6,FALSE,434,563,NA
-7,included,7,FALSE,435,564,NA
-8,< 50% looking on trial,8,TRUE,436,565,NA
-1,included,1,FALSE,437,566,NA
-2,included,2,FALSE,398,567,NA
-3,included,3,FALSE,438,568,NA
-4,included,4,FALSE,439,569,NA
-5,included,5,FALSE,440,570,NA
-6,included,6,FALSE,441,571,NA
-7,included,7,FALSE,442,572,NA
-8,included,8,FALSE,443,573,NA
-1,included,1,FALSE,444,574,NA
-2,included,2,FALSE,430,575,NA
-3,included,3,FALSE,445,576,NA
-4,included,4,FALSE,446,577,NA
-5,included,5,FALSE,447,578,NA
-6,< 50% looking on trial,6,TRUE,448,579,NA
-7,included,7,FALSE,449,580,NA
-8,included,8,FALSE,450,581,NA
-1,included,1,FALSE,451,582,NA
-2,included,2,FALSE,452,583,NA
-3,included,3,FALSE,453,584,NA
-4,included,4,FALSE,454,585,NA
-5,included,5,FALSE,455,586,NA
-6,included,6,FALSE,456,587,NA
-7,included,7,FALSE,457,588,NA
-8,< 50% looking on trial,8,TRUE,450,589,NA
-1,included,1,FALSE,458,590,NA
-2,included,2,FALSE,452,591,NA
-3,included,3,FALSE,459,592,NA
-4,included,4,FALSE,460,593,NA
-5,included,5,FALSE,425,594,NA
-6,included,6,FALSE,461,595,NA
-7,included,7,FALSE,462,596,NA
-8,included,8,FALSE,463,597,NA
-1,included,1,FALSE,464,598,NA
-2,< 50% looking on trial,2,TRUE,465,599,NA
-3,included,3,FALSE,466,600,NA
-4,< 50% looking on trial,4,TRUE,467,601,NA
-5,included,5,FALSE,468,602,NA
-6,< 50% looking on trial,6,TRUE,469,603,NA
-7,< 50% looking on trial,7,TRUE,470,604,NA
-8,included,8,FALSE,471,605,NA
-1,< 50% looking on trial,1,TRUE,472,606,NA
-2,< 50% looking on trial,2,TRUE,473,607,NA
-3,included,3,FALSE,474,608,NA
-4,included,4,FALSE,475,609,NA
-5,< 50% looking on trial,5,TRUE,476,610,NA
-6,included,6,FALSE,477,611,NA
-7,< 50% looking on trial,7,TRUE,478,612,NA
-8,< 50% looking on trial,8,TRUE,479,613,NA
-1,included,1,FALSE,480,614,NA
-2,included,2,FALSE,481,615,NA
-3,included,3,FALSE,482,616,NA
-4,< 50% looking on trial,4,TRUE,483,617,NA
-5,included,5,FALSE,484,618,NA
-6,included,6,FALSE,485,619,NA
-7,included,7,FALSE,486,620,NA
-8,< 50% looking on trial,8,TRUE,487,621,NA
-1,included,1,FALSE,488,622,NA
-2,included,2,FALSE,481,623,NA
-3,included,3,FALSE,489,624,NA
-4,< 50% looking on trial,4,TRUE,460,625,NA
-5,included,5,FALSE,490,626,NA
-6,< 50% looking on trial,6,TRUE,491,627,NA
-7,included,7,FALSE,492,628,NA
-8,included,8,FALSE,493,629,NA
-1,included,1,FALSE,494,630,NA
-2,included,2,FALSE,406,631,NA
-3,< 50% looking on trial,3,TRUE,407,632,NA
-4,included,4,FALSE,495,633,NA
-5,included,5,FALSE,476,634,NA
-6,included,6,FALSE,410,635,NA
-7,included,7,FALSE,496,636,NA
-8,< 50% looking on trial,8,TRUE,497,637,NA
-1,included,1,FALSE,498,638,NA
-2,included,2,FALSE,499,639,NA
-3,included,3,FALSE,500,640,NA
-4,included,4,FALSE,501,641,NA
-5,included,5,FALSE,502,642,NA
-6,no looking 2nd target window (4500-5967,6,TRUE,503,643,NA
-7,included,7,FALSE,504,644,NA
-8,included,8,FALSE,505,645,NA
-1,included,1,FALSE,506,646,NA
-2,included,2,FALSE,473,647,NA
-3,included,3,FALSE,507,648,NA
-4,included,4,FALSE,508,649,NA
-5,included,5,FALSE,409,650,NA
-6,included,6,FALSE,509,651,NA
-7,included,7,FALSE,411,652,NA
-8,included,8,FALSE,510,653,NA
-1,included,1,FALSE,511,654,NA
-2,included,2,FALSE,452,655,NA
-3,included,3,FALSE,431,656,NA
-4,included,4,FALSE,439,657,NA
-5,included,5,FALSE,512,658,NA
-6,included,6,FALSE,513,659,NA
-7,included,7,FALSE,514,660,NA
-8,included,8,FALSE,515,661,NA
-1,included,1,FALSE,516,662,NA
-2,included,2,FALSE,414,663,NA
-3,included,3,FALSE,517,664,NA
-4,included,4,FALSE,518,665,NA
-5,included,5,FALSE,417,666,NA
-6,included,6,FALSE,519,667,NA
-7,included,7,FALSE,520,668,NA
-8,included,8,FALSE,521,669,NA
-1,included,1,FALSE,405,670,NA
-2,included,2,FALSE,522,671,NA
-3,< 50% looking on trial,3,TRUE,507,672,NA
-4,included,4,FALSE,523,673,NA
-5,included,5,FALSE,524,674,NA
-6,< 50% looking on trial,6,TRUE,525,675,NA
-7,included,7,FALSE,526,676,NA
-8,< 50% looking on trial,8,TRUE,527,677,NA
-1,included,1,FALSE,528,678,NA
-2,included,2,FALSE,529,679,NA
-3,included,3,FALSE,530,680,NA
-4,no looking 2nd target window (4500-5967,4,TRUE,531,681,NA
-5,included,5,FALSE,532,682,NA
-6,included,6,FALSE,503,683,NA
-7,included,7,FALSE,504,684,NA
-8,included,8,FALSE,533,685,NA
-1,included,1,FALSE,534,686,NA
-2,included,2,FALSE,422,687,NA
-3,< 50% looking on trial,3,TRUE,423,688,NA
-4,included,4,FALSE,535,689,NA
-5,< 50% looking on trial,5,TRUE,512,690,NA
-6,included,6,FALSE,536,691,NA
-7,< 50% looking on trial,7,TRUE,537,692,NA
-8,included,8,FALSE,538,693,NA
-1,included,1,FALSE,539,694,NA
-2,included,2,FALSE,398,695,NA
-3,included,3,FALSE,540,696,NA
-4,included,4,FALSE,541,697,NA
-5,included,5,FALSE,542,698,NA
-6,included,6,FALSE,543,699,NA
-7,included,7,FALSE,442,700,NA
-8,included,8,FALSE,544,701,NA
-1,included,1,FALSE,545,702,NA
-2,included,2,FALSE,422,703,NA
-3,included,3,FALSE,546,704,NA
-4,included,4,FALSE,547,705,NA
-5,no looking 2nd target window (4500-5967,5,TRUE,433,706,NA
-6,included,6,FALSE,548,707,NA
-7,included,7,FALSE,549,708,NA
-8,< 50% looking on trial,8,TRUE,463,709,NA
-1,included,1,FALSE,550,710,NA
-2,included,2,FALSE,551,711,NA
-3,included,3,FALSE,438,712,NA
-4,included,4,FALSE,552,713,NA
-5,included,5,FALSE,553,714,NA
-6,included,6,FALSE,554,715,NA
-7,no looking 2nd target window (4500-5967,7,TRUE,555,716,NA
-1,included,1,FALSE,556,717,NA
-2,included,2,FALSE,551,718,NA
-3,no pre-onset looking,3,TRUE,557,719,NA
-4,included,4,FALSE,541,720,NA
-5,included,5,FALSE,440,721,NA
-6,included,6,FALSE,509,722,NA
-7,included,7,FALSE,558,723,NA
-8,included,8,FALSE,559,724,NA
-1,included,1,FALSE,560,725,NA
-2,< 50% looking on trial,2,TRUE,522,726,NA
-3,< 50% looking on trial,3,TRUE,474,727,NA
-4,included,4,FALSE,535,728,NA
-5,< 50% looking on trial,5,TRUE,561,729,NA
-6,included,6,FALSE,562,730,NA
-7,< 50% looking on trial,7,TRUE,563,731,NA
-8,< 50% looking on trial,8,TRUE,527,732,NA
-1,included,1,FALSE,506,733,NA
-2,included,2,FALSE,398,734,NA
-3,included,3,FALSE,564,735,NA
-4,included,4,FALSE,541,736,NA
-5,included,5,FALSE,440,737,NA
-6,included,6,FALSE,477,738,NA
-7,< 50% looking on trial,7,TRUE,555,739,NA
-8,included,8,FALSE,565,740,NA
-1,included,1,FALSE,566,741,NA
-2,included,2,FALSE,473,742,NA
-3,< 50% looking on trial,3,TRUE,474,743,NA
-4,included,4,FALSE,567,744,NA
-5,included,5,FALSE,568,745,NA
-6,no looking 2nd target window (4500-5967,6,TRUE,569,746,NA
-7,included,7,FALSE,558,747,NA
-8,< 50% looking on trial,8,TRUE,497,748,NA
-1,included,1,FALSE,516,749,NA
-2,included,2,FALSE,570,750,NA
-3,included,3,FALSE,571,751,NA
-4,included,4,FALSE,467,752,NA
-5,included,5,FALSE,572,753,NA
-6,included,6,FALSE,573,754,NA
-7,< 50% looking on trial,7,TRUE,520,755,NA
-8,included,8,FALSE,471,756,NA
-1,included,1,FALSE,574,757,NA
-2,included,2,FALSE,570,758,NA
-3,no looking 2nd target window (4500-5967,3,TRUE,575,759,NA
-4,included,4,FALSE,576,760,NA
-5,included,5,FALSE,577,761,NA
-6,included,6,FALSE,485,762,NA
-7,included,7,FALSE,578,763,NA
-8,included,8,FALSE,487,764,NA
-1,included,1,FALSE,579,765,NA
-2,included,2,FALSE,430,766,NA
-3,< 50% looking on trial,3,TRUE,580,767,NA
-4,included,4,FALSE,454,768,NA
-5,< 50% looking on trial,5,TRUE,425,769,NA
-6,included,6,FALSE,581,770,NA
-7,included,7,FALSE,582,771,NA
-8,< 50% looking on trial,8,TRUE,463,772,NA
-1,included,1,FALSE,583,773,NA
-2,included,2,FALSE,551,774,NA
-3,included,3,FALSE,584,775,NA
-4,included,4,FALSE,585,776,NA
-5,included,5,FALSE,484,777,NA
-6,included,6,FALSE,402,778,NA
-7,included,7,FALSE,586,779,NA
-8,included,8,FALSE,559,780,NA
-1,included,1,FALSE,587,781,NA
-2,included,2,FALSE,406,782,NA
-3,included,3,FALSE,407,783,NA
-4,included,4,FALSE,588,784,NA
-5,included,5,FALSE,476,785,NA
-6,included,6,FALSE,589,786,NA
-7,included,7,FALSE,478,787,NA
-8,included,8,FALSE,590,788,NA
-1,included,1,FALSE,591,789,NA
-2,included,2,FALSE,465,790,NA
-3,included,3,FALSE,592,791,NA
-4,included,4,FALSE,467,792,NA
-5,included,5,FALSE,593,793,NA
-6,no looking 2nd target window (4500-5967,6,TRUE,469,794,NA
-7,included,7,FALSE,594,795,NA
-8,< 50% looking on trial,8,TRUE,487,796,NA
+trial_id,trial_order,trial,trial_type_id,excluded,exclusion_reason,trial_aux_data
+0,1,1,0,FALSE,included,NA
+1,2,2,1,FALSE,included,NA
+2,3,3,2,FALSE,included,NA
+3,4,4,3,FALSE,included,NA
+4,5,5,4,TRUE,no looking 1st target window (367-2333ms),NA
+5,6,6,5,FALSE,included,NA
+6,7,7,6,FALSE,included,NA
+7,8,8,7,FALSE,included,NA
+8,1,1,8,FALSE,included,NA
+9,2,2,9,FALSE,included,NA
+10,3,3,10,FALSE,included,NA
+11,4,4,11,FALSE,included,NA
+12,5,5,12,FALSE,included,NA
+13,6,6,13,FALSE,included,NA
+14,7,7,14,FALSE,included,NA
+15,8,8,15,FALSE,included,NA
+16,1,1,16,FALSE,included,NA
+17,2,2,17,FALSE,included,NA
+18,3,3,18,TRUE,< 50% looking on trial,NA
+19,4,4,19,FALSE,included,NA
+20,5,5,20,FALSE,included,NA
+21,6,6,21,FALSE,included,NA
+22,7,7,22,FALSE,included,NA
+23,8,8,23,FALSE,included,NA
+24,1,1,24,FALSE,included,NA
+25,2,2,1,FALSE,included,NA
+26,3,3,25,FALSE,included,NA
+27,4,4,26,FALSE,included,NA
+28,5,5,27,FALSE,included,NA
+29,6,6,28,FALSE,included,NA
+30,7,7,29,FALSE,included,NA
+31,8,8,30,FALSE,included,NA
+32,1,1,31,TRUE,no looking 2nd target window (4500-5967,NA
+33,2,2,32,FALSE,included,NA
+34,3,3,33,FALSE,included,NA
+35,4,4,34,FALSE,included,NA
+36,5,5,35,TRUE,no looking 2nd target window (4500-5967,NA
+37,6,6,36,FALSE,included,NA
+38,7,7,37,FALSE,included,NA
+39,8,8,38,FALSE,included,NA
+40,1,1,39,FALSE,included,NA
+41,2,2,40,FALSE,included,NA
+42,3,3,41,FALSE,included,NA
+43,4,4,42,FALSE,included,NA
+44,5,5,43,FALSE,included,NA
+45,6,6,13,FALSE,included,NA
+46,7,7,44,FALSE,included,NA
+47,8,8,45,FALSE,included,NA
+48,1,1,46,FALSE,included,NA
+49,2,2,47,FALSE,included,NA
+50,3,3,48,FALSE,included,NA
+51,4,4,49,TRUE,< 50% looking on trial,NA
+52,5,5,50,FALSE,included,NA
+53,6,6,51,TRUE,< 50% looking on trial,NA
+54,7,7,52,TRUE,no looking 2nd target window (4500-5967,NA
+55,8,8,7,FALSE,included,NA
+56,1,1,53,FALSE,included,NA
+57,2,2,54,FALSE,included,NA
+58,3,3,55,FALSE,included,NA
+59,4,4,56,FALSE,included,NA
+60,5,5,57,FALSE,included,NA
+61,6,6,58,FALSE,included,NA
+62,7,7,59,FALSE,included,NA
+63,8,8,45,FALSE,included,NA
+64,1,1,60,FALSE,included,NA
+65,2,2,61,TRUE,< 50% looking on trial,NA
+66,3,3,62,FALSE,included,NA
+67,4,4,63,TRUE,< 50% looking on trial,NA
+68,5,5,64,FALSE,included,NA
+69,6,6,65,FALSE,included,NA
+70,7,7,66,FALSE,included,NA
+71,8,8,67,TRUE,< 50% looking on trial,NA
+72,2,2,9,FALSE,included,NA
+73,3,3,68,FALSE,included,NA
+74,4,4,69,TRUE,< 50% looking on trial,NA
+75,5,5,70,FALSE,included,NA
+76,6,6,71,FALSE,included,NA
+77,7,7,72,FALSE,included,NA
+78,8,8,73,FALSE,included,NA
+79,1,1,74,FALSE,included,NA
+80,2,2,75,FALSE,included,NA
+81,3,3,76,FALSE,included,NA
+82,4,4,77,FALSE,included,NA
+83,5,5,78,FALSE,included,NA
+84,6,6,79,FALSE,included,NA
+85,7,7,80,FALSE,included,NA
+86,8,8,81,FALSE,included,NA
+87,1,1,82,FALSE,included,NA
+88,2,2,83,FALSE,included,NA
+89,3,3,84,FALSE,included,NA
+90,4,4,85,FALSE,included,NA
+91,5,5,86,FALSE,included,NA
+92,6,6,87,TRUE,< 50% looking on trial,NA
+93,7,7,88,FALSE,included,NA
+94,8,8,89,TRUE,< 50% looking on trial,NA
+95,1,1,90,FALSE,included,NA
+96,2,2,91,TRUE,no looking 2nd target window (4500-5967,NA
+97,3,3,92,FALSE,included,NA
+98,4,4,93,TRUE,< 50% looking on trial,NA
+99,5,5,94,FALSE,included,NA
+100,6,6,95,FALSE,included,NA
+101,7,7,96,FALSE,included,NA
+102,8,8,97,TRUE,no looking 1st target window (367-2333ms),NA
+103,1,1,98,FALSE,included,NA
+104,2,2,54,TRUE,< 50% looking on trial,NA
+105,3,3,99,FALSE,included,NA
+106,4,4,56,FALSE,included,NA
+107,5,5,100,FALSE,included,NA
+108,6,6,101,FALSE,included,NA
+109,7,7,102,FALSE,included,NA
+110,8,8,23,TRUE,< 50% looking on trial,NA
+111,1,1,24,FALSE,included,NA
+112,2,2,75,FALSE,included,NA
+113,3,3,103,FALSE,included,NA
+114,4,4,104,FALSE,included,NA
+115,5,5,105,FALSE,included,NA
+116,6,6,79,FALSE,included,NA
+117,7,7,106,FALSE,included,NA
+118,8,8,107,FALSE,included,NA
+119,1,1,82,FALSE,included,NA
+120,2,2,75,FALSE,included,NA
+121,3,3,108,FALSE,included,NA
+122,4,4,109,FALSE,included,NA
+123,5,5,27,FALSE,included,NA
+124,6,6,110,FALSE,included,NA
+125,7,7,106,TRUE,< 50% looking on trial,NA
+126,8,8,111,FALSE,included,NA
+127,1,1,98,FALSE,included,NA
+128,2,2,112,FALSE,included,NA
+129,3,3,113,FALSE,included,NA
+130,4,4,114,FALSE,included,NA
+131,5,5,115,FALSE,included,NA
+132,6,6,116,FALSE,included,NA
+133,7,7,117,FALSE,included,NA
+134,8,8,118,FALSE,included,NA
+135,1,1,119,FALSE,included,NA
+136,2,2,40,FALSE,included,NA
+137,3,3,120,TRUE,< 50% looking on trial,NA
+138,4,4,121,FALSE,included,NA
+139,5,5,20,TRUE,< 50% looking on trial,NA
+140,6,6,122,TRUE,no pre-onset looking,NA
+141,7,7,72,TRUE,< 50% looking on trial,NA
+142,8,8,123,FALSE,included,NA
+143,1,1,60,FALSE,included,NA
+144,2,2,1,FALSE,included,NA
+145,3,3,2,FALSE,included,NA
+146,4,4,124,FALSE,included,NA
+147,5,5,125,FALSE,included,NA
+148,6,6,36,FALSE,included,NA
+149,7,7,22,FALSE,included,NA
+150,1,1,126,FALSE,included,NA
+151,2,2,127,FALSE,included,NA
+152,3,3,128,FALSE,included,NA
+153,4,4,63,FALSE,included,NA
+154,5,5,129,FALSE,included,NA
+155,6,6,130,TRUE,< 50% looking on trial,NA
+156,7,7,131,FALSE,included,NA
+157,8,8,132,FALSE,included,NA
+158,1,1,119,FALSE,included,NA
+159,2,2,1,FALSE,included,NA
+160,3,3,133,FALSE,included,NA
+161,4,4,134,FALSE,included,NA
+162,5,5,135,FALSE,included,NA
+163,6,6,36,FALSE,included,NA
+164,7,7,136,FALSE,included,NA
+165,8,8,137,FALSE,included,NA
+166,1,1,138,FALSE,included,NA
+167,2,2,127,FALSE,included,NA
+168,3,3,139,FALSE,included,NA
+169,4,4,63,FALSE,included,NA
+170,5,5,140,FALSE,included,NA
+171,6,6,141,FALSE,included,NA
+172,7,7,142,FALSE,included,NA
+173,8,8,143,FALSE,included,NA
+174,1,1,144,FALSE,included,NA
+175,2,2,112,FALSE,included,NA
+176,3,3,145,FALSE,included,NA
+177,4,4,146,FALSE,included,NA
+178,5,5,115,TRUE,< 50% looking on trial,NA
+179,6,6,147,FALSE,included,NA
+180,7,7,96,FALSE,included,NA
+181,8,8,148,TRUE,< 50% looking on trial,NA
+182,1,1,149,FALSE,included,NA
+183,2,2,150,FALSE,included,NA
+184,3,3,151,TRUE,< 50% looking on trial,NA
+185,4,4,152,FALSE,included,NA
+186,5,5,129,FALSE,included,NA
+187,6,6,130,FALSE,included,NA
+188,7,7,153,FALSE,included,NA
+189,8,8,132,TRUE,< 50% looking on trial,NA
+190,1,1,149,FALSE,included,NA
+191,2,2,32,FALSE,included,NA
+192,3,3,154,FALSE,included,NA
+193,4,4,109,FALSE,included,NA
+194,5,5,155,FALSE,included,NA
+195,6,6,156,FALSE,included,NA
+196,7,7,157,FALSE,included,NA
+197,8,8,158,FALSE,included,NA
+198,1,1,159,FALSE,included,NA
+199,2,2,91,FALSE,included,NA
+200,3,3,151,FALSE,included,NA
+201,4,4,160,FALSE,included,NA
+202,5,5,161,FALSE,included,NA
+203,6,6,130,FALSE,included,NA
+204,7,7,162,FALSE,included,NA
+205,8,8,163,FALSE,included,NA
+206,1,1,164,FALSE,included,NA
+207,2,2,1,TRUE,< 50% looking on trial,NA
+208,3,3,2,TRUE,< 50% looking on trial,NA
+209,4,4,165,FALSE,included,NA
+210,5,5,166,FALSE,included,NA
+211,6,6,167,TRUE,no looking 2nd target window (4500-5967,NA
+212,7,7,6,FALSE,included,NA
+213,8,8,168,FALSE,included,NA
+214,1,1,169,FALSE,included,NA
+215,2,2,150,FALSE,included,NA
+216,3,3,170,FALSE,included,NA
+217,4,4,171,FALSE,included,NA
+218,5,5,172,FALSE,included,NA
+219,6,6,65,FALSE,included,NA
+220,7,7,173,FALSE,included,NA
+221,8,8,67,FALSE,included,NA
+222,1,1,174,FALSE,included,NA
+223,2,2,47,FALSE,included,NA
+224,3,3,175,FALSE,included,NA
+225,4,4,176,FALSE,included,NA
+226,5,5,177,FALSE,included,NA
+227,6,6,178,FALSE,included,NA
+228,7,7,117,FALSE,included,NA
+229,8,8,179,FALSE,included,NA
+230,1,1,180,FALSE,included,NA
+231,2,2,181,FALSE,included,NA
+232,3,3,182,FALSE,included,NA
+233,4,4,183,FALSE,included,NA
+234,5,5,184,FALSE,included,NA
+235,6,6,185,FALSE,included,NA
+236,7,7,186,FALSE,included,NA
+237,8,8,187,FALSE,included,NA
+238,1,1,188,FALSE,included,NA
+239,2,2,189,FALSE,included,NA
+240,3,3,190,FALSE,included,NA
+241,4,4,191,TRUE,< 50% looking on trial,NA
+242,5,5,192,FALSE,included,NA
+243,6,6,193,FALSE,included,NA
+244,7,7,194,FALSE,included,NA
+245,8,8,195,TRUE,< 50% looking on trial,NA
+246,1,1,196,FALSE,included,NA
+247,2,2,197,FALSE,included,NA
+248,3,3,198,FALSE,included,NA
+249,4,4,199,FALSE,included,NA
+250,5,5,200,TRUE,< 50% looking on trial,NA
+251,6,6,201,FALSE,included,NA
+252,7,7,202,TRUE,< 50% looking on trial,NA
+253,8,8,203,FALSE,included,NA
+254,1,1,204,FALSE,included,NA
+255,2,2,205,FALSE,included,NA
+256,3,3,206,FALSE,included,NA
+257,4,4,207,FALSE,included,NA
+258,5,5,208,FALSE,included,NA
+259,6,6,209,FALSE,included,NA
+260,7,7,210,FALSE,included,NA
+261,8,8,211,FALSE,included,NA
+262,1,1,212,FALSE,included,NA
+263,2,2,213,FALSE,included,NA
+264,3,3,214,FALSE,included,NA
+265,4,4,215,FALSE,included,NA
+266,5,5,216,FALSE,included,NA
+267,6,6,217,FALSE,included,NA
+268,7,7,218,FALSE,included,NA
+269,8,8,219,FALSE,included,NA
+270,1,1,220,FALSE,included,NA
+271,2,2,221,FALSE,included,NA
+272,3,3,222,FALSE,included,NA
+273,4,4,223,FALSE,included,NA
+274,5,5,200,FALSE,included,NA
+275,6,6,224,FALSE,included,NA
+276,7,7,202,FALSE,included,NA
+277,8,8,225,FALSE,included,NA
+278,1,1,226,FALSE,included,NA
+279,2,2,197,TRUE,< 50% looking on trial,NA
+280,3,3,227,FALSE,included,NA
+281,4,4,223,FALSE,included,NA
+282,5,5,228,FALSE,included,NA
+283,6,6,229,FALSE,included,NA
+284,7,7,230,TRUE,< 50% looking on trial,NA
+285,8,8,231,FALSE,included,NA
+286,1,1,232,FALSE,included,NA
+287,2,2,205,FALSE,included,NA
+288,3,3,233,FALSE,included,NA
+289,4,4,234,FALSE,included,NA
+290,5,5,235,FALSE,included,NA
+291,6,6,236,TRUE,< 50% looking on trial,NA
+292,7,7,237,TRUE,< 50% looking on trial,NA
+293,8,8,238,FALSE,included,NA
+294,1,1,226,FALSE,included,NA
+295,2,2,239,FALSE,included,NA
+296,3,3,240,FALSE,included,NA
+297,4,4,241,FALSE,included,NA
+298,5,5,242,FALSE,included,NA
+299,6,6,243,FALSE,included,NA
+300,7,7,244,FALSE,included,NA
+301,8,8,245,FALSE,included,NA
+302,1,1,246,FALSE,included,NA
+303,2,2,247,FALSE,included,NA
+304,3,3,248,FALSE,included,NA
+305,4,4,249,FALSE,included,NA
+306,5,5,250,FALSE,included,NA
+307,6,6,251,FALSE,included,NA
+308,7,7,252,FALSE,included,NA
+309,8,8,253,FALSE,included,NA
+310,1,1,254,FALSE,included,NA
+311,2,2,255,FALSE,included,NA
+312,3,3,256,FALSE,included,NA
+313,4,4,257,FALSE,included,NA
+314,5,5,258,FALSE,included,NA
+315,6,6,259,FALSE,included,NA
+316,7,7,218,FALSE,included,NA
+317,8,8,260,FALSE,included,NA
+318,1,1,261,FALSE,included,NA
+319,2,2,262,FALSE,included,NA
+320,3,3,263,TRUE,no looking 2nd target window (4500-5967,NA
+321,4,4,264,FALSE,included,NA
+322,5,5,265,FALSE,included,NA
+323,6,6,266,FALSE,included,NA
+324,7,7,267,FALSE,included,NA
+325,8,8,268,TRUE,< 50% looking on trial,NA
+326,1,1,269,FALSE,included,NA
+327,2,2,239,FALSE,included,NA
+328,3,3,270,TRUE,< 50% looking on trial,NA
+329,4,4,271,FALSE,included,NA
+330,5,5,272,FALSE,included,NA
+331,6,6,273,FALSE,included,NA
+332,7,7,274,FALSE,included,NA
+333,8,8,275,FALSE,included,NA
+334,1,1,276,FALSE,included,NA
+335,2,2,277,TRUE,< 50% looking on trial,NA
+336,3,3,270,TRUE,< 50% looking on trial,NA
+337,4,4,278,TRUE,no looking 2nd target window (4500-5967,NA
+338,5,5,279,TRUE,< 50% looking on trial,NA
+339,6,6,280,TRUE,< 50% looking on trial,NA
+340,7,7,281,TRUE,< 50% looking on trial,NA
+341,8,8,282,FALSE,included,NA
+342,1,1,254,FALSE,included,NA
+343,2,2,181,TRUE,< 50% looking on trial,NA
+344,3,3,182,TRUE,< 50% looking on trial,NA
+345,4,4,283,FALSE,included,NA
+346,5,5,284,TRUE,< 50% looking on trial,NA
+347,6,6,285,FALSE,included,NA
+348,7,7,286,TRUE,< 50% looking on trial,NA
+349,8,8,187,TRUE,< 50% looking on trial,NA
+350,1,1,287,FALSE,included,NA
+351,2,2,197,FALSE,included,NA
+352,3,3,288,FALSE,included,NA
+353,4,4,223,FALSE,included,NA
+354,5,5,289,FALSE,included,NA
+355,6,6,290,FALSE,included,NA
+356,7,7,202,FALSE,included,NA
+357,8,8,282,FALSE,included,NA
+358,1,1,291,FALSE,included,NA
+359,2,2,292,FALSE,included,NA
+360,3,3,214,FALSE,included,NA
+361,4,4,293,FALSE,included,NA
+362,5,5,294,FALSE,included,NA
+363,6,6,193,FALSE,included,NA
+364,7,7,295,FALSE,included,NA
+365,8,8,296,FALSE,included,NA
+366,1,1,297,FALSE,included,NA
+367,2,2,298,FALSE,included,NA
+368,3,3,299,FALSE,included,NA
+369,4,4,300,FALSE,included,NA
+370,5,5,301,FALSE,included,NA
+371,6,6,302,FALSE,included,NA
+372,7,7,303,FALSE,included,NA
+373,8,8,304,FALSE,included,NA
+374,1,1,287,FALSE,included,NA
+375,2,2,262,FALSE,included,NA
+376,3,3,214,TRUE,< 50% looking on trial,NA
+377,4,4,305,TRUE,< 50% looking on trial,NA
+378,5,5,216,TRUE,< 50% looking on trial,NA
+379,6,6,306,FALSE,included,NA
+380,7,7,307,FALSE,included,NA
+381,8,8,308,TRUE,no looking 2nd target window (4500-5967,NA
+382,1,1,309,FALSE,included,NA
+383,2,2,239,FALSE,included,NA
+384,3,3,310,FALSE,included,NA
+385,4,4,311,FALSE,included,NA
+386,5,5,216,FALSE,included,NA
+387,6,6,312,FALSE,included,NA
+388,7,7,274,FALSE,included,NA
+389,8,8,313,FALSE,included,NA
+390,1,1,314,FALSE,included,NA
+391,2,2,247,TRUE,no looking 2nd target window (4500-5967,NA
+392,3,3,233,FALSE,included,NA
+393,4,4,315,FALSE,included,NA
+394,5,5,316,FALSE,included,NA
+395,6,6,317,FALSE,included,NA
+396,7,7,252,FALSE,included,NA
+397,8,8,318,FALSE,included,NA
+398,1,1,319,FALSE,included,NA
+399,2,2,320,FALSE,included,NA
+400,3,3,321,FALSE,included,NA
+401,4,4,199,FALSE,included,NA
+402,5,5,316,FALSE,included,NA
+403,6,6,322,FALSE,included,NA
+404,7,7,323,FALSE,included,NA
+405,8,8,260,FALSE,included,NA
+406,1,1,324,FALSE,included,NA
+407,2,2,247,FALSE,included,NA
+408,3,3,233,FALSE,included,NA
+409,4,4,325,FALSE,included,NA
+410,5,5,265,FALSE,included,NA
+411,6,6,326,FALSE,included,NA
+412,7,7,252,FALSE,included,NA
+413,8,8,327,FALSE,included,NA
+414,1,1,314,FALSE,included,NA
+415,2,2,328,TRUE,< 50% looking on trial,NA
+416,3,3,310,FALSE,included,NA
+417,4,4,329,TRUE,< 50% looking on trial,NA
+418,5,5,330,FALSE,included,NA
+419,6,6,331,FALSE,included,NA
+420,7,7,244,FALSE,included,NA
+421,8,8,332,FALSE,included,NA
+422,1,1,333,FALSE,included,NA
+423,2,2,292,FALSE,included,NA
+424,3,3,334,FALSE,included,NA
+425,4,4,335,TRUE,< 50% looking on trial,NA
+426,5,5,284,FALSE,included,NA
+427,6,6,336,FALSE,included,NA
+428,7,7,337,FALSE,included,NA
+429,8,8,338,TRUE,< 50% looking on trial,NA
+430,1,1,339,FALSE,included,NA
+431,2,2,262,FALSE,included,NA
+432,3,3,340,TRUE,no looking 2nd target window (4500-5967,NA
+433,4,4,305,FALSE,included,NA
+434,5,5,341,FALSE,included,NA
+435,6,6,342,FALSE,included,NA
+436,7,7,307,FALSE,included,NA
+437,8,8,343,FALSE,included,NA
+438,1,1,344,FALSE,included,NA
+439,2,2,298,FALSE,included,NA
+440,3,3,345,FALSE,included,NA
+441,4,4,346,FALSE,included,NA
+442,5,5,347,FALSE,included,NA
+443,6,6,348,FALSE,included,NA
+444,7,7,349,FALSE,included,NA
+445,8,8,350,FALSE,included,NA
+446,1,1,351,FALSE,included,NA
+447,2,2,255,FALSE,included,NA
+448,3,3,321,TRUE,< 50% looking on trial,NA
+449,4,4,352,FALSE,included,NA
+450,5,5,353,FALSE,included,NA
+451,6,6,354,FALSE,included,NA
+452,7,7,237,TRUE,< 50% looking on trial,NA
+453,8,8,355,FALSE,included,NA
+454,1,1,356,FALSE,included,NA
+455,2,2,255,TRUE,< 50% looking on trial,NA
+456,3,3,321,TRUE,< 50% looking on trial,NA
+457,4,4,357,FALSE,included,NA
+458,5,5,358,FALSE,included,NA
+459,6,6,251,TRUE,< 50% looking on trial,NA
+460,7,7,359,TRUE,< 50% looking on trial,NA
+461,8,8,360,TRUE,< 50% looking on trial,NA
+462,1,1,196,FALSE,included,NA
+463,2,2,189,FALSE,included,NA
+464,3,3,361,FALSE,included,NA
+465,4,4,191,FALSE,included,NA
+466,5,5,362,FALSE,included,NA
+467,6,6,193,TRUE,no looking 2nd target window (4500-5967,NA
+468,7,7,295,FALSE,included,NA
+469,8,8,363,FALSE,included,NA
+470,1,1,364,FALSE,included,NA
+471,2,2,320,FALSE,included,NA
+472,3,3,321,FALSE,included,NA
+473,4,4,365,FALSE,included,NA
+474,5,5,258,FALSE,included,NA
+475,6,6,366,FALSE,included,NA
+476,7,7,367,FALSE,included,NA
+477,8,8,368,FALSE,included,NA
+478,1,1,369,FALSE,included,NA
+479,2,2,181,FALSE,included,NA
+480,3,3,370,FALSE,included,NA
+481,4,4,264,FALSE,included,NA
+482,5,5,371,FALSE,included,NA
+483,6,6,372,FALSE,included,NA
+484,7,7,373,TRUE,< 50% looking on trial,NA
+485,8,8,313,FALSE,included,NA
+486,1,1,374,FALSE,included,NA
+487,2,2,277,FALSE,included,NA
+488,3,3,375,FALSE,included,NA
+489,4,4,241,FALSE,included,NA
+490,5,5,376,FALSE,included,NA
+491,6,6,243,TRUE,< 50% looking on trial,NA
+492,7,7,377,FALSE,included,NA
+493,8,8,245,FALSE,included,NA
+494,1,1,378,FALSE,included,NA
+495,2,2,197,FALSE,included,NA
+496,3,3,379,FALSE,included,NA
+497,4,4,380,FALSE,included,NA
+498,5,5,381,FALSE,included,NA
+499,6,6,290,FALSE,included,NA
+500,7,7,382,FALSE,included,NA
+501,8,8,304,FALSE,included,NA
+502,1,1,383,FALSE,included,NA
+503,2,2,181,FALSE,included,NA
+504,3,3,214,FALSE,included,NA
+505,4,4,384,FALSE,included,NA
+506,5,5,385,FALSE,included,NA
+507,6,6,366,FALSE,included,NA
+508,7,7,386,FALSE,included,NA
+509,8,8,387,TRUE,< 50% looking on trial,NA
+510,1,1,388,FALSE,included,NA
+511,2,2,181,FALSE,included,NA
+512,3,3,389,FALSE,included,NA
+513,4,4,384,FALSE,included,NA
+514,5,5,385,FALSE,included,NA
+515,6,6,390,FALSE,included,NA
+516,7,7,391,FALSE,included,NA
+517,8,8,392,FALSE,included,NA
+518,1,1,393,FALSE,included,NA
+519,2,2,239,FALSE,included,NA
+520,3,3,394,FALSE,included,NA
+521,4,4,311,FALSE,included,NA
+522,5,5,395,FALSE,included,NA
+523,6,6,243,FALSE,included,NA
+524,7,7,307,FALSE,included,NA
+525,8,8,396,FALSE,included,NA
+526,1,1,397,FALSE,included,NA
+527,2,2,398,TRUE,no looking 2nd target window (4500-5967,NA
+528,3,3,399,TRUE,no looking 2nd target window (4500-5967,NA
+529,4,4,400,TRUE,< 50% looking on trial,NA
+530,5,5,401,FALSE,included,NA
+531,6,6,402,TRUE,< 50% looking on trial,NA
+532,7,7,403,FALSE,included,NA
+533,8,8,404,TRUE,< 50% looking on trial,NA
+534,1,1,405,FALSE,included,NA
+535,2,2,406,FALSE,included,NA
+536,3,3,407,FALSE,included,NA
+537,4,4,408,FALSE,included,NA
+538,5,5,409,FALSE,included,NA
+539,6,6,410,FALSE,included,NA
+540,7,7,411,FALSE,included,NA
+541,8,8,412,FALSE,included,NA
+542,1,1,413,FALSE,included,NA
+543,2,2,414,FALSE,included,NA
+544,3,3,415,FALSE,included,NA
+545,4,4,416,FALSE,included,NA
+546,5,5,417,FALSE,included,NA
+547,6,6,418,FALSE,included,NA
+548,7,7,419,FALSE,included,NA
+549,8,8,420,TRUE,< 50% looking on trial,NA
+550,1,1,421,FALSE,included,NA
+551,2,2,422,FALSE,included,NA
+552,3,3,423,TRUE,< 50% looking on trial,NA
+553,4,4,424,FALSE,included,NA
+554,5,5,425,FALSE,included,NA
+555,6,6,426,FALSE,included,NA
+556,7,7,427,TRUE,< 50% looking on trial,NA
+557,8,8,428,TRUE,< 50% looking on trial,NA
+558,1,1,429,TRUE,< 50% looking on trial,NA
+559,2,2,430,FALSE,included,NA
+560,3,3,431,FALSE,included,NA
+561,4,4,432,FALSE,included,NA
+562,5,5,433,FALSE,included,NA
+563,6,6,434,FALSE,included,NA
+564,7,7,435,FALSE,included,NA
+565,8,8,436,TRUE,< 50% looking on trial,NA
+566,1,1,437,FALSE,included,NA
+567,2,2,398,FALSE,included,NA
+568,3,3,438,FALSE,included,NA
+569,4,4,439,FALSE,included,NA
+570,5,5,440,FALSE,included,NA
+571,6,6,441,FALSE,included,NA
+572,7,7,442,FALSE,included,NA
+573,8,8,443,FALSE,included,NA
+574,1,1,444,FALSE,included,NA
+575,2,2,430,FALSE,included,NA
+576,3,3,445,FALSE,included,NA
+577,4,4,446,FALSE,included,NA
+578,5,5,447,FALSE,included,NA
+579,6,6,448,TRUE,< 50% looking on trial,NA
+580,7,7,449,FALSE,included,NA
+581,8,8,450,FALSE,included,NA
+582,1,1,451,FALSE,included,NA
+583,2,2,452,FALSE,included,NA
+584,3,3,453,FALSE,included,NA
+585,4,4,454,FALSE,included,NA
+586,5,5,455,FALSE,included,NA
+587,6,6,456,FALSE,included,NA
+588,7,7,457,FALSE,included,NA
+589,8,8,450,TRUE,< 50% looking on trial,NA
+590,1,1,458,FALSE,included,NA
+591,2,2,452,FALSE,included,NA
+592,3,3,459,FALSE,included,NA
+593,4,4,460,FALSE,included,NA
+594,5,5,425,FALSE,included,NA
+595,6,6,461,FALSE,included,NA
+596,7,7,462,FALSE,included,NA
+597,8,8,463,FALSE,included,NA
+598,1,1,464,FALSE,included,NA
+599,2,2,465,TRUE,< 50% looking on trial,NA
+600,3,3,466,FALSE,included,NA
+601,4,4,467,TRUE,< 50% looking on trial,NA
+602,5,5,468,FALSE,included,NA
+603,6,6,469,TRUE,< 50% looking on trial,NA
+604,7,7,470,TRUE,< 50% looking on trial,NA
+605,8,8,471,FALSE,included,NA
+606,1,1,472,TRUE,< 50% looking on trial,NA
+607,2,2,473,TRUE,< 50% looking on trial,NA
+608,3,3,474,FALSE,included,NA
+609,4,4,475,FALSE,included,NA
+610,5,5,476,TRUE,< 50% looking on trial,NA
+611,6,6,477,FALSE,included,NA
+612,7,7,478,TRUE,< 50% looking on trial,NA
+613,8,8,479,TRUE,< 50% looking on trial,NA
+614,1,1,480,FALSE,included,NA
+615,2,2,481,FALSE,included,NA
+616,3,3,482,FALSE,included,NA
+617,4,4,483,TRUE,< 50% looking on trial,NA
+618,5,5,484,FALSE,included,NA
+619,6,6,485,FALSE,included,NA
+620,7,7,486,FALSE,included,NA
+621,8,8,487,TRUE,< 50% looking on trial,NA
+622,1,1,488,FALSE,included,NA
+623,2,2,481,FALSE,included,NA
+624,3,3,489,FALSE,included,NA
+625,4,4,460,TRUE,< 50% looking on trial,NA
+626,5,5,490,FALSE,included,NA
+627,6,6,491,TRUE,< 50% looking on trial,NA
+628,7,7,492,FALSE,included,NA
+629,8,8,493,FALSE,included,NA
+630,1,1,494,FALSE,included,NA
+631,2,2,406,FALSE,included,NA
+632,3,3,407,TRUE,< 50% looking on trial,NA
+633,4,4,495,FALSE,included,NA
+634,5,5,476,FALSE,included,NA
+635,6,6,410,FALSE,included,NA
+636,7,7,496,FALSE,included,NA
+637,8,8,497,TRUE,< 50% looking on trial,NA
+638,1,1,498,FALSE,included,NA
+639,2,2,499,FALSE,included,NA
+640,3,3,500,FALSE,included,NA
+641,4,4,501,FALSE,included,NA
+642,5,5,502,FALSE,included,NA
+643,6,6,503,TRUE,no looking 2nd target window (4500-5967,NA
+644,7,7,504,FALSE,included,NA
+645,8,8,505,FALSE,included,NA
+646,1,1,506,FALSE,included,NA
+647,2,2,473,FALSE,included,NA
+648,3,3,507,FALSE,included,NA
+649,4,4,508,FALSE,included,NA
+650,5,5,409,FALSE,included,NA
+651,6,6,509,FALSE,included,NA
+652,7,7,411,FALSE,included,NA
+653,8,8,510,FALSE,included,NA
+654,1,1,511,FALSE,included,NA
+655,2,2,452,FALSE,included,NA
+656,3,3,431,FALSE,included,NA
+657,4,4,439,FALSE,included,NA
+658,5,5,512,FALSE,included,NA
+659,6,6,513,FALSE,included,NA
+660,7,7,514,FALSE,included,NA
+661,8,8,515,FALSE,included,NA
+662,1,1,516,FALSE,included,NA
+663,2,2,414,FALSE,included,NA
+664,3,3,517,FALSE,included,NA
+665,4,4,518,FALSE,included,NA
+666,5,5,417,FALSE,included,NA
+667,6,6,519,FALSE,included,NA
+668,7,7,520,FALSE,included,NA
+669,8,8,521,FALSE,included,NA
+670,1,1,405,FALSE,included,NA
+671,2,2,522,FALSE,included,NA
+672,3,3,507,TRUE,< 50% looking on trial,NA
+673,4,4,523,FALSE,included,NA
+674,5,5,524,FALSE,included,NA
+675,6,6,525,TRUE,< 50% looking on trial,NA
+676,7,7,526,FALSE,included,NA
+677,8,8,527,TRUE,< 50% looking on trial,NA
+678,1,1,528,FALSE,included,NA
+679,2,2,529,FALSE,included,NA
+680,3,3,530,FALSE,included,NA
+681,4,4,531,TRUE,no looking 2nd target window (4500-5967,NA
+682,5,5,532,FALSE,included,NA
+683,6,6,503,FALSE,included,NA
+684,7,7,504,FALSE,included,NA
+685,8,8,533,FALSE,included,NA
+686,1,1,534,FALSE,included,NA
+687,2,2,422,FALSE,included,NA
+688,3,3,423,TRUE,< 50% looking on trial,NA
+689,4,4,535,FALSE,included,NA
+690,5,5,512,TRUE,< 50% looking on trial,NA
+691,6,6,536,FALSE,included,NA
+692,7,7,537,TRUE,< 50% looking on trial,NA
+693,8,8,538,FALSE,included,NA
+694,1,1,539,FALSE,included,NA
+695,2,2,398,FALSE,included,NA
+696,3,3,540,FALSE,included,NA
+697,4,4,541,FALSE,included,NA
+698,5,5,542,FALSE,included,NA
+699,6,6,543,FALSE,included,NA
+700,7,7,442,FALSE,included,NA
+701,8,8,544,FALSE,included,NA
+702,1,1,545,FALSE,included,NA
+703,2,2,422,FALSE,included,NA
+704,3,3,546,FALSE,included,NA
+705,4,4,547,FALSE,included,NA
+706,5,5,433,TRUE,no looking 2nd target window (4500-5967,NA
+707,6,6,548,FALSE,included,NA
+708,7,7,549,FALSE,included,NA
+709,8,8,463,TRUE,< 50% looking on trial,NA
+710,1,1,550,FALSE,included,NA
+711,2,2,551,FALSE,included,NA
+712,3,3,438,FALSE,included,NA
+713,4,4,552,FALSE,included,NA
+714,5,5,553,FALSE,included,NA
+715,6,6,554,FALSE,included,NA
+716,7,7,555,TRUE,no looking 2nd target window (4500-5967,NA
+717,1,1,556,FALSE,included,NA
+718,2,2,551,FALSE,included,NA
+719,3,3,557,TRUE,no pre-onset looking,NA
+720,4,4,541,FALSE,included,NA
+721,5,5,440,FALSE,included,NA
+722,6,6,509,FALSE,included,NA
+723,7,7,558,FALSE,included,NA
+724,8,8,559,FALSE,included,NA
+725,1,1,560,FALSE,included,NA
+726,2,2,522,TRUE,< 50% looking on trial,NA
+727,3,3,474,TRUE,< 50% looking on trial,NA
+728,4,4,535,FALSE,included,NA
+729,5,5,561,TRUE,< 50% looking on trial,NA
+730,6,6,562,FALSE,included,NA
+731,7,7,563,TRUE,< 50% looking on trial,NA
+732,8,8,527,TRUE,< 50% looking on trial,NA
+733,1,1,506,FALSE,included,NA
+734,2,2,398,FALSE,included,NA
+735,3,3,564,FALSE,included,NA
+736,4,4,541,FALSE,included,NA
+737,5,5,440,FALSE,included,NA
+738,6,6,477,FALSE,included,NA
+739,7,7,555,TRUE,< 50% looking on trial,NA
+740,8,8,565,FALSE,included,NA
+741,1,1,566,FALSE,included,NA
+742,2,2,473,FALSE,included,NA
+743,3,3,474,TRUE,< 50% looking on trial,NA
+744,4,4,567,FALSE,included,NA
+745,5,5,568,FALSE,included,NA
+746,6,6,569,TRUE,no looking 2nd target window (4500-5967,NA
+747,7,7,558,FALSE,included,NA
+748,8,8,497,TRUE,< 50% looking on trial,NA
+749,1,1,516,FALSE,included,NA
+750,2,2,570,FALSE,included,NA
+751,3,3,571,FALSE,included,NA
+752,4,4,467,FALSE,included,NA
+753,5,5,572,FALSE,included,NA
+754,6,6,573,FALSE,included,NA
+755,7,7,520,TRUE,< 50% looking on trial,NA
+756,8,8,471,FALSE,included,NA
+757,1,1,574,FALSE,included,NA
+758,2,2,570,FALSE,included,NA
+759,3,3,575,TRUE,no looking 2nd target window (4500-5967,NA
+760,4,4,576,FALSE,included,NA
+761,5,5,577,FALSE,included,NA
+762,6,6,485,FALSE,included,NA
+763,7,7,578,FALSE,included,NA
+764,8,8,487,FALSE,included,NA
+765,1,1,579,FALSE,included,NA
+766,2,2,430,FALSE,included,NA
+767,3,3,580,TRUE,< 50% looking on trial,NA
+768,4,4,454,FALSE,included,NA
+769,5,5,425,TRUE,< 50% looking on trial,NA
+770,6,6,581,FALSE,included,NA
+771,7,7,582,FALSE,included,NA
+772,8,8,463,TRUE,< 50% looking on trial,NA
+773,1,1,583,FALSE,included,NA
+774,2,2,551,FALSE,included,NA
+775,3,3,584,FALSE,included,NA
+776,4,4,585,FALSE,included,NA
+777,5,5,484,FALSE,included,NA
+778,6,6,402,FALSE,included,NA
+779,7,7,586,FALSE,included,NA
+780,8,8,559,FALSE,included,NA
+781,1,1,587,FALSE,included,NA
+782,2,2,406,FALSE,included,NA
+783,3,3,407,FALSE,included,NA
+784,4,4,588,FALSE,included,NA
+785,5,5,476,FALSE,included,NA
+786,6,6,589,FALSE,included,NA
+787,7,7,478,FALSE,included,NA
+788,8,8,590,FALSE,included,NA
+789,1,1,591,FALSE,included,NA
+790,2,2,465,FALSE,included,NA
+791,3,3,592,FALSE,included,NA
+792,4,4,467,FALSE,included,NA
+793,5,5,593,FALSE,included,NA
+794,6,6,469,TRUE,no looking 2nd target window (4500-5967,NA
+795,7,7,594,FALSE,included,NA
+796,8,8,487,TRUE,< 50% looking on trial,NA
