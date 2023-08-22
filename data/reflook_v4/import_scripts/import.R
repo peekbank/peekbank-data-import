@@ -101,11 +101,14 @@ aoi_ids <- aoi.data.all %>%
 #### generate all data objects ####
 
 #create dataset data
-dataset.data <- process_smi_dataset(lab_dataset_id = "reflook_v4")
+dataset.data <- process_smi_dataset(lab_dataset_id = "reflook_v4") %>%
+  mutate(dataset_aux_data=NA)
 
 ##create stimuli data
 stimuli.data <- process_smi_stimuli(trial_file_path) %>%
-  mutate(stimulus_id = seq(0, length(english_stimulus_label) - 1)) 
+  mutate(stimulus_id = seq(0, length(english_stimulus_label) - 1))  %>%
+  mutate(stimulus_aux_data=NA)
+  
 
 ## create timepoint data so we have a list of participants for whom we actually have data
 timepoint.data <- lapply(all_file_paths, process_smi_eyetracking_file) %>%
@@ -113,7 +116,8 @@ timepoint.data <- lapply(all_file_paths, process_smi_eyetracking_file) %>%
   mutate(xy_timepoint_id = seq(0, length(lab_subject_id) - 1)) %>%
   mutate(subject_id = as.numeric(factor(lab_subject_id, 
                                         levels = unique(lab_subject_id))) - 1) %>%
-  rename(trial_id = subject_trial_id)
+  rename(trial_number = subject_trial_id) %>%
+  mutate(lab_trial_id=trial_number+1)
 
 ## extract unique participant ids from eyetracking data 
 # (in order to filter participant demographic file)
@@ -125,7 +129,8 @@ subjects.data <- process_subjects_info(participant_file_path) %>%
   left_join(participant_id_table, by = "lab_subject_id") %>%
   filter(!is.na(subject_id)) %>%
   mutate(native_language = "eng") %>%
-  dplyr::select(subject_id, sex, native_language, lab_subject_id)
+  mutate(subject_aux_data=NA) %>%
+  dplyr::select(subject_id, sex, native_language, lab_subject_id,subject_aux_data)
 
 #create administration data 
 administration.data <- process_administration_info(participant_file_path, 
@@ -137,42 +142,50 @@ administration.data <- participant_id_table %>%
   dplyr::select(-lab_subject_id) %>%
   dplyr::select(dataset_id, subject_id, age, lab_age, lab_age_units, 
                 monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method) %>%
-  mutate(administration_id = seq(0, length(subject_id) - 1)) 
+  mutate(administration_id = seq(0, length(subject_id) - 1)) %>%
+  mutate(
+    administration_aux_data = NA
+  )
 
 # post-hoc generate trials
 # we are going to rely on ordering and uniqueness facts about this dataset
 # in particular that the trials were unique and ordered the same way for everyone
 #
-# trial_id, trial_order, trial_type_id
-trials.data <- timepoint.data %>%
-  select(lab_subject_id, trial_id) %>%
+# trial_id, trial_order
+d_trials.data <- timepoint.data %>%
+  select(lab_subject_id, trial_number) %>%
   group_by(lab_subject_id) %>%
   distinct() %>%
-  mutate(trial_type_id = trial_id, 
-         trial_order = trial_type_id + 1) %>%
+  mutate(trial_order = trial_number + 1,
+         trial_aux_data = NA) %>%
+  mutate(
+    excluded = FALSE,
+    exclusion_reason = NA_character_
+  ) %>%
   ungroup() %>%
-  select(-lab_subject_id) %>%
-  distinct()
+  mutate(trial_id = seq(0, length(.$trial_number) - 1))
 
 # create trial_types data and match with stimulus id and aoi_region_set_id
 trial_types.data <- process_smi_trial_info(trial_file_path) %>%
   left_join(stimuli.data %>% select(stimulus_id, english_stimulus_label), 
             by = c("distractor_label" = "english_stimulus_label")) %>%
   rename(distractor_id = stimulus_id) %>%
-  left_join(stimuli.data %>% select(stimulus_id, english_stimulus_label), 
+  left_join(stimuli.data %>% select(stimulus_id, english_stimulus_label,stimulus_novelty), 
             by = c("target_label" = "english_stimulus_label")) %>%
   rename(target_id = stimulus_id) %>%
   left_join(aoi_ids %>% select(-stimulus_name), by = "Stimulus") %>%
   mutate(condition = "reflook") %>%
+  mutate(trial_type_aux_data=NA) %>%
+  mutate(vanilla_trial=ifelse(stimulus_novelty=="familiar",TRUE,FALSE)) %>%
   dplyr::select(trial_type_id, full_phrase, full_phrase_language, 
                 point_of_disambiguation, target_side, 
                 lab_trial_id, aoi_region_set_id, dataset_id, 
-                distractor_id, target_id, condition)
+                distractor_id, target_id, condition,trial_type_aux_data,vanilla_trial)
 
 # create xy data with lots of extra stuff for resampling
 xy_merged.data <- timepoint.data %>% 
-  dplyr::left_join(trials.data, by = "trial_id") %>%
-  dplyr::left_join(trial_types.data, by = "trial_type_id") %>%
+  dplyr::left_join(d_trials.data) %>%
+  dplyr::left_join(trial_types.data) %>%
   dplyr::left_join(aoi.data, by = "aoi_region_set_id") %>%
   dplyr::left_join(administration.data, by = "subject_id") 
 
@@ -192,6 +205,16 @@ aoi_timepoints <- xy_merged.data %>%
   peekds::normalize_times(.) %>%
   peekds::resample_times(., table_type = "aoi_timepoints") 
 
+# extract trials.data
+# this step comes later because we first needed to integrate the trial_type_id
+trials.data <- xy_merged.data %>%
+  distinct(trial_id,
+           trial_order,
+           trial_type_id,
+           trial_aux_data,
+           excluded,
+           exclusion_reason)
+
 #write all files
 write_csv(xy.data, path = paste0(output_path,"/","xy_timepoints.csv"))
 write_csv(subjects.data, path = paste0(output_path,"/","subjects.csv"))
@@ -208,7 +231,7 @@ peekds::validate_for_db_import(dir_csv = output_path)
 
 # OSF integration
 # system specific read-in because I don't have another good method? 
-token <- read_lines(here("../osf_token.txt"))[1]
+token <- read_lines(here("osf_token.txt"))
 osf_token <- osfr::osf_auth(token = token) # - fill in with your own token.
 put_processed_data(osf_token, dataset_name, paste0(output_path,"/"), osf_address = "pr6wu")
 
