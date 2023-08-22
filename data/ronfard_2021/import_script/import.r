@@ -109,9 +109,14 @@ d_semi <- d_tidy %>%
   left_join(d_trial_type_ids) 
 
 d_trial_ids <- d_semi %>%
-  arrange(trial_no,trial_type_id) %>%
-  distinct(trial_no, trial_type_id) %>%
-  mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
+arrange(trial_no,trial_type_id) %>%
+distinct(trial_no, trial_type_id, subject_id) %>%
+mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
+  
+# d_trial_ids <- d_semi %>%
+# arrange(trial_no,trial_type_id) %>%
+# distinct(trial_no, trial_type_id) %>%
+# mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
 
 d_semi <- d_semi %>%
   left_join(d_trial_ids)
@@ -176,8 +181,22 @@ trials <- d_fin %>%
            trial_no,
            trial_type_id) %>%
   rename(trial_order=trial_no)  %>%
-  mutate(trial_aux_data=NA, excluded=NA, exclusion_reason=NA) %>%
+  mutate(trial_aux_data=NA, excluded=NA, exclusion_reason=NA)  %>% 
   write_csv(fs::path(write_path, trials_table_filename))
+  
+trials2 <- d_fin %>%
+  distinct(trial_id,
+           trial_no,
+           trial_type_id) %>%
+  rename(trial_order=trial_no)  %>%
+  mutate(trial_aux_data=NA, excluded=F, exclusion_reason=NA)
+  # %>% write_csv(fs::path(write_path, trials_table_filename))
+
+# idea for validating the format of the trials table
+num_admins_per_trial_id = aggregate(administration_id  ~ trial_id , aoi_timepoints, function(x){length(unique(x))})
+if (any(num_admins_per_trial_id$administration_id != 1)){
+	stop('Multiple administrations detected for the same trial ID. Make sure that trials are split out by subject to allow subject-specific trial exclusion')
+}
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_fin %>%
@@ -208,6 +227,7 @@ data_tab <- tibble(
 
 
 # validation check ----------------------------------------------------------
+
 validate_for_db_import(dir_csv = write_path)
 
 #### Validation ####
