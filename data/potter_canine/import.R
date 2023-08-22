@@ -90,10 +90,6 @@ post_dis_names_clean_cols_to_remove <- post_dis_names_clean[110:length(post_dis_
 d_processed <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
 
-#remove prescreened trials
-d_processed <- d_processed %>%
-  filter(is.na(prescreen_notes))
-
 # Convert to long format --------------------------------------------------
 
 # get idx of first time series
@@ -119,7 +115,7 @@ d_tidy <- d_tidy %>%
 
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
-  select(-prescreen_notes, -c_image,-response, -first_shift_gap,-rt) %>%
+  select(-c_image,-response, -first_shift_gap,-rt) %>%
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
   rename(left_image = r_image, right_image=l_image) %>%
@@ -177,10 +173,14 @@ d_administration_ids <- d_tidy %>%
   distinct(sub_num,administration_num,subject_id,months) %>%
   mutate(administration_id = seq(0, length(.$administration_num) - 1)) 
 
+#join
+d_tidy <- d_tidy %>%
+  left_join(d_administration_ids)
+
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  distinct(order, tr_num, sound_stimulus, target_id, distractor_id, target_side) %>%
-  arrange(order,tr_num) %>%
+  distinct(administration_id,order, tr_num, sound_stimulus, target_id, distractor_id, target_side) %>%
+  arrange(administration_id,order, tr_num) %>%
   mutate(trial_order=tr_num) %>% 
   mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
 
@@ -226,7 +226,8 @@ d_tidy_final %>%
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-         native_language="eng") %>%
+         native_language="eng",
+         subject_aux_data=NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -241,28 +242,48 @@ d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "manual gaze coding") %>%
+  mutate(coding_method = "manual gaze coding",
+         administration_aux_data=NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
   select(-target_label, -target_image) %>%
+  mutate(stimulus_aux_data = NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
 d_tidy_final %>%
+  mutate(trial_aux_data = NA) %>%
+  mutate(
+    excluded = case_when(
+      is.na(prescreen_notes) ~ FALSE,
+      TRUE ~ TRUE
+    ),
+    exclusion_reason = case_when(
+      is.na(prescreen_notes) ~ NA_character_,
+      TRUE ~ prescreen_notes
+    )
+  ) %>%
   distinct(trial_id,
            trial_order,
-           trial_type_id) %>%
+           trial_type_id,
+           trial_aux_data,
+           excluded,
+           exclusion_reason) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
 d_tidy_final %>%
+  mutate(trial_type_aux_data = NA,
+         vanilla_trial = ifelse(condition == "Common-High"|condition == "Common-Low", TRUE, FALSE)) %>%
   distinct(trial_type_id,
            full_phrase,
            point_of_disambiguation,
            target_side,
            condition,
+           trial_type_aux_data,
+           vanilla_trial,
            aoi_region_set_id,
            lab_trial_id,
            dataset_id,
@@ -300,8 +321,9 @@ data_tab <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
-  cite = "Potter, C. E., & Lew-Williams, C. (in prep). Behold the canine!: How does toddlers’ knowledge of typical frames and familiar words interact to influence their sentence processing?",
-  shortcite = "Potter, C., & Lew-Williams, C. (in prep)"
+  cite = "Potter, C. E., & Lew-Williams, C. (2023). Frequent vs. infrequent words shape toddlers’ real-time sentence comprehension. Journal of Child Language, 1-11. doi:10.1017/S0305000923000387",
+  shortcite = "Potter, C., & Lew-Williams, C. (2023)",
+  dataset_aux_data = NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 

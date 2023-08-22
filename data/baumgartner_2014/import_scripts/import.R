@@ -21,7 +21,7 @@ sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
 dataset_name <- "baumgartner_2014"
 read_path <- here("data",dataset_name,"raw_data")
-write_path <- here("data",dataset_name, "processed_data")
+write_path <- here("data",dataset_name, "processed_data/")
 
 source(here("data",dataset_name, "import_scripts", "icoder_data_helper.R"))
 
@@ -35,14 +35,14 @@ trial_types_table_filename <- "trial_types.csv"
 trials_table_filename <- "trials.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
-# osf_token <- read_lines(here("osf_token.txt"))
+osf_token <- read_lines(here("osf_token.txt"))
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
 
 # download datata from osf
-# peekds::get_raw_data(dataset_name, path = read_path)
+#peekds::get_raw_data(dataset_name, path = read_path)
 
 
 # read & organize order files --------------------------------------------------
@@ -157,7 +157,8 @@ d_tidy <- d_tidy %>%
   mutate(target_side = case_when(
     targetside == "L" ~ "left",
     targetside == "R" ~ "right")) %>%
-  select(-condition_trial_num, -vq_rating, -response, -first_shift_gap,-rt)
+  select(-condition_trial_num, -vq_rating, -response, -first_shift_gap,-rt) %>%
+  mutate(target_label = tolower(target_label)) #make target label lowercase
 
 # add exclude column
 d_tidy$excluded <- case_when(d_tidy$include_filter == 1 ~ FALSE,
@@ -192,19 +193,20 @@ stimulus_table <- d_tidy %>%
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
 d_tidy <- d_tidy %>%
+  #add distractor label (need this in order to join in stimulus id for distractor unambiguously)
+  mutate(
+    distractor_label = case_when(
+      stimulus_novelty == "familiar" ~ tolower(distractor_image),
+      stimulus_novelty == "novel" &target_label == "lif" ~ "neem",
+      stimulus_novelty == "novel" &target_label == "neem" ~ "lif"
+    )
+  ) %>%
   left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id, target_label), by=c('target_image' = 'lab_stimulus_id', 'target_label'='target_label')) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('distractor_image' = 'lab_stimulus_id')) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id,target_label), by=c('distractor_image' = 'lab_stimulus_id','distractor_label'='target_label')) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
-
-# filter out extra distractor rows introduced by previous step (on novel trials, distractor stim ID is determined by target ID)
-d_tidy <- d_tidy %>%
-  filter(!(target_id==1 & distractor_id==9)) %>% # e.g., if target is FribbleA/"lif", distractor is FribbleB/"neem" (stim_id=9 is FribbleB/"lif")
-  filter(!(target_id==2 & distractor_id==7)) %>%
-  filter(!(target_id==7 & distractor_id==2)) %>%
-  filter(!(target_id==9 & distractor_id==1))
 
 # get zero-indexed subject ids 
 d_subject_ids <- d_tidy %>%
@@ -224,8 +226,14 @@ d_administration_ids <- d_tidy %>%
 d_trial_type_ids <- d_tidy %>%
   #order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
   #potentially make distinct based on condition if that is relevant to the study design 
-  distinct(condition, trial_order, target_id, distractor_id, target_label, target_side, frame) %>% # NOTE: not sure why trial_order included here, copied from Adams/Marchman. it doesn't seem like this is getting preserved in d_trial_type_ids???
-  mutate(full_phrase = paste(target_label, frame, target_label)) %>% 
+  distinct(condition, target_id, distractor_id, target_label, target_side, frame) %>% 
+  mutate(
+    frame_new = case_when(
+      frame == "Wheresthe_" ~ "Where's the ",
+      frame == "Canyoufindthe_" ~ "Can you find the "
+    )
+  ) %>%
+  mutate(full_phrase = paste0(target_label, "! ", frame_new, tolower(target_label),"?")) %>% 
   mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
 # joins
@@ -347,4 +355,7 @@ data_tab <- tibble(
 
 # validation check ----------------------------------------------------------
 validate_for_db_import(dir_csv = write_path)
+
+## OSF INTEGRATION ###
+put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
 
