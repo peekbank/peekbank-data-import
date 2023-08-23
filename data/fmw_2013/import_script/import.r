@@ -4,6 +4,7 @@ library(tidyverse)
 library(readxl)
 library(peekds)
 library(osfr)
+library(rjson)
 
 #TODO: check
 sampling_rate_hz <- 30
@@ -59,6 +60,11 @@ d_raw_order_2 <- read_delim(fs::path(read_path,"TLO-24A-2_TL2-24ms-order2_icoder
 
 d_raw_order <- bind_rows(d_raw_order_1, d_raw_order_2) %>% rename("order" = "name", "tr_num" = "trial number") %>%
   clean_names()
+
+cdi_data <- read_excel(fs::path(read_path,"FMW2013_English_18_24_CDI.xls")) %>%
+  mutate(
+    lab_subject_id=as.character(`subnum  ID`)
+  )
 
 #### FUNCTIONS FOR PREPROCESSING ####
 
@@ -159,7 +165,9 @@ temp_1_18 <- d_raw_1_18 %>%
     crit_on_set=as.numeric(crit_on_set)) %>%
   #point of disambiguation does not need adjustment for 18-month-olds
   mutate(crit_onset_adjust=0) %>%
-  relocate("crit_onset_adjust",.after="crit_off_set")
+  relocate("crit_onset_adjust",.after="crit_off_set") %>%
+  #make "age-type" variable that will be useful for joining in the CDI data (and matching to approximately the right age/administrations)
+  mutate(age_type="18 months")
 
 temp_1_24 <- d_raw_1_24 %>%
   preprocess_raw_data() %>%
@@ -176,7 +184,8 @@ temp_1_24 <- d_raw_1_24 %>%
     order == "TLOTL2-24-1" ~ 1,
     order == "TLOTL2-24-2" ~ 2
   )) %>%
-  relocate("order_num",.after="crit_off_set")
+  relocate("order_num",.after="crit_off_set") %>%
+  mutate(age_type="24 months")
 
 temp_2_24 <- d_raw_2_24 %>%
   preprocess_raw_data() %>%
@@ -193,7 +202,8 @@ temp_2_24 <- d_raw_2_24 %>%
     order %in% c("ME3-B1-SONO","ME3-24B-1") ~ 1,
     order %in% c("ME3-B2-SONO","ME3-24B-2") ~ 2
   )) %>%
-  relocate("order_num",.after="crit_off_set")
+  relocate("order_num",.after="crit_off_set")%>%
+  mutate(age_type="24 months")
 
 temp_2_18 <- d_raw_2_18 %>%
   preprocess_raw_data() %>%
@@ -207,7 +217,8 @@ temp_2_18 <- d_raw_2_18 %>%
     tr_num=as.numeric(tr_num)) %>%
   #point of disambiguation does not need adjustment for 18-month-olds
   mutate(crit_onset_adjust=0) %>%
-  relocate("crit_onset_adjust",.after="shifts")
+  relocate("crit_onset_adjust",.after="shifts")%>%
+  mutate(age_type="18 months")
 
 #individual order and dataset clean-up
 #unifying condition names, removing duplicated trials
@@ -273,7 +284,7 @@ temp_2_24 <- temp_2_24 %>%
 #combine all files
 d_processed <- bind_rows(temp_1_18, temp_1_24, temp_2_18, temp_2_24) %>%
   #relocate newly added columns
-  relocate(c("order_trial_file","sound_stimulus","condition_trial_file","noun_crit_onset","order_num","crit_onset_adjust"),.after = "crit_off_set") %>%
+  relocate(c("age_type","order_trial_file","sound_stimulus","condition_trial_file","noun_crit_onset","order_num","crit_onset_adjust"),.after = "crit_off_set") %>%
   #remove unneeded columns
   select(-word_onset,-gap,-target_rt_sec,-dis_rt_sec,-shifts,-orig_resp) 
 
@@ -456,6 +467,68 @@ d_tidy_final <- d_tidy_semifinal %>%
          full_phrase=sound_stimulus
   )
 
+#add cdi data
+#999 seem to be NA values, convert now to avoid later issues
+cdi_data[cdi_data  == 999] <- NA
+cdi_processed <- cdi_data %>% 
+  select(lab_subject_id,WGage,WS24Age,WG18Comp,WG18Prod,WS18Vocab,WS24Vocab) %>%
+   rename(
+     age_2=WS24Age
+   ) %>%
+  mutate(age_1 = case_when(
+    !is.na(WGage)  ~ WGage,
+    !is.na(WS18Vocab) ~ 18
+  )) %>%
+  pivot_longer(
+    cols=c(age_1,age_2),
+    names_to = "administration",
+    values_to = "administration_age"
+  ) %>%
+  rename(
+    eng_wg_comp_rawscore = WG18Comp,
+    eng_wg_prod_rawscore = WG18Prod,
+    
+  ) %>%
+  mutate(
+    eng_ws_prod_rawscore = case_when(
+      !is.na(WS18Vocab) & administration == "age_1" ~ WS18Vocab,
+      !is.na(WS24Vocab) & administration == "age_2" ~ WS24Vocab,
+      TRUE ~ NA
+    )) %>%
+  select(-WGage,-WS18Vocab,-WS24Vocab) %>%
+  mutate(
+    eng_wg_comp_rawscore = case_when(
+      !is.na(eng_wg_comp_rawscore) & administration == "age_1" ~ eng_wg_comp_rawscore,
+      TRUE ~ NA
+    ),
+    eng_wg_prod_rawscore = case_when(
+      !is.na(eng_wg_prod_rawscore) & administration == "age_1" ~ eng_wg_prod_rawscore,
+      TRUE ~ NA
+    )) %>%
+  mutate(
+    age_type = case_when(
+      administration=="age_1" ~ "18 months",
+      administration=="age_2" ~ "24 months"
+    )
+  ) %>%
+  select(-administration)
+
+admin_aux <- d_tidy_final %>%
+  distinct(administration_id,
+           subject_id,
+           lab_subject_id,
+           age,
+           age_type,
+           lab_age,
+           lab_age_units) %>%
+  left_join(cdi_processed) %>%
+  #check to make sure no ages noted are wildly off - looks ok
+  mutate(
+    age_diff = age-administration_age
+  ) %>%
+  select(administration_id,eng_wg_comp_rawscore,eng_wg_prod_rawscore,eng_ws_prod_rawscore) %>%
+  rowwise(administration_id) %>% 
+  summarize(administration_aux_data= toJSON(across()))
 
 ##### AOI TABLE ####
 aoi_table <- d_tidy_final %>%
@@ -489,9 +562,34 @@ administrations <- d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "manual gaze coding",
-         administration_aux_data=NA) %>%
+  mutate(coding_method = "manual gaze coding") %>%
+  left_join(admin_aux) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
+  
+administrations <- d_tidy_final %>%
+    distinct(administration_id,
+             dataset_id,
+             subject_id,
+             lab_subject_id,
+             age,
+             age_type,
+             lab_age,
+             lab_age_units,
+             monitor_size_x,
+             monitor_size_y,
+             sample_rate,
+             tracker) %>%
+    left_join(admin_aux) %>%
+    #check to make sure no ages noted are wildly off - looks ok
+    mutate(
+      age_diff = age-administration_age
+    ) %>%
+  mutate(coding_method = "manual gaze coding") %>%
+  select(-age_type,-administration_age,-age_diff,-lab_subject_id) %>%
+  mutate(
+    administration_aux_data= toJSON(across(eng_wg_comp_rawscore,eng_wg_prod_rawscore,eng_ws_prod_rawscore)))
+
+  
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
