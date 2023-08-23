@@ -249,10 +249,10 @@ administrations_table <- administrations_table %>%
          tracker = as.character(tracker),
          coding_method = as.character(coding_method)) %>% 
   select(administration_id, dataset_id, subject_id, age, lab_age, lab_age_units,
-         monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method, eng_wsshort_produced = cdi) %>% 
+         monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method, eng_wsshort_prod_rawscore = cdi) %>% 
   rowwise(administration_id) %>% 
-  mutate(administration_aux_data= toJSON(across(eng_wsshort_produced)),
-         administration_aux_data = ifelse(is.na(eng_wsshort_produced), NA, administration_aux_data)) %>%
+  mutate(administration_aux_data= toJSON(across(eng_wsshort_prod_rawscore)),
+         administration_aux_data = ifelse(is.na(eng_wsshort_prod_rawscore), NA, administration_aux_data)) %>%
   write_csv(paste0(write_path, "/", administrations_table_filename))
 
 #datasets table

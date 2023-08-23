@@ -162,12 +162,12 @@ d_tidy <- raw %>%
 
 aux_data <- subj_info %>% select(lab_subject_id = id,
                                  eng_exposure = per_eng,
-                                 eng_ws_prod = cdi_prod_eng,
+                                 eng_ws_prod_rawscore = cdi_prod_eng,
                                  fre_exposure = per_fr,
-                                 fre_ws_prod = cdi_prod_fr) %>% 
+                                 fr_ws_prod_rawscore = cdi_prod_fr) %>% 
   rowwise(lab_subject_id) %>%
   summarize(subject_aux_data= toJSON(across(ends_with("exposure"))),
-            administration_aux_data = toJSON(across(ends_with("prod"))))
+            administration_aux_data = toJSON(across(ends_with("rawscore"))))
 
 # subjects table
 subjects <- d_tidy %>%
@@ -276,7 +276,7 @@ d_tidy_final <- d_tidy_final %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy_final %>%
-  distinct(trial_number, target_id, distractor_id, target_side, carrier_language, target_language,lab_trial_id, condition, trial_type_id) %>%
+  distinct(administration_id, trial_number, target_id, distractor_id, target_side, carrier_language, target_language,lab_trial_id, condition, trial_type_id) %>%
   mutate(excluded = FALSE,
          exclusion_reason = NA,
          trial_id = seq(0, length(.$trial_number) - 1))
@@ -331,7 +331,6 @@ d_tidy_final <- d_tidy_final %>%
 ##### TRIALS TABLE ####
 # trial_id	PrimaryKey	row identifier for the trials table indexing from zero
 # trial_order	IntegerField	index of the trial in order of presentation during the experiment
-# trial_type_id	ForeignKey	row identifier for the trial_types table indexing from zero
 trials <- d_tidy_final %>%
   mutate(trial_order=trial_number) %>%
  distinct(trial_id, trial_order, trial_type_id, excluded, exclusion_reason) %>% 
