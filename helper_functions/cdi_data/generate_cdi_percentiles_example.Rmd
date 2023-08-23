@@ -1,6 +1,8 @@
 ---
 title: "generate_percentiles"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 We need a tool that takes the form type, age, sex, and raw cdi summary score of a child and returns the percentile score based on the 2022 scoring tables. 
@@ -26,12 +28,12 @@ head(fake_administration_data, 10)
 
 ```{r}
 fake_administration_data$percentile <- mapply(generate_percentile, 
-                                         fake_administration_data$lang, 
-                                         fake_administration_data$form_version,
-                                         fake_administration_data$form_type,
-                                         fake_administration_data$child_sex, 
-                                         fake_administration_data$child_age,
-                                         fake_administration_data$child_score)
+                                              fake_administration_data$lang, 
+                                              fake_administration_data$form_version,
+                                              fake_administration_data$form_type,
+                                              fake_administration_data$child_sex, 
+                                              fake_administration_data$child_age,
+                                              fake_administration_data$child_score)
 
 head(fake_administration_data, 10)
 ```
