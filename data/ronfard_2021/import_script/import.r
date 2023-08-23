@@ -184,13 +184,6 @@ trials <- d_fin %>%
   mutate(trial_aux_data=NA, excluded=NA, exclusion_reason=NA)  %>% 
   write_csv(fs::path(write_path, trials_table_filename))
   
-trials2 <- d_fin %>%
-  distinct(trial_id,
-           trial_no,
-           trial_type_id) %>%
-  rename(trial_order=trial_no)  %>%
-  mutate(trial_aux_data=NA, excluded=F, exclusion_reason=NA)
-  # %>% write_csv(fs::path(write_path, trials_table_filename))
 
 # idea for validating the format of the trials table
 num_admins_per_trial_id = aggregate(administration_id  ~ trial_id , aoi_timepoints, function(x){length(unique(x))})
