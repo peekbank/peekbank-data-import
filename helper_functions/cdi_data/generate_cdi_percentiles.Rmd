@@ -1,0 +1,160 @@
+---
+title: "generate_percentiles"
+output: html_notebook
+---
+
+We need a tool that takes the form type, age, sex, and raw cdi summary score of a child and returns the percentile score based on the 2022 scoring tables. 
+
+# Setup
+```{r}
+library(here)
+library(tidyverse)
+library(peekbankr)
+source("merge_aux.r")
+```
+
+# Read and Merge Auxillary Data
+```{r}
+aux_data_df <- read_csv(here("aux_data/aux_data.csv"))
+
+#tidy the aux data
+cdi_data <- aux_data_df |>  
+  select(dataset_name, lab_subject_id, 
+         contains(c("produced", "understood"))) |> #grab just the cdi scores
+  pivot_longer(cols = -c(dataset_name, lab_subject_id),
+               names_to = "form",
+               values_to = "raw_score") |>
+  filter(!is.na(raw_score))
+```
+# Get Age and Sex for participant/administration
+
+TODO: these aux data will be linked to administrations, eventually but for now they're linked to datasetname and lab subject id.
+
+```{r}
+subjects_d <- get_subjects()
+administrations_d <- get_administrations(dataset_name = c(unique(cdi_data$dataset_name)))
+
+key_subjects_d <- administrations_d %>% 
+  left_join(subjects_d) %>% 
+  select(administration_id, dataset_name, 
+         lab_subject_id, age, sex, native_language) %>% 
+  left_join(cdi_data)
+```
+
+# Percentile Tool
+
+Here's an attempt at a matrix/indexing version?
+1) get the row for the child's age
+2) get the max raw score and the n-1 raw score, get the diff, divide by 5
+3) find the smallest closest interpolated score, use that to back out the percentile
+
+```{r}
+read_percentile_table <- function(file_name){
+  as.matrix(read_csv(here("aux_data/cdi_benchmarks", file_name), skip = 1))
+}
+
+#Generate list of matrices for each available benchmark file
+available_benchmarks <- list.files(here("aux_data/cdi_benchmarks"))
+available_benchmarks_matrix <- lapply(available_benchmarks, read_percentile_table)
+names(available_benchmarks_matrix) <- available_benchmarks
+
+get_percentile <-
+  function(lookup_table_mat, child_age, child_score) {
+    #add a row for missing 1st percentile
+    new_row = matrix(c(1, rep(0, ncol(lookup_table_mat) - 1)), #1, then 0s
+                     1,
+                     ncol(lookup_table_mat)) #length of real table
+    colnames(new_row) <- colnames(lookup_table_mat)
+    lookup_table_mat <- rbind(new_row, lookup_table_mat)
+    
+    #fix rownames to percentiles
+    lookup2 <- lookup_table_mat[, -1]
+    rownames(lookup2) <- lookup_table_mat[, 1]
+    
+    #catching for invalid child age for form
+    if (child_age < min(as.numeric(colnames(lookup2))) | 
+        child_age > max(as.numeric(colnames(lookup2)))) {
+      message("Error: Child out of range for this measure")
+      stop()
+    }
+    
+    # get values for age
+    age_values <- lookup2[, as.character(child_age)]
+    
+    if (child_score > max(age_values)){
+      return(99)
+    } else if (child_score < 0) {
+      return(1)
+    }
+    
+    #get the range
+    smaller <- max(age_values[age_values <= child_score])
+    larger <- min(age_values[age_values >= child_score])
+    increment = (larger - smaller) / 5
+    
+    #of the sequence of interpolated scores...,
+    interp_scores <- seq(smaller, larger, increment)
+    
+    #which is the closest smallest number?
+    #(get the index)
+    step = which(interp_scores == max(interp_scores[interp_scores <= child_score])) - 1 #0 vs 1 indexed
+    
+    #add this to the index of the smaller score to find the correct percentile
+    max(as.numeric(names(which(
+      age_values == smaller
+    )))) + step
+  }
+
+get_percentile_from_key <- function(percentile_key, child_age, 
+                                    child_score, 
+                                    percentile_matrix = available_benchmarks_matrix){
+  target_file = paste0(percentile_key, ".csv")
+  if (!target_file %in% names(percentile_matrix)){
+    message(paste("Missing file for ", target_file))
+    return(NA)
+  }
+  target_matrix <- percentile_matrix[[target_file]]
+  get_percentile(target_matrix, child_age, child_score)
+}
+```
+
+```{r}
+child_age = 30
+target_score = 151
+percentile_key = "eng_ws_prod_f"
+
+get_percentile_from_key(percentile_key, child_age, target_score)
+```
+quick microbenchmark
+```{r}
+library(microbenchmark)
+microbenchmark(get_percentile_from_key(percentile_key, child_age, sample(1:200, 1)))
+```
+
+
+```{r}
+subject_percentiles <- key_subjects_d %>%
+  separate(form, into = c("lang", "form", "type")) %>%
+  mutate(cdi_sex = case_when(sex == "male" ~ "m",
+                         sex == "female" ~ "f", 
+                         TRUE ~ "both"),
+         rounded_age = round(age),
+         type = case_when(type == "produced" ~ "prod",
+                          type == "understood" ~ "comp",
+                          TRUE ~ type),
+         form_key = paste(lang, form, type, cdi_sex, sep = "_")) %>%
+  select(dataset_name, lab_subject_id, form_key, rounded_age, raw_score)
+
+subject_percentiles$percentile <- mapply(get_percentile_from_key, 
+                                         subject_percentiles$form_key, 
+                                         subject_percentiles$rounded_age,
+                                         subject_percentiles$raw_score)
+
+```
+
+From Virginia: "so, each number is the number AT or below which the percentile is assigned.  So, if you are BELOW the number, then you must be a percentile values below it. Then, to interpolate, take the values of the two percentile increments, divide by 5 and then that gives you the values for each individual percentile increment."
+
+Q: what about the 1st percentile, the data starts at the 5th percentile?
+yes - 0.  and, there can be no percentile lower than 1
+
+oh - the other tricky thing is in the case like in WG prod when 0s go all the way up the percentiles.  In that case, assign the highest percentile. So, for example, the lowest score for an 8 month old boy/girl would be 25th
