@@ -15,7 +15,6 @@ There were 3 habituation conditions:
 Infants then tested in looking while listening paradigm on novel words and familiar words (e.g., baby, doggy, ball). Audio on test trials was presented as "[Target_label]! [Frame][Target_label]? (e.g., Baby! Where's the baby?). NOTE: due to how the study was presented, visual stimuli during test trials were .mov files with target and distractor images on each side of screen, which makes it a little tricky to include paths to target images. I'm still figuring out the best way to handle this. Currently, all .mov and auditory stimuli are available in zipped file on OSF.
 
 4. Importing decisions
-Not sure what should go here (tried to make comments in code)
+(tried to make comments in code)
 
 5. Importing ambiguity
-QUESTION ABOUT TRIAL ORDER AND TRIAL TYPE ID (COMMENT IN CODE, LINE)
