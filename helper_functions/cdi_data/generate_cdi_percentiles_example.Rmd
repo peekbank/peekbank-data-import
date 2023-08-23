@@ -1,0 +1,37 @@
+---
+title: "generate_percentiles"
+output: html_notebook
+---
+
+We need a tool that takes the form type, age, sex, and raw cdi summary score of a child and returns the percentile score based on the 2022 scoring tables. 
+
+# Setup
+```{r}
+library(here)
+library(tidyverse)
+source(here("helper_functions/cdi_data/process_CDI_data.R"))
+```
+
+```{r}
+# Generate dummy data
+fake_administration_data <- tibble(lang = rep("eng", 10),
+                                   form_version = rep("ws", 10),
+                                   form_type = rep("prod", 10),
+                                   child_sex = sample(c("male", "female", "other"), 10, TRUE),
+                                   child_age = sample(18:32, 10, TRUE), #in months, must be rounded
+                                   child_score = sample(100:600, 10, TRUE))
+head(fake_administration_data, 10)
+```
+
+
+```{r}
+fake_administration_data$percentile <- mapply(generate_percentile, 
+                                         fake_administration_data$lang, 
+                                         fake_administration_data$form_version,
+                                         fake_administration_data$form_type,
+                                         fake_administration_data$child_sex, 
+                                         fake_administration_data$child_age,
+                                         fake_administration_data$child_score)
+
+head(fake_administration_data, 10)
+```

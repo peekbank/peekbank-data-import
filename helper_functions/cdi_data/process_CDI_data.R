@@ -1,12 +1,11 @@
 
 library(here)
 library(tidyverse)
-library(peekbankr)
 
 benchmark_fle_location <- "helper_functions/cdi_data/cdi_benchmarks"
 
 read_percentile_table <- function(file_name){
-  as.matrix(read_csv(here(benchmark_fle_location, file_name), skip = 1))
+  as.matrix(read_csv(here(benchmark_fle_location, file_name),show_col_types = FALSE, skip = 1))
 }
 
 #Generate list of matrices for each available benchmark file
@@ -30,8 +29,8 @@ lookup_percentile <-
     #catching for invalid child age for form
     if (child_age < min(as.numeric(colnames(lookup2))) | 
         child_age > max(as.numeric(colnames(lookup2)))) {
-      message("Error: Child out of range for this measure")
-      stop()
+      message(paste0("Error: Child age (",child_age,")  out of range for this measure"))
+      return(NA)
     }
     
     # get values for age
@@ -69,17 +68,16 @@ generate_percentile <- function(lang,
                                 child_score, 
                                 percentile_matrix = available_benchmarks_matrix){
   
-  percentile_key = paste(lang, form_version, form_type, child_sex, sep = "_")
-  
   cdi_sex = case_when(child_sex == "male" ~ "m",
                       child_sex == "m" ~ child_sex,
                       child_sex == "female" ~ "f",
                       child_sex == "f" ~ child_sex,
                       TRUE ~ "both") # default to the scorer for both genders
   
+  percentile_key = paste(lang, form_version, form_type, cdi_sex, sep = "_")
   target_file = paste0(percentile_key, ".csv")
   if (!target_file %in% names(percentile_matrix)){
-    message(paste("Missing file for ", target_file))
+    warning(paste("Missing file for ", target_file))
     return(NA)
   }
   target_matrix <- percentile_matrix[[target_file]]
