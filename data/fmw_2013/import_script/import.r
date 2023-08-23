@@ -565,31 +565,6 @@ administrations <- d_tidy_final %>%
   mutate(coding_method = "manual gaze coding") %>%
   left_join(admin_aux) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
-  
-administrations <- d_tidy_final %>%
-    distinct(administration_id,
-             dataset_id,
-             subject_id,
-             lab_subject_id,
-             age,
-             age_type,
-             lab_age,
-             lab_age_units,
-             monitor_size_x,
-             monitor_size_y,
-             sample_rate,
-             tracker) %>%
-    left_join(admin_aux) %>%
-    #check to make sure no ages noted are wildly off - looks ok
-    mutate(
-      age_diff = age-administration_age
-    ) %>%
-  mutate(coding_method = "manual gaze coding") %>%
-  select(-age_type,-administration_age,-age_diff,-lab_subject_id) %>%
-  mutate(
-    administration_aux_data= toJSON(across(eng_wg_comp_rawscore,eng_wg_prod_rawscore,eng_ws_prod_rawscore)))
-
-  
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
