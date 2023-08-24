@@ -230,8 +230,8 @@ subjects <- d_tidy_final %>%
 admin_aux <- subj_raw %>% 
   left_join(subjects, by = c("subj" = "lab_subject_id")) %>%
   select(subject_id,
-         eng_wg_comp = cdi.und,
-         eng_wg_prod = cdi.say) %>% 
+         eng_wg_comp_rawscore = cdi.und,
+         eng_wg_prod_rawscore = cdi.say) %>% 
   rowwise(subject_id) %>% 
   summarize(administration_aux_data= toJSON(across()))
 

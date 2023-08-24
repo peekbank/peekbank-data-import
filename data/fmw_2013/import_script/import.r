@@ -4,6 +4,7 @@ library(tidyverse)
 library(readxl)
 library(peekds)
 library(osfr)
+library(rjson)
 
 #TODO: check
 sampling_rate_hz <- 30
@@ -24,7 +25,7 @@ aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
 #osf_token <- read_lines(here("osf_token.txt"))
-peekds::get_raw_data(dataset_name, path = read_path)
+#peekds::get_raw_data(dataset_name, path = read_path)
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
@@ -41,7 +42,8 @@ d_raw_2_18 <- read_excel(here::here(read_path,"FMW2013_English_18mos_n28toMF.xls
 # d_raw_1_24 <- read.delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt"),
 #                        col_types = cols(.default = "c"),delim="\t") 
 d_raw_1_24 <- read.delim(fs::path(read_path,"FMW2013_English_24mos_n33toMF.txt"),
-                       sep="\t") %>%
+                       sep="\t",
+                       colClasses=c(rep("character",254))) %>%
   select(-c("X.40":"X.4157")) %>%
   rename(`Sub Num` = Sub.Num)
 
@@ -59,6 +61,11 @@ d_raw_order_2 <- read_delim(fs::path(read_path,"TLO-24A-2_TL2-24ms-order2_icoder
 d_raw_order <- bind_rows(d_raw_order_1, d_raw_order_2) %>% rename("order" = "name", "tr_num" = "trial number") %>%
   clean_names()
 
+cdi_data <- read_excel(fs::path(read_path,"FMW2013_English_18_24_CDI.xls")) %>%
+  mutate(
+    lab_subject_id=as.character(`subnum  ID`)
+  )
+
 #### FUNCTIONS FOR PREPROCESSING ####
 
 preprocess_raw_data <- function(dataset){
@@ -69,7 +76,7 @@ preprocess_raw_data <- function(dataset){
     filter(!is.na(`Sub Num`))
   d_processed <-  d_filtered %>%
     remove_repeat_headers(idx_var = "Sub Num") %>%
-    clean_names() #%>%
+    clean_names()  %>% #%>%
     #subset(., grepl('^\\d+$', .$sub_num)) #subject number column can only contain numeric values, deletes all non numeric rows
   return(d_processed)
 }
@@ -158,7 +165,9 @@ temp_1_18 <- d_raw_1_18 %>%
     crit_on_set=as.numeric(crit_on_set)) %>%
   #point of disambiguation does not need adjustment for 18-month-olds
   mutate(crit_onset_adjust=0) %>%
-  relocate("crit_onset_adjust",.after="crit_off_set")
+  relocate("crit_onset_adjust",.after="crit_off_set") %>%
+  #make "age-type" variable that will be useful for joining in the CDI data (and matching to approximately the right age/administrations)
+  mutate(age_type="18 months")
 
 temp_1_24 <- d_raw_1_24 %>%
   preprocess_raw_data() %>%
@@ -175,7 +184,8 @@ temp_1_24 <- d_raw_1_24 %>%
     order == "TLOTL2-24-1" ~ 1,
     order == "TLOTL2-24-2" ~ 2
   )) %>%
-  relocate("order_num",.after="crit_off_set")
+  relocate("order_num",.after="crit_off_set") %>%
+  mutate(age_type="24 months")
 
 temp_2_24 <- d_raw_2_24 %>%
   preprocess_raw_data() %>%
@@ -192,7 +202,8 @@ temp_2_24 <- d_raw_2_24 %>%
     order %in% c("ME3-B1-SONO","ME3-24B-1") ~ 1,
     order %in% c("ME3-B2-SONO","ME3-24B-2") ~ 2
   )) %>%
-  relocate("order_num",.after="crit_off_set")
+  relocate("order_num",.after="crit_off_set")%>%
+  mutate(age_type="24 months")
 
 temp_2_18 <- d_raw_2_18 %>%
   preprocess_raw_data() %>%
@@ -206,7 +217,8 @@ temp_2_18 <- d_raw_2_18 %>%
     tr_num=as.numeric(tr_num)) %>%
   #point of disambiguation does not need adjustment for 18-month-olds
   mutate(crit_onset_adjust=0) %>%
-  relocate("crit_onset_adjust",.after="shifts")
+  relocate("crit_onset_adjust",.after="shifts")%>%
+  mutate(age_type="18 months")
 
 #individual order and dataset clean-up
 #unifying condition names, removing duplicated trials
@@ -272,13 +284,9 @@ temp_2_24 <- temp_2_24 %>%
 #combine all files
 d_processed <- bind_rows(temp_1_18, temp_1_24, temp_2_18, temp_2_24) %>%
   #relocate newly added columns
-  relocate(c("order_trial_file","sound_stimulus","condition_trial_file","noun_crit_onset","order_num","crit_onset_adjust"),.after = "crit_off_set") %>%
+  relocate(c("age_type","order_trial_file","sound_stimulus","condition_trial_file","noun_crit_onset","order_num","crit_onset_adjust"),.after = "crit_off_set") %>%
   #remove unneeded columns
   select(-word_onset,-gap,-target_rt_sec,-dis_rt_sec,-shifts,-orig_resp) 
-
-# remove excluded participants
-d_processed <- d_processed %>% 
-  filter(is.na(prescreen_notes))
 
 #make tidy
 d_tidy <- d_processed %>%
@@ -303,7 +311,7 @@ d_tidy <- d_tidy %>%
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
-  select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt) %>%
+  select(-c_image,-response,-first_shift_gap,-rt) %>%
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
   rename(left_image = r_image, right_image=l_image) %>%
@@ -394,7 +402,17 @@ d_tidy <- d_tidy %>%
   select(-stimulus_id) %>%
   left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('distractor_image_clean' = 'lab_stimulus_id')) %>%
   mutate(distractor_id = stimulus_id) %>%
-  select(-stimulus_id)
+  select(-stimulus_id) %>%
+  #unify naming of condition
+  mutate(condition = case_when(
+    str_detect(condition,"familiar") ~ "familiar",
+    condition == "R-Prime" ~ "R-Prime-Verb",
+    condition == "U-Prime" ~ "U-Prime-Noun",
+    condition == "Vanilla" ~ "Vanilla-Noun",
+    condition == "Uninf-Adj" ~ "Uninf-Adj-Noun",
+    condition == "Inf-Adj" ~ "Inf-Adj-Adj",
+    TRUE ~ condition
+  ))
 
 # get zero-indexed subject ids 
 d_subject_ids <- d_tidy %>%
@@ -413,7 +431,7 @@ d_administration_ids <- d_tidy %>%
 
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
-  distinct(sound_stimulus,target_id, distractor_id, target_side) %>% 
+  distinct(sound_stimulus,target_id, distractor_id,condition,condition, target_side) %>% 
   mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
 # joins
@@ -423,7 +441,8 @@ d_tidy_semifinal <- d_tidy %>%
 
 #get zero-indexed trial ids for the trials table
 d_trial_ids <- d_tidy_semifinal %>%
-  distinct(trial_order,trial_type_id) %>%
+  distinct(administration_id,trial_order,trial_type_id) %>%
+  arrange(administration_id,trial_order,trial_type_id) %>%
   mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
 
 #join
@@ -448,6 +467,68 @@ d_tidy_final <- d_tidy_semifinal %>%
          full_phrase=sound_stimulus
   )
 
+#add cdi data
+#999 seem to be NA values, convert now to avoid later issues
+cdi_data[cdi_data  == 999] <- NA
+cdi_processed <- cdi_data %>% 
+  select(lab_subject_id,WGage,WS24Age,WG18Comp,WG18Prod,WS18Vocab,WS24Vocab) %>%
+   rename(
+     age_2=WS24Age
+   ) %>%
+  mutate(age_1 = case_when(
+    !is.na(WGage)  ~ WGage,
+    !is.na(WS18Vocab) ~ 18
+  )) %>%
+  pivot_longer(
+    cols=c(age_1,age_2),
+    names_to = "administration",
+    values_to = "administration_age"
+  ) %>%
+  rename(
+    eng_wg_comp_rawscore = WG18Comp,
+    eng_wg_prod_rawscore = WG18Prod,
+    
+  ) %>%
+  mutate(
+    eng_ws_prod_rawscore = case_when(
+      !is.na(WS18Vocab) & administration == "age_1" ~ WS18Vocab,
+      !is.na(WS24Vocab) & administration == "age_2" ~ WS24Vocab,
+      TRUE ~ NA
+    )) %>%
+  select(-WGage,-WS18Vocab,-WS24Vocab) %>%
+  mutate(
+    eng_wg_comp_rawscore = case_when(
+      !is.na(eng_wg_comp_rawscore) & administration == "age_1" ~ eng_wg_comp_rawscore,
+      TRUE ~ NA
+    ),
+    eng_wg_prod_rawscore = case_when(
+      !is.na(eng_wg_prod_rawscore) & administration == "age_1" ~ eng_wg_prod_rawscore,
+      TRUE ~ NA
+    )) %>%
+  mutate(
+    age_type = case_when(
+      administration=="age_1" ~ "18 months",
+      administration=="age_2" ~ "24 months"
+    )
+  ) %>%
+  select(-administration)
+
+admin_aux <- d_tidy_final %>%
+  distinct(administration_id,
+           subject_id,
+           lab_subject_id,
+           age,
+           age_type,
+           lab_age,
+           lab_age_units) %>%
+  left_join(cdi_processed) %>%
+  #check to make sure no ages noted are wildly off - looks ok
+  mutate(
+    age_diff = age-administration_age
+  ) %>%
+  select(administration_id,eng_wg_comp_rawscore,eng_wg_prod_rawscore,eng_ws_prod_rawscore) %>%
+  rowwise(administration_id) %>% 
+  summarize(administration_aux_data= toJSON(across()))
 
 ##### AOI TABLE ####
 aoi_table <- d_tidy_final %>%
@@ -463,7 +544,8 @@ subjects <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-    native_language="eng") %>%
+    native_language="eng",
+    subject_aux_data=NA) %>%
   distinct(lab_subject_id, subject_id, .keep_all = TRUE) %>% # temporary fix to remove duplicates, keeps first sex reported for children labeled with two different sexes at 18 and 24 mo
   write_csv(fs::path(write_path, subject_table_filename))
 
@@ -481,21 +563,43 @@ administrations <- d_tidy_final %>%
            sample_rate,
            tracker) %>%
   mutate(coding_method = "manual gaze coding") %>%
+  left_join(admin_aux) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
+  mutate(stimulus_aux_data=NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
-d_tidy_final %>%
+d_trials <- d_tidy_final %>%
+  mutate(trial_aux_data=NA) %>%
+  mutate(
+    excluded = case_when(
+      is.na(prescreen_notes) ~ FALSE,
+      prescreen_notes == "" ~ FALSE,
+      TRUE ~ TRUE
+    ),
+    exclusion_reason = case_when(
+      !excluded ~ NA_character_,
+      TRUE ~ prescreen_notes
+    )
+  ) %>%
   distinct(trial_id,
            trial_order,
-           trial_type_id) %>%
+           trial_type_id,
+           trial_aux_data,
+           excluded,
+           exclusion_reason) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
+  mutate(trial_type_aux_data = NA,
+         vanilla_trial = case_when(
+           condition %in% c("U-Prime-Noun","Vanilla-Noun","familiar") ~ TRUE,
+           TRUE ~ FALSE
+         )) %>%
   distinct(trial_type_id,
            full_phrase,
            point_of_disambiguation,
@@ -504,9 +608,11 @@ trial_types <- d_tidy_final %>%
            aoi_region_set_id,
            dataset_id,
            target_id,
-           distractor_id) %>%
-  mutate(full_phrase_language = "eng",
-         condition = NA) %>% #no condition manipulation based on current documentation
+           distractor_id,
+           trial_type_aux_data,
+           vanilla_trial,
+           condition) %>%
+  mutate(full_phrase_language = "eng") %>%
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### DATASETS TABLE ####
@@ -516,7 +622,8 @@ data_tab <- tibble(
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Fernald, A., Marchman, V. A., & Weisleder, A. (2013). SES differences in language processing skill and vocabulary are evident at 18 months. Developmental Science, 16(2), 234-248",
-  shortcite = "Fernald et al. (2013)"
+  shortcite = "Fernald et al. (2013)",
+  dataset_aux_data =NA,
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
