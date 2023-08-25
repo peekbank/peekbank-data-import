@@ -5,8 +5,15 @@ library(janitor)
 library(tidyverse)
 library(readxl)
 #devtools::install_github("langcog/peekds")
-library(peekds)
+#library(peekds)
 library(osfr)
+
+project_root <- here::here()
+peekdspath <- "/Users/lingerxu/Dropbox/_codes/peek/peekds/R/validators.R"
+source(peekdspath)
+source("/Users/lingerxu/Dropbox/_codes/peek/peekds/R/readers.R")
+source("/Users/lingerxu/Dropbox/_codes/peek/peekds/R/utils.R")
+source("/Users/lingerxu/Dropbox/_codes/peek/peekds/R/generate_aoi.R")
 
 ## constants
 sampling_rate_hz <- 30
@@ -54,8 +61,12 @@ d_processed <-  d_filtered %>%
   clean_names()
 
 # remove excluded trials
-d_processed <- d_processed %>% 
-  filter(is.na(prescreen_notes))
+# unique(d_processed$prescreen_notes)
+# [1] NA  "Inattentive" "Child Talking" "Parent Interfering"
+# Because the schema change on Hackathon fall 2022, we are including excluded trials
+# and including notes on why trials were excluded in the paper in trials table
+# d_processed <- d_processed %>% 
+#   filter(is.na(prescreen_notes))
 
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
@@ -188,7 +199,7 @@ all_orders_cleaned <- all_orders_cleaned  %>%
 # Join back CB/trial info with tidy'd dataframes ----------------------------------------
 
 d_tidy <- d_tidy %>%
-  select(-prescreen_notes, -l_image, -c_image, -r_image, -target_side) %>%
+  select(-l_image, -c_image, -r_image, -target_side) %>%
   left_join(all_orders_cleaned, by=c('condition','tr_num', 'target_image','order')) %>%
   left_join(stimulus_table, by = c('lab_stimulus_id', 'stimulus_label','target_image','target_word')) %>%
   mutate(target_side = factor(target_side, levels = c('L','R'), labels = c('left','right')))
@@ -229,13 +240,13 @@ d_tidy_semifinal <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy_semifinal %>%
-  distinct(tr_num, trial_type_id) %>%
+  distinct(sub_num, tr_num, trial_type_id) %>%
   mutate(trial_order = as.numeric(tr_num),
-         trial_id = seq(0, nrow(.) - 1))
+         trial_id = seq(0, length(.$trial_type_id) - 1))
 
 # join in trial_id
 d_tidy_semifinal <- d_tidy_semifinal %>%
-  left_join(d_trial_ids, by = c("trial_type_id","tr_num"))
+  left_join(d_trial_ids, by = c("sub_num", "trial_type_id","tr_num"))
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
@@ -325,7 +336,12 @@ trial_types <- d_tidy_final %>%
 # trial_type_id	ForeignKey	row identifier for the trial_types table indexing from zero
 
 trials_table <- d_tidy_final %>% 
-  distinct(trial_id, trial_order, trial_type_id) %>%
+  select(trial_id, trial_order, trial_type_id, exclusion_reason = prescreen_notes)  %>% 
+  mutate(excluded = case_when(
+    is.na(exclusion_reason) ~ TRUE,
+    !is.na(exclusion_reason) ~ FALSE), 
+    trial_aux_data = NA) %>%
+  distinct(trial_id, trial_order, trial_type_id, trial_aux_data, excluded, exclusion_reason) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### AOI REGIONS TABLE ####
