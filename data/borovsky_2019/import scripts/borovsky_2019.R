@@ -1,4 +1,3 @@
-
 library(here)
 library(janitor)
 library(tidyverse)
@@ -41,7 +40,7 @@ load("/Users/shihuanhuan/Desktop/peekbank-data-import/data/borovsky_2019/Clean_D
 #write.csv(acc1700_window_clean_wSubjExcl, "borovsky_2019.csv")
 
 d_tidy <- acc1700_window_clean_wSubjExcl
-names(d_tidy)
+
 #data cleaning
 d_tidy <- d_tidy %>%
   clean_names()%>%
@@ -84,9 +83,6 @@ subjects <- d_tidy %>%
          native_language = "eng")
 d_tidy <- d_tidy %>% left_join(subjects,by = "lab_subject_id")
 
-#joint subjects table back to the big table  
-
-
 #### (3) stimuli ####
 stimulus_table <- d_tidy %>%
   distinct(target_label, target_image, condition) %>%
@@ -102,9 +98,7 @@ stimulus_table <- d_tidy %>%
     image_description_source = "experiment documentation", 
     stimulus_id = row_number() - 1)
 
-
 #### (4) trial types ####
-#join stimulus table back into  big table, by the target label
 
 d_tidy <- d_tidy %>%
   left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id,condition), 
@@ -125,7 +119,7 @@ trial_types <- d_tidy %>%
   mutate(full_phrase = "Look, xxx")%>% 
   mutate(point_of_disambiguation = "300") %>% 
   mutate(dataset_id = 0) %>%
-  mutate(vanilla_trial = "FALSE")%>%
+  mutate(vanilla_trial = if_else(condition == "unrelated", TRUE, FALSE)) %>%
   mutate(aoi_region_set_id = "NA")%>%
   mutate(trial_type_aux_data = "NA")
 
@@ -140,9 +134,10 @@ trials <- d_tidy %>%
   mutate(exclusion_reason = NA)%>%
   mutate(trial_aux_data = NA)%>%
   mutate(trial_id = seq(0, length(.$trial_type_id) - 1))
-View(trials)
 # join in trial ID  
 d_tidy <- d_tidy %>% left_join(trials) 
+
+
 #### (6) administrations ########
 administrations <- subjects %>%
   mutate(dataset_id = dataset_id,
@@ -158,17 +153,16 @@ administrations <- subjects %>%
   select(administration_id, dataset_id, subject_id, lab_age,lab_age_units, age, 
          monitor_size_x, monitor_size_y, sample_rate, tracker,administration_aux_data,
          coding_method)
-#View(administrations)
+
 #join to the big table
 d_tidy <- d_tidy %>% left_join(administrations, by = c("dataset_id", "subject_id"))
 
-View(d_tidy)
+
 
 #### (7) aoi_timepoints #######
 aoi_timepoints<- d_tidy %>%
   select (timestamp,administration_id, trial_id,aoi)%>%
   rename(t_norm = timestamp)%>%
-  #mutate(t_norm = as.numeric(t_norm))%>%
   resample_times(table_type = "aoi_timepoints") 
 View(aoi_timepoints)
 d_tidy <- aoi_timepoints %>% left_join(trials, by = "trial_id") %>%
@@ -182,6 +176,7 @@ write_csv(trials, fs::path(write_path,"trials.csv" ))
 write_csv(trial_types, fs::path(write_path, "trial_types.csv"))
 write_csv(datasets, fs::path(write_path, "datasets.csv"))
 
+###################validation#################
 validate_for_db_import(dir_csv = write_path)
 
 ################### OSF integration

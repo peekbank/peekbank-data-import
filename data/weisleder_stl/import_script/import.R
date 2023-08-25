@@ -4,10 +4,12 @@ library(tidyverse)
 library(readxl)
 library(peekds)
 library(osfr)
+library(rjson)
 
 #TODO: check
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
+
 dataset_name = "weisleder_stl"
 read_path <- here("data" ,dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
@@ -113,7 +115,7 @@ truncation_point_calc <- function(dataset, na_cutoff=1) {
 
 #### Download data ####
 
-#peekds::get_raw_data(dataset_name, path = read_path)
+# peekds::get_raw_data(dataset_name, path = read_path)
 
 #### Read and process individual datasets ####
 
@@ -144,15 +146,15 @@ d_processed_24 <- d_raw_24 %>%
 d_processed <-  bind_rows(d_processed_18,d_processed_24)
 
 # remove excluded participants
-d_processed <- d_processed %>% 
-  filter(is.na(prescreen_notes))
+# d_processed <- d_processed %>% 
+#   filter(is.na(prescreen_notes))
 
 #make tidy
 d_tidy <- d_processed %>%
   pivot_longer(names_to = "t", cols = `-833`:`4433`, values_to = "aoi") %>%
   mutate(t=as.numeric(as.character(t)),
          tr_num=as.numeric(as.character(tr_num))) %>%
-  arrange(sub_num, months,order,order,tr_num,t)
+  arrange(sub_num, months,order,order,tr_num,t, prescreen_notes)
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -170,7 +172,7 @@ d_tidy <- d_tidy %>%
 
 #### Clean up column names and add stimulus information based on existing columns  ####
 d_tidy <- d_tidy %>%
-  select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt,-crit_on_set,-crit_off_set) %>%
+  select(-c_image,-response,-condition, -first_shift_gap,-rt,-crit_on_set,-crit_off_set) %>%
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
   rename(left_image = r_image, right_image=l_image) %>%
@@ -200,7 +202,9 @@ d_tidy <- d_tidy %>%
   mutate(target_label = str_replace_all(target_image,"[[:digit:]]+", "")) %>%
   mutate(
     full_phrase="" #unknown
-  )
+  ) %>%
+  #define trial_order variable
+  mutate(trial_order=tr_num)
   
 stimulus_table <- d_tidy %>%
   distinct(target_image,target_label) %>%
@@ -220,6 +224,7 @@ stimulus_table <- d_tidy %>%
            target_label == "plátano" ~ "banana",
          ), 
          stimulus_novelty = "familiar", 
+         vanilla_trial = TRUE,
          original_stimulus_label = target_label,
          stimulus_image_path = target_image,
          image_description = english_stimulus_label,
@@ -231,7 +236,7 @@ d_tidy <- d_tidy %>%
   left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('target_image' = 'lab_stimulus_id')) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by=c('distractor_image' = 'lab_stimulus_id')) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id, vanilla_trial), by=c('distractor_image' = 'lab_stimulus_id')) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
@@ -248,16 +253,17 @@ d_administration_ids <- d_tidy %>%
   mutate(administration_id = seq(0, length(.$months) - 1))
 
 d_trial_type_ids <- d_tidy %>%
-  distinct(target_id, distractor_id, target_side, full_phrase) %>% 
+  distinct(target_id, distractor_id, target_side, full_phrase, vanilla_trial) %>% 
   mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
 d_semi <- d_tidy %>%
   left_join(d_administration_ids) %>%
   left_join(d_trial_type_ids) 
 
+#get zero-indexed trial ids for the trials table
 d_trial_ids <- d_semi %>%
-  arrange(tr_num,trial_type_id) %>%
-  distinct(tr_num, trial_type_id) %>%
+  distinct(administration_id,trial_order,trial_type_id) %>%
+  arrange(administration_id,trial_order,trial_type_id) %>%
   mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
 
 d_semi <- d_semi %>%
@@ -292,7 +298,8 @@ aoi_timepoints <- d_fin %>%
 subjects <- d_fin %>% 
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(
-    native_language="spa") %>%
+    native_language="spa",
+    subject_aux_data=NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 
@@ -309,20 +316,44 @@ administrations <- d_fin %>%
            sample_rate,
            tracker) %>%
   mutate(coding_method = "manual gaze coding") %>% # check
+  mutate(administration_aux_data=NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
   select(-target_label,-target_image) %>%
+  mutate(stimulus_aux_data=NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
-trials <- d_fin %>%
+# trials <- d_fin %>%
+#   distinct(trial_id,
+#            tr_num,
+#            trial_type_id) %>%
+#   rename(trial_order=tr_num) %>%
+#   write_csv(fs::path(write_path, trials_table_filename))
+
+d_trials <- d_fin %>%
+  mutate(trial_aux_data=NA) %>%
+  mutate(
+    excluded = case_when(
+      is.na(prescreen_notes) ~ FALSE,
+      prescreen_notes == "" ~ FALSE,
+      TRUE ~ TRUE
+    ),
+    exclusion_reason = case_when(
+      !excluded ~ NA_character_,
+      TRUE ~ prescreen_notes
+    )
+  ) %>%
   distinct(trial_id,
-           tr_num,
-           trial_type_id) %>%
-  rename(trial_order=tr_num) %>%
+           trial_order,
+           trial_type_id,
+           trial_aux_data,
+           excluded,
+           exclusion_reason) %>%
   write_csv(fs::path(write_path, trials_table_filename))
+
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_fin %>%
@@ -335,8 +366,10 @@ trial_types <- d_fin %>%
            dataset_id,
            target_id,
            distractor_id,
-           condition) %>%
-  mutate(full_phrase_language = "spa") %>%
+           condition,
+           vanilla_trial) %>%
+  mutate(full_phrase_language = "spa",
+         trial_type_aux_data=NA) %>%
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### DATASETS TABLE ####
@@ -346,7 +379,8 @@ data_tab <- tibble(
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Weisleder, A., & Fernald, A. (2013). Talking to children matters: Early language experience strengthens processing and builds vocabulary. Psychological Science, 24(11), 2143–2152. https://doi.org/10.1177/0956797613488145", 
-  shortcite = "Weisleder & Fernald (2013)"
+  shortcite = "Weisleder & Fernald (2013)",
+  dataset_aux_data =NA,
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
@@ -425,4 +459,4 @@ ggplot(summarize_across_subj_age,aes(t_norm,accuracy,color=age_group))+
 
 
 ## OSF INTEGRATION ###
-put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
+# put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")

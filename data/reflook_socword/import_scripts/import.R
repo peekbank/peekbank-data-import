@@ -8,8 +8,6 @@ library(tidyverse)
 library(peekds)
 library(osfr)
 
-
-
 #### general parameters ####
 dataset_name <- "reflook_socword"
 dataset_id <- 0
@@ -26,7 +24,7 @@ stims_to_remove_chars <- c(".avi")
 stims_to_keep_chars <- c("_")
 trial_file_name <- "reflook_v3_tests.csv"
 participant_file_name <- "reflook_v3_demographics.csv"
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 
 # load 
 source(here("data/reflook_socword/import_scripts/import_helpers.R"))
@@ -91,13 +89,15 @@ aoi_ids <- aoi.data.all %>%
 #### generate all data objects ####
 
 #create dataset data
-dataset.data <- process_smi_dataset()
-
+dataset.data <- process_smi_dataset()%>%
+                mutate(dataset_aux_data = "NA")
+View(dataset.data)
 ##create stimuli data
 stimuli.data <- process_smi_stimuli(trial_file_path) %>%
   mutate(stimulus_id = seq(0,length(stimulus_label)-1),
-         original_stimulus_label = stimulus_label) %>%
-  rename(english_stimulus_label = stimulus_label)
+         original_stimulus_label = stimulus_label,
+         stimulus_aux_data = NA,) %>%
+         rename(english_stimulus_label = stimulus_label)
 
 ## create timepoint data so we have a list of participants for whom we actually have data
 timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file)%>%
@@ -116,7 +116,9 @@ subjects.data <- process_subjects_info(participant_file_path) %>%
   left_join(participant_id_table,by="lab_subject_id") %>%
   filter(!is.na(subject_id)) %>%
   mutate(native_language = "eng") %>%
-  dplyr::select(subject_id, sex, lab_subject_id, native_language)
+  dplyr::select(subject_id, sex, lab_subject_id, native_language)%>%
+  mutate(subject_aux_data = NA)
+
 
 #create administration data 
 administration.data <- process_administration_info(participant_file_path, 
@@ -127,11 +129,15 @@ administration.data <- participant_id_table %>%
   dplyr::select(-lab_subject_id) %>%
   dplyr::select(dataset_id, subject_id, age, lab_age, lab_age_units, 
                 monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method) %>%
-  mutate(administration_id = seq(0,length(subject_id)-1)) 
+  mutate(administration_id = seq(0,length(subject_id)-1))%>%
+  mutate(administration_aux_data = "NA")
 
 # create trials data
 trials.data <- timepoint.data %>%
-  distinct(trial_id, trial_order, trial_type_id)
+  distinct(trial_id, trial_order, trial_type_id)%>%
+  mutate(trial_aux_data = NA)%>%
+  mutate(excluded = FALSE)%>%
+  mutate(exclusion_reason = NA)
 
 #create trials data and match with stimulus id and aoi_region_set_id
 trial_types.data <- process_smi_trial_info(trial_file_path) %>%
@@ -145,8 +151,11 @@ trial_types.data <- process_smi_trial_info(trial_file_path) %>%
   dplyr::select(trial_type_id, full_phrase, full_phrase_language, 
                 point_of_disambiguation, target_side, 
                 lab_trial_id, aoi_region_set_id, dataset_id, 
-                distractor_id, target_id, condition)
+                distractor_id, target_id, condition)%>%
+   mutate(trial_type_aux_data = "NA")%>%
+   mutate(vanilla_trial = "FALSE")
 
+View(trial_types.data) 
 #create xy data
 xy_merged.data <- timepoint.data %>%
   mutate(dataset_id = dataset_id) %>%
