@@ -7,6 +7,7 @@ library(tidyverse)
 library(readxl)
 library(peekds)
 library(osfr)
+library(rjson)
 
 ## constants
 sampling_rate_hz <- 30
@@ -44,9 +45,11 @@ remove_repeat_headers <- function(d, idx_var) {
 d_raw_18 <- read_xls(fs::path(read_path, "Hurtado2008_Spanish_STL18mos_n74toMF.xls")) %>%
   filter(!is.na(`Sub Num`), `Sub Num`!="Sub Num") %>% # 2190 -> 2044; blank rows and extra header rows removed
   mutate(row_number = as.numeric(row.names(.))) %>%
+  mutate(age_type="18 months") %>% #add this for joining with cdi data
   #mutate(across(everything(), ~na_if(., "."))) %>% # do this later
   #mutate(across(everything(), ~na_if(., "-"))) %>%
-  relocate(row_number, .after = `Sub Num`)
+  relocate(row_number, .after = `Sub Num`) %>%
+  relocate(age_type, .after = `Sub Num`)
 
 #  '.' and '-' in the time course columns (`..1$...163`)
 # should just be replaced with NA? (other values: 1, 0, NA)
@@ -56,11 +59,20 @@ d_raw_18 <- read_xls(fs::path(read_path, "Hurtado2008_Spanish_STL18mos_n74toMF.x
 d_raw_24 <- read_xls(fs::path(read_path, "Hurtado2008_Spanish_STL24mos_n62toMF.xls")) %>%
   filter(!is.na(`Sub Num`), `Sub Num`!="Sub Num") %>% # 2113 -> 1991; blank rows and extra header rows removed
   mutate(row_number = as.numeric(row.names(.))) %>%
+  mutate(age_type="24 months") %>%
   relocate(row_number, .after = `Sub Num`) %>%
+  relocate(age_type, .after = `Sub Num`) %>% #add this for joining with cdi data
   #mutate(across(everything(), ~na_if(., "."))) %>%
   #mutate(across(everything(), ~na_if(., "-"))) %>%
   group_by(`Sub Num`,Order, `Tr Num`) %>%
-  ungroup()
+  ungroup() 
+
+cdi_data <- read_excel(fs::path(read_path,"Hurtado2008_18_24_cdidata.xls")) %>%
+  mutate(
+    lab_subject_id=as.character(`ID18`)
+  )
+#convert 999 values to NA
+cdi_data[cdi_data  == 999] <- NA
   
 setdiff(names(d_raw_18), names(d_raw_24)) # no diff
 setdiff(names(d_raw_24), names(d_raw_18)) # "...163" - extra final timecourse column -- add NA column to d_raw_18
@@ -223,7 +235,7 @@ d_tidy_semifinal <- d_tidy %>%
 
 #get zero-indexed trial ids for the trials table
 d_trial_ids <- d_tidy_semifinal %>%
-  distinct(trial_order,trial_type_id) %>%
+  distinct(administration_id,trial_order,trial_type_id) %>%
   mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
 
 #join
@@ -246,6 +258,84 @@ d_tidy_final <- d_tidy_semifinal %>%
          lab_age = months
          )
 
+#process CDI stuff
+#note that percentiles are based on norms for Mexican Spanish (according to paper)
+cdi_processed <- cdi_data %>% 
+  mutate(
+    age_2=WS24Age,
+    age_1=WG18Age
+  ) %>%
+  pivot_longer(
+    cols=c(age_1,age_2),
+    names_to = "administration",
+    values_to = "administration_age"
+  ) %>%
+  #check whether ws and wg age at 18 month session differs substantially
+  mutate(administration_age_2 = ifelse(administration=="age_1",WS18Age,NA),
+         diff_admin_age = administration_age-administration_age_2) %>% #not perfect but ok 
+  mutate(
+    spa_ws_prod_rawscore = case_when(
+      !is.na(WS18Vocab) & administration == "age_1" ~ WS18Vocab,
+      !is.na(WS24Vocab) & administration == "age_2" ~ WS24Vocab,
+      TRUE ~ NA
+    ),
+    spa_ws_prod_percentile = case_when(
+      !is.na(WS18VocP) & administration == "age_1" ~ WS18VocP,
+      !is.na(WS24VocP) & administration == "age_2" ~ WS24VocP,
+      TRUE ~ NA
+    ),
+    spa_ws_prod_age = case_when(
+      !is.na(spa_ws_prod_rawscore) & administration == "age_1" ~ administration_age_2,
+      !is.na(spa_ws_prod_rawscore) & administration == "age_2" ~ administration_age,
+      TRUE ~ NA
+    )) %>%
+  mutate(
+    spa_wg_comp_rawscore = case_when(
+      !is.na(WG18Comp) & administration == "age_1" ~ WG18Comp,
+      TRUE ~ NA
+    ),
+    spa_wg_comp_percentile = case_when(
+      !is.na(WG18CompP) & administration == "age_1" ~ WG18CompP,
+      TRUE ~ NA
+    ),
+    spa_wg_comp_age = case_when(
+      !is.na(WG18Comp) & administration == "age_1" ~ administration_age,
+      TRUE ~ NA
+    ),
+    spa_wg_prod_rawscore = case_when(
+      !is.na(WG18Prod) & administration == "age_1" ~ WG18Prod,
+      TRUE ~ NA
+    ),
+    spa_wg_prod_percentile = case_when(
+      !is.na(WG18ProdP) & administration == "age_1" ~ WG18ProdP,
+      TRUE ~ NA
+    ),
+    spa_wg_prod_age = case_when(
+      !is.na(WG18Prod) & administration == "age_1" ~ administration_age,
+      TRUE ~ NA
+    )
+    ) %>%
+  mutate(
+    age_type = case_when(
+      administration=="age_1" ~ "18 months",
+      administration=="age_2" ~ "24 months"
+    )
+  ) %>%
+  select(lab_subject_id,age_type,spa_wg_comp_rawscore,spa_wg_comp_percentile,spa_wg_comp_age,spa_wg_prod_rawscore,spa_wg_prod_percentile,spa_wg_prod_age,spa_ws_prod_rawscore,spa_ws_prod_percentile,spa_ws_prod_age)
+
+admin_aux <- d_tidy_final %>%
+  distinct(administration_id,
+           subject_id,
+           lab_subject_id,
+           age,
+           age_type,
+           lab_age,
+           lab_age_units) %>%
+  left_join(cdi_processed) %>%
+  select(administration_id,spa_wg_comp_rawscore,spa_wg_comp_percentile,spa_wg_comp_age,spa_wg_prod_rawscore,spa_wg_prod_percentile,spa_wg_prod_age,spa_ws_prod_rawscore,spa_ws_prod_percentile,spa_ws_prod_age) %>%
+  rowwise(administration_id) %>% 
+  summarize(administration_aux_data= toJSON(across()))
+
 ##### AOI TABLE ####
 d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
@@ -260,11 +350,12 @@ d_tidy_final %>%
   distinct(subject_id, lab_subject_id, sex) %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-    native_language="spa") %>%
+    native_language="spa",
+    subject_aux_data=NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
-d_tidy_final %>%
+administrations <- d_tidy_final %>%
   distinct(administration_id,
            dataset_id,
            subject_id,
@@ -276,11 +367,13 @@ d_tidy_final %>%
            sample_rate,
            tracker) %>%
   mutate(coding_method = "manual gaze coding") %>%
+  left_join(admin_aux) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
   select(-target_label, -target_image) %>%
+  mutate(stimulus_aux_data=NA) %>%
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
@@ -288,6 +381,10 @@ d_tidy_final %>%
   distinct(trial_id,
            trial_order,
            trial_type_id) %>%
+  mutate(trial_aux_data = NA) %>%
+  mutate(
+    excluded = FALSE,
+    exclusion_reason = NA) %>%
   write_csv(fs::path(write_path, trials_table_filename))
 
 
@@ -303,7 +400,9 @@ d_tidy_final %>%
            target_id,
            distractor_id) %>%
     mutate(full_phrase_language = "spa",
-           condition = "") %>% #no condition manipulation based on current documentation
+           vanilla_trial = TRUE,
+           condition = "", #no condition manipulation based on current documentation
+           trial_type_aux_data=NA) %>% 
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### AOI REGIONS TABLE ####
@@ -336,7 +435,8 @@ data_tab <- tibble(
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Hurtado, N., Marchman, V. A., & Fernald, A. (2008). Does input influence uptake? Links between maternal talk, processing speed and vocabulary size in Spanish‐learning children. Developmental Science, 11(6), F31-F39. https://doi.org/10.1111/j.1467-7687.2008.00768.x",
-  shortcite = "Hurtado, Marchman, & Fernald (2008)"
+  shortcite = "Hurtado, Marchman, & Fernald (2008)",
+  dataset_aux_data=NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
@@ -345,5 +445,76 @@ data_tab <- tibble(
 # validation check ----------------------------------------------------------
 validate_for_db_import(dir_csv = write_path)
 
+#### Validation Plot
+
+#plot to validate time course (timing and accuracy plausible)
+#read data back in
+## constants
+dataset_name = "hurtado_2008"
+read_path <- here("data" ,dataset_name,"processed_data")
+aoi_data <- read_csv(fs::path(read_path, "aoi_timepoints.csv"))
+trials_data <- read_csv(fs::path(read_path, "trials.csv"))
+trial_types_data <- read_csv(fs::path(read_path, "trial_types.csv"))
+stimuli_data <- read_csv(fs::path(read_path, "stimuli.csv"))
+administrations <- read_csv(fs::path(read_path, "administrations.csv"))
+subjects <- read_csv(fs::path(read_path, "subjects.csv")) 
+#rename columns for distractor
+distractor_stimuli_data <- stimuli_data
+colnames(distractor_stimuli_data) <- paste("distractor_",colnames(stimuli_data),sep="")
+
+#join to full dataset
+full_data <- aoi_data %>%
+  left_join(administrations) %>%
+  left_join(subjects) %>%
+  left_join(trials_data) %>%
+  left_join(trial_types_data) %>%
+  left_join(stimuli_data,by=c("target_id"="stimulus_id","dataset_id")) %>%
+  left_join(distractor_stimuli_data %>% select(-distractor_dataset_id),by=c("distractor_id"="distractor_stimulus_id"))
+
+#mutate aoi and make age group
+full_data <- full_data %>%
+  mutate(aoi_new=case_when(
+    aoi=="target" ~ 1,
+    aoi=="distractor"~0,
+    aoi=="missing"~ NaN
+  )) %>%
+  mutate(aoi_new=ifelse(is.nan(aoi_new),NA,aoi_new)) %>%
+  mutate(age_group=case_when(
+    age<21 ~ "18-month-olds",
+    TRUE ~ "24-month-olds"
+  ))
+
+##### summarize by subject and age (really: administrations) ####
+summarize_by_subj_age <- full_data %>%
+  group_by(subject_id,age_group, t_norm) %>%
+  summarize(N=sum(!is.na(aoi_new)),mean_accuracy=mean(aoi_new,na.rm=TRUE))
+
+#### summarize across subjects ####
+summarize_across_subj_age <- summarize_by_subj_age %>%
+  group_by(age_group,t_norm) %>%
+  summarize(N=sum(!is.na(mean_accuracy)),
+            accuracy=mean(mean_accuracy,na.rm=TRUE),
+            sd_accuracy=sd(mean_accuracy,na.rm=TRUE))
+
+#plot (individual lines look reasonable!)
+ggplot(summarize_across_subj_age,aes(t_norm,accuracy))+
+  geom_line(data=summarize_by_subj_age,aes(y=mean_accuracy,color=as.factor(subject_id),group=as.factor(subject_id)),alpha=0.2)+
+  geom_line()+
+  geom_smooth(method="gam",se=FALSE)+
+  geom_vline(xintercept=0)+
+  geom_vline(xintercept=300,linetype="dotted")+
+  geom_hline(yintercept=0.5,linetype="dashed")+
+  theme(legend.position="none")+
+  xlim(-500,3500)+
+  facet_wrap(~age_group)
+#overall increase in recognition speed across age looks reasonable
+ggplot(summarize_across_subj_age,aes(t_norm,accuracy,color=age_group))+
+  geom_line()+
+  geom_smooth(method="gam",se=FALSE)+
+  geom_vline(xintercept=0)+
+  geom_vline(xintercept=300,linetype="dotted")+
+  geom_hline(yintercept=0.5,linetype="dashed")+
+  xlim(-500,3500)
+
 ## OSF INTEGRATION ###
-put_processed_data(osf_token, dataset_name, paste0(write_path,'/'), osf_address = "pr6wu")
+#put_processed_data(osf_token, dataset_name, paste0(write_path,'/'), osf_address = "pr6wu")
