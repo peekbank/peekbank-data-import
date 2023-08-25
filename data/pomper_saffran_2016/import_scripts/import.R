@@ -5,15 +5,8 @@ library(janitor)
 library(tidyverse)
 library(readxl)
 #devtools::install_github("langcog/peekds")
-#library(peekds)
+library(peekds)
 library(osfr)
-
-project_root <- here::here()
-peekdspath <- "/Users/lingerxu/Dropbox/_codes/peek/peekds/R/validators.R"
-source(peekdspath)
-source("/Users/lingerxu/Dropbox/_codes/peek/peekds/R/readers.R")
-source("/Users/lingerxu/Dropbox/_codes/peek/peekds/R/utils.R")
-source("/Users/lingerxu/Dropbox/_codes/peek/peekds/R/generate_aoi.R")
 
 ## constants
 sampling_rate_hz <- 30
