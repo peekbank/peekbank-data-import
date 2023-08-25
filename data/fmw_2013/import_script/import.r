@@ -471,7 +471,7 @@ d_tidy_final <- d_tidy_semifinal %>%
 #999 seem to be NA values, convert now to avoid later issues
 cdi_data[cdi_data  == 999] <- NA
 cdi_processed <- cdi_data %>% 
-  select(lab_subject_id,WGage,WS24Age,WG18Comp,WG18Prod,WS18Vocab,WS24Vocab) %>%
+  #select(lab_subject_id,WGage,WS24Age,WG18Comp,WG18Prod,WS18Vocab,WS24Vocab) %>%
    rename(
      age_2=WS24Age
    ) %>%
@@ -487,6 +487,8 @@ cdi_processed <- cdi_data %>%
   rename(
     eng_wg_comp_rawscore = WG18Comp,
     eng_wg_prod_rawscore = WG18Prod,
+    eng_wg_comp_percentile = WG18CompP,
+    eng_wg_prod_percentile = WG18ProdP,
     
   ) %>%
   mutate(
@@ -494,16 +496,37 @@ cdi_processed <- cdi_data %>%
       !is.na(WS18Vocab) & administration == "age_1" ~ WS18Vocab,
       !is.na(WS24Vocab) & administration == "age_2" ~ WS24Vocab,
       TRUE ~ NA
-    )) %>%
+    ),
+    eng_ws_prod_percentile = case_when(
+      !is.na(WS18VocabP) & administration == "age_1" ~ WS18VocabP,
+      !is.na(WS24VocabP) & administration == "age_2" ~ WS24VocabP,
+      TRUE ~ NA
+    ),
+    eng_ws_prod_age = ifelse(!is.na(eng_ws_prod_rawscore),administration_age,NA)
+    )%>%
   select(-WGage,-WS18Vocab,-WS24Vocab) %>%
   mutate(
     eng_wg_comp_rawscore = case_when(
       !is.na(eng_wg_comp_rawscore) & administration == "age_1" ~ eng_wg_comp_rawscore,
       TRUE ~ NA
     ),
+    eng_wg_comp_percentile = case_when(
+      !is.na(eng_wg_comp_percentile) & administration == "age_1" ~ eng_wg_comp_percentile,
+      TRUE ~ NA
+    ),
     eng_wg_prod_rawscore = case_when(
       !is.na(eng_wg_prod_rawscore) & administration == "age_1" ~ eng_wg_prod_rawscore,
       TRUE ~ NA
+    ),
+    eng_wg_prod_percentile = case_when(
+      !is.na(eng_wg_prod_percentile) & administration == "age_1" ~ eng_wg_prod_percentile,
+      TRUE ~ NA
+    ),
+    eng_wg_comp_age = case_when(
+      !is.na(eng_wg_comp_rawscore) & administration == "age_1" ~ administration_age
+    ),
+    eng_wg_prod_age = case_when(
+      !is.na(eng_wg_prod_rawscore) & administration == "age_1" ~ administration_age
     )) %>%
   mutate(
     age_type = case_when(
@@ -511,7 +534,7 @@ cdi_processed <- cdi_data %>%
       administration=="age_2" ~ "24 months"
     )
   ) %>%
-  select(-administration)
+  select(-administration,-WS24VocabP,-WS18VocabP)
 
 admin_aux <- d_tidy_final %>%
   distinct(administration_id,
@@ -526,7 +549,7 @@ admin_aux <- d_tidy_final %>%
   mutate(
     age_diff = age-administration_age
   ) %>%
-  select(administration_id,eng_wg_comp_rawscore,eng_wg_prod_rawscore,eng_ws_prod_rawscore) %>%
+  select(administration_id,eng_wg_comp_rawscore,eng_wg_comp_percentile,eng_wg_comp_age,eng_wg_prod_rawscore,eng_wg_prod_percentile,eng_wg_prod_age,eng_ws_prod_rawscore,eng_ws_prod_percentile,eng_ws_prod_age) %>%
   rowwise(administration_id) %>% 
   summarize(administration_aux_data= toJSON(across()))
 

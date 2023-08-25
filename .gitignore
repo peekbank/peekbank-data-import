@@ -1434,3 +1434,124 @@ data/valleau_2018/processed_data/subjects.csv
 data/valleau_2018/processed_data/trial_types.csv
 data/valleau_2018/processed_data/trials.csv
 data/fmw_2013/raw_data/FMW2013_English_18_24_CDI.xls
+data/hurtado_2008/processed_data/administrations.csv
+data/hurtado_2008/processed_data/aoi_timepoints.csv
+data/hurtado_2008/processed_data/datasets.csv
+data/hurtado_2008/processed_data/stimuli.csv
+data/hurtado_2008/processed_data/subjects.csv
+data/hurtado_2008/processed_data/trial_types.csv
+data/hurtado_2008/processed_data/trials.csv
+data/hurtado_2008/raw_data/Hurtado2008_18_24_cdidata.xls
+data/hurtado_2008/raw_data/Hurtado2008_Spanish_STL18mos_n74toMF.xls
+data/hurtado_2008/raw_data/Hurtado2008_Spanish_STL24mos_n62toMF.xls
+data/newman_genderdistractor/processed_data/administrations.csv
+data/newman_genderdistractor/processed_data/aoi_timepoints.csv
+data/newman_genderdistractor/processed_data/datasets.csv
+data/newman_genderdistractor/processed_data/stimuli.csv
+data/newman_genderdistractor/processed_data/subjects.csv
+data/newman_genderdistractor/processed_data/trial_types.csv
+data/newman_genderdistractor/processed_data/trials.csv
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/10AG_16monthtoddlertalkergender_averages_ORDER2.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/11EW_16moToddlerTalkerGender_averages_ORDER2.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/13IC_16moToddlerTalkerGender_averages_ORDER3.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/17AA_16monthtoddlertalkergender_averages_ORDER6.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/21AD_16monthtoddlertalkergender_averages_ORDER6.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/22MW_16monthtoddlertalkergender_averages_ORDER1.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/24NB_16monthtoddlertalkergender_averages_ORDER3.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/25LT_16moToddlerTalkerGender_averages_ORDER4.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/27EG_16motoddlertalkergender_ORDER5
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/28JR_16motoddlertalkergender_ORDER6
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/29SC_16motoddlertalkergender_ORDER1
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/2OJ_16moToddlerTalkerGender_averages_ORDER2.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/31KC_16motoddlertalkergender_ORDER2
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/32NV_16motoddlertalkergender_ORDER3
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/33VP_16moToddlerTalkerGender_averages_ORDER3.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/36HT_16motoddlertalkergender_ORDER5
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/38VC_16moToddlerTalkerGender_averages_ORDER6
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/39TM_16moToddlerTalkerGender_averages_ORDER1
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/3ML_16moToddlerTalkerGender_averages_ORDER3.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/40EG_16moToddlerTalkerGender_averages_ORDER2
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/41EB_16moToddlerTalkerGender_Order1.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/42ADC_16moToddlerTalkerGender_Order2.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/47AH_ToddTalkerGender_Order4.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/49EM_16MTodTalkGen_Order6.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/4HS_16monthtoddlertalkergender_averages_ORDER4.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/52RR_ToddlerTalkerGender_Order4.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/6VC_16monthtoddlertalkergender_averages_ORDER6.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 10 dB SNR/9MK_16monthtoddlertalkergender_averages_ORDER5.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/10AG_16monthtoddlertalkergender_averages_ORDER2.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/11EW_16moToddlerTalkerGender_averages_ORDER2.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/13IC_16moToddlerTalkerGender_averages_ORDER3.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/17AA_16monthtoddlertalkergender_averages_ORDER6.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/21AD_16monthtoddlertalkergender_averages_ORDER6.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/22MW_16monthtoddlertalkergender_averages_ORDER1.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/24NB_16monthtoddlertalkergender_averages_ORDER3.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/25LT_16moToddlerTalkerGender_averages_ORDER4.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/27EG_16motoddlertalkergender_ORDER5
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/28JR_16motoddlertalkergender_ORDER6
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/29SC_16motoddlertalkergender_ORDER1
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/2OJ_16moToddlerTalkerGender_averages_ORDER2.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/31KC_16motoddlertalkergender_ORDER2
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/32NV_16motoddlertalkergender_ORDER3
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/33VP_16moToddlerTalkerGender_averages_ORDER3.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/36HT_16motoddlertalkergender_ORDER5
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/38VC_16moToddlerTalkerGender_averages_ORDER6
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/39TM_16moToddlerTalkerGender_averages_ORDER1
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/3ML_16moToddlerTalkerGender_averages_ORDER3.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/40EG_16moToddlerTalkerGender_averages_ORDER2
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/41EB_16moToddlerTalkerGender_Order1.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/42ADC_16moToddlerTalkerGender_Order2.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/47AH_ToddTalkerGender_Order4.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/49EM_16MTodTalkGen_Order6.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/4HS_16monthtoddlertalkergender_averages_ORDER4.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/52RR_ToddlerTalkerGender_Order4.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/6VC_16monthtoddlertalkergender_averages_ORDER6.xls
+data/newman_genderdistractor/raw_data/looking_data/16 month olds, with 5 dB SNR/9MK_16monthtoddlertalkergender_averages_ORDER5.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/10JF_order4_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/15BF_order5_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/16MC_order5_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/19KW_order2_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/1AF_order2_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/1KM_ToddTalkGenAverages-AutismPilot.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/20ER_order3_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/22OD_order4_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/23LK_order6_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/24TC_order6_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/26CA_ToddTalkerGender_order1.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/27HM_ToddTalkerGender_order2.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/2JJ_order1_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/2MLF_ToddTalkGenAverages-AutismPilot.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/3LR_order3_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/4AC_order4_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/5TD_order5_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/6ER_order6_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/7IH_order1_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/8AS_order2_ToddTalkGenAverages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 0 dB SNR/9MS_ToddTalkGenAverages_order3.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/11SM_order4_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/13SL_order5_averages_3rd coder done.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/14AS_order6_averages 3rd code done.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/15BS_order1_averages\[1\].xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/16LR_order2_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/17KE_order3_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/18GM_order4_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/19WZ_order5_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/1OF_order4_averages GOOD.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/20AC_order6_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/22ET_order1_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/24XB_order3_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/26VS_order1_averagesGOOD.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/2VS_order1_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/3RT_order5_averages 3rd coder.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/4AL_order2_averages 3RD CODER.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/5CT_order6_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/6AN_order3_averages 3rd coder.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/7AG_order2_averages 3rd CODER.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/8WH_order1_averages.xls
+data/newman_genderdistractor/raw_data/looking_data/30 month olds, 5 dB SNR/9ML_order3_averages.xls
+data/newman_genderdistractor/raw_data/Newman_Morini.pdf
+data/newman_genderdistractor/raw_data/Orders.xls
+data/newman_genderdistractor/raw_data/participant_data/16m_ToddlerBackgroundGender_10dB copy.xls
+data/newman_genderdistractor/raw_data/participant_data/16m_ToddlerTalkerGender.xls
+data/newman_genderdistractor/raw_data/participant_data/30m_ToddlerTalkerGender.xls
+data/newman_genderdistractor/raw_data/participant_data/30m_ToddlerTalkerGender_0dB Participants.xls

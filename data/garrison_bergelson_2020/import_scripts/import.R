@@ -9,6 +9,7 @@ library(here)
 library(stringr)
 library(peekds) 
 library(osfr)
+library(rjson)
 
 data_path <- here("data","garrison_bergelson_2020","raw_data")
 output_path <- here("data","garrison_bergelson_2020","processed_data")
@@ -20,7 +21,8 @@ if(length(list.files(data_path)) == 0) {
 }
 
 # yoursmy_test.Rds: binned data with subject excludes implemented, output at end of dataprep/yoursmy_dataprep_eyetracking.Rmd
-d <- readRDS(here(data_path, "eyetracking/yoursmy_test.Rds"))
+
+d_low <- readRDS(here(data_path, "eyetracking/yoursmy_test_taglowdata.Rds"))
 
 ################## TABLE SETUP ##################
 
@@ -31,7 +33,7 @@ dataset <- tibble(dataset_id = 0,
                   name = "garrison_bergelson_2020", 
                   shortcite = "Garrison et al. (2020)", 
                   cite = "Garrison, H., Baudet, G., Breitfeld, E., Aberman, A., & Bergelson, E. (2020). Familiarity plays a small role in noun comprehension at 12-18 months. Infancy, 25, 458-477.",
-                  aux_data = NA)
+                  dataset_aux_data = NA)
 
 ### 2. SUBJECTS TABLE 
 demographics <- read_csv(here(data_path, "yoursmy_ages.csv")) %>% 
@@ -46,11 +48,11 @@ subjects <- demographics %>%
          Sex = ifelse(Sex == "M", "male", "female")) %>%
   rename(lab_subject_id = SubjectNumber, 
          sex = Sex) %>%
-  mutate(aux_data = NA)
+  mutate(subject_aux_data = NA)
   
 
 ### 3. STIMULI TABLE 
-stimuli <- d %>%
+stimuli <- d_low %>%
   select(TargetImage, AudioTarget) %>%
   distinct() %>%
   mutate(original_stimulus_label = str_replace(str_replace(AudioTarget, 
@@ -68,7 +70,7 @@ stimuli <- d %>%
          stimulus_image_path, lab_stimulus_id, dataset_id, image_description,image_description_source) %>%
   distinct() %>%
   mutate(stimulus_id = 0:(n() - 1),
-         aux_data = NA)
+         stimulus_aux_data = NA)
 
 ### 4. ADMINISTRATIONS TABLE 
 
@@ -77,11 +79,13 @@ raw_cdi_data <- read_csv(here(data_path, "yoursmy_CDI_data_b_clean.csv"))
 cdi_data <- raw_cdi_data %>% 
   mutate(lab_subject_id = paste0("y", str_pad(subject_id, 2, pad = "0")))  %>% 
   select(lab_subject_id, 
-         eng_wg_comp = `Words Understood`, 
-         eng_wg_prod = `Words Produced`) %>%
-  left_join(subjects %>% select(subject_id, lab_subject_id)) %>% 
+         eng_wg_comp_rawscore = `Words Understood`, 
+         eng_wg_comp_age = age,
+         eng_wg_prod_rawscore = `Words Produced`,
+         eng_wg_prod_age = age) %>%
+  left_join(subjects %>% select(subject_id, lab_subject_id)) |> 
   rowwise(c(subject_id, lab_subject_id)) %>% 
-  summarize(aux_data= toJSON(across()))
+  summarize(administration_aux_data= toJSON(across()))
 
 administrations <- demographics %>%
   mutate(administration_id = 0:(n() - 1), 
@@ -95,11 +99,13 @@ administrations <- demographics %>%
          sample_rate = 500,
          tracker = "Eyelink 1000+",
          coding_method = "eyetracking") %>% 
-  left_join(cdi_data)
+  left_join(cdi_data) |> 
+  select(administration_id, dataset_id, subject_id, age, lab_age, lab_age_units, 
+         monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method, administration_aux_data)
 
 ### 5. TRIAL TYPES TABLE 
-trial_info <- d %>%
-  select(AudioTarget, TrialType, TargetSide, TargetImage, DistractorImage, TargetOnset, Trial) %>%
+trial_info <- d_low %>%
+  select(AudioTarget, TrialType, TargetSide, TargetImage, DistractorImage, TargetOnset, Trial, SubjectNumber) %>%
   distinct() %>%
   ungroup() %>%
   separate(AudioTarget, into = c("full_phrase", "original_stimulus_label"), 
@@ -115,8 +121,10 @@ trial_info <- d %>%
          full_phrase_language = "eng", 
          aoi_region_set_id = 0, 
          dataset_id = 0,
-         aux_data = NA) 
+         vanilla_trial = TRUE,
+         trial_type_aux_data = NA)
 
+# Trial types is very long because the onset is very variable
 trial_types <- trial_info %>%
   rename(point_of_disambiguation = TargetOnset, 
          target_side = TargetSide, 
@@ -129,18 +137,18 @@ trial_types <- trial_info %>%
   left_join(stimuli %>% # join in distractor IDs
               select(stimulus_id, lab_stimulus_id) %>% 
               rename(DistractorImage = lab_stimulus_id)) %>%
-  rename(distractor_id = stimulus_id) %>%
-    select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
-           target_side, lab_trial_id, condition, aoi_region_set_id, dataset_id, 
-           distractor_id, target_id) %>%
-  mutate(aux_data = NA)
+  rename(distractor_id = stimulus_id) |> 
+  select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
+         target_side, lab_trial_id, condition, vanilla_trial, trial_type_aux_data, 
+         aoi_region_set_id, dataset_id, distractor_id, target_id)
 
 ### 6. TRIALS TABLE 
 trials <- trial_info %>%
-  select(Trial, trial_type_id) %>%
-  rename(trial_order = Trial) %>%
+  distinct(trial_order = Trial, trial_type_id, lab_subject_id = SubjectNumber) %>%
   mutate(trial_id = 0:(n() - 1),
-         aux_data = NA) 
+         trial_aux_data = NA,
+         excluded = FALSE,
+         exclusion_reason = NA) 
 
 ### 7. AOI REGION SETS TABLE
 # recall screen is 1280 x 1024
@@ -157,7 +165,7 @@ aoi_region_sets <- tibble(aoi_region_set_id = 0,
                           r_y_min = NA)
 
 ### 8. XY TABLE
-timepoints <- d %>%
+timepoints <- d_low %>%
   rename(x = CURRENT_FIX_X, 
          y = CURRENT_FIX_Y, 
          aoi = gaze,
@@ -167,7 +175,7 @@ timepoints <- d %>%
   left_join(trial_info) %>% 
   left_join(trials) %>%
   left_join(subjects) %>%
-  left_join(administrations %>% select(-aux_data)) %>%
+  left_join(administrations) %>%
   mutate(point_of_disambiguation = TargetOnset)
 
 xy_timepoints <- timepoints %>%

@@ -4,6 +4,8 @@ library(tidyverse)
 library(readxl)
 library(peekds)
 library(osfr)
+library(haven)
+library(rjson)
 
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
@@ -26,9 +28,11 @@ osf_token <- read_lines(here("osf_token.txt"))
 #peekds::get_raw_data(dataset_name, path = read_path)
 
 d_raw <- read.csv(fs::path(read_path,"LWLdata_Ronfard_Wei_Rowe_04272021.csv"))
+d_subjects_raw <- read_csv(fs::path(read_path,"converted_demographics_data.csv"))
 
 #add distractor info and rename entries for some columns to match Peekbank codebook
 d_tidy <- d_raw %>%
+  left_join(d_subjects_raw) |> 
   mutate(distractor = case_when(target == "baby" ~ "birdie",
                                   target == "dog" ~ "cat",
                                   target == "car" ~ "shoe",
@@ -95,10 +99,19 @@ d_subject_ids <- d_tidy %>%
 d_tidy <- d_tidy %>%
   left_join(d_subject_ids, by = "id")
 
+administration_aux_data <- d_tidy |> 
+  distinct(subject_id, cditotal, cdipct, luitotal, luipct) |> 
+  rename(eng_wsshort_prod_rawscore = cditotal, eng_wsshort_prod_percentile = cdipct, 
+         eng_lui_rawscore = luitotal, eng_lui_percentile = luipct) |> 
+  rowwise(subject_id) %>%
+  summarize(administration_aux_data= toJSON(across(c(eng_wsshort_prod_rawscore, eng_wsshort_prod_percentile, 
+                                                     eng_lui_rawscore, eng_lui_percentile))))
+
 d_administration_ids <- d_tidy %>%
   distinct(subject_id, id, age_months) %>%
   arrange(subject_id, id, age_months) %>%
-  mutate(administration_id = seq(0, length(.$age_months) - 1))
+  mutate(administration_id = seq(0, length(.$age_months) - 1)) |> 
+    left_join(administration_aux_data)
 
 d_trial_type_ids <- d_tidy %>%
   distinct(target_id, distractor_id, target_side, full_phrase) %>% 
@@ -165,8 +178,9 @@ administrations <- d_fin %>%
            monitor_size_x,
            monitor_size_y,
            sample_rate,
-           tracker) %>%
-  mutate(coding_method = "manual gaze coding", administration_aux_data=NA) %>%
+           tracker,
+           administration_aux_data) %>%
+  mutate(coding_method = "manual gaze coding") %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
