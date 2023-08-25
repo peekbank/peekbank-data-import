@@ -6,7 +6,7 @@ library(osfr)
 library(janitor)
 library(stringr)
 library(readxl)
-
+library(rjson)
 #----
 #Setup
 dataset_name <- "newman_sinewave"
@@ -207,7 +207,8 @@ trials_tidy <- raw_trials_data %>%
                             TRUE ~ "ambig"),
          distractor = case_when(target_side == "left" ~ image_right,
                                 target_side == "right" ~ image_left,
-                                TRUE ~ "ambig")) %>%
+                                TRUE ~ "ambig"),
+         vanilla_trial = ifelse(type == "FULL", TRUE, FALSE)) %>%
   filter(target_side != "ambig")
 
 # CLEAN DATA
@@ -218,7 +219,8 @@ demo_data_tidy <- raw_demo_data %>%
                          sex == "Male" ~ "male",
                          is.na(sex) ~ "missing",
                          TRUE ~ "other"),
-         native_language = "eng")
+         native_language = "eng") |> 
+  mutate(eng_lds_rawscore = gsub( "\\s.*", "", lds))
 #check if we're missing data from any kids
 demo_data_tidy %>% count(lab_subject_id) %>%
   filter(n != 1)
@@ -249,7 +251,8 @@ datasets_table = tibble(
   lab_dataset_id = dataset_name,
   dataset_name = "newman_sinewave_2015",
   cite = "Newman R.S, Chatterjee M., Morini G. Remez, R.E. (2015). The Journal of the Acoustical Society of America 138, EL311",
-  shortcite = "Newman et al. (2015)"
+  shortcite = "Newman et al. (2015)",
+  dataset_aux_data = NA
 )
 
 datasets_table %>% write_csv(here(write_path, "datasets.csv"))
@@ -267,7 +270,8 @@ stimuli_table <- rbind(trials_tidy %>%
          image_description_source = "Peekbank discretion",
          lab_stimulus_id = english_stimulus_label,
          stimulus_id = row_number()-1,
-         dataset_id = dataset_id)
+         dataset_id = dataset_id,
+         stimulus_aux_data = NA)
  
 stimuli_table %>% write_csv(here(write_path, "stimuli.csv"))
 
@@ -288,7 +292,8 @@ d_tidy <- d_tidy %>%
 subjects_table <- d_tidy %>% distinct(lab_subject_id) %>%
   left_join(demo_data_tidy) %>%
   distinct(sex, native_language, lab_subject_id) %>%
-  mutate(subject_id = row_number()-1)
+  mutate(subject_id = row_number()-1,
+         subject_aux_data = NA)
 
 subjects_table %>% write_csv(here(write_path, "subjects.csv"))
 
@@ -302,19 +307,19 @@ administrations_table <- d_tidy %>% distinct(subject_id) %>%
   left_join(subjects_table %>% 
               select(lab_subject_id, subject_id)) %>% 
   left_join(demo_data_tidy) %>% 
-  distinct(subject_id, lab_age) %>%
+  distinct(subject_id, lab_age, eng_lds_rawscore) %>%
+  rowwise(-c(eng_lds_rawscore)) %>%
+  summarize(administration_aux_data= toJSON(across(eng_lds_rawscore))) |> 
+  ungroup() |> 
   mutate(age = lab_age,
          lab_age_units = "months",
          sample_rate = 30,
          tracker = "supercoder",
          coding_method = "manual gaze coding",
-         administration_id = row_number()-1,
+         administration_id = seq(0, length(subject_id) - 1),
          dataset_id = dataset_id,
          monitor_size_x = NA,
-         monitor_size_y = NA) %>%
-  select(administration_id, dataset_id, subject_id, age, 
-         lab_age, lab_age_units, monitor_size_x, 
-         monitor_size_y, sample_rate, tracker, coding_method)
+         monitor_size_y = NA)
 
 administrations_table %>% write_csv(here(write_path, "administrations.csv"))
 
@@ -324,8 +329,9 @@ d_tidy <- d_tidy %>% left_join(administrations_table %>% select(subject_id, admi
 # trial types (unique combinations of stimuli and stimuli positions)
 
 trail_type_ids <- d_tidy %>% 
-  distinct(target_id, distractor_id, full_phrase, target_side, lab_trial_id, condition) %>%
-  mutate(trial_type_id = row_number()-1)
+  distinct(target_id, distractor_id, full_phrase, target_side, lab_trial_id, vanilla_trial, condition) %>%
+  mutate(trial_type_id = row_number()-1,
+         trial_type_aux_data = NA)
 
 d_tidy <- d_tidy %>% left_join(trail_type_ids)
 
@@ -338,8 +344,11 @@ trial_types_table <- trail_type_ids %>%
 trial_types_table %>% write_csv(here(write_path, "trial_types.csv"))
 
 trials_table <- d_tidy %>% 
-  distinct(trial_order_num, trial_type_id) %>%
-  mutate(trial_id = row_number()-1) %>%
+  distinct(trial_order_num, trial_type_id, administration_id) %>%
+  mutate(trial_id = row_number()-1,
+         excluded = FALSE,
+         exclusion_reason = NA,
+         trial_aux_data = NA) %>%
   rename(trial_order = trial_order_num)
 
 trials_table %>% write_csv(here(write_path, "trials.csv"))
