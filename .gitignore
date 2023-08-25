@@ -1434,3 +1434,13 @@ data/valleau_2018/processed_data/subjects.csv
 data/valleau_2018/processed_data/trial_types.csv
 data/valleau_2018/processed_data/trials.csv
 data/fmw_2013/raw_data/FMW2013_English_18_24_CDI.xls
+data/hurtado_2008/processed_data/administrations.csv
+data/hurtado_2008/processed_data/aoi_timepoints.csv
+data/hurtado_2008/processed_data/datasets.csv
+data/hurtado_2008/processed_data/stimuli.csv
+data/hurtado_2008/processed_data/subjects.csv
+data/hurtado_2008/processed_data/trial_types.csv
+data/hurtado_2008/processed_data/trials.csv
+data/hurtado_2008/raw_data/Hurtado2008_18_24_cdidata.xls
+data/hurtado_2008/raw_data/Hurtado2008_Spanish_STL18mos_n74toMF.xls
+data/hurtado_2008/raw_data/Hurtado2008_Spanish_STL24mos_n62toMF.xls
