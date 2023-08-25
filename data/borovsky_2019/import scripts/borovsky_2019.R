@@ -163,7 +163,6 @@ d_tidy <- d_tidy %>% left_join(administrations, by = c("dataset_id", "subject_id
 aoi_timepoints<- d_tidy %>%
   select (timestamp,administration_id, trial_id,aoi)%>%
   rename(t_norm = timestamp)%>%
-  #mutate(t_norm = as.numeric(t_norm))%>%
   resample_times(table_type = "aoi_timepoints") 
 View(aoi_timepoints)
 d_tidy <- aoi_timepoints %>% left_join(trials, by = "trial_id") %>%
