@@ -6,6 +6,7 @@ library(osfr)
 library(janitor)
 library(stringr)
 library(readxl)
+library(rjson)
 
 #----
 #Setup
@@ -269,7 +270,7 @@ datasets_table = tibble(
   dataset_name = dataset_name,
   cite = "Newman, R., &  Morini, G. (2017). Effect of the relationship between target and masker sex on infants' recognition of speech. The Journal of the Acoustical Society of America 141, EL164 (2017); doi: 10.1121/1.4976498",
   shortcite = "Newman et al. (2017)",
-dtaset_aux_data = NA)
+  dataset_aux_data = NA)
 
 datasets_table %>% write_csv(here(write_path, "datasets.csv"))
 
@@ -307,7 +308,7 @@ subjects_table <- d_tidy %>%
   replace_na(list(native_language = "eng",
                   sex = "unspecified")) %>%
   mutate(subject_id = row_number()-1,
-         subjects_aux_data = NA)
+         subject_aux_data = NA)
 
 d_tidy <- d_tidy %>% left_join(subjects_table) %>% 
   select(-c(order, id_number,race_ethnicity, 
@@ -346,7 +347,7 @@ d_tidy <- d_tidy %>% left_join(administrations_table %>% select(subject_id, admi
 
 trail_type_ids <- d_tidy %>% 
   distinct(target_id, distractor_id, 
-           full_phrase, target_side, condition) %>%
+           full_phrase, target_side, lab_trial_id,condition) %>%
   mutate(trial_type_id = row_number()-1)
 
 
@@ -367,7 +368,8 @@ trial_types_table %>% write_csv(here(write_path, "trial_types.csv"))
 trials_table <- d_tidy %>% 
   distinct(administration_id, trial_order_num, trial_type_id) %>%
   mutate(trial_id = row_number()-1,
-         Excluded = FALSE,
+         excluded = FALSE,
+         exclusion_reason = NA,
          trial_aux_data = NA) %>%
   rename(trial_order = trial_order_num)
 
