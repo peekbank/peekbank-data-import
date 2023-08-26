@@ -34,8 +34,12 @@ remove_repeat_headers <- function(d, idx_var) {
 # download datata from osf
 #peekds::get_raw_data(dataset_name, path = read_path)
 
+### Canine 1 preprocessing
+# To-do: could unify this a bit, but separating the process here to avoid rewriting old code and avoid tweaking incompatibilities between the
+#new Canine dataset and the old one
+
 # read raw icoder files
-d_raw <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
+d_raw_1 <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
                     delim = "\t") %>%
   mutate(administration_num = 0) %>%
   relocate(administration_num, .after = `Sub Num`)
@@ -46,15 +50,15 @@ trial_order_paths <- list.files(read_orders_path, full.names = TRUE, pattern = "
 trial_orders <- map_df(trial_order_paths, read_delim, delim = "\t")
 
 #read in stimulus lookup table
-stimulus_lookup_table <- read_csv(fs::path(read_path,"stimulus_lookup_table.csv"))
+stimulus_lookup_table <- read_csv(fs::path(read_path,"canine_stimulus_lookup_table.csv"))
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
-d_filtered <- d_raw %>%
+d_filtered_1 <- d_raw_1 %>%
   select_if(~sum(!is.na(.)) > 0)
 
 # Create clean column headers --------------------------------------------------
-d_processed <-  d_filtered %>%
+d_processed_1 <-  d_filtered_1 %>%
   remove_repeat_headers(idx_var = "Months") %>%
   clean_names()
 
@@ -64,38 +68,103 @@ trial_orders <- trial_orders %>%
   clean_names() %>%
   select(order,tr_num,sound_stimulus) # select just the columns we need - really only need sound_stimulus, everything else important already in main icoder file
 
-d_processed <- d_processed %>%
+d_processed_1 <- d_processed_1 %>%
   mutate(tr_num=as.numeric(as.character(tr_num))) %>% #make trial number numeric
   left_join(trial_orders,by=c("order","tr_num")) %>%
   relocate(c(order, tr_num,sound_stimulus),.after = `sub_num`)
 
 # Relabel time bins --------------------------------------------------
-old_names <- colnames(d_processed)
-metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
-pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
-post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
+old_names_1 <- colnames(d_processed_1)
+metadata_names_1 <- old_names_1[!str_detect(old_names_1,"x\\d|f\\d")]
+pre_dis_names_1 <- old_names_1[str_detect(old_names_1, "x\\d")]
+post_dis_names_1  <- old_names_1[str_detect(old_names_1, "f\\d")]
 
-pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
+pre_dis_names_clean_1 <- round(seq(from = length(pre_dis_names_1) * sampling_rate_ms,
                            to = sampling_rate_ms,
                            by = -sampling_rate_ms) * -1,0)
 
-post_dis_names_clean <-  post_dis_names %>% str_remove("f")
+post_dis_names_clean_1 <-  post_dis_names_1 %>% str_remove("f")
 
-colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
+colnames(d_processed_1) <- c(metadata_names_1, pre_dis_names_clean_1, post_dis_names_clean_1)
 
 ### truncate columns at 3600, since trials are almost never coded later than this timepoint
 ## TO DO: check in about this decision
-post_dis_names_clean_cols_to_remove <- post_dis_names_clean[110:length(post_dis_names_clean)]
+post_dis_names_clean_cols_to_remove_1 <- post_dis_names_clean_1[110:length(post_dis_names_clean_1)]
 #remove
-d_processed <- d_processed %>%
-  select(-all_of(post_dis_names_clean_cols_to_remove))
+d_processed_1 <- d_processed_1 %>%
+  select(-all_of(post_dis_names_clean_cols_to_remove_1))
 
 # Convert to long format --------------------------------------------------
 
 # get idx of first time series
-first_t_idx <- length(metadata_names) + 1            
-last_t_idx <- colnames(d_processed) %>% length()
-d_tidy <- d_processed %>%
+first_t_idx_1 <- length(metadata_names_1) + 1            
+last_t_idx_1 <- colnames(d_processed_1) %>% length()
+d_tidy_1 <- d_processed_1 %>%
+  pivot_longer(first_t_idx_1:last_t_idx_1,names_to = "t", values_to = "aoi") 
+
+##Canine2 preprocessing
+# read raw icoder files
+d_raw_1 <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
+                      delim = "\t") %>%
+  mutate(administration_num = 0) %>%
+  relocate(administration_num, .after = `Sub Num`)
+
+# read in order files
+# These files contain additional information about the target labels and carrier phrases
+trial_order_paths <- list.files(read_orders_path, full.names = TRUE, pattern = ".txt")
+trial_orders <- map_df(trial_order_paths, read_delim, delim = "\t")
+
+#read in stimulus lookup table
+stimulus_lookup_table <- read_csv(fs::path(read_path,"canine_stimulus_lookup_table.csv"))
+
+# remove any column with all NAs (these are columns
+# where there were variable names but no eye tracking data)
+d_filtered_1 <- d_raw_1 %>%
+  select_if(~sum(!is.na(.)) > 0)
+
+# Create clean column headers --------------------------------------------------
+d_processed_1 <-  d_filtered_1 %>%
+  remove_repeat_headers(idx_var = "Months") %>%
+  clean_names()
+
+#rename order and trial number column names for trial_orders, then join with d_processed
+trial_orders <- trial_orders %>%
+  rename(order=Name, tr_num=`trial number`) %>%
+  clean_names() %>%
+  select(order,tr_num,sound_stimulus) # select just the columns we need - really only need sound_stimulus, everything else important already in main icoder file
+
+d_processed_1 <- d_processed_1 %>%
+  mutate(tr_num=as.numeric(as.character(tr_num))) %>% #make trial number numeric
+  left_join(trial_orders,by=c("order","tr_num")) %>%
+  relocate(c(order, tr_num,sound_stimulus),.after = `sub_num`)
+
+# Relabel time bins --------------------------------------------------
+old_names_1 <- colnames(d_processed_1)
+metadata_names_1 <- old_names_1[!str_detect(old_names_1,"x\\d|f\\d")]
+pre_dis_names_1 <- old_names_1[str_detect(old_names_1, "x\\d")]
+post_dis_names_1  <- old_names_1[str_detect(old_names_1, "f\\d")]
+
+pre_dis_names_clean_1 <- round(seq(from = length(pre_dis_names_1) * sampling_rate_ms,
+                                   to = sampling_rate_ms,
+                                   by = -sampling_rate_ms) * -1,0)
+
+post_dis_names_clean_1 <-  post_dis_names_1 %>% str_remove("f")
+
+colnames(d_processed_1) <- c(metadata_names_1, pre_dis_names_clean_1, post_dis_names_clean_1)
+
+### truncate columns at 3600, since trials are almost never coded later than this timepoint
+## TO DO: check in about this decision
+post_dis_names_clean_cols_to_remove_1 <- post_dis_names_clean_1[110:length(post_dis_names_clean_1)]
+#remove
+d_processed_1 <- d_processed_1 %>%
+  select(-all_of(post_dis_names_clean_cols_to_remove_1))
+
+# Convert to long format --------------------------------------------------
+
+# get idx of first time series
+first_t_idx_1 <- length(metadata_names_1) + 1            
+last_t_idx_1 <- colnames(d_processed_1) %>% length()
+d_tidy_1 <- d_processed_1 %>%
   pivot_longer(first_t_idx:last_t_idx,names_to = "t", values_to = "aoi") 
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
