@@ -46,7 +46,7 @@ d_processed_18 <- d_raw_18 %>%
   )
 
 #24-month-olds
-d_raw_24 <- read_delim(fs::path(read_path, "TL224ABAlltrialsnonov1-123toMF.txt"),
+d_raw_24 <- read_delim(fs::path(read_path, "TL2-24ABAlltrialstoMF.txt"),
                        delim = "\t")
 d_processed_24 <- d_raw_24 %>%
   preprocess_raw_data() %>%
@@ -171,8 +171,7 @@ d_tidy <- d_tidy %>%
 stimulus_table <- d_tidy %>%
   distinct(target_image,target_label) %>%
   mutate(dataset_id = 0,
-         stimulus_novelty = case_when(
-           "familiar",
+         stimulus_novelty = "familiar",
          original_stimulus_label = target_label,
          english_stimulus_label = target_label,
          stimulus_image_path = target_image, 
