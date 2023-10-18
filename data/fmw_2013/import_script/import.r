@@ -588,65 +588,70 @@ cdi_long <- cdi_processed %>%
     percentile = as.character(percentile)
   )
 
+# 
+# cdi_to_json <- cdi_long %>%
+#   ungroup() %>%
+#   select(-c(Study,`subnum  ID`,age_type,administration_age)) %>%
+#   rowwise(lab_subject_id) %>%
+#   mutate(cdi_response= toJSON(across())) %>%
+#   group_by(lab_subject_id) %>%
+#   #summarize(administration_aux_data=toJSON(cdi_response))
+#   summarize(cdi_responses=paste(cdi_response, collapse=",")) %>%
+#   mutate(cdi_responses=paste0('[',cdi_responses,']')) %>%
+#   #example if we wanted to add another administrations_aux_data value
+#   mutate(lds = seq(1,length(lab_subject_id))) %>%
+#   group_by(lab_subject_id) %>%
+#   summarize(administration_aux_data=toJSON(across()))
+# 
+# cdi_to_json_2 <- cdi_long %>%
+#   ungroup() %>%
+#   select(-c(Study,`subnum  ID`,age_type,administration_age)) %>%
+#   rowwise(lab_subject_id) %>%
+#   mutate(cdi_response= toJSON(across())) %>%
+#   group_by(lab_subject_id) %>%
+#   #summarize(administration_aux_data=toJSON(cdi_response))
+#   summarize(cdi_responses=paste(cdi_response, collapse=",")) %>%
+#   mutate(cdi_responses=paste0('[',cdi_responses,']')) %>%
+#   #example if we wanted to add another administrations_aux_data value
+#   #mutate(lds = seq(1,length(lab_subject_id))) %>%
+#   group_by(lab_subject_id) %>%
+#   summarize(administration_aux_data=toJSON(across())) 
+# 
+# temp <- bind_rows(cdi_to_json,cdi_to_json_2)
+# 
+# cdi_json_to_long <- cdi_to_json %>%
+#   ungroup() %>%
+#   mutate(administration_aux_data = map(administration_aux_data, ~jsonlite::fromJSON(.x))) %>%
+#   unnest_wider(administration_aux_data) %>%
+#   mutate(cdi_responses=as.tbl_json(cdi_responses)) %>%
+#   unnest(cols = c(cdi_responses)) %>%
+#   unnest(cols = c(..JSON)) %>%
+#   unnest_wider(..JSON) %>%
+#   select(-document.id) %>%
+#   mutate(across(where(is.character), ~na_if(., "NA")))
+# 
+# cdi_long_test <- cdi_long %>%
+#   ungroup() %>%
+#   select(lab_subject_id,instrument_type,rawscore,percentile,age) %>%
+#   arrange(lab_subject_id)
+# 
+# all.equal(cdi_json_to_long,cdi_long_test)
+# 
+# 
+# cdi_json_to_long <- cdi_to_json %>%
+#   ungroup() %>%
+#   mutate(administration_aux_data = map(administration_aux_data, ~jsonlite::fromJSON(.x))) %>%
+#   unnest_wider(administration_aux_data) %>%
+#   mutate(cdi_responses=as.tbl_json(cdi_responses)) %>%
+#   unnest(cdi_responses)
 
+### new start here
 cdi_to_json <- cdi_long %>%
   ungroup() %>%
   select(-c(Study,`subnum  ID`,age_type,administration_age)) %>%
-  rowwise(lab_subject_id) %>%
-  mutate(cdi_response= toJSON(across())) %>%
   group_by(lab_subject_id) %>%
-  #summarize(administration_aux_data=toJSON(cdi_response))
-  summarize(cdi_responses=paste(cdi_response, collapse=",")) %>%
-  mutate(cdi_responses=paste0('[',cdi_responses,']')) %>%
-  #example if we wanted to add another administrations_aux_data value
-  mutate(lds = seq(1,length(lab_subject_id))) %>%
-  group_by(lab_subject_id) %>%
-  summarize(administration_aux_data=toJSON(across()))%>%
-  mutate(datasetnum=1)
-
-cdi_to_json_2 <- cdi_long %>%
-  ungroup() %>%
-  select(-c(Study,`subnum  ID`,age_type,administration_age)) %>%
-  rowwise(lab_subject_id) %>%
-  mutate(cdi_response= toJSON(across())) %>%
-  group_by(lab_subject_id) %>%
-  #summarize(administration_aux_data=toJSON(cdi_response))
-  summarize(cdi_responses=paste(cdi_response, collapse=",")) %>%
-  mutate(cdi_responses=paste0('[',cdi_responses,']')) %>%
-  #example if we wanted to add another administrations_aux_data value
-  #mutate(lds = seq(1,length(lab_subject_id))) %>%
-  group_by(lab_subject_id) %>%
-  summarize(administration_aux_data=toJSON(across())) %>%
-  mutate(datasetnum=2)
-
-temp <- bind_rows(cdi_to_json,cdi_to_json_2)
-
-cdi_json_to_long <- cdi_to_json %>%
-  ungroup() %>%
-  mutate(administration_aux_data = map(administration_aux_data, ~jsonlite::fromJSON(.x))) %>%
-  unnest_wider(administration_aux_data) %>%
-  mutate(cdi_responses=as.tbl_json(cdi_responses)) %>%
-  unnest(cols = c(cdi_responses)) %>%
-  unnest(cols = c(..JSON)) %>%
-  unnest_wider(..JSON) %>%
-  select(-document.id) %>%
-  mutate(across(where(is.character), ~na_if(., "NA")))
-
-cdi_long_test <- cdi_long %>%
-  ungroup() %>%
-  select(lab_subject_id,instrument_type,rawscore,percentile,age) %>%
-  arrange(lab_subject_id)
-
-all.equal(cdi_json_to_long,cdi_long_test)
-
-
-cdi_json_to_long <- cdi_to_json %>%
-  ungroup() %>%
-  mutate(administration_aux_data = map(administration_aux_data, ~jsonlite::fromJSON(.x))) %>%
-  unnest_wider(administration_aux_data) %>%
-  mutate(cdi_responses=as.tbl_json(cdi_responses)) %>%
-  unnest(cdi_responses)
-
+  nest(cdi_response=-lab_subject_id) %>%
+  mutate(cdi_response_json=toJSON(cdi_response))
 ##### AOI TABLE ####
 aoi_table <- d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
