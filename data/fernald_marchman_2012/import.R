@@ -69,29 +69,16 @@ d_processed_30 <- d_raw_30 %>%
     truncation_point = truncation_point_calc(.) 
   )
 
+# -------- LEFT OFF HERE ----------------------------------------------
+# 
+# see notes in ReadME file about status and issues that we are dealing with!
+# 
+# 
+# 
+# ---------------------------------------------------------------------
 
-# remove any column with almost all NAs (these are columns
-# where there were variable names but no eye tracking data)
-d_filtered_18 <- d_raw_18 %>%
-  select_if(~sum(!is.na(.)) > 5)
 
-d_filtered_24 <- d_raw_24 %>%
-  select_if(~sum(!is.na(.)) > 5)
 
-d_filtered_30 <- d_raw_30 %>%
-  select_if(~sum(!is.na(.)) > 5)
-
-# Create clean column headers --------------------------------------------------
-d_processed_18 <-  d_filtered_18 %>%
-  clean_names()
-
-d_processed_24 <-  d_filtered_24 %>%
-  clean_names()
-
-d_processed_30 <-  d_filtered_30 %>%
-  clean_names()
-
-d_processed <- d_processed_30
 
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
