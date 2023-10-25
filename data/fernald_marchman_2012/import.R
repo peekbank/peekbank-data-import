@@ -72,46 +72,33 @@ d_processed_30 <- d_raw_30 %>%
 # -------- LEFT OFF HERE ----------------------------------------------
 # 
 # see notes in ReadME file about status and issues that we are dealing with!
-# 
-# 
+# may want something else for truncation point? 
+# time binning seems weird and may be off
 # 
 # ---------------------------------------------------------------------
 
 
+# agglomerate
 
+d_processed <- d_processed_18 |> 
+  #this is a very hacky fix for some of the columns being bools
+  #so force everything to chars and sort it out later
+  mutate(across(everything(), as.character)) |> 
+  bind_rows(d_processed_24 |>   mutate(across(everything(), as.character))) |> 
+  bind_rows(d_processed_30 |>   mutate(across(everything(), as.character))) |> 
+  #filter out trials with prescreen notes
+  filter(is.na(prescreen_notes)) |> 
+  select(-prescreen_notes) |> 
+  #create trial_order variable as tr_num variable
+  mutate(trial_order=as.numeric(tr_num)) |> 
+  select(-tr_num) |> 
+  select(!matches("^\\d|^-"), everything()) # get all the metadata up front
 
-# Relabel time bins --------------------------------------------------
-old_names <- colnames(d_processed)
-metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
-pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
-post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
-
-pre_dis_names_clean <- round(seq(from = length(pre_dis_names) * sampling_rate_ms,
-                           to = sampling_rate_ms,
-                           by = -sampling_rate_ms) * -1,0)
-
-post_dis_names_clean <-  post_dis_names %>% str_remove("f")
-
-colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
-
-### truncate columns at F4967, since trials are almost never coded later than this timepoint
-## TO DO: check in about this decision
-post_dis_names_clean_cols_to_remove <- post_dis_names_clean[151:length(post_dis_names_clean)]
-#remove
-d_processed <- d_processed %>%
-  select(-all_of(post_dis_names_clean_cols_to_remove))
-
-#remove prescreened trials
-d_processed <- d_processed %>%
-  filter(is.na(prescreen_notes))
-
-#create trial_order variable as tr_num variable
-d_processed <- d_processed  %>%
-  mutate(trial_order=as.numeric(as.character(tr_num))) 
 
 # Convert to long format --------------------------------------------------
 d_tidy <- d_processed %>%
-  pivot_longer(names_to = "t", cols = `-1300`:`4967`, values_to = "aoi")
+  pivot_longer(names_to = "t", cols = matches("^\\d|^-"), values_to = "aoi")
+# what to do about NAs??
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA

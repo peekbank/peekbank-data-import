@@ -27,6 +27,23 @@ there is concern about some of the the word onset columns being wonky
 
 there is variation between whether word onset is 18/19 or 78 (so there's an extra 2 seconds for 87a-102a)
 
-currently trying to puzzle out how extract_col_names works and whether it accurately applies
+extract_col_names seems to do reasonable things
+
+some of the 18 mo data (raw) has false and true instead of 0 and 1 (presumably?)
+
+trying to understand cols in d_processed:
+sub_num is a subid (122 values)
+session is A or B
+months seems to be child age (17-32)
+sex is M or F
+order is ?? some code?
+tr_num ranges 2-42 (trial num)
+l_image, r_image, target_side, target_image
+condition has a few values ??
+word_onset is NA or an integer
+response is A,T, or D ??
+gap is NA or an int
+target_rt_sec and dis_rt_sec is a small number or NA (possibly consistent with 30hz sampling)
+shifts is 0 to 7 or NA (my guess is that target_rt_sec, dis_rt_sec and shifts are derived measures)
 
 5. Importing ambiguity
