@@ -88,10 +88,8 @@ d_processed <- d_processed_18 |>
   bind_rows(d_processed_30 |>   mutate(across(everything(), as.character))) |> 
   #filter out trials with prescreen notes
   filter(is.na(prescreen_notes)) |> 
-  select(-prescreen_notes) |> 
   #create trial_order variable as tr_num variable
   mutate(trial_order=as.numeric(tr_num)) |> 
-  select(-tr_num) |> 
   select(!matches("^\\d|^-"), everything()) # get all the metadata up front
 
 
@@ -127,9 +125,9 @@ d_tidy <- d_tidy %>%
          -shifts,
          -crit_on_set,
          -crit_off_set,
-         -frames_word_starts_at_frame_45,
          -first_shift_gap,
-         -rt
+         -rt,
+         -tr_num
          ) %>%
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
@@ -145,13 +143,14 @@ d_tidy <- d_tidy %>%
 stimulus_table <- d_tidy %>%
   distinct(target_image,target_label) %>%
   mutate(dataset_id = 0,
-         stimulus_novelty = "familiar",
+         stimulus_novelty = "familiar", #TODO IS THIS TRUE FOR ALL STIM?
          original_stimulus_label = target_label,
          english_stimulus_label = target_label,
          stimulus_image_path = target_image, 
          image_description = target_label,
          image_description_source = "image path",
-         lab_stimulus_id = target_image
+         lab_stimulus_id = target_image,
+         stimulus_aux_data= NA
   ) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 

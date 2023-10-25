@@ -46,4 +46,12 @@ gap is NA or an int
 target_rt_sec and dis_rt_sec is a small number or NA (possibly consistent with 30hz sampling)
 shifts is 0 to 7 or NA (my guess is that target_rt_sec, dis_rt_sec and shifts are derived measures)
 
+TODO verify that switching L & R as is done in the code is correct!
+TODO should some of the stimuli be "novel" in stimulus table
+TODO what is the right empty field for aux data
+TODO what is stimulus image path supposed to be 
+
+TODO there are multiple labels (ex. "baby" "baby1") associated with some images (ex "baby1") -- what do? 
+
+
 5. Importing ambiguity
