@@ -27,6 +27,8 @@ there is concern about some of the the word onset columns being wonky
 
 there is variation between whether word onset is 18/19 or 78 (so there's an extra 2 seconds for 87a-102a) (ask Virginia about this)
 
+18mo-old data: baby1, baby2, baby3 etc. Were these the same image of a baby presented multiple times (and # indicates order of presentation), or different stimulus images? in 18 & 24 mo data, target image is "baby" for L-image baby1, baby2, etc, but in 30 mo data target image is "baby1", "baby2", etc.
+
 extract_col_names seems to do reasonable things
 
 some of the 18 mo data (raw) has false and true instead of 0 and 1 (presumably?)
