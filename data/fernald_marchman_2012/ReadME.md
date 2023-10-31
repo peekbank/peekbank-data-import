@@ -25,7 +25,7 @@ the dataset has LWL data longitudinally on 18 / 24 / 30 mo (same kids), there ar
 
 there is concern about some of the the word onset columns being wonky 
 
-there is variation between whether word onset is 18/19 or 78 (so there's an extra 2 seconds for 87a-102a)
+there is variation between whether word onset is 18/19 or 78 (so there's an extra 2 seconds for 87a-102a) (ask Virginia about this)
 
 extract_col_names seems to do reasonable things
 
