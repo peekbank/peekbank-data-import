@@ -26,8 +26,8 @@ extract_col_types <- function(dataset,col_pattern="xf") {
   old_names <- colnames(dataset)
   
   if (col_pattern == "xf") { 
-    metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d|frames_word_starts_at_frame")]
-    pre_dis_names <- old_names[str_detect(old_names, "x\\d|frames_word_starts_at_frame")]
+    metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]
+    pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
     post_dis_names  <- old_names[str_detect(old_names, "f\\d")]
   } else if (col_pattern == "xfx") {
     metadata_names <- old_names[!str_detect(old_names,"x\\d|f\\d")]

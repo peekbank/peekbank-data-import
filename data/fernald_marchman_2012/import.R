@@ -60,23 +60,34 @@ d_processed_24 <- d_raw_24 %>%
 #30-month-olds
 d_raw_30 <- read_delim(fs::path(read_path, "TL230ABoriginalichartsn1-121toMF.txt"),
                        delim = "\t")
-d_processed_30 <- d_raw_30 %>%
+# d_raw_30 has two slightly different types of rows mixed together
+d_processed_30_part_1 <- d_raw_30 |> filter(is.na(Shifts)) |> 
+# these don't have looking data in non looking cols
   preprocess_raw_data() %>%
   relabel_time_cols(
     metadata_names = extract_col_types(.)[["metadata_names"]],
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
     truncation_point = truncation_point_calc(.) 
-  )
+  ) |> mutate(across(everything(), as.character))
 
-# -------- LEFT OFF HERE ----------------------------------------------
-# 
-# see notes in ReadME file about status and issues that we are dealing with!
-# may want something else for truncation point? 
-# time binning seems weird and may be off
-# 
-# ---------------------------------------------------------------------
+d_processed_30_part_2 <- d_raw_30 |> filter(!is.na(Shifts)) |> 
+# these *do* have looking data in non-looking cols
+  rename(f01=`Frames - word starts at frame 45 `,
+         f02=`First Shift Gap`,
+         f03=`RT`,
+         f04=`CritOnSet`,
+         f05=`CritOffSet`) |> 
+  preprocess_raw_data() %>%
+  relabel_time_cols(
+    metadata_names = extract_col_types(.)[["metadata_names"]],
+    pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
+    post_dis_names = extract_col_types(.)[["post_dis_names"]],
+    truncation_point = truncation_point_calc(.) 
+  ) |> mutate(across(everything(), as.character))
 
+d_processed_30 <- d_processed_30_part_1 |> 
+  bind_rows(d_processed_30_part_2)
 
 # agglomerate
 
@@ -86,8 +97,6 @@ d_processed <- d_processed_18 |>
   mutate(across(everything(), as.character)) |> 
   bind_rows(d_processed_24 |>   mutate(across(everything(), as.character))) |> 
   bind_rows(d_processed_30 |>   mutate(across(everything(), as.character))) |> 
-  #filter out trials with prescreen notes
-  filter(is.na(prescreen_notes)) |> 
   #create trial_order variable as tr_num variable
   mutate(trial_order=as.numeric(tr_num)) |> 
   select(!matches("^\\d|^-"), everything()) # get all the metadata up front
@@ -96,7 +105,6 @@ d_processed <- d_processed_18 |>
 # Convert to long format --------------------------------------------------
 d_tidy <- d_processed %>%
   pivot_longer(names_to = "t", cols = matches("^\\d|^-"), values_to = "aoi")
-# what to do about NAs??
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -105,6 +113,8 @@ d_tidy <- d_tidy %>%
   mutate(aoi = case_when(
     aoi_old == "0" ~ "distractor",
     aoi_old == "1" ~ "target",
+    aoi_old == "TRUE" ~ "target", # check that this makes sense
+    aoi_old == "FALSE" ~ "distractor", #again check that this makes sense
     aoi_old == "0.5" ~ "other",
     aoi_old == "." ~ "missing",
     aoi_old == "-" ~ "missing",
@@ -116,8 +126,7 @@ d_tidy <- d_tidy %>%
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
 
 d_tidy <- d_tidy %>%
-  select(-prescreen_notes,
-         -gap,
+  select(-gap,
          -word_onset,
          -gap,
          -target_rt_sec,
@@ -127,7 +136,8 @@ d_tidy <- d_tidy %>%
          -crit_off_set,
          -first_shift_gap,
          -rt,
-         -tr_num
+         -tr_num,
+         -starts_with('frames')
          ) %>%
   #left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
@@ -139,14 +149,42 @@ d_tidy <- d_tidy %>%
   mutate(distractor_image = case_when(target_side == "right" ~ left_image,
                                       TRUE ~ right_image))
 
+
+## TODO See Readme for some questions about stimulus table
+
 #create stimulus table
 stimulus_table <- d_tidy %>%
-  distinct(target_image,target_label) %>%
+  distinct(target_image,target_label) |>
+  #add the images that only appeaer in distractor position
+  full_join(d_tidy |> distinct(distractor_image) |> rename(target_image=distractor_image)) |> 
+  #clean up assumed duplications
+  # can't clean up image ones right now b/c it messes with the join!
+  mutate(#target_image=trimws(target_image),
+          target_label=ifelse(is.na(target_label), target_image, target_label),
+         target_label=trimws(target_label),
+         target_label=str_remove_all(target_label, "[0-9AB]"),
+         #target_image=str_replace(target_image, "birdie", "birdy"),
+         #target_image=str_replace(target_image, "doggie", "doggy"),
+         #target_image=case_when(
+        #   target_image=="book 2"~"book2",
+        #   T ~ target_image),
+         target_label=case_when(
+           str_starts(target_label,"bird")~ "birdy",
+           str_starts(target_label,"dog") ~ "doggy",
+           T ~ target_label)
+         ) |> 
+  distinct(target_image,target_label) |>
   mutate(dataset_id = 0,
-         stimulus_novelty = "familiar", #TODO IS THIS TRUE FOR ALL STIM?
+         stimulus_novelty = case_when(
+           target_label=="novel"~ "novel",
+           str_detect(target_label, "tempo")~ "novel",
+           str_detect(target_label, "manju")~ "novel", 
+           str_detect(target_label, "massager")~ "novel", 
+           str_detect(target_label, "fan")~ "novel", 
+           TRUE ~ "familiar"),
          original_stimulus_label = target_label,
          english_stimulus_label = target_label,
-         stimulus_image_path = target_image, 
+         stimulus_image_path = target_image, #TODO update once stimuli are shared
          image_description = target_label,
          image_description_source = "image path",
          lab_stimulus_id = target_image,
@@ -173,16 +211,30 @@ d_tidy <- d_tidy %>%
 
 #get zero-indexed administration ids
 d_administration_ids <- d_tidy %>%
-  distinct(subject_id, sub_num, months, order_uniquified) %>%
-  arrange(subject_id, sub_num, months, order_uniquified) %>%
-  mutate(administration_id = seq(0, length(.$order_uniquified) - 1)) 
+  distinct(subject_id, sub_num, months, session) %>%
+  arrange(subject_id, sub_num, months, session) %>%
+  mutate(administration_id = seq(0, length(.$session) - 1)) 
 
+## WE ARE HERE ##
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
-  #order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
-  #potentially make distinct based on condition if that is relevant to the study design (no condition manipulation here)
-  distinct(trial_order, target_id, distractor_id, target_side) %>%
-  mutate(full_phrase = NA) %>% #unknown
+  distinct(trial_order, target_id, target_image, distractor_image,
+           distractor_id, target_side, 
+           condition, condition2, original_condition, cond_orig) %>%
+  mutate(full_phrase = NA,
+         new_condition=case_when(
+           !is.na(cond_orig) ~ cond_orig,
+           !is.na(original_condition)~original_condition,
+           !is.na(condition)~ condition,
+         ),
+         vanilla_trial=case_when(
+           condition=="familiar" ~ T,
+           cond_orig=="Vanilla" ~ T,
+           original_condition=="familiar" ~ T,
+           T ~ F
+         ),
+         trial_type_aux_data=NA
+         ) %>% 
   mutate(trial_type_id = seq(0, length(trial_order) - 1)) 
 
 # joins
@@ -202,7 +254,7 @@ d_tidy_semifinal <- d_tidy_semifinal %>%
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
   mutate(dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
-         lab_trial_id = paste(order, tr_num, sep = "-"),
+         lab_trial_id = paste(order, trial_order, sep = "-"),
          aoi_region_set_id = NA, # not applicable
          monitor_size_x = NA, #unknown TO DO
          monitor_size_y = NA, #unknown TO DO
@@ -225,12 +277,16 @@ d_tidy_final %>%
   write_csv(fs::path(write_path, aoi_table_filename))
 
 ##### SUBJECTS TABLE ####
-d_tidy_final %>%
+subs <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
-  filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
+  # subjects 10099 and 10107 are listed as F for 18 mo B visit and M all other times
+  # I assume that M is the correct designation
+  mutate(sex=ifelse(lab_subject_id %in% c("10099","10107"), "M", sex)) |> 
+  distinct() |> 
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-    native_language="eng") %>%
+    native_language="eng",
+    subject_aux_data=NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -245,7 +301,8 @@ d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "manual gaze coding") %>%
+  mutate(coding_method = "manual gaze coding",
+         administration_aux_data=NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
@@ -271,8 +328,7 @@ trial_types <- d_tidy_final %>%
            dataset_id,
            target_id,
            distractor_id) %>%
-    mutate(full_phrase_language = "eng",
-           condition = "") %>% #no condition manipulation based on current documentation
+    mutate(full_phrase_language = "eng") %>% #no condition manipulation based on current documentation
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### AOI REGIONS TABLE ####
@@ -304,8 +360,9 @@ data_tab <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
-  cite = "Adams, K. A., Marchman, V. A., Loi, E. C., Ashland, M. D., Fernald, A., & Feldman, H. M. (2018). Caregiver talk and medical risk as predictors of language outcomes in full term and preterm toddlers. Child Development, 89(5), 1674-1690. https://doi.org/10.1111/cdev.12818",
-  shortcite = "Adams et al. (2018)"
+  cite = "Fernald, A., & Marchman, V. A. (2012). Individual differences in lexical processing at 18 months predict vocabulary growth in typically developing and late‐talking toddlers. Child development, 83(1), 203-222.  https://doi.org/10.1111/j.1467-8624.2011.01692.x",
+  shortcite = "Fernald & Marchman (2012)",
+  dataset_aux_data=NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
