@@ -28,7 +28,6 @@ TODO there is variation between whether word onset is 18/19 or 78 (so there's an
 
 18mo-old data: baby1, baby2, baby3 etc. Were these the same image of a baby presented multiple times (and # indicates order of presentation), or different stimulus images? in 18 & 24 mo data, target image is "baby" for L-image baby1, baby2, etc, but in 30 mo data target image is "baby1", "baby2", etc.
 
-extract_col_names seems to do reasonable things
 
 TODO what is the interpretation for some of the 18 mo data (raw) has false and true instead of 0 and 1 (presumably?)
 
@@ -36,10 +35,15 @@ TODO verify that switching L & R as is done in the code is correct!
 TODO what is the right empty field for aux data
 TODO what is stimulus image path supposed to be 
 
-TODO are baby1, baby2 etc different? 
-TODO what to do about stimulus items are ever only distractors?
 TODO figure out if fan is novel or not
 
 TODO What to do about conditions! (cond_orig, condition, originalcondition, condition2)
+* how should these be collapsed into a condition label for trial_type
+
+TODO is the aux data for any category
+
+TODO should "order" be in trial_type classification or not (what should lab_trial_type_id be)
+
+currently getting error on Multiple administrations detected for the same trial ID. Make sure that trials are split out by subject to allow subject-specific trial exclusion
 
 5. Importing ambiguity

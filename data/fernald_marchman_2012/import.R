@@ -244,8 +244,11 @@ d_tidy_semifinal <- d_tidy %>%
 
 #get zero-indexed trial ids for the trials table
 d_trial_ids <- d_tidy_semifinal %>%
-  distinct(trial_order,trial_type_id) %>%
-  mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
+  distinct(sub_num, session, months, 
+           prescreen_notes, trial_order,trial_type_id) %>%
+  mutate(excluded=!is.na(prescreen_notes)) |> 
+  rename(exclusion_reason=prescreen_notes) |> 
+  mutate(trial_id = seq(0, length(trial_type_id) - 1)) 
 
 #join
 d_tidy_semifinal <- d_tidy_semifinal %>%
@@ -268,13 +271,14 @@ d_tidy_final <- d_tidy_semifinal %>%
          )
 
 ##### AOI TABLE ####
-d_tidy_final %>%
-  rename(t_norm = t) %>% # original data centered at point of disambiguation
-  select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
-  #resample timepoints
-  resample_times(table_type="aoi_timepoints") %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
-  write_csv(fs::path(write_path, aoi_table_filename))
+#TODO comment this, it just takes a while to run!
+# d_tidy_final %>%
+#   rename(t_norm = t) %>% # original data centered at point of disambiguation
+#   select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
+#   #resample timepoints
+#   resample_times(table_type="aoi_timepoints") %>%
+#   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
+#   write_csv(fs::path(write_path, aoi_table_filename))
 
 ##### SUBJECTS TABLE ####
 subs <- d_tidy_final %>%
@@ -314,7 +318,10 @@ stimulus_table %>%
 trials <- d_tidy_final %>%
   distinct(trial_id,
            trial_order,
-           trial_type_id) %>%
+           trial_type_id,
+           excluded,
+           exclusion_reason) %>%
+  mutate(trial_aux_data=NA) |> 
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
@@ -330,29 +337,6 @@ trial_types <- d_tidy_final %>%
            distractor_id) %>%
     mutate(full_phrase_language = "eng") %>% #no condition manipulation based on current documentation
   write_csv(fs::path(write_path, trial_types_table_filename))
-
-##### AOI REGIONS TABLE ####
-# create empty other files aoi_region_sets.csv and xy_timepoints
-# don't need 
-# tibble(administration_id = d_tidy_final$administration_id[1],
-#       aoi_region_set_id=NA,
-#        l_x_max=NA ,
-#        l_x_min=NA ,
-#        l_y_max=NA ,
-#        l_y_min=NA ,
-#        r_x_max=NA ,
-#        r_x_min=NA ,
-#        r_y_max=NA ,
-#        r_y_min=NA ) %>%
-#   write_csv(fs::path(write_path, aoi_regions_table_filename))
-
-##### XY TIMEPOINTS TABLE ####
-# d_tidy_final %>% distinct(trial_id, administration_id) %>%
-#   mutate(x = NA,
-#          y = NA,
-#          t = NA,
-#          xy_timepoint_id = 0:(n()-1)) %>%
-#   write_csv(fs::path(write_path, xy_table_filename))
 
 ##### DATASETS TABLE ####
 # write Dataset table
