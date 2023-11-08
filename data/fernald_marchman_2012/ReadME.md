@@ -26,24 +26,28 @@ the dataset has LWL data longitudinally on 18 / 24 / 30 mo (same kids), there ar
 
 TODO there is variation between whether word onset is 18/19 or 78 (so there's an extra 2 seconds for 87a-102a) (ask Virginia about this)
 
-18mo-old data: baby1, baby2, baby3 etc. Were these the same image of a baby presented multiple times (and # indicates order of presentation), or different stimulus images? in 18 & 24 mo data, target image is "baby" for L-image baby1, baby2, etc, but in 30 mo data target image is "baby1", "baby2", etc.
 
 
 TODO what is the interpretation for some of the 18 mo data (raw) has false and true instead of 0 and 1 (presumably?)
 
 TODO verify that switching L & R as is done in the code is correct!
 TODO what is the right empty field for aux data
-TODO what is stimulus image path supposed to be 
 
-TODO figure out if fan is novel or not
 
 TODO What to do about conditions! (cond_orig, condition, originalcondition, condition2)
 * how should these be collapsed into a condition label for trial_type
 
 TODO is the aux data for any category
 
-TODO should "order" be in trial_type classification or not (what should lab_trial_type_id be)
+TODO should "order" be in trial_type classification or not (what should lab_trial_type_id be), also what is "order" anyway.
 
-currently getting error on Multiple administrations detected for the same trial ID. Make sure that trials are split out by subject to allow subject-specific trial exclusion
+Image related:
+* why are there L & R versions for some things which are sometimes mirrored and sometimes not -- can we ignore mirroring?
+* Are babyA and babyB the babyonNovel ones? should those be treated differently? 
+ditto bird, dog,
+* slightly different images for different time points
+* what to do for fan, manju, massager,novel,
 
 5. Importing ambiguity
+
+Note: for images, some images were shown in slightly different versions or mirrored in some conditions. Only one version is included here. 
