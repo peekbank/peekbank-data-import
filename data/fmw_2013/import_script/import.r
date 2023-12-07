@@ -536,32 +536,6 @@ cdi_processed <- cdi_data %>%
   ) %>%
   select(-administration,-WS24VocabP,-WS18VocabP)
 
-admin_aux <- d_tidy_final %>%
-  distinct(administration_id,
-           subject_id,
-           lab_subject_id,
-           age,
-           age_type,
-           lab_age,
-           lab_age_units) %>%
-  left_join(cdi_processed) %>%
-  #check to make sure no ages noted are wildly off - looks ok
-  mutate(
-    age_diff = age-administration_age
-  ) %>%
-  select(administration_id,eng_wg_comp_rawscore,eng_wg_comp_percentile,eng_wg_comp_age,eng_wg_prod_rawscore,eng_wg_prod_percentile,eng_wg_prod_age,eng_ws_prod_rawscore,eng_ws_prod_percentile,eng_ws_prod_age) %>%
-  rowwise(administration_id) %>% 
-  summarize(administration_aux_data= toJSON(across())) 
-
-
-
-
-#check unpack
-admin_aux_unpacked <- admin_aux %>%
-  #mutate(list_admin = map(administration_aux_data, ~fromJSON(as.character(.x)))) %>%
-  mutate(administration_aux_data = list(fromJSON(administration_aux_data))) %>%
-  unnest_wider(administration_aux_data)
-
 cdi_long <- cdi_processed %>%
   rename(
     wgcomp_age = eng_wg_comp_age,
@@ -586,72 +560,22 @@ cdi_long <- cdi_processed %>%
     age = as.character(age),
     rawscore = as.character(rawscore),
     percentile = as.character(percentile)
-  )
-
-# 
-# cdi_to_json <- cdi_long %>%
-#   ungroup() %>%
-#   select(-c(Study,`subnum  ID`,age_type,administration_age)) %>%
-#   rowwise(lab_subject_id) %>%
-#   mutate(cdi_response= toJSON(across())) %>%
-#   group_by(lab_subject_id) %>%
-#   #summarize(administration_aux_data=toJSON(cdi_response))
-#   summarize(cdi_responses=paste(cdi_response, collapse=",")) %>%
-#   mutate(cdi_responses=paste0('[',cdi_responses,']')) %>%
-#   #example if we wanted to add another administrations_aux_data value
-#   mutate(lds = seq(1,length(lab_subject_id))) %>%
-#   group_by(lab_subject_id) %>%
-#   summarize(administration_aux_data=toJSON(across()))
-# 
-# cdi_to_json_2 <- cdi_long %>%
-#   ungroup() %>%
-#   select(-c(Study,`subnum  ID`,age_type,administration_age)) %>%
-#   rowwise(lab_subject_id) %>%
-#   mutate(cdi_response= toJSON(across())) %>%
-#   group_by(lab_subject_id) %>%
-#   #summarize(administration_aux_data=toJSON(cdi_response))
-#   summarize(cdi_responses=paste(cdi_response, collapse=",")) %>%
-#   mutate(cdi_responses=paste0('[',cdi_responses,']')) %>%
-#   #example if we wanted to add another administrations_aux_data value
-#   #mutate(lds = seq(1,length(lab_subject_id))) %>%
-#   group_by(lab_subject_id) %>%
-#   summarize(administration_aux_data=toJSON(across())) 
-# 
-# temp <- bind_rows(cdi_to_json,cdi_to_json_2)
-# 
-# cdi_json_to_long <- cdi_to_json %>%
-#   ungroup() %>%
-#   mutate(administration_aux_data = map(administration_aux_data, ~jsonlite::fromJSON(.x))) %>%
-#   unnest_wider(administration_aux_data) %>%
-#   mutate(cdi_responses=as.tbl_json(cdi_responses)) %>%
-#   unnest(cols = c(cdi_responses)) %>%
-#   unnest(cols = c(..JSON)) %>%
-#   unnest_wider(..JSON) %>%
-#   select(-document.id) %>%
-#   mutate(across(where(is.character), ~na_if(., "NA")))
-# 
-# cdi_long_test <- cdi_long %>%
-#   ungroup() %>%
-#   select(lab_subject_id,instrument_type,rawscore,percentile,age) %>%
-#   arrange(lab_subject_id)
-# 
-# all.equal(cdi_json_to_long,cdi_long_test)
-# 
-# 
-# cdi_json_to_long <- cdi_to_json %>%
-#   ungroup() %>%
-#   mutate(administration_aux_data = map(administration_aux_data, ~jsonlite::fromJSON(.x))) %>%
-#   unnest_wider(administration_aux_data) %>%
-#   mutate(cdi_responses=as.tbl_json(cdi_responses)) %>%
-#   unnest(cdi_responses)
-
-### new start here
-cdi_to_json <- cdi_long %>%
+  ) %>%
   ungroup() %>%
-  select(-c(Study,`subnum  ID`,age_type,administration_age)) %>%
-  group_by(lab_subject_id) %>%
-  nest(cdi_response=-lab_subject_id) %>%
-  mutate(cdi_response_json=toJSON(cdi_response))
+  select(-administration_age)
+#write_csv(cdi_long,"cdi_long_fmw_2013.csv")
+
+cdi_to_json <- cdi_long |> 
+  filter(!is.na(rawscore)) |> 
+  select(-c(Study,`subnum  ID`)) |> 
+  #group_by(lab_subject_id, age_type) |> 
+  nest(cdi_responses = -c(lab_subject_id,age_type)) |> 
+  ungroup() |> 
+  mutate(test_var = seq_along(lab_subject_id)) |> 
+  nest(administration_aux_data = -c(lab_subject_id,age_type)) |> 
+  group_by(lab_subject_id,age_type) |> 
+  mutate(administration_aux_data = sapply(administration_aux_data, jsonlite::toJSON)) 
+
 ##### AOI TABLE ####
 aoi_table <- d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
@@ -677,15 +601,18 @@ administrations <- d_tidy_final %>%
   distinct(administration_id,
            dataset_id,
            subject_id,
+           lab_subject_id,
            age,
+           age_type,
            lab_age,
            lab_age_units,
            monitor_size_x,
            monitor_size_y,
            sample_rate,
            tracker) %>%
+  left_join(cdi_to_json) %>%
   mutate(coding_method = "manual gaze coding") %>%
-  left_join(admin_aux) %>%
+  select(-age_type,-lab_subject_id) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
