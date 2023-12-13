@@ -23,31 +23,14 @@ Stimuli. Speech stimuli for each session consisted of 32 simple sentences ending
 NOTES: 
 the dataset has LWL data longitudinally on 18 / 24 / 30 mo (same kids), there are non-vanilla trials at 24 and 30 (the LWL at 24 and 30 is not reported in the paper)
 
+Note: for images, some images were shown in slightly different versions or mirrored in some conditions. Only one version is included here. 
 
-TODO there is variation between whether word onset is 18/19 or 78 (so there's an extra 2 seconds for 87a-102a) (ask Virginia about this)
-
-
-
-TODO what is the interpretation for some of the 18 mo data (raw) has false and true instead of 0 and 1 (presumably?)
-
-TODO verify that switching L & R as is done in the code is correct!
-TODO what is the right empty field for aux data
-
-
-TODO What to do about conditions! (cond_orig, condition, originalcondition, condition2)
-* how should these be collapsed into a condition label for trial_type
-
-TODO is the aux data for any category
-
-TODO should "order" be in trial_type classification or not (what should lab_trial_type_id be), also what is "order" anyway.
-
-Image related:
-* why are there L & R versions for some things which are sometimes mirrored and sometimes not -- can we ignore mirroring?
-* Are babyA and babyB the babyonNovel ones? should those be treated differently? 
-ditto bird, dog,
-* slightly different images for different time points
-* what to do for fan, manju, massager,novel,
+For the manju and tempo trials, some were exposure where the object was on a background and some were tests where they were not on the background.
 
 5. Importing ambiguity
 
-Note: for images, some images were shown in slightly different versions or mirrored in some conditions. Only one version is included here. 
+
+
+ToDos:
+* check with Martin and/or Virginia about whether slightly different images (mirroring) matter
+

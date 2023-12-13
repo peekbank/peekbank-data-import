@@ -113,9 +113,9 @@ d_tidy <- d_tidy %>%
   mutate(aoi = case_when(
     aoi_old == "0" ~ "distractor",
     aoi_old == "1" ~ "target",
-    aoi_old == "TRUE" ~ "target", # check that this makes sense
-    aoi_old == "FALSE" ~ "distractor", #again check that this makes sense
     aoi_old == "0.5" ~ "other",
+    aoi_old == "TRUE" ~ "target",
+    aoi_old == "FALSE" ~ "distractor", 
     aoi_old == "." ~ "missing",
     aoi_old == "-" ~ "missing",
     is.na(aoi_old) ~ "missing",
@@ -153,13 +153,10 @@ d_tidy <- d_tidy %>%
 ## TODO See Readme for some questions about stimulus table
 
 #create stimulus table
-#naming of stimuli has some cross-experiment variation, cleaning it up here
 stimulus_table_link <- d_tidy %>%
   distinct(target_image,target_label) |>
-  #add the images that only appeaer in distractor position
+  #add the images that only appear in distractor position
   full_join(d_tidy |> distinct(distractor_image) |> rename(target_image=distractor_image)) |> 
-  #clean up assumed duplications
-  # can't clean up image ones right now b/c it messes with the join!
   mutate(clean_target_image=str_replace_all(target_image, " ", ""),
           target_label=ifelse(is.na(target_label), target_image, target_label),
          target_label=trimws(target_label),
@@ -183,8 +180,6 @@ stimulus_table <- stimulus_table_link |>
            str_detect(target_label, "manju")~ "novel", 
            str_detect(target_label, "massager")~ "novel", 
            str_detect(target_label, "fan")~ "novel", 
-           str_detect(clean_target_image, "A") ~ "novel",
-           str_detect(clean_target_image, "B") ~ "novel",
            TRUE ~ "familiar"),
          original_stimulus_label = target_label,
          english_stimulus_label = target_label,
@@ -228,11 +223,11 @@ d_administration_ids <- d_tidy %>%
 d_trial_type_ids <- d_tidy %>%
   distinct(order, trial_order, target_id, target_image, distractor_image,
            distractor_id, target_side, 
-           condition, condition2, original_condition, cond_orig) %>%
+           condition, condition2, original_condition, cond_orig) |> 
   mutate(full_phrase = NA,
          new_condition=case_when(
            !is.na(cond_orig) ~ cond_orig,
-           !is.na(original_condition)~original_condition,
+           !is.na(original_condition)~ condition2,
            !is.na(condition)~ condition,
          ),
          vanilla_trial=case_when(
@@ -242,7 +237,7 @@ d_trial_type_ids <- d_tidy %>%
            T ~ F
          ),
          trial_type_aux_data=NA,
-         lab_trial_id = paste(order, trial_order, sep = "-")
+         lab_trial_id = trial_order
          ) %>% 
   mutate(trial_type_id = seq(0, length(trial_order) - 1)) 
 
@@ -282,13 +277,13 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 ##### AOI TABLE ####
 #TODO comment this, it just takes a while to run!
-# d_tidy_final %>%
-#   rename(t_norm = t) %>% # original data centered at point of disambiguation
-#   select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
-#   #resample timepoints
-#   resample_times(table_type="aoi_timepoints") %>%
-#   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
-#   write_csv(fs::path(write_path, aoi_table_filename))
+d_tidy_final %>%
+  rename(t_norm = t) %>% # original data centered at point of disambiguation
+  select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
+  #resample timepoints
+  resample_times(table_type="aoi_timepoints") %>%
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
+  write_csv(fs::path(write_path, aoi_table_filename))
 
 ##### SUBJECTS TABLE ####
 subs <- d_tidy_final %>%
