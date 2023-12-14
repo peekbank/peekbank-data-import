@@ -275,6 +275,64 @@ d_tidy_final <- d_tidy_semifinal %>%
          lab_age = months
          )
 
+# CDI data processing ----------------------------------------------------------
+cdi_data <- read_excel(here(read_path, "F&M2012_cdidata.xls"),
+                       skip = 1) |> 
+  select(-`...1`, -`...2`) |> 
+  filter(`sub1 Subject #` != 122)
+cdi_data[cdi_data  == 999] <- NA
+
+cdi_data_cleaned <- cdi_data |> 
+  rename(
+    lab_subject_id = `sub1 Subject #`,
+    wgcomp_18_age = `WG18age Age`,
+    wgcomp_18_rawscore = `WG18comp Comprehension 18m`,
+    wgcomp_18_percentile = `WG18compp Comprehension 18m %tile`,
+    wgprod_18_rawscore = `WG18prod Production 18m`,
+    wgprod_18_percentile = `WG18prodp Production 18m %tile`,
+    wsprod_18_age = `WS18age`,
+    wsprod_18_rawscore = `WS18prod`,
+    wsprod_18_percentile = `WS18prodp`,
+    wsprod_21_age = `WS21age Age`,
+    wsprod_21_rawscore = `WS21prod Words Production 21m`,
+    wsprod_21_percentile = `WS21prodp Word Production 21m %tile`,
+    wsprod_24_age = `WS24age AgeCDi 24m`,
+    wsprod_24_rawscore = `WS24prod Words Production 24m`,
+    wsprod_24_percentile = `WS24prodp Word Production 24m %tile`,
+    wsprod_30_age = `WS30age AgeCDI 30m`,
+    wsprod_30_rawscore = `WS30prod Words Production 30m`,
+    wsprod_30_percentile = `WS30prodp Word Production 30m %tile`
+  ) |> 
+  mutate(wgprod_18_age = wgcomp_18_age,
+         lab_subject_id = as.character(lab_subject_id)) |> 
+  pivot_longer(cols = -lab_subject_id,
+               names_to = c("instrument_type", "age_group", "name"),
+               names_sep = "_") |> 
+  pivot_wider(names_from = "name",
+              values_from = "value") |> 
+  filter(!is.na(age)) |> 
+  select(lab_subject_id, instrument_type, rawscore, percentile, age)
+
+lwl_ages <- d_tidy_final |> 
+  distinct(lab_subject_id, age) |> 
+  nest(ages = age)
+
+cdi_data_matched <- cdi_data_cleaned |> 
+  left_join(lwl_ages, by = "lab_subject_id") |> 
+  mutate(best_lwl_age = map2(age, ages, \(cdi_age, lwl_ages) {
+    offsets <- abs(lwl_ages - cdi_age)
+    result <- lwl_ages[which(offsets == min(offsets)),][1]
+    if (is.null(result)) NA else result[1,]
+  }) |> unlist()) |> 
+  select(-ages)
+
+cdi_to_json <- cdi_data_matched |> 
+  nest(cdi_responses = -c(lab_subject_id, best_lwl_age)) |> 
+  nest(administration_aux_data = -c(lab_subject_id, best_lwl_age)) |> 
+  group_by(lab_subject_id, best_lwl_age) |> 
+  mutate(administration_aux_data = sapply(administration_aux_data, jsonlite::toJSON)) |> 
+  rename(age = best_lwl_age)
+
 ##### AOI TABLE ####
 #TODO comment this, it just takes a while to run!
 d_tidy_final %>%
@@ -303,6 +361,7 @@ administrations <- d_tidy_final %>%
   distinct(administration_id,
            dataset_id,
            subject_id,
+           lab_subject_id,
            age,
            lab_age,
            lab_age_units,
@@ -310,8 +369,9 @@ administrations <- d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "manual gaze coding",
-         administration_aux_data=NA) %>%
+  mutate(coding_method = "manual gaze coding") %>%
+  left_join(cdi_to_json, by = c("lab_subject_id", "age")) %>% 
+  select(-lab_subject_id) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
