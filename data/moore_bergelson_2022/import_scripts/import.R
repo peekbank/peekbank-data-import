@@ -14,11 +14,29 @@ output_path <- "data/moore_bergelson_2022/processed_data"
 dataset_name <- "moore_bergelson_2022"
 
 DATASET_ID <- 0  # single dataset, zero-indexed
+NATIVE_LANGUAGE <- "eng"  # same for every kid
+SEX_NA_VALUE <- "unspecified"
 
 ################## DATASET SPECIFIC READ IN CODE ##################
 
-# this will look different depending on what your dataset looks like!
+fixations_binned <-
+  here(data_path, "data/eyetracking/vna_test_taglowdata.Rds") %>%
+  readRDS %>%
+  rename(lab_subject_id = SubjectNumber)
 
+demographics <-
+  read_csv(
+    here(data_path, "data", "demographics", "vna_age_gender_deid.csv"),
+    col_types = cols(
+      name = col_character(),
+      sex = col_character(),
+      age_at_test = col_integer(),
+      age_at_test_mo = col_double(),
+      young_old = col_character(),
+      race = col_character(),
+      race_recode = col_character()
+    )) %>%
+  rename(lab_subject_id = name)
 ################## TABLE SETUP ##################
 
 # it's very helpful to have the schema open as you do this
@@ -32,8 +50,23 @@ dataset <- tibble(dataset_id = DATASET_ID,
                   shortcite = "Moore & Bergelson (2022)", 
                   cite = "Moore, C., & Bergelson, E. (2022). Examining the roles of regularity and lexical class in 18–26-month-olds’ representations of how words sound. Journal of Memory and Language, 126, 104337.")
 
-### 2. SUBJECTS TABLE 
-subjects <- ... %>% 
+### 2. SUBJECTS TABLE
+# Start from the subjects with eyetracking data
+subjects <- fixations_binned %>%
+  distinct(lab_subject_id) %>%
+  inner_join(demographics, by = "lab_subject_id",
+             relationship = 'one-to-one',
+             unmatched = c('error', 'drop')) %>%
+  # Sort to get predictable subject_id
+  arrange(lab_subject_id) %>%
+  mutate(subject_id = 0:(n() - 1),
+         native_language = NATIVE_LANGUAGE,
+         sex = case_when(
+           sex == "M" ~ 'male',
+           sex == "F" ~ 'female',
+           is.na(sex) ~ SEX_NA_VALUE,
+           .default = 'error'
+         )) %>%
   select(subject_id, sex, native_language, lab_subject_id)
 
 ### 3. STIMULI TABLE 
