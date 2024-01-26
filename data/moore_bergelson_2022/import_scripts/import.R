@@ -9,9 +9,9 @@ library(here)
 library(peekds) 
 library(osfr)
 
-data_path <- "data/DATASET_NAME/raw_data"
-output_path <- "data/DATASET_NAME/processed_data"
-dataset_name <- "DATASET_NAME"
+data_path <- "data/moore_bergelson_2022/raw_data"
+output_path <- "data/moore_bergelson_2022/processed_data"
+dataset_name <- "moore_bergelson_2022"
 
 ################## DATASET SPECIFIC READ IN CODE ##################
 
