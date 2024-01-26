@@ -8,6 +8,7 @@ library(tidyverse)
 library(here)
 library(peekds) 
 library(osfr)
+library(tools)  # for file_path_sans_ext
 
 data_path <- "data/moore_bergelson_2022/raw_data"
 output_path <- "data/moore_bergelson_2022/processed_data"
@@ -22,7 +23,9 @@ SEX_NA_VALUE <- "unspecified"
 fixations_binned <-
   here(data_path, "data/eyetracking/vna_test_taglowdata.Rds") %>%
   readRDS %>%
-  rename(lab_subject_id = SubjectNumber)
+  rename(lab_subject_id = SubjectNumber,
+         stimulus_image_path = TargetImage,
+         stimulus_audio_path = AudioTarget)
 
 demographics <-
   read_csv(
@@ -70,10 +73,32 @@ subjects <- fixations_binned %>%
   select(subject_id, sex, native_language, lab_subject_id)
 
 ### 3. STIMULI TABLE 
-stimuli <- ... %>% 
+
+stimuli <- fixations_binned %>%
+  select(stimulus_image_path, stimulus_audio_path) %>%
+  distinct() %>%
+  mutate(
+    # drop the extensions: jump.mp4 -> jump, joomp_can.wav -> joomp_can
+    image_name = file_path_sans_ext(stimulus_image_path),
+    audio_name = file_path_sans_ext(stimulus_audio_path)
+  ) %>%
+  # joomp_can -> joomp, can
+  separate_wider_delim(
+    audio_name, names = c('word', 'audio_type'), delim = "_", cols_remove = FALSE) %>%
+  mutate(
+    original_stimulus_label = word,  # jump
+    english_stimulus_label = original_stimulus_label,  # jump
+    stimulus_novelty = if_else(image_name == word, 'familiar', 'novel'),
+    lab_stimulus_id = audio_name,  # joomp_can
+    image_description = image_name,  # jump
+    image_description_source = "image path",
+    dataset_id = DATASET_ID
+  ) %>%
   select(original_stimulus_label, english_stimulus_label, stimulus_novelty, 
          stimulus_image_path, lab_stimulus_id, dataset_id) %>%
   distinct() %>%
+  # Sort to get reproducible stimulus_id
+  arrange(across(everything())) %>%
   mutate(stimulus_id = 0:(n() - 1))
 
 ### 4. ADMINISTRATIONS TABLE 
