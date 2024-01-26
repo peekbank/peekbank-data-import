@@ -13,6 +13,8 @@ data_path <- "data/moore_bergelson_2022/raw_data"
 output_path <- "data/moore_bergelson_2022/processed_data"
 dataset_name <- "moore_bergelson_2022"
 
+DATASET_ID <- 0  # single dataset, zero-indexed
+
 ################## DATASET SPECIFIC READ IN CODE ##################
 
 # this will look different depending on what your dataset looks like!
@@ -23,12 +25,12 @@ dataset_name <- "moore_bergelson_2022"
 # https://docs.google.com/spreadsheets/d/1Z24n9vfrAmEk6_HpoTSh58LnkmSGmNJagguRpI1jwdo/edit#gid=0
 
 ### 1. DATASET TABLE 
-dataset <- tibble(dataset_id = 0,
-                  lab_dataset_id = "",
-                  dataset_name = "DATASET_NAME",
-                  name = "DATASET_NAME", 
-                  shortcite = "...", 
-                  cite = "....")
+dataset <- tibble(dataset_id = DATASET_ID,
+                  lab_dataset_id = "VNA",
+                  dataset_name = DATASET_NAME,
+                  name = DATASET_NAME, 
+                  shortcite = "Moore & Bergelson (2022)", 
+                  cite = "Moore, C., & Bergelson, E. (2022). Examining the roles of regularity and lexical class in 18–26-month-olds’ representations of how words sound. Journal of Memory and Language, 126, 104337.")
 
 ### 2. SUBJECTS TABLE 
 subjects <- ... %>% 
