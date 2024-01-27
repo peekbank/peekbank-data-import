@@ -8,6 +8,7 @@ library(tidyverse)
 library(here)
 library(peekds) 
 library(osfr)
+library(rjson)
 library(tools)  # for file_path_sans_ext
 
 data_path <- "data/moore_bergelson_2022/raw_data"
@@ -48,6 +49,23 @@ demographics <-
   rename(
     age_at_test_days = age_at_test,
     lab_subject_id = name)
+
+cdi_data <- 
+  read_csv(
+    here(data_path, "data", "cdi", "vna_cdi_totals_both_ages.csv"),
+    col_types = cols(
+      SubjectNumber = col_character(),
+      age = col_integer(),
+      produces = col_integer(),
+      CDIcomp = col_integer()
+    )
+  ) %>%
+  rename(
+    lab_subject_id = SubjectNumber,
+    eng_wg_comp_rawscore = CDIcomp,
+    eng_wg_prod_rawscore = produces,
+  )
+
 ################## TABLE SETUP ##################
 
 # it's very helpful to have the schema open as you do this
@@ -113,6 +131,24 @@ stimuli <- fixations_binned %>%
 
 ### 4. ADMINISTRATIONS TABLE 
 
+administrations_aux_data <- subjects %>%
+  select(subject_id, lab_subject_id) %>%
+  left_join(cdi_data,
+             by = "lab_subject_id",
+             relationship = 'one-to-one') %>%
+  mutate(
+    eng_wg_comp_age = age,
+    eng_wg_prod_age = age
+  ) %>%
+  rowwise(subject_id) %>% 
+  mutate(
+    administration_aux_data = toJSON(across(
+      c("eng_wg_comp_rawscore", "eng_wg_comp_age",
+        "eng_wg_prod_rawscore","eng_wg_prod_age")
+    ))) %>%
+  select(subject_id, administration_aux_data)
+  
+
 administrations <- subject_info %>%
   select(subject_id, age_at_test_days) %>%
   mutate(
@@ -128,7 +164,9 @@ administrations <- subject_info %>%
     sample_rate = SAMPLE_RATE,
     tracker = TRACKER,
     coding_method = CODING_METHOD
-  )
+  ) %>%
+  inner_join(administrations_aux_data, by = "subject_id",
+             relationship = 'one-to-one')
 
 ### 5. TRIAL TYPES TABLE 
 trial_types <- ... %>%
