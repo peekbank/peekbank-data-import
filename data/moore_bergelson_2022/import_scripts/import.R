@@ -18,6 +18,12 @@ DATASET_ID <- 0  # single dataset, zero-indexed
 NATIVE_LANGUAGE <- "eng"  # same for every kid
 SEX_NA_VALUE <- "unspecified"
 
+MONITOR_SIZE_X <- 1280
+MONITOR_SIZE_Y <- 1024
+SAMPLE_RATE <- 500
+TRACKER <- "Eyelink 1000+"
+CODING_METHOD <- "eyetracking"
+
 ################## DATASET SPECIFIC READ IN CODE ##################
 
 fixations_binned <-
@@ -39,7 +45,9 @@ demographics <-
       race = col_character(),
       race_recode = col_character()
     )) %>%
-  rename(lab_subject_id = name)
+  rename(
+    age_at_test_days = age_at_test,
+    lab_subject_id = name)
 ################## TABLE SETUP ##################
 
 # it's very helpful to have the schema open as you do this
@@ -55,7 +63,7 @@ dataset <- tibble(dataset_id = DATASET_ID,
 
 ### 2. SUBJECTS TABLE
 # Start from the subjects with eyetracking data
-subjects <- fixations_binned %>%
+subject_info <- fixations_binned %>%
   distinct(lab_subject_id) %>%
   inner_join(demographics, by = "lab_subject_id",
              relationship = 'one-to-one',
@@ -69,7 +77,9 @@ subjects <- fixations_binned %>%
            sex == "F" ~ 'female',
            is.na(sex) ~ SEX_NA_VALUE,
            .default = 'error'
-         )) %>%
+         ))
+
+subjects <- subject_info %>%
   select(subject_id, sex, native_language, lab_subject_id)
 
 ### 3. STIMULI TABLE 
@@ -102,18 +112,23 @@ stimuli <- fixations_binned %>%
   mutate(stimulus_id = 0:(n() - 1))
 
 ### 4. ADMINISTRATIONS TABLE 
-administrations <- ... %>%
-  mutate(administration_id = 0:(n() - 1), 
-         subject_id = 0:(n() - 1), 
-         dataset_id = 0, 
-         age = ..., 
-         lab_age = ..., 
-         lab_age_units = "months", # SAMPLE
-         monitor_size_x = 1280, # SAMPLE
-         monitor_size_y = 1024, # SAMPLE
-         sample_rate = 500, # SAMPLE
-         tracker = "Eyelink 1000+", # SAMPLE
-         coding_method = "eyetracking") # SAMPLE
+
+administrations <- subject_info %>%
+  select(subject_id, age_at_test_days) %>%
+  mutate(
+    administration_id = subject_id,
+    dataset_id = DATASET_ID,
+    # conversion formula from the list of peekbank dataset columns at
+    # https://docs.google.com/spreadsheets/d/1Z24n9vfrAmEk6_HpoTSh58LnkmSGmNJagguRpI1jwdo
+    age = age_at_test_days / (365.25 / 12),
+    lab_age = age_at_test_days,
+    lab_age_units = "days",
+    monitor_size_x = MONITOR_SIZE_X,
+    monitor_size_y = MONITOR_SIZE_Y,
+    sample_rate = SAMPLE_RATE,
+    tracker = TRACKER,
+    coding_method = CODING_METHOD
+  )
 
 ### 5. TRIAL TYPES TABLE 
 trial_types <- ... %>%
