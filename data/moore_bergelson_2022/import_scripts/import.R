@@ -12,7 +12,7 @@ library(tools)  # for file_path_sans_ext
 
 data_path <- "data/moore_bergelson_2022/raw_data"
 output_path <- "data/moore_bergelson_2022/processed_data"
-dataset_name <- "moore_bergelson_2022"
+DATASET_NAME <- "moore_bergelson_2022"
 
 DATASET_ID <- 0  # single dataset, zero-indexed
 NATIVE_LANGUAGE <- "eng"  # same for every kid
