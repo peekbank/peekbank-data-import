@@ -228,6 +228,10 @@ write_csv(administrations, file = here(output_path, "administrations.csv"))
 #
 # *Note: This wasn't guaranteed: there could have been trials with the same trial type (out of 32) *and* the same target word onset. It just didn't happen that way.
 
+lab_to_peekbank_id_map <- stimuli %>%
+  select(lab_stimulus_id, stimulus_id) %>%
+  deframe
+
 trial_info <- fixations_binned %>%
   distinct(lab_subject_id, trial_order,
            pronunciation, verb_type,
@@ -250,19 +254,15 @@ trial_info <- fixations_binned %>%
     lab_target_id = glue('{target_image_name}_{carrier_label}-{target_label}'),
     lab_distractor_id = glue('{distractor_image_name}_distractor'),
     lab_trial_id = glue('{lab_target_id}_{lab_distractor_id}'),
+    target_id = lab_to_peekbank_id_map[lab_target_id],
+    distractor_id = lab_to_peekbank_id_map[lab_distractor_id],
     pronunciation = PRONUNCIATION_CONDITIONS[pronunciation],
     verb_type = VERB_TYPE_CONDITIONS[verb_type],
     condition = glue('{pronunciation} x {verb_type}'),
     point_of_disambiguation = target_word_onset)
 
-lab_to_peekbank_id_map <- stimuli %>%
-  select(lab_stimulus_id, stimulus_id) %>%
-  deframe
-
 trial_types <- trial_info %>%
-  mutate(target_id = lab_to_peekbank_id_map[lab_target_id],
-         distractor_id = lab_to_peekbank_id_map[lab_distractor_id],
-         full_phrase_language = CARRIER_PHRASE_LANGUAGE,
+  mutate(full_phrase_language = CARRIER_PHRASE_LANGUAGE,
          dataset_id = DATASET_ID) %>%
   distinct(full_phrase, full_phrase_language, point_of_disambiguation,
            target_side, lab_trial_id, condition, dataset_id,
@@ -275,7 +275,18 @@ trial_types <- trial_info %>%
 write_csv(trial_types, file = here(output_path, "trial_types.csv"))
 
 ### 6. TRIALS TABLE 
-trials <- ... %>%
+
+trial_keys <- c('lab_subject_id', 'trial_order')
+trial_type_keys <- c('target_id', 'target_side', 'distractor_id',
+                     'point_of_disambiguation')
+
+trials <- trial_info %>%
+  select(all_of(trial_keys), all_of(trial_type_keys)) %>%
+  inner_join(trial_types, by = trial_type_keys,
+    relationship = 'many-to-one',
+    unmatched = c('error', 'drop')) %>%
+  arrange(across(all_of(trial_keys))) %>%
+  mutate(trial_id = 0:(n() - 1)) %>%
   select(trial_id, trial_type_id, trial_order)
 
 write_csv(trials, file = here(output_path, "trials.csv"))
