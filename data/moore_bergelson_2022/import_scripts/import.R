@@ -26,6 +26,21 @@ SAMPLE_RATE <- 500
 TRACKER <- "Eyelink 1000+"
 CODING_METHOD <- "eyetracking"
 
+CARRIER_PHRASES <- list(
+  can = "Look! She can _",
+  gonna = "She's gonna _",
+  about = "She's about to _ it"
+)
+CARRIER_PHRASE_LANGUAGE <- "eng"
+PRONUNCIATION_CONDITIONS <- list(
+  CP = "correctly pronounced",
+  MP = "mispronounced"
+)
+VERB_TYPE_CONDITIONS <- list(
+  reg = "regular",
+  irreg = "irregular"
+)
+
 ################## DATASET SPECIFIC READ IN CODE ##################
 
 fixations_binned <-
@@ -34,7 +49,12 @@ fixations_binned <-
   rename(lab_subject_id = SubjectNumber,
          target_image_path = TargetImage,
          distractor_image_path = DistractorImage,
-         audio_path = AudioTarget)
+         audio_path = AudioTarget,
+         target_word_onset = TargetOnset,
+         target_side = TargetSide,
+         pronunciation = TrialType,  # CP/MP for correctly pronounced/mispronounced
+         verb_type = VerbType,  # (reg)ular vs. (irreg)ular
+         trial_order = Trial)  # in order the trials were presented
 
 demographics <-
   read_csv(
@@ -202,11 +222,55 @@ administrations <- subject_info %>%
 
 write_csv(administrations, file = here(output_path, "administrations.csv"))
 
-### 5. TRIAL TYPES TABLE 
-trial_types <- ... %>%
-    select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
-           target_side, lab_trial_id, condition, aoi_region_set_id, dataset_id, 
-           distractor_id, target_id)
+### 5. TRIAL TYPES TABLE
+
+# Target word onsets are highly variable leading to as many trial types as there are trials.* If not for that, there would be 32 trial types: 8 verbs, 2 pronunciations, 2 sides.
+#
+# *Note: This wasn't guaranteed: there could have been trials with the same trial type (out of 32) *and* the same target word onset. It just didn't happen that way.
+
+trial_info <- fixations_binned %>%
+  distinct(lab_subject_id, trial_order,
+           pronunciation, verb_type,
+           target_side,
+           audio_path,
+           target_image_path,
+           distractor_image_path,
+           target_word_onset) %>%
+  mutate(stimulus_audio_name = file_path_sans_ext(audio_path)) %>%
+  separate_wider_delim(
+    stimulus_audio_name,
+    names = c("target_label", "carrier_label"),
+    delim = "_",
+    cols_remove = FALSE) %>%
+  mutate(
+    carrier_phrase = CARRIER_PHRASES[carrier_label],
+    full_phrase = str_replace(carrier_phrase, '_', target_label),
+    target_image_name = file_path_sans_ext(target_image_path),
+    distractor_image_name = file_path_sans_ext(distractor_image_path),
+    lab_target_id = glue('{target_image_name}_{carrier_label}-{target_label}'),
+    lab_distractor_id = glue('{distractor_image_name}_distractor'),
+    lab_trial_id = glue('{lab_target_id}_{lab_distractor_id}'),
+    pronunciation = PRONUNCIATION_CONDITIONS[pronunciation],
+    verb_type = VERB_TYPE_CONDITIONS[verb_type],
+    condition = glue('{pronunciation} x {verb_type}'),
+    point_of_disambiguation = target_word_onset)
+
+lab_to_peekbank_id_map <- stimuli %>%
+  select(lab_stimulus_id, stimulus_id) %>%
+  deframe
+
+trial_types <- trial_info %>%
+  mutate(target_id = lab_to_peekbank_id_map[lab_target_id],
+         distractor_id = lab_to_peekbank_id_map[lab_distractor_id],
+         full_phrase_language = CARRIER_PHRASE_LANGUAGE,
+         dataset_id = DATASET_ID) %>%
+  distinct(full_phrase, full_phrase_language, point_of_disambiguation,
+           target_side, lab_trial_id, condition, dataset_id,
+           distractor_id, target_id) %>%
+  arrange(across(everything())) %>%
+  mutate(trial_type_id = 0:(n() - 1)) %>%
+  # move trial_type_id up
+  select(trial_type_id, everything())
 
 write_csv(trial_types, file = here(output_path, "trial_types.csv"))
 
