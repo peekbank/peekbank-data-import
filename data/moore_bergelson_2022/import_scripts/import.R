@@ -10,6 +10,7 @@ library(peekds)
 library(osfr)
 library(rjson)
 library(tools)  # for file_path_sans_ext
+library(glue)
 
 data_path <- "data/moore_bergelson_2022/raw_data"
 output_path <- "data/moore_bergelson_2022/processed_data"
@@ -31,8 +32,9 @@ fixations_binned <-
   here(data_path, "data/eyetracking/vna_test_taglowdata.Rds") %>%
   readRDS %>%
   rename(lab_subject_id = SubjectNumber,
-         stimulus_image_path = TargetImage,
-         stimulus_audio_path = AudioTarget)
+         target_image_path = TargetImage,
+         distractor_image_path = DistractorImage,
+         audio_path = AudioTarget)
 
 demographics <-
   read_csv(
@@ -102,8 +104,19 @@ subjects <- subject_info %>%
 
 ### 3. STIMULI TABLE 
 
-stimuli <- fixations_binned %>%
-  select(stimulus_image_path, stimulus_audio_path) %>%
+# We'll define *stimulus* here by the combination of:
+#
+# - label,
+# - carrier phrase (redundant info in this experiment),
+# - image (video) associated with the label.
+#
+# For example, label "joomp" spliced into "Look! She can ..." and the asscoicate "jump" video constitue one stimulus which we will label as "jump_can-joomp" in the "lab_stimulus_label" column).
+#
+# Later, when we populate the trial_types table, we will need to associate each trial type with a target stimulus and a distractor stimulus from the stimuli table we are creating here. Distractors, however, don't have a label or carrier phrase associated with them and thus can't be automatically assigned a stimulus. We could select an arbitrary stimulus with the same image by, for example, choosing the familiar one of the two. To be more explicit, we'll add distractors as separate stimuli and mark them as such in the "lab_stimulus_label" column and keep most other columns empty.
+
+target_stimuli <- fixations_binned %>%
+  select(stimulus_image_path = target_image_path,
+         stimulus_audio_path = audio_path) %>%
   distinct() %>%
   mutate(
     # drop the extensions: jump.mp4 -> jump, joomp_can.wav -> joomp_can
@@ -112,13 +125,25 @@ stimuli <- fixations_binned %>%
   ) %>%
   # joomp_can -> joomp, can
   separate_wider_delim(
-    audio_name, names = c('word', 'audio_type'), delim = "_", cols_remove = FALSE) %>%
+    audio_name, names = c('word', 'carrier_phrase_label'), delim = "_", cols_remove = FALSE) %>%
   mutate(
-    original_stimulus_label = word,  # jump
-    english_stimulus_label = original_stimulus_label,  # jump
-    stimulus_novelty = if_else(image_name == word, 'familiar', 'novel'),
-    lab_stimulus_id = audio_name,  # joomp_can
-    image_description = image_name,  # jump
+    original_stimulus_label = word,  # joomp
+    english_stimulus_label = original_stimulus_label,  # joomp
+    stimulus_novelty = if_else(image_name == word, 'familiar', 'novel'),  # joomp - novel, jump would be familiar
+    lab_stimulus_id = glue('{image_name}_{carrier_phrase_label}-{word}'),  # jump_can-joomp
+    )
+
+distractor_stimuli <- fixations_binned %>%
+  select(stimulus_image_path = distractor_image_path) %>%
+  distinct() %>%
+  mutate(
+    image_name = file_path_sans_ext(stimulus_image_path),
+    lab_stimulus_id = glue('{image_name}_distractor'))
+
+
+stimuli <-
+  bind_rows(target_stimuli, distractor_stimuli) %>%
+  mutate(image_description = image_name,  # jump
     image_description_source = "image path",
     dataset_id = DATASET_ID
   ) %>%
@@ -126,7 +151,7 @@ stimuli <- fixations_binned %>%
          stimulus_image_path, lab_stimulus_id, dataset_id) %>%
   distinct() %>%
   # Sort to get reproducible stimulus_id
-  arrange(across(everything())) %>%
+  arrange(lab_stimulus_id, across(everything())) %>%
   mutate(stimulus_id = 0:(n() - 1))
 
 ### 4. ADMINISTRATIONS TABLE 
