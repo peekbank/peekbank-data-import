@@ -265,6 +265,7 @@ trial_info <- fixations_binned %>%
     lab_trial_id = glue('{lab_target_id}_{lab_distractor_id}'),
     target_id = lab_to_peekbank_id_map[lab_target_id],
     distractor_id = lab_to_peekbank_id_map[lab_distractor_id],
+    vanilla_trial = pronunciation == 'CP',  # correctly pronounced
     pronunciation = PRONUNCIATION_CONDITIONS[pronunciation],
     verb_type = VERB_TYPE_CONDITIONS[verb_type],
     condition = glue('{pronunciation} x {verb_type}'),
@@ -275,7 +276,7 @@ trial_info <- fixations_binned %>%
 trial_types <- trial_info %>%
   mutate(full_phrase_language = CARRIER_PHRASE_LANGUAGE,
          dataset_id = DATASET_ID) %>%
-  distinct(full_phrase, full_phrase_language, point_of_disambiguation,
+  distinct(full_phrase, full_phrase_language, point_of_disambiguation, vanilla_trial,
            target_side, lab_trial_id, condition, dataset_id,
            distractor_id, target_id) %>%
   arrange(across(everything())) %>%
