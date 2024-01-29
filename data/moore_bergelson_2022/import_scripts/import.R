@@ -40,6 +40,11 @@ VERB_TYPE_CONDITIONS <- list(
   reg = "regular",
   irreg = "irregular"
 )
+TARGET_SIDES <- c(
+  L = "left",
+  R = "right"
+)
+SINGLE_AOI_REGION_SET_ID <- 0
 
 ################## DATASET SPECIFIC READ IN CODE ##################
 
@@ -51,7 +56,7 @@ fixations_binned <-
          distractor_image_path = DistractorImage,
          audio_path = AudioTarget,
          target_word_onset = TargetOnset,
-         target_side = TargetSide,
+         target_side_label = TargetSide,
          pronunciation = TrialType,  # CP/MP for correctly pronounced/mispronounced
          verb_type = VerbType,  # (reg)ular vs. (irreg)ular
          trial_order = Trial,  # in order the trials were presented
@@ -103,7 +108,8 @@ datasets <- tibble(dataset_id = DATASET_ID,
                    dataset_name = DATASET_NAME,
                    name = DATASET_NAME, 
                    shortcite = "Moore & Bergelson (2022)", 
-                   cite = "Moore, C., & Bergelson, E. (2022). Examining the roles of regularity and lexical class in 18–26-month-olds’ representations of how words sound. Journal of Memory and Language, 126, 104337.")
+                   cite = "Moore, C., & Bergelson, E. (2022). Examining the roles of regularity and lexical class in 18–26-month-olds’ representations of how words sound. Journal of Memory and Language, 126, 104337.",
+                   dataset_aux_data = NA)
 
 
 ### 2. SUBJECTS TABLE
@@ -122,10 +128,11 @@ subject_info <- fixations_binned %>%
            sex == "F" ~ 'female',
            is.na(sex) ~ SEX_NA_VALUE,
            .default = 'error'
-         ))
+         ),
+         subject_aux_data = NA)
 
 subjects <- subject_info %>%
-  select(subject_id, sex, native_language, lab_subject_id)
+  select(subject_id, sex, native_language, lab_subject_id, subject_aux_data)
 
 
 ### 3. STIMULI TABLE 
@@ -164,7 +171,8 @@ distractor_stimuli <- fixations_binned %>%
   distinct() %>%
   mutate(
     image_name = file_path_sans_ext(stimulus_image_path),
-    lab_stimulus_id = glue('{image_name}_distractor'))
+    lab_stimulus_id = glue('{image_name}_distractor'),
+    stimulus_novelty = 'familiar')
 
 
 stimuli <-
@@ -173,12 +181,13 @@ stimuli <-
     image_description_source = "image path",
     dataset_id = DATASET_ID
   ) %>%
-  select(original_stimulus_label, english_stimulus_label, stimulus_novelty, 
+  select(original_stimulus_label, english_stimulus_label, stimulus_novelty, image_description, image_description_source,
          stimulus_image_path, lab_stimulus_id, dataset_id) %>%
   distinct() %>%
   # Sort to get reproducible stimulus_id
   arrange(lab_stimulus_id, across(everything())) %>%
-  mutate(stimulus_id = 0:(n() - 1))
+  mutate(stimulus_id = 0:(n() - 1),
+         stimulus_aux_data = NA)
 
 
 
@@ -235,7 +244,7 @@ lab_to_peekbank_id_map <- stimuli %>%
 trial_info <- fixations_binned %>%
   distinct(lab_subject_id, trial_order,
            pronunciation, verb_type,
-           target_side,
+           target_side_label,
            audio_path,
            target_image_path,
            distractor_image_path,
@@ -259,7 +268,9 @@ trial_info <- fixations_binned %>%
     pronunciation = PRONUNCIATION_CONDITIONS[pronunciation],
     verb_type = VERB_TYPE_CONDITIONS[verb_type],
     condition = glue('{pronunciation} x {verb_type}'),
-    point_of_disambiguation = target_word_onset)
+    point_of_disambiguation = target_word_onset,
+    target_side = TARGET_SIDES[target_side_label]
+    )
 
 trial_types <- trial_info %>%
   mutate(full_phrase_language = CARRIER_PHRASE_LANGUAGE,
@@ -268,7 +279,9 @@ trial_types <- trial_info %>%
            target_side, lab_trial_id, condition, dataset_id,
            distractor_id, target_id) %>%
   arrange(across(everything())) %>%
-  mutate(trial_type_id = 0:(n() - 1)) %>%
+  mutate(trial_type_id = 0:(n() - 1),
+         aoi_region_set_id = SINGLE_AOI_REGION_SET_ID,
+         trial_type_aux_data = NA) %>%
   # move trial_type_id up
   select(trial_type_id, everything())
 
@@ -285,10 +298,12 @@ trials_plus <- trial_info %>%
     relationship = 'many-to-one',
     unmatched = c('error', 'drop')) %>%
   arrange(across(all_of(trial_keys))) %>%
-  mutate(trial_id = 0:(n() - 1))
+  mutate(
+    trial_id = 0:(n() - 1),
+    trial_aux_data = NA)
 
 trials <- trials_plus %>%
-  select(trial_id, trial_type_id, trial_order)
+  select(trial_id, trial_type_id, trial_order, trial_aux_data)
 
 # Note: trials_plus exists so that we can later match fixations_binned to trials using lab_subject_id and trial_order.
 
@@ -297,7 +312,7 @@ trials <- trials_plus %>%
 
 # Note: Leaving aoi_region_sets blank here because that is what the import script for garrison_bergelson_2020 did. There is no logical difference between AOIs in this dataset and garrison_bergelson_2020 so this should work as well as it did there.
 
-aoi_region_sets <- tibble(aoi_region_set_id = 0, 
+aoi_region_sets <- tibble(aoi_region_set_id = SINGLE_AOI_REGION_SET_ID, 
                           l_x_max = NA,
                           l_x_min = NA,
                           l_y_max = NA,
@@ -358,7 +373,7 @@ aoi_timepoints <- timepoints_normalized %>%
 
 ################## WRITING AND VALIDATION ##################
 
-write_csv(dataset, file = here(output_path, "datasets.csv"))
+write_csv(datasets, file = here(output_path, "datasets.csv"))
 write_csv(subjects, file = here(output_path, "subjects.csv"))
 write_csv(stimuli, file = here(output_path,  "stimuli.csv"))
 write_csv(administrations, file = here(output_path, "administrations.csv"))
