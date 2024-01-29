@@ -54,7 +54,11 @@ fixations_binned <-
          target_side = TargetSide,
          pronunciation = TrialType,  # CP/MP for correctly pronounced/mispronounced
          verb_type = VerbType,  # (reg)ular vs. (irreg)ular
-         trial_order = Trial)  # in order the trials were presented
+         trial_order = Trial,  # in order the trials were presented
+         x = looking_X,
+         y = looking_Y,
+         t = Time,
+         aoi = gaze)  # TARGET/DISTRACTOR
 
 demographics <-
   read_csv(
@@ -280,14 +284,18 @@ trial_keys <- c('lab_subject_id', 'trial_order')
 trial_type_keys <- c('target_id', 'target_side', 'distractor_id',
                      'point_of_disambiguation')
 
-trials <- trial_info %>%
+trials_plus <- trial_info %>%
   select(all_of(trial_keys), all_of(trial_type_keys)) %>%
   inner_join(trial_types, by = trial_type_keys,
     relationship = 'many-to-one',
     unmatched = c('error', 'drop')) %>%
   arrange(across(all_of(trial_keys))) %>%
-  mutate(trial_id = 0:(n() - 1)) %>%
+  mutate(trial_id = 0:(n() - 1))
+
+trials <- trials_plus %>%
   select(trial_id, trial_type_id, trial_order)
+
+# Note: trials_plus exists so that we can later match fixations_binned to trials using lab_subject_id and trial_order.
 
 write_csv(trials, file = here(output_path, "trials.csv"))
 
@@ -309,16 +317,52 @@ write_csv(aoi_region_sets, file = here(output_path, "aoi_region_sets.csv"))
 
 
 ### 8. XY TABLE
-xy_timepoints <- ... %>%
-  select(x, y, t, point_of_disambiguation, administration_id, trial_id) %>%
-  peekds::resample_times(table_type = "xy_timepoints") 
+match_many_to_exactly_one <- function(...) {
+  inner_join(...,
+             relationship = 'many-to-one',
+             unmatched = c('error', 'drop'))
+}
+
+
+timepoints <- fixations_binned %>%
+  mutate(aoi = case_when(
+    aoi == 'TARGET' ~ 'target',
+    aoi == 'DISTRACTOR' ~ 'distractor',
+    is.na(aoi) ~ 'missing',
+    .default = 'error'
+  )) %>%
+  # Get trial_id and trial_type_id
+  match_many_to_exactly_one(
+    trials_plus %>%
+      select(all_of(trial_keys), trial_id, trial_type_id),
+    by = trial_keys) %>%
+  # Get point_of_disambiguation
+  match_many_to_exactly_one(
+    trial_types %>%
+      select(trial_type_id, point_of_disambiguation),
+    by = 'trial_type_id') %>%
+  # Get administration_id
+  match_many_to_exactly_one(
+    inner_join(subjects, administrations, by = 'subject_id') %>%
+      select(lab_subject_id, administration_id),
+    by = 'lab_subject_id') %>%
+  select(x, y, t, aoi, point_of_disambiguation, administration_id, trial_id)
+
+timepoints_normalized <- timepoints %>%
+  # following the import script in garrison_bergelson_2020, skipping rezeroing because times are already relative to trial onset.
+  rename(t_zeroed = t) %>%
+  peekds::normalize_times()
+
+xy_timepoints <- timepoints_normalized %>%
+  select(x, y, t_norm, administration_id, trial_id) %>%
+  peekds::resample_times(table_type = "xy_timepoints")
 
 write_csv(xy_timepoints, file = here(output_path, "xy_timepoints.csv"))
   
 ### 9. AOI TIMEPOINTS TABLE
-aoi_timepoints <- ... %>%
-  select(aoi, t, point_of_disambiguation, administration_id, trial_id) %>%
-  peekds::resample_times(table_type = "aoi_timepoints") 
+aoi_timepoints <- timepoints_normalized %>%
+  select(aoi, t_norm, administration_id, trial_id) %>%
+  peekds::resample_times(table_type = "aoi_timepoints")
 
 write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
 
