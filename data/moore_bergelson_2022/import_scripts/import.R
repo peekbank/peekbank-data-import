@@ -292,6 +292,9 @@ trials <- trial_info %>%
 write_csv(trials, file = here(output_path, "trials.csv"))
 
 ### 7. AOI REGION SETS TABLE
+
+# Note: Leaving aoi_region_sets blank here because that is what the import script for garrison_bergelson_2020 did. There is no logical difference between AOIs in this dataset and garrison_bergelson_2020 so this should work as well as it did there.
+
 aoi_region_sets <- tibble(aoi_region_set_id = 0, 
                           l_x_max = NA,
                           l_x_min = NA,
