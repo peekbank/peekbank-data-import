@@ -311,7 +311,8 @@ cdi_data_cleaned <- cdi_data |>
   pivot_wider(names_from = "name",
               values_from = "value") |> 
   filter(!is.na(age)) |> 
-  select(lab_subject_id, instrument_type, rawscore, percentile, age)
+  select(lab_subject_id, instrument_type, rawscore, percentile, age) |> 
+  mutate(language = "English (American)")
 
 # lwl_ages <- d_tidy_final |> 
 #   distinct(lab_subject_id, age) |> 

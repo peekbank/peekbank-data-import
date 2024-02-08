@@ -495,7 +495,8 @@ cdi_processed <- cdi_data |>
               values_from = value) |> 
   filter(!is.na(rawscore)) |> 
   mutate(age = coalesce(age, as.numeric(age_group))) |> 
-  select(-age_group)
+  select(-age_group) |> 
+  mutate(language = "English (American)")
 
 cdi_to_json <- cdi_processed |> 
   nest(cdi_responses = -lab_subject_id) |> 
