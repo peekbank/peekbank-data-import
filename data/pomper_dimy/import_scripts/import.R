@@ -34,14 +34,14 @@ xy_table_filename =  "xy_timepoints.csv"
 ### get raw data ###
 read_path = here(paste("data/",lab_dataset_id,"/raw_data/", sep=''))
 write_path = here(paste("data/", lab_dataset_id, "/processed_data", sep=''))
-osf_token = read_lines(here("osf_token.txt"))
 
 # only download data if it's not on your machine
 if(length(list.files(read_path)) == 0 ) {get_raw_data(lab_dataset_id = lab_dataset_id, path = read_path, osf_address = "pr6wu")}
 
 #This section unrolls the pages in the xlsx from the subject data into multiple csvs.
-xlsx_path <-paste0("data/",lab_dataset_id,"/raw_data/DimY_deID.xlsx")
+xlsx_path = paste0("data/",lab_dataset_id,"/raw_data/DimY_deID.xlsx")
 outxlsx_path = paste0("data/",lab_dataset_id,"/raw_data/participant_info/")
+dir.create(outxlsx_path, recursive = TRUE, showWarnings = FALSE)
 
 sheet_names = readxl::excel_sheets(xlsx_path)
 # read from all sheets to a list of data frames
@@ -79,8 +79,8 @@ names(study_data)[names(study_data) == 'TimeStamp'] = "t_zeroed"
 study_data$study_data_order= 1:nrow(study_data)
 
 # read in administrations data
-administrations_pilot1 = read_csv("data/pomper_dimy/raw_data/DimY_deID_pilot1.csv", col_names = TRUE)
-administrations_pilot2 = read_csv("data/pomper_dimy/raw_data/DimY_deID_pilot2.csv", col_names = TRUE)
+administrations_pilot1 = read_csv(paste0(outxlsx_path, "Pilot1-Table 1.csv"), col_names = TRUE)
+administrations_pilot2 = read_csv(paste0(outxlsx_path, "Pilot2-Table 1.csv"), col_names = TRUE)
 administrations = rbind(administrations_pilot1, administrations_pilot2)
 
 #relable areas of interest in eyetracking data.
