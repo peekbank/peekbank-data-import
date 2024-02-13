@@ -15,3 +15,4 @@ This research revealed both similarities and striking differences in early langu
 5. **Importing ambiguity**
 
 - What is the right point of disambiguation for trials with informative verbs or adjectives? Current decision is to always make the target noun onset the point of disambiguation.
+- For CDI data with no specified age at administration, the age group (18mo / 24mo) was attached to the CDI data.
