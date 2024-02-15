@@ -31,7 +31,7 @@ trial_stim <- tibble(original_stimulus_label = c("FamiliarBottle", "FamiliarDog"
                      distractor_image = c("rabbit", "mouse", "car", "shoe", "chair", "television"))
 
 # AOI: 811 x 713 pixel around each object image -- but what is the resolution of the screen?
-# full AOI XY-coordinates would also be nice - may now have them in ancat-aoi.txt
+# full AOI XY-coordinates are taken from ancat-aoi.txt
 
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
@@ -39,13 +39,15 @@ aoi_table_filename <- "aoi_timepoints.csv"
 subject_table_filename <- "subjects.csv"
 administrations_table_filename <- "administrations.csv"
 stimuli_table_filename <- "stimuli.csv"
-trials_table_filename <- "trials.csv"
+trials_table_filename <- "trials.csv" 
 trial_types_table_filename <- "trial_types.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
+cdi_language = "English (American)"
+
 # only download data if it's not on your machine
-if(length(list.files(read_path)) == 0 && length(list.files(paste0(read_path, "/orders"))) == 0) {
+if(length(list.files(data_path)) == 0 && length(list.files(paste0(data_path, "/orders"))) == 0) {
   get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")}
 
 ################## DATASET SPECIFIC READ IN CODE ##################
@@ -89,11 +91,12 @@ dataset <- tibble(dataset_id = 0, # leave as 0 for all
                   dataset_name = dataset_name,
                   name = dataset_name, 
                   shortcite = "Ferguson, Graf, & Waxman (2014)", 
-                  cite = "Ferguson, B., Graf, E., & Waxman, S. R. (2014). Infants use known verbs to learn novel nouns: Evidence from 15- and 19-month-olds. Cognition, 131(1), 139-146.")
+                  cite = "Ferguson, B., Graf, E., & Waxman, S. R. (2014). Infants use known verbs to learn novel nouns: Evidence from 15- and 19-month-olds. Cognition, 131(1), 139-146.",
+                  dataset_aux_data = NA) 
 dataset %>% write_csv(fs::path(output_path, dataset_table_filename))
 
 ### 2. SUBJECTS TABLE 
-subjects <- d_tidy %>% 
+subjects <- d_tidy %>% # TODO: this needs CDI total aux data: nest(age, rawscore, type="iiiprod", language)
   distinct(lab_subject_id, sex, native_language) %>%
   mutate(subject_id = seq(0, length(.$lab_subject_id) - 1))
 subjects %>% write_csv(fs::path(output_path, subject_table_filename))
@@ -111,7 +114,8 @@ stimulus_table <- d_tidy %>%
          image_description_source = "experiment documentation",
          image_description = original_stimulus_label, # include animate / inanimate distinction?
          lab_stimulus_id = original_stimulus_label,
-         dataset_id = 0)
+         dataset_id = 0,
+         stimulus_aux_data=NA)
 stimulus_table %>%
   write_csv(fs::path(output_path, stimuli_table_filename))
 
@@ -140,7 +144,8 @@ administrations <- d_tidy %>%
          monitor_size_y = 1080, 
          sample_rate = 60, # Hz
          tracker = "Tobii T60XL", # from paper
-         coding_method = "eyetracking") 
+         coding_method = "eyetracking",
+         administration_aux_data = NA) 
 # from manual: "Tobii T60XL Eye Tracker is integrated into a high resolution 24-inch 
 # 1920 x 1080 pixels widescreen monitor"
 
@@ -165,14 +170,16 @@ d_tidy_final <- d_tidy %>%
   left_join(d_trial_ids)
 
 ### 5. TRIAL TYPES TABLE 
-trial_types <- ... %>%
+trial_types <- ... %>% # GK: what is this '...' ?
     select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
            target_side, lab_trial_id, condition, aoi_region_set_id, dataset_id, 
-           distractor_id, target_id)
+           distractor_id, target_id) %>%
+  mutate(trial_type_aux_data = NA)
 
 ### 6. TRIALS TABLE 
-trials <- ... %>%
-  select(trial_id, trial_type_id, trial_order)
+trials <- ... %>% # GK: what is this '...' ?
+  select(trial_id, trial_type_id, trial_order) %>%
+  mutate(trial_aux_data=NA)
 
 ### 7. AOI REGION SETS TABLE (from ancat-aoi.txt provided by Brock)
 aoi_region_sets <- tibble(aoi_region_set_id = 0, 
@@ -191,7 +198,7 @@ aoi_region_sets <- tibble(aoi_region_set_id = 0,
 #  peekds::resample_times(table_type = "xy_timepoints") 
   
 ### 9. AOI TIMEPOINTS TABLE
-aoi_timepoints <- ... %>%
+aoi_timepoints <- ... %>% # GK: what is this '...' ?
   select(aoi, t, point_of_disambiguation, administration_id, trial_id) %>%
   peekds::resample_times(table_type = "aoi_timepoints") 
 
@@ -204,12 +211,12 @@ aoi_timepoints <- d_tidy %>%
 
 ################## WRITING AND VALIDATION ##################
 
-write_csv(administrations, file = here(output_path, "administrations.csv"))
-write_csv(trial_types, file = here(output_path, "trial_types.csv"))
-write_csv(trials, file = here(output_path, "trials.csv"))
-write_csv(aoi_region_sets, file = here(output_path, "aoi_region_sets.csv"))
+write_csv(administrations, file = here(output_path, administrations_table_filename))
+write_csv(trial_types, file = here(output_path, trial_types_table_filename))
+write_csv(trials, file = here(output_path, trials_table_filename))
+write_csv(aoi_region_sets, file = here(output_path, aoi_regions_table_filename))
 #write_csv(xy_timepoints, file = here(output_path, "xy_timepoints.csv"))
-write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
+write_csv(aoi_timepoints, file = here(output_path, aoi_table_filename))
 
 # run validator
 peekds::validate_for_db_import(dir_csv = output_path)
