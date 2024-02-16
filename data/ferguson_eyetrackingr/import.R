@@ -175,7 +175,8 @@ administrations <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  distinct(TrialNum, #full_phrase, 
+  mutate(full_phrase = paste("Where is the",english_stimulus_label,"?")) %>% 
+  distinct(TrialNum, full_phrase, 
            target_id, distractor_id, target_side) %>% 
   mutate(trial_id = seq(0, length(.$TrialNum) - 1)) 
 
@@ -201,20 +202,35 @@ d_tidy_final <- d_tidy %>%
   left_join(d_trial_ids) %>%
   mutate(full_phrase_language = "eng",
          trial_order = TrialNum,
-         point_of_disambiguation = 0) # TODO: is this true?
+         point_of_disambiguation = 0) # TODO: is this true? or only for Subphase=="Test"?
 
 ### 5. TRIAL TYPES TABLE 
 trial_types <- d_tidy_final %>% 
-    select(trial_type_id, # full_phrase, # TODO: get full_phrase?
-           full_phrase_language, point_of_disambiguation, 
-           target_side, lab_trial_id, condition, aoi_region_set_id, dataset_id, 
-           distractor_id, target_id) %>%
-  mutate(trial_type_aux_data = NA)
+  distinct(trial_type_id,
+           full_phrase,
+           point_of_disambiguation,
+           target_side,
+           lab_trial_id,
+           aoi_region_set_id,
+           dataset_id,
+           target_id,
+           distractor_id,
+           condition) %>%
+  mutate(full_phrase_language = "eng",
+         trial_type_aux_data = NA,
+         vanilla_trial = TRUE)
 
 ### 6. TRIALS TABLE 
 trials <- d_tidy_final %>% 
-  select(trial_id, trial_type_id, trial_order) %>%
-  mutate(trial_aux_data=NA)
+  mutate(trial_aux_data = NA,
+         excluded = FALSE,
+         exclusion_reason = NA) %>%
+  distinct(trial_id,
+           trial_order,
+           trial_type_id,
+           trial_aux_data,
+           excluded,
+           exclusion_reason) 
 
 ### 7. AOI REGION SETS TABLE (from ancat-aoi.txt provided by Brock)
 aoi_region_sets <- tibble(aoi_region_set_id = 0, 
@@ -228,15 +244,15 @@ aoi_region_sets <- tibble(aoi_region_set_id = 0,
                           r_y_min = 247)
 
 ### 8. XY TABLE - raw data does not include x/y locations, just AOI
-#xy_timepoints <- ... %>%
-#  select(x, y, t, point_of_disambiguation, administration_id, trial_id) %>%
-#  peekds::resample_times(table_type = "xy_timepoints") 
+xy_timepoints <- d_tidy_final %>%
+  mutate(x = NA, y = NA) %>%
+  select(x, y, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
+  peekds::resample_times(table_type = "xy_timepoints") 
 
 
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- d_tidy_final %>%
   select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
-  #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
   write_csv(fs::path(write_path, aoi_table_filename))
@@ -247,7 +263,7 @@ write_csv(administrations, file = here(write_path, administrations_table_filenam
 write_csv(trial_types, file = here(write_path, trial_types_table_filename))
 write_csv(trials, file = here(write_path, trials_table_filename))
 write_csv(aoi_region_sets, file = here(write_path, aoi_regions_table_filename))
-#write_csv(xy_timepoints, file = here(write_path, "xy_timepoints.csv")) # TODO: required
+write_csv(xy_timepoints, file = here(write_path, xy_table_filename)) 
 write_csv(aoi_timepoints, file = here(write_path, aoi_table_filename))
 
 # run validator
