@@ -431,7 +431,7 @@ d_administration_ids <- d_tidy %>%
 
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
-  distinct(sound_stimulus,target_id, distractor_id,condition,condition, target_side) %>% 
+  distinct(sound_stimulus, target_id, distractor_id, condition, target_side) %>% 
   mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
 # joins
@@ -455,8 +455,8 @@ d_tidy_final <- d_tidy_semifinal %>%
          #lab_trial_id = paste(target_label,target_image,distractor_image, sep = "-"),
          lab_trial_id = NA,
          aoi_region_set_id = NA, # not applicable
-         monitor_size_x = NA, #unknown TO DO
-         monitor_size_y = NA, #unknown TO DO
+         monitor_size_x = NA, # TODO: unknown - look in paper?
+         monitor_size_y = NA, # TODO: unknown 
          lab_age_units = "months",
          age = as.numeric(months), # months 
          point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz (and adjustment to noun onset above)
