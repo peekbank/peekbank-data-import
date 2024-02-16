@@ -11,6 +11,8 @@ library(here)
 library(peekds) 
 library(osfr)
 
+# MacArthur Short Form Vocabulary Checklist: Level II (Form A)  - WSshort, right?
+
 dataset_name <- "ferguson_eyetrackingr"
 data_path <- here("data",dataset_name,"raw_data")
 write_path <- here("data",dataset_name,"processed_data")
@@ -21,6 +23,8 @@ write_path <- here("data",dataset_name,"processed_data")
 # the images, they disappeared and they heard a label referring to one of them (e.g., 
 # "The horse is nearby!"). Finally, the objects re-appeared on the screen and they were 
 # prompted to look at the target (e.g., "Look at the horse!").
+
+# "We focused our analysis on the window beginning at the onset of the target word at test and lasting through the end of the trial (5.5s total)
 
 # distractor information: see ferguston_eyetrackingr.png from email from Brock Ferguson
 # (Trial contains 6 unique values specifying target, e.g. "FamiliarBottle")
@@ -79,9 +83,10 @@ proc_data <- raw_data %>%
 
 # recode  "", Animate, Inanimate, TrackLoss as other, target, distractor, and missing
 d_tidy <- proc_data %>% 
-  select(-Sex, -MCDI_Nouns, -MCDI_Total, -MCDI_Verbs) %>%
+  select(-Sex, -MCDI_Nouns, -MCDI_Verbs) %>%
   rename(aoi_old = AOI,
-         t_norm = TimeFromSubphaseOnset) %>%
+         t_norm = TimeFromSubphaseOnset,
+         rawscore = MCDI_Total) %>%
   mutate(
     condition = "familiar",
     lab_trial_id = NA, # GK: maybe same as original_stimulus_label
@@ -105,10 +110,19 @@ dataset <- tibble(dataset_id = 0, # leave as 0 for all
                   dataset_aux_data = NA) 
 dataset %>% write_csv(fs::path(write_path, dataset_table_filename))
 
+cdi_to_json <- d_tidy %>% 
+  distinct(lab_subject_id, age, rawscore) %>%
+  mutate(language="English (American)", 
+         measure="prod",
+         instrument_type="wsshort") %>% # MacArthur Short Form Vocabulary Checklist: Level II (Form A) 
+  nest(subject_aux_data = -lab_subject_id) %>% 
+  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
+
 ### 2. SUBJECTS TABLE 
-subjects <- d_tidy %>% # TODO: this needs CDI total aux data: nest(age, rawscore, type="iiiprod", language)
+subjects <- d_tidy %>% 
   distinct(lab_subject_id, sex, native_language) %>%
-  mutate(subject_id = seq(0, length(.$lab_subject_id) - 1))
+  mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
+  left_join(cdi_to_json, by = "lab_subject_id")
 subjects %>% write_csv(fs::path(write_path, subject_table_filename))
 
 ### 3. STIMULI TABLE 
