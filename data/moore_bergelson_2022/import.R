@@ -4,6 +4,9 @@
 # USER 
 # DATE
 
+# Note: this script was based on the generic import.R and the import.R in
+# garrison_bergelson_2020
+
 library(tidyverse)
 library(here)
 library(peekds) 
