@@ -157,8 +157,24 @@ administrations <- questionnaire_data %>%
 # here.
 
 
+# These exclusions mirror the reporting in the analysis script of the paper
+exclusion_data <- tibble(
+  subject_id = c(3, 24, 40, 4, 27, 53, 21, 42, 51, 5, 6, 9, 10, 28, 1, 2, 33),
+  excluded_reason = c(
+    rep("Not accepting the sticker on their forehead", 3),
+    rep("Technical failure/issues with the eye-tracking equipment", 3),
+    "Not fulfilling our monolingual input criterion after screening",
+    "Visual impairment",
+    "Audibly crying before completing any trials of the other condition",
+    rep("Not enough trials with reliable data", 5),
+    rep("No trial with RT data", 2),
+    "No original paradigm trial with RT Data"
+  ),
+  excluded = TRUE
+)
+
 d <- fixations %>%
-  arrange(Participant, Timestamp) %>% 
+  arrange(Participant, Timestamp) %>%
   group_by(Participant, trial) %>%
   mutate(
     new_timestamp = Timestamp - min(Timestamp),
@@ -198,7 +214,12 @@ d <- fixations %>%
     administrations %>%
       select(subject_id, administration_id),
     by = "subject_id"
-  )
+  ) %>% 
+  left_join(
+    exclusion_data,
+    by="subject_id"
+  ) %>%
+  mutate(excluded = replace_na(excluded, FALSE))
 
 ### 5. Trial Types Table
 
@@ -223,26 +244,38 @@ trial_types <- d %>%
   
 
 ### 6. TRIALS TABLE
+
 trials <- d %>%
-  select(trial_id, trial_type_id, trial_order) %>%
+  select(trial_id, trial_type_id, trial_order, excluded, excluded_reason) %>%
   distinct() %>%
   mutate(
-    excluded = FALSE,
-    exluded_reason = NA,
     trial_aux_data = NA
   )
 
 ### 7. AOI REGION SETS TABLE
-#TODO ???
+
+# not reported afaik, but due to the amount of data present, this code
+# was able to extract the borders from the fixation data:
+
+#aoi_approx <- fixations %>% filter(OnScreen & (OnTarget | OnDistractor)) %>% select(x, y, OnTarget, target_side)
+#
+#left_aoi <- aoi_approx %>%
+#  filter((OnTarget & target_side == 'left') | (!OnTarget & target_side == 'right')) %>%
+#  summarise(min_x = min(x), max_x = max(x), min_y = min(y), max_y = max(y))
+#
+#right_aoi <- aoi_approx %>%
+#  filter((OnTarget & target_side == 'right') | (!OnTarget & target_side == 'left')) %>%
+#  summarise(min_x = min(x), max_x = max(x), min_y = min(y), max_y = max(y))
+
 aoi_region_sets <- tibble(aoi_region_set_id = 0,
-                          l_x_max = NA,
-                          l_x_min = NA,
-                          l_y_max = NA,
-                          l_y_min = NA,
-                          r_x_max = NA,
-                          r_x_min = NA,
-                          r_y_max = NA,
-                          r_y_min = NA)
+                          l_x_max = 700,
+                          l_x_min = 0,
+                          l_y_max = 900,
+                          l_y_min = 0,
+                          r_x_max = 1600,
+                          r_x_min = 900,
+                          r_y_max = 900,
+                          r_y_min = 0)
 
 
 ### 8. XY TABLE
