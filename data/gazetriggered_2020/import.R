@@ -35,12 +35,25 @@ dataset <- tibble(
   dataset_aux_data = NA
 )
 
-# TODO CDI DATA
-# TODO ask martin - is that really all of the demographic data here?
-
 ### 2. SUBJECTS TABLE
 questionnaire_data <-
   read_csv(here(data_path, "QuestionnaireData.csv"))
+
+cdi_data <- questionnaire_data %>%
+  select(ID, age = `CDI-agedays`, comp = comprehension, prod = produce) %>%
+  mutate (age = age / (365.25 / 12)) %>%
+  pivot_longer(
+    cols = c(comp, prod),
+    names_to = "measure",
+    values_to = "rawscore",
+  ) %>%
+  mutate(
+    instrument_type = NA, # not reported
+    percentile = NA, # not reported
+    language = NA # TODO workbank format? 
+  )
+
+library(jsonlite)
 
 # Select and rename columns to match the subjects table
 subjects <- questionnaire_data %>%
@@ -50,7 +63,9 @@ subjects <- questionnaire_data %>%
   mutate(
     sex = 'unspecified',
     native_language = 'dut', # according to the paper, this was the same for everyone
-    subject_aux_data = NA
+    subject_aux_data = toJSON(
+      list(cdi_responses = cdi_data[cdi_data$ID == lab_subject_id,] %>%
+             select(-ID)), na="null")
   )
 
 
@@ -59,8 +74,7 @@ cdi_words <- read_csv(here(data_path, "CDIwords.csv"))
 # 1 and 2 are not specified, plausible would be
 # 1 equals "understands"
 # 2 equals "understands and says"
-# but I could be wrong here
-# TODO ask martin - do we even need this (either as cdi data or as vanilla trial modifier?)
+# do we need this for familiarity or is familiarity defined by the experimenter?
 
 
 fixations <- read_csv(here(data_path, "rawdata_Fixation.csv")) %>%
