@@ -97,6 +97,14 @@ cdi_data <-
     eng_wg_prod_rawscore = produces,
   )
 
+excluded_participants <- read_csv(
+  here(data_path, "data/eyetracking/vna_excluded_participants.csv"),
+  col_types = cols(
+    SubjectNumber = col_character(),
+    good_trials = col_integer(),
+    young_old = col_character()
+  ))
+
 ################## TABLE SETUP ##################
 
 # it's very helpful to have the schema open as you do this
@@ -248,7 +256,8 @@ trial_info <- fixations_binned %>%
            audio_path,
            target_image_path,
            distractor_image_path,
-           target_word_onset) %>%
+           target_word_onset,
+           bad_trial) %>%
   mutate(stimulus_audio_name = file_path_sans_ext(audio_path)) %>%
   separate_wider_delim(
     stimulus_audio_name,
@@ -294,19 +303,36 @@ trial_type_keys <- c('target_id', 'target_side', 'distractor_id',
                      'point_of_disambiguation')
 
 trials_plus <- trial_info %>%
-  select(all_of(trial_keys), all_of(trial_type_keys)) %>%
+  select(all_of(trial_keys), all_of(trial_type_keys), bad_trial) %>%
+  # Match to trial types to get trial_type_id
   inner_join(trial_types, by = trial_type_keys,
     relationship = 'many-to-one',
     unmatched = c('error', 'drop')) %>%
+  # Add info about excluded participants and trials
+  mutate(
+    partipant_excluded = lab_subject_id %in% excluded_participants$SubjectNumber,
+    excluded = bad_trial | partipant_excluded,
+    exclusion_reason = case_when(
+      bad_trial & partipant_excluded ~ "low-data/frozen & participant excluded",
+      bad_trial ~ "low-data/frozen",
+      partipant_excluded ~ "participant excluded",
+      TRUE ~ NA_character_)) %>%
   arrange(across(all_of(trial_keys))) %>%
   mutate(
     trial_id = 0:(n() - 1),
     trial_aux_data = NA)
 
-trials <- trials_plus %>%
-  select(trial_id, trial_type_id, trial_order, trial_aux_data)
+# Note: we save trials_plus table because it contains columns lab_subject_id and trial_order that we will later use to match fixations_binned to trials.
 
-# Note: trials_plus exists so that we can later match fixations_binned to trials using lab_subject_id and trial_order.
+trials <- trials_plus %>%
+  select(trial_id, trial_type_id, trial_order, trial_aux_data,
+         excluded, exclusion_reason)
+
+# Exclusion reasons:
+# - low-data - Less than 1/3 of the 20 ms bins in the window from 367 to 3970 ms after the target word onset contain fixations on the screen.
+#   Other bins can contain fixations off the screen, eyetracking data not classified as fixations, or no eyetracking data at all.
+# - frozen - All on-screen fixations throughout the whole trial are on the same side, including the time before the video started and the time after audio ended.
+# - participant excluded - Participant was excluded because there were fewer than 16 trials trials that weren't excluded for low-data or frozen reasons. This dataset doesn't include participants who were excluded for not data-based reasons.
 
 
 ### 7. AOI REGION SETS TABLE
