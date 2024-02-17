@@ -337,17 +337,17 @@ trials <- trials_plus %>%
 
 ### 7. AOI REGION SETS TABLE
 
-# Note: Leaving aoi_region_sets blank here because that is what the import script for garrison_bergelson_2020 did. There is no logical difference between AOIs in this dataset and garrison_bergelson_2020 so this should work as well as it did there.
+# Note: The coordinates are doubles with 1 digit after the decimal point. The way AOIs were assigned, x = 640 was considered part of the left AOI and x = 640.1 - of the right. Columns in aoi_region_sets table have to be integer, however, so we can't represent these AOIs exactly. I had a choice then between setting r_x_min to 640 and 641. I chose 640.
 
 aoi_region_sets <- tibble(aoi_region_set_id = SINGLE_AOI_REGION_SET_ID, 
-                          l_x_max = NA,
-                          l_x_min = NA,
-                          l_y_max = NA,
-                          l_y_min = NA,
-                          r_x_max = NA,
-                          r_x_min = NA,
-                          r_y_max = NA,
-                          r_y_min = NA)
+                          l_x_max = 640,
+                          l_x_min = 0,
+                          l_y_max = 1024,
+                          l_y_min = 0,
+                          r_x_max = 1280,
+                          r_x_min = 640,
+                          r_y_max = 1024,
+                          r_y_min = 0)
 
 
 ### 8. XY TABLE
