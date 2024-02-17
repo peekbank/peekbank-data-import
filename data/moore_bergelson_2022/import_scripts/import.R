@@ -419,8 +419,9 @@ peekds::validate_for_db_import(dir_csv = output_path)
 
 # OSF integration
 # system specific read-in of validation token
+
 token <- read_lines(here("../token.txt"))[1]
-osf_token <- osf_auth(token = token) 
+osf_token <- osf_auth(token = token)
 put_processed_data(osf_token, dataset_name, paste0(output_path,"/"),
                    osf_address = "pr6wu")
 
