@@ -48,8 +48,8 @@ subjects <- questionnaire_data %>%
          lab_subject_id = ID) %>%
   select(lab_subject_id, subject_id) %>%
   mutate(
-    sex = NA,
-    native_language = NA,
+    sex = 'unspecified',
+    native_language = 'dut', # according to the paper, this was the same for everyone
     subject_aux_data = NA
   )
 
@@ -101,7 +101,7 @@ stimuli <- fixations %>%
          lab_stimulus_id = NA,
          stimulus_image_path = image,
          image_description = image,
-         image_description_source = NA,
+         image_description_source = 'image path',
          dataset_id = 0) %>%
   select(-c(target, image)) %>%
   distinct() %>%
@@ -129,7 +129,7 @@ administrations <- questionnaire_data %>%
          administration_aux_data = NA) %>%
   select(administration_id, dataset_id, subject_id, age,
          lab_age, lab_age_units, monitor_size_x, monitor_size_y,
-         sample_rate, tracker, coding_method)
+         sample_rate, tracker, coding_method, administration_aux_data)
 
 
 ### 4.5 Prepare Data
@@ -160,7 +160,7 @@ administrations <- questionnaire_data %>%
 # These exclusions mirror the reporting in the analysis script of the paper
 exclusion_data <- tibble(
   subject_id = c(3, 24, 40, 4, 27, 53, 21, 42, 51, 5, 6, 9, 10, 28, 1, 2, 33),
-  excluded_reason = c(
+  exclusion_reason = c(
     rep("Not accepting the sticker on their forehead", 3),
     rep("Technical failure/issues with the eye-tracking equipment", 3),
     "Not fulfilling our monolingual input criterion after screening",
@@ -174,11 +174,12 @@ exclusion_data <- tibble(
 )
 
 d <- fixations %>%
+  filter(!is.na(audio2_onset)) %>% # point of disambiguation missing
   arrange(Participant, Timestamp) %>%
   group_by(Participant, trial) %>%
   mutate(
     new_timestamp = Timestamp - min(Timestamp),
-    audio2_onset = audio2_onset - min(Timestamp)
+    audio2_onset = audio2_onset - min(Timestamp) # relative to trial onset
   ) %>%
   ungroup() %>%
   mutate(aoi_timepoint_id = 0:(n() - 1),
@@ -187,7 +188,7 @@ d <- fixations %>%
          distractor_image = ifelse(target_side == "right", left_image, right_image),
          point_of_disambiguation = audio2_onset,
          subject_id = Participant,
-         t = Timestamp,
+         t_norm = new_timestamp - point_of_disambiguation, # normalize
          x = x,
          y = y,
          lab_trial_id = NA,
@@ -198,9 +199,9 @@ d <- fixations %>%
            OnDistractor ~ "distractor",
            TRUE ~ "other"
          )) %>%
-  select(subject_id, lab_trial_id, aoi_timepoint_id, xy_timepoint_id, target, target_image, target_side, distractor_image, condition, point_of_disambiguation, x , y, t, aoi) %>%
-  group_by(target, target_image, distractor_image, condition, point_of_disambiguation) %>%
-  mutate(trial_type_id = cur_group_id()) %>%
+  select(subject_id, lab_trial_id, aoi_timepoint_id, xy_timepoint_id, target, target_image, target_side, distractor_image, condition, point_of_disambiguation, x , y, t_norm, aoi) %>%
+  group_by(target, target_image, target_side, distractor_image, condition, point_of_disambiguation) %>%
+  mutate(trial_type_id = cur_group_id() - 1) %>%
   ungroup() %>%
   group_by(subject_id) %>%
   mutate(trial_change = ifelse(trial_type_id != lag(trial_type_id), 1, 0),
@@ -208,7 +209,7 @@ d <- fixations %>%
   ungroup() %>%
   select(-trial_change) %>%
   group_by(subject_id, trial_order) %>%
-  mutate(trial_id = cur_group_id()) %>%
+  mutate(trial_id = cur_group_id() - 1) %>%
   ungroup() %>%
   left_join(
     administrations %>%
@@ -246,7 +247,7 @@ trial_types <- d %>%
 ### 6. TRIALS TABLE
 
 trials <- d %>%
-  select(trial_id, trial_type_id, trial_order, excluded, excluded_reason) %>%
+  select(trial_id, trial_type_id, trial_order, excluded, exclusion_reason) %>%
   distinct() %>%
   mutate(
     trial_aux_data = NA
@@ -280,15 +281,33 @@ aoi_region_sets <- tibble(aoi_region_set_id = 0,
 
 ### 8. XY TABLE
 xy_timepoints <- d %>%
-  select(x, y, t, point_of_disambiguation, administration_id, trial_id) %>%
+  select(x, y, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
   peekds::resample_times(table_type = "xy_timepoints")
 
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- d %>%
-  select(aoi, t, point_of_disambiguation, administration_id, trial_id) %>%
+  select(aoi, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
   peekds::resample_times(table_type = "aoi_timepoints")
 
+
+lookingscores <- aoi_timepoints %>%
+  mutate(lookingscore = case_when(
+    aoi == "distractor" ~ -1,
+    aoi == "target" ~ 1,
+    TRUE ~ 0
+  )) %>%
+  group_by(t_norm) %>%
+  summarise(ls = mean(lookingscore)) %>%
+  select(t_norm, ls)
+
+ggplot(lookingscores, aes(x = t_norm, y = ls)) +
+  geom_line() +
+  labs(x = "t_norm", y = "ls")
+
 ################## WRITING AND VALIDATION ##################
+
+dir.create(here(output_path), showWarnings=FALSE)
+
 write_csv(dataset, file = here(output_path, "datasets.csv"))
 write_csv(subjects, file = here(output_path, "subjects.csv"))
 write_csv(stimuli, file = here(output_path,  "stimuli.csv"))
