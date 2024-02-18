@@ -142,21 +142,15 @@ subject_info <- fixations_binned %>%
          ),
          subject_aux_data = NA)
 
+# Note: Sex is not NA for any subjects. It can be NA in the demographics file - for subjects which were excluded before looking at their eyetracking data. Data from those subjects are not included in this dataset, however, so sex will never be NA in the subject_info table.
+
 subjects <- subject_info %>%
   select(subject_id, sex, native_language, lab_subject_id, subject_aux_data)
 
 
 ### 3. STIMULI TABLE 
 
-# We'll define *stimulus* here by the combination of:
-#
-# - label,
-# - carrier phrase (redundant info in this experiment),
-# - image (video) associated with the label.
-#
-# For example, label "joomp" spliced into "Look! She can ..." and the asscoicate "jump" video constitue one stimulus which we will label as "jump_can-joomp" in the "lab_stimulus_label" column).
-#
-# Later, when we populate the trial_types table, we will need to associate each trial type with a target stimulus and a distractor stimulus from the stimuli table we are creating here. Distractors, however, don't have a label or carrier phrase associated with them and thus can't be automatically assigned a stimulus. We could select an arbitrary stimulus with the same image by, for example, choosing the familiar one of the two. To be more explicit, we'll add distractors as separate stimuli and mark them as such in the "lab_stimulus_label" column and keep most other columns empty.
+# Target and distractor stimuli are treated separately because targets have a (potentially mispronounced) verb and a carrier phrase associated with them, while distractors do not. See readme.txt for more details.
 
 target_stimuli <- fixations_binned %>%
   select(stimulus_image_path = target_image_path,
