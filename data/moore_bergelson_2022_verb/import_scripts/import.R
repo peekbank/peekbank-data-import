@@ -15,9 +15,10 @@ library(rjson)
 library(tools)  # for file_path_sans_ext
 library(glue)
 
-data_path <- "data/moore_bergelson_2022/raw_data"
-output_path <- "data/moore_bergelson_2022/processed_data"
-DATASET_NAME <- "moore_bergelson_2022"
+DATASET_NAME <- "moore_bergelson_2022_verb"
+data_path <- glue("data/{DATASET_NAME}/raw_data")
+output_path <- glue("data/{DATASET_NAME}/processed_data")
+
 
 DATASET_ID <- 0  # single dataset, zero-indexed
 NATIVE_LANGUAGE <- "eng"  # same for every kid
