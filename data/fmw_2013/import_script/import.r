@@ -431,7 +431,7 @@ d_administration_ids <- d_tidy %>%
 
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
-  distinct(sound_stimulus,target_id, distractor_id,condition,condition, target_side) %>% 
+  distinct(sound_stimulus, target_id, distractor_id, condition, target_side) %>% 
   mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
 # joins
@@ -455,8 +455,8 @@ d_tidy_final <- d_tidy_semifinal %>%
          #lab_trial_id = paste(target_label,target_image,distractor_image, sep = "-"),
          lab_trial_id = NA,
          aoi_region_set_id = NA, # not applicable
-         monitor_size_x = NA, #unknown TO DO
-         monitor_size_y = NA, #unknown TO DO
+         monitor_size_x = NA, # TODO: unknown - look in paper?
+         monitor_size_y = NA, # TODO: unknown 
          lab_age_units = "months",
          age = as.numeric(months), # months 
          point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz (and adjustment to noun onset above)
@@ -470,111 +470,38 @@ d_tidy_final <- d_tidy_semifinal %>%
 #add cdi data
 #999 seem to be NA values, convert now to avoid later issues
 cdi_data[cdi_data  == 999] <- NA
-cdi_processed <- cdi_data %>% 
-  #select(lab_subject_id,WGage,WS24Age,WG18Comp,WG18Prod,WS18Vocab,WS24Vocab) %>%
-   rename(
-     age_2=WS24Age
-   ) %>%
-  mutate(age_1 = case_when(
-    !is.na(WGage)  ~ WGage,
-    !is.na(WS18Vocab) ~ 18
-  )) %>%
-  pivot_longer(
-    cols=c(age_1,age_2),
-    names_to = "administration",
-    values_to = "administration_age"
-  ) %>%
-  rename(
-    eng_wg_comp_rawscore = WG18Comp,
-    eng_wg_prod_rawscore = WG18Prod,
-    eng_wg_comp_percentile = WG18CompP,
-    eng_wg_prod_percentile = WG18ProdP,
-    
-  ) %>%
-  mutate(
-    eng_ws_prod_rawscore = case_when(
-      !is.na(WS18Vocab) & administration == "age_1" ~ WS18Vocab,
-      !is.na(WS24Vocab) & administration == "age_2" ~ WS24Vocab,
-      TRUE ~ NA
-    ),
-    eng_ws_prod_percentile = case_when(
-      !is.na(WS18VocabP) & administration == "age_1" ~ WS18VocabP,
-      !is.na(WS24VocabP) & administration == "age_2" ~ WS24VocabP,
-      TRUE ~ NA
-    ),
-    eng_ws_prod_age = ifelse(!is.na(eng_ws_prod_rawscore),administration_age,NA)
-    )%>%
-  select(-WGage,-WS18Vocab,-WS24Vocab) %>%
-  mutate(
-    eng_wg_comp_rawscore = case_when(
-      !is.na(eng_wg_comp_rawscore) & administration == "age_1" ~ eng_wg_comp_rawscore,
-      TRUE ~ NA
-    ),
-    eng_wg_comp_percentile = case_when(
-      !is.na(eng_wg_comp_percentile) & administration == "age_1" ~ eng_wg_comp_percentile,
-      TRUE ~ NA
-    ),
-    eng_wg_prod_rawscore = case_when(
-      !is.na(eng_wg_prod_rawscore) & administration == "age_1" ~ eng_wg_prod_rawscore,
-      TRUE ~ NA
-    ),
-    eng_wg_prod_percentile = case_when(
-      !is.na(eng_wg_prod_percentile) & administration == "age_1" ~ eng_wg_prod_percentile,
-      TRUE ~ NA
-    ),
-    eng_wg_comp_age = case_when(
-      !is.na(eng_wg_comp_rawscore) & administration == "age_1" ~ administration_age
-    ),
-    eng_wg_prod_age = case_when(
-      !is.na(eng_wg_prod_rawscore) & administration == "age_1" ~ administration_age
-    )) %>%
-  mutate(
-    age_type = case_when(
-      administration=="age_1" ~ "18 months",
-      administration=="age_2" ~ "24 months"
-    )
-  ) %>%
-  select(-administration,-WS24VocabP,-WS18VocabP)
 
-cdi_long <- cdi_processed %>%
-  rename(
-    wgcomp_age = eng_wg_comp_age,
-    wgcomp_rawscore = eng_wg_comp_rawscore,
-    wgcomp_percentile = eng_wg_comp_percentile,
-    wgprod_age = eng_wg_prod_age,
-    wgprod_rawscore = eng_wg_prod_rawscore,
-    wgprod_percentile = eng_wg_prod_percentile,
-    wsprod_age = eng_ws_prod_age,
-    wsprod_rawscore = eng_ws_prod_rawscore,
-    wsprod_percentile = eng_ws_prod_percentile,
-    
-  ) %>%
-  group_by(Study,`subnum  ID`,age_type,administration_age,lab_subject_id) %>%
-  pivot_longer(
-    cols = -c(Study,`subnum  ID`,age_type,administration_age,lab_subject_id),
-    names_to = c("instrument_type", ".value"), 
-    names_sep="_"
-  ) %>%
-  mutate(
-    instrument_type = as.character(instrument_type),
-    age = as.character(age),
-    rawscore = as.character(rawscore),
-    percentile = as.character(percentile)
-  ) %>%
-  ungroup() %>%
-  select(-administration_age)
-#write_csv(cdi_long,"cdi_long_fmw_2013.csv")
+# cdi_responses:
+# instrument_type, rawscore, percentile, age
 
-cdi_to_json <- cdi_long |> 
+cdi_processed <- cdi_data |> 
+  select(-Study, -`subnum  ID`) |> 
+  rename(wgcomp18age = WGage,
+         wgcomp18rawscore = WG18Comp,
+         wgcomp18percentile = WG18CompP,
+         wgprod18rawscore = WG18Prod,
+         wgprod18percentile = WG18ProdP,
+         wsprod18rawscore = WS18Vocab,
+         wsprod18percentile = WS18VocabP,
+         wsprod24age = WS24Age,
+         wsprod24rawscore = WS24Vocab,
+         wsprod24percentile = WS24VocabP) |> 
+  mutate(wgprod18age = wgcomp18age) |> 
+  pivot_longer(cols = -lab_subject_id) |> 
+  separate(col = name, 
+           into = c("instrument_type", "age_group", "name"),
+           sep = c(6, 8)) |> 
+  pivot_wider(names_from = name, 
+              values_from = value) |> 
   filter(!is.na(rawscore)) |> 
-  select(-c(Study,`subnum  ID`)) |> 
-  #group_by(lab_subject_id, age_type) |> 
-  nest(cdi_responses = -c(lab_subject_id,age_type)) |> 
-  ungroup() |> 
-  mutate(test_var = seq_along(lab_subject_id)) |> 
-  nest(administration_aux_data = -c(lab_subject_id,age_type)) |> 
-  group_by(lab_subject_id,age_type) |> 
-  mutate(administration_aux_data = sapply(administration_aux_data, jsonlite::toJSON)) 
+  mutate(age = coalesce(age, as.numeric(age_group))) |> 
+  select(-age_group) |> 
+  mutate(language = "English (American)")
+
+cdi_to_json <- cdi_processed |> 
+  nest(cdi_responses = -lab_subject_id) |> 
+  nest(subject_aux_data = -lab_subject_id) |> 
+  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
 
 ##### AOI TABLE ####
 aoi_table <- d_tidy_final %>%
@@ -587,14 +514,13 @@ aoi_table <- d_tidy_final %>%
 
 ##### SUBJECTS TABLE ####
 subjects <- d_tidy_final %>% 
-  distinct(subject_id, lab_subject_id,sex) %>%
+  distinct(subject_id, lab_subject_id, sex) %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-    native_language="eng",
-    subject_aux_data=NA) %>%
+    native_language = "eng") |> 
+  left_join(cdi_to_json, by = "lab_subject_id") |> 
   distinct(lab_subject_id, subject_id, .keep_all = TRUE) %>% # temporary fix to remove duplicates, keeps first sex reported for children labeled with two different sexes at 18 and 24 mo
   write_csv(fs::path(write_path, subject_table_filename))
-
 
 ##### ADMINISTRATIONS TABLE ####
 administrations <- d_tidy_final %>%
@@ -610,8 +536,8 @@ administrations <- d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  left_join(cdi_to_json) %>%
-  mutate(coding_method = "manual gaze coding") %>%
+  mutate(coding_method = "manual gaze coding",
+         administration_aux_data = NA) %>%
   select(-age_type,-lab_subject_id) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 

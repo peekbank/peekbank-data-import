@@ -11,9 +11,11 @@ library(here)
 library(peekds) 
 library(osfr)
 
+# MacArthur Short Form Vocabulary Checklist: Level II (Form A)  - WSshort, right?
+
 dataset_name <- "ferguson_eyetrackingr"
 data_path <- here("data",dataset_name,"raw_data")
-output_path <- here("data",dataset_name,"processed_data")
+write_path <- here("data",dataset_name,"processed_data")
 # http://www.eyetracking-r.com/docs/word_recognition
 # Description: Data from a simple 2-alternative forced choice (2AFC) word recognition task 
 # administered to 19- and 24-month-olds. On each trial, infants were shown a picture of an 
@@ -22,16 +24,24 @@ output_path <- here("data",dataset_name,"processed_data")
 # "The horse is nearby!"). Finally, the objects re-appeared on the screen and they were 
 # prompted to look at the target (e.g., "Look at the horse!").
 
+# "We focused our analysis on the window beginning at the onset of the target word at test and lasting through the end of the trial (5.5s total)
+
 # distractor information: see ferguston_eyetrackingr.png from email from Brock Ferguson
 # (Trial contains 6 unique values specifying target, e.g. "FamiliarBottle")
 trial_stim <- tibble(original_stimulus_label = c("FamiliarBottle", "FamiliarDog", "FamiliarHorse", 
                                                  "FamiliarSpoon", "FamiliarBird", "FamiliarCow"),
                      english_stimulus_label = c("bottle", "dog", "horse", "spoon", "bird", "cow"),
                      target_image = c("bottle", "dog", "horse", "spoon", "bird", "cow"),
-                     distractor_image = c("rabbit", "mouse", "car", "shoe", "chair", "television"))
+                     distractor_image = c("rabbit", "mouse", "car", "shoe", "chair", "television"),
+                     target_side = c("left", "right", "right", "left", "right", "left"))
 
 # AOI: 811 x 713 pixel around each object image -- but what is the resolution of the screen?
-# full AOI XY-coordinates would also be nice - may now have them in ancat-aoi.txt
+# full AOI XY-coordinates are taken from ancat-aoi.txt
+
+# could extract target_side from this (did it manually above)
+#aoi_info <- readr::read_delim(paste0(data_path,"/ancat-aoi.txt")) %>%
+#  select(Trial, SceneName, Position, SceneType) %>%
+#  rename(original_stimulus_label = Trial) 
 
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
@@ -39,13 +49,15 @@ aoi_table_filename <- "aoi_timepoints.csv"
 subject_table_filename <- "subjects.csv"
 administrations_table_filename <- "administrations.csv"
 stimuli_table_filename <- "stimuli.csv"
-trials_table_filename <- "trials.csv"
+trials_table_filename <- "trials.csv" 
 trial_types_table_filename <- "trial_types.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
+cdi_language = "English (American)"
+
 # only download data if it's not on your machine
-if(length(list.files(read_path)) == 0 && length(list.files(paste0(read_path, "/orders"))) == 0) {
+if(length(list.files(data_path)) == 0 && length(list.files(paste0(data_path, "/orders"))) == 0) {
   get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")}
 
 ################## DATASET SPECIFIC READ IN CODE ##################
@@ -71,14 +83,19 @@ proc_data <- raw_data %>%
 
 # recode  "", Animate, Inanimate, TrackLoss as other, target, distractor, and missing
 d_tidy <- proc_data %>% 
-  select(-Sex, -MCDI_Nouns, -MCDI_Total, -MCDI_Verbs) %>%
+  select(-Sex, -MCDI_Nouns, -MCDI_Verbs) %>%
   rename(aoi_old = AOI,
-         t_norm = TimeFromSubphaseOnset) %>%
-  mutate(aoi = case_when(
-    aoi_old == "Inanimate" ~ "distractor",
-    aoi_old == "Animate" ~ "target",
-    aoi_old == "" ~ "other", # ?all of these are also TrackLoss=TRUE, so maybe just missing?
-    aoi_old == "TrackLoss" ~ "missing"
+         t_norm = TimeFromSubphaseOnset,
+         rawscore = MCDI_Total) %>%
+  mutate(
+    condition = "familiar",
+    lab_trial_id = NA, # GK: maybe same as original_stimulus_label
+    aoi_region_set_id = NA,
+    aoi = case_when(
+      aoi_old == "Inanimate" ~ "distractor",
+      aoi_old == "Animate" ~ "target",
+      aoi_old == "" ~ "other", # ?all of these are also TrackLoss=TRUE, so maybe just missing?
+      aoi_old == "TrackLoss" ~ "missing"
   )) %>%
   mutate(t_norm = as.numeric(t_norm)) # ensure time is an integer/ numeric
 
@@ -89,14 +106,24 @@ dataset <- tibble(dataset_id = 0, # leave as 0 for all
                   dataset_name = dataset_name,
                   name = dataset_name, 
                   shortcite = "Ferguson, Graf, & Waxman (2014)", 
-                  cite = "Ferguson, B., Graf, E., & Waxman, S. R. (2014). Infants use known verbs to learn novel nouns: Evidence from 15- and 19-month-olds. Cognition, 131(1), 139-146.")
-dataset %>% write_csv(fs::path(output_path, dataset_table_filename))
+                  cite = "Ferguson, B., Graf, E., & Waxman, S. R. (2014). Infants use known verbs to learn novel nouns: Evidence from 15- and 19-month-olds. Cognition, 131(1), 139-146.",
+                  dataset_aux_data = NA) 
+dataset %>% write_csv(fs::path(write_path, dataset_table_filename))
+
+cdi_to_json <- d_tidy %>% 
+  distinct(lab_subject_id, age, rawscore) %>%
+  mutate(language="English (American)", 
+         measure="prod",
+         instrument_type="wsshort") %>% # MacArthur Short Form Vocabulary Checklist: Level II (Form A) 
+  nest(subject_aux_data = -lab_subject_id) %>% 
+  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
 
 ### 2. SUBJECTS TABLE 
 subjects <- d_tidy %>% 
   distinct(lab_subject_id, sex, native_language) %>%
-  mutate(subject_id = seq(0, length(.$lab_subject_id) - 1))
-subjects %>% write_csv(fs::path(output_path, subject_table_filename))
+  mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
+  left_join(cdi_to_json, by = "lab_subject_id")
+subjects %>% write_csv(fs::path(write_path, subject_table_filename))
 
 ### 3. STIMULI TABLE 
 stimulus_table <- d_tidy %>% 
@@ -111,9 +138,10 @@ stimulus_table <- d_tidy %>%
          image_description_source = "experiment documentation",
          image_description = original_stimulus_label, # include animate / inanimate distinction?
          lab_stimulus_id = original_stimulus_label,
-         dataset_id = 0)
+         dataset_id = 0,
+         stimulus_aux_data=NA)
 stimulus_table %>%
-  write_csv(fs::path(output_path, stimuli_table_filename))
+  write_csv(fs::path(write_path, stimuli_table_filename))
 
 
 d_tidy <- d_tidy %>%
@@ -140,14 +168,16 @@ administrations <- d_tidy %>%
          monitor_size_y = 1080, 
          sample_rate = 60, # Hz
          tracker = "Tobii T60XL", # from paper
-         coding_method = "eyetracking") 
+         coding_method = "eyetracking",
+         administration_aux_data = NA) 
 # from manual: "Tobii T60XL Eye Tracker is integrated into a high resolution 24-inch 
 # 1920 x 1080 pixels widescreen monitor"
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  distinct(TrialNum, #full_phrase, 
-           target_id, distractor_id, target_side) %>%
+  mutate(full_phrase = paste("Where is the",english_stimulus_label,"?")) %>% 
+  distinct(TrialNum, full_phrase, 
+           target_id, distractor_id, target_side) %>% 
   mutate(trial_id = seq(0, length(.$TrialNum) - 1)) 
 
 # create zero-indexed ids for trial_types
@@ -158,21 +188,49 @@ d_trial_type_ids <- d_tidy %>%
            target_id, distractor_id, target_side) %>%
   mutate(trial_type_id = seq(0, length(target_id) - 1)) 
 
+#get zero-indexed administration ids
+d_administration_ids <- d_tidy %>%
+  mutate(order = 1) %>% # all subjects but 1 got the same order..
+  distinct(subject_id, age, order) %>% # 'age' now 'months' -- need 'order'?
+  arrange(subject_id, age, order) %>%
+  mutate(administration_id = seq(0, length(.$order) - 1)) 
+
 # joins
 d_tidy_final <- d_tidy %>%
   left_join(d_administration_ids) %>%
   left_join(d_trial_type_ids) %>%
-  left_join(d_trial_ids)
+  left_join(d_trial_ids) %>%
+  mutate(full_phrase_language = "eng",
+         trial_order = TrialNum,
+         point_of_disambiguation = 0) # TODO: is this true? or only for Subphase=="Test"?
 
 ### 5. TRIAL TYPES TABLE 
-trial_types <- ... %>%
-    select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
-           target_side, lab_trial_id, condition, aoi_region_set_id, dataset_id, 
-           distractor_id, target_id)
+trial_types <- d_tidy_final %>% 
+  distinct(trial_type_id,
+           full_phrase,
+           point_of_disambiguation,
+           target_side,
+           lab_trial_id,
+           aoi_region_set_id,
+           dataset_id,
+           target_id,
+           distractor_id,
+           condition) %>%
+  mutate(full_phrase_language = "eng",
+         trial_type_aux_data = NA,
+         vanilla_trial = TRUE)
 
 ### 6. TRIALS TABLE 
-trials <- ... %>%
-  select(trial_id, trial_type_id, trial_order)
+trials <- d_tidy_final %>% 
+  mutate(trial_aux_data = NA,
+         excluded = FALSE,
+         exclusion_reason = NA) %>%
+  distinct(trial_id,
+           trial_order,
+           trial_type_id,
+           trial_aux_data,
+           excluded,
+           exclusion_reason) 
 
 ### 7. AOI REGION SETS TABLE (from ancat-aoi.txt provided by Brock)
 aoi_region_sets <- tibble(aoi_region_set_id = 0, 
@@ -186,39 +244,36 @@ aoi_region_sets <- tibble(aoi_region_set_id = 0,
                           r_y_min = 247)
 
 ### 8. XY TABLE - raw data does not include x/y locations, just AOI
-#xy_timepoints <- ... %>%
-#  select(x, y, t, point_of_disambiguation, administration_id, trial_id) %>%
-#  peekds::resample_times(table_type = "xy_timepoints") 
-  
-### 9. AOI TIMEPOINTS TABLE
-aoi_timepoints <- ... %>%
-  select(aoi, t, point_of_disambiguation, administration_id, trial_id) %>%
-  peekds::resample_times(table_type = "aoi_timepoints") 
+xy_timepoints <- d_tidy_final %>%
+  mutate(x = NA, y = NA) %>%
+  select(x, y, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
+  peekds::resample_times(table_type = "xy_timepoints") 
 
-aoi_timepoints <- d_tidy %>%
+
+### 9. AOI TIMEPOINTS TABLE
+aoi_timepoints <- d_tidy_final %>%
   select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
-  #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
   write_csv(fs::path(write_path, aoi_table_filename))
 
 ################## WRITING AND VALIDATION ##################
 
-write_csv(administrations, file = here(output_path, "administrations.csv"))
-write_csv(trial_types, file = here(output_path, "trial_types.csv"))
-write_csv(trials, file = here(output_path, "trials.csv"))
-write_csv(aoi_region_sets, file = here(output_path, "aoi_region_sets.csv"))
-#write_csv(xy_timepoints, file = here(output_path, "xy_timepoints.csv"))
-write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
+write_csv(administrations, file = here(write_path, administrations_table_filename))
+write_csv(trial_types, file = here(write_path, trial_types_table_filename))
+write_csv(trials, file = here(write_path, trials_table_filename))
+write_csv(aoi_region_sets, file = here(write_path, aoi_regions_table_filename))
+write_csv(xy_timepoints, file = here(write_path, xy_table_filename)) 
+write_csv(aoi_timepoints, file = here(write_path, aoi_table_filename))
 
 # run validator
-peekds::validate_for_db_import(dir_csv = output_path)
+peekds::validate_for_db_import(dir_csv = write_path)
 
 # OSF integration
 # system specific read-in of validation token
 token <- read_lines(here("../token.txt"))[1]
 osf_token <- osf_auth(token = token) 
-put_processed_data(osf_token, dataset_name, paste0(output_path,"/"),
+put_processed_data(osf_token, dataset_name, paste0(write_path,"/"),
                    osf_address = "pr6wu")
 
 ################## ENTERTAINING PLOT ##################

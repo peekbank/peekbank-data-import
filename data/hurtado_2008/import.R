@@ -260,81 +260,35 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 #process CDI stuff
 #note that percentiles are based on norms for Mexican Spanish (according to paper)
-cdi_processed <- cdi_data %>% 
-  mutate(
-    age_2=WS24Age,
-    age_1=WG18Age
-  ) %>%
-  pivot_longer(
-    cols=c(age_1,age_2),
-    names_to = "administration",
-    values_to = "administration_age"
-  ) %>%
-  #check whether ws and wg age at 18 month session differs substantially
-  mutate(administration_age_2 = ifelse(administration=="age_1",WS18Age,NA),
-         diff_admin_age = administration_age-administration_age_2) %>% #not perfect but ok 
-  mutate(
-    spa_ws_prod_rawscore = case_when(
-      !is.na(WS18Vocab) & administration == "age_1" ~ WS18Vocab,
-      !is.na(WS24Vocab) & administration == "age_2" ~ WS24Vocab,
-      TRUE ~ NA
-    ),
-    spa_ws_prod_percentile = case_when(
-      !is.na(WS18VocP) & administration == "age_1" ~ WS18VocP,
-      !is.na(WS24VocP) & administration == "age_2" ~ WS24VocP,
-      TRUE ~ NA
-    ),
-    spa_ws_prod_age = case_when(
-      !is.na(spa_ws_prod_rawscore) & administration == "age_1" ~ administration_age_2,
-      !is.na(spa_ws_prod_rawscore) & administration == "age_2" ~ administration_age,
-      TRUE ~ NA
-    )) %>%
-  mutate(
-    spa_wg_comp_rawscore = case_when(
-      !is.na(WG18Comp) & administration == "age_1" ~ WG18Comp,
-      TRUE ~ NA
-    ),
-    spa_wg_comp_percentile = case_when(
-      !is.na(WG18CompP) & administration == "age_1" ~ WG18CompP,
-      TRUE ~ NA
-    ),
-    spa_wg_comp_age = case_when(
-      !is.na(WG18Comp) & administration == "age_1" ~ administration_age,
-      TRUE ~ NA
-    ),
-    spa_wg_prod_rawscore = case_when(
-      !is.na(WG18Prod) & administration == "age_1" ~ WG18Prod,
-      TRUE ~ NA
-    ),
-    spa_wg_prod_percentile = case_when(
-      !is.na(WG18ProdP) & administration == "age_1" ~ WG18ProdP,
-      TRUE ~ NA
-    ),
-    spa_wg_prod_age = case_when(
-      !is.na(WG18Prod) & administration == "age_1" ~ administration_age,
-      TRUE ~ NA
-    )
-    ) %>%
-  mutate(
-    age_type = case_when(
-      administration=="age_1" ~ "18 months",
-      administration=="age_2" ~ "24 months"
-    )
-  ) %>%
-  select(lab_subject_id,age_type,spa_wg_comp_rawscore,spa_wg_comp_percentile,spa_wg_comp_age,spa_wg_prod_rawscore,spa_wg_prod_percentile,spa_wg_prod_age,spa_ws_prod_rawscore,spa_ws_prod_percentile,spa_ws_prod_age)
+cdi_processed <- cdi_data |> 
+  select(-ID18) |> 
+  rename(wgcomp18age = WG18Age,
+         wgcomp18rawscore = WG18Comp,
+         wgcomp18percentile = WG18CompP,
+         wgprod18rawscore = WG18Prod,
+         wgprod18percentile = WG18ProdP,
+         wsprod18age = WS18Age,
+         wsprod18rawscore = WS18Vocab,
+         wsprod18percentile = WS18VocP,
+         wsprod24age = WS24Age,
+         wsprod24rawscore = WS24Vocab,
+         wsprod24percentile = WS24VocP) |> 
+  mutate(wgprod18age = wgcomp18age) |> 
+  pivot_longer(cols = -lab_subject_id) |> 
+  separate(col = name, 
+           into = c("instrument_type", "age_group", "name"),
+           sep = c(6, 8)) |> 
+  pivot_wider(names_from = name, 
+              values_from = value) |> 
+  filter(!is.na(rawscore)) |> 
+  mutate(age = coalesce(age, as.numeric(age_group))) |> 
+  select(-age_group) |> 
+  mutate(language = "Spanish (Mexican)")
 
-admin_aux <- d_tidy_final %>%
-  distinct(administration_id,
-           subject_id,
-           lab_subject_id,
-           age,
-           age_type,
-           lab_age,
-           lab_age_units) %>%
-  left_join(cdi_processed) %>%
-  select(administration_id,spa_wg_comp_rawscore,spa_wg_comp_percentile,spa_wg_comp_age,spa_wg_prod_rawscore,spa_wg_prod_percentile,spa_wg_prod_age,spa_ws_prod_rawscore,spa_ws_prod_percentile,spa_ws_prod_age) %>%
-  rowwise(administration_id) %>% 
-  summarize(administration_aux_data= toJSON(across()))
+cdi_to_json <- cdi_processed |> 
+  nest(cdi_responses = -lab_subject_id) |> 
+  nest(subject_aux_data = -lab_subject_id) |> 
+  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
 
 ##### AOI TABLE ####
 d_tidy_final %>%
@@ -352,6 +306,7 @@ d_tidy_final %>%
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language="spa",
     subject_aux_data=NA) %>%
+  left_join(cdi_to_json, by = "lab_subject_id") |> 
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -366,8 +321,8 @@ administrations <- d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "manual gaze coding") %>%
-  left_join(admin_aux) %>%
+  mutate(coding_method = "manual gaze coding",
+         administration_aux_data = NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####

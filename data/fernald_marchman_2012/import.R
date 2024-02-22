@@ -311,27 +311,27 @@ cdi_data_cleaned <- cdi_data |>
   pivot_wider(names_from = "name",
               values_from = "value") |> 
   filter(!is.na(age)) |> 
-  select(lab_subject_id, instrument_type, rawscore, percentile, age)
+  select(lab_subject_id, instrument_type, rawscore, percentile, age) |> 
+  mutate(language = "English (American)")
 
-lwl_ages <- d_tidy_final |> 
-  distinct(lab_subject_id, age) |> 
-  nest(ages = age)
+# lwl_ages <- d_tidy_final |> 
+#   distinct(lab_subject_id, age) |> 
+#   nest(ages = age)
+# 
+# cdi_data_matched <- cdi_data_cleaned |> 
+#   left_join(lwl_ages, by = "lab_subject_id") |> 
+#   mutate(best_lwl_age = map2(age, ages, \(cdi_age, lwl_ages) {
+#     offsets <- abs(lwl_ages - cdi_age)
+#     result <- lwl_ages[which(offsets == min(offsets)),][1]
+#     if (is.null(result)) NA else result[1,]
+#   }) |> unlist()) |> 
+#   select(-ages)
 
-cdi_data_matched <- cdi_data_cleaned |> 
-  left_join(lwl_ages, by = "lab_subject_id") |> 
-  mutate(best_lwl_age = map2(age, ages, \(cdi_age, lwl_ages) {
-    offsets <- abs(lwl_ages - cdi_age)
-    result <- lwl_ages[which(offsets == min(offsets)),][1]
-    if (is.null(result)) NA else result[1,]
-  }) |> unlist()) |> 
-  select(-ages)
-
-cdi_to_json <- cdi_data_matched |> 
-  nest(cdi_responses = -c(lab_subject_id, best_lwl_age)) |> 
-  nest(administration_aux_data = -c(lab_subject_id, best_lwl_age)) |> 
-  group_by(lab_subject_id, best_lwl_age) |> 
-  mutate(administration_aux_data = sapply(administration_aux_data, jsonlite::toJSON)) |> 
-  rename(age = best_lwl_age)
+cdi_to_json <- cdi_data_cleaned |> 
+  nest(cdi_responses = -c(lab_subject_id)) |> 
+  nest(subject_aux_data = -c(lab_subject_id)) |> 
+  group_by(lab_subject_id) |> 
+  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
 
 ##### AOI TABLE ####
 #TODO comment this, it just takes a while to run!
@@ -348,12 +348,12 @@ subs <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   # subjects 10099 and 10107 are listed as F for 18 mo B visit and M all other times
   # I assume that M is the correct designation
-  mutate(sex=ifelse(lab_subject_id %in% c("10099","10107"), "M", sex)) |> 
+  mutate(sex = ifelse(lab_subject_id %in% c("10099","10107"), "M", sex)) |> 
   distinct() |> 
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-    native_language="eng",
-    subject_aux_data=NA) %>%
+    native_language = "eng") |> 
+  left_join(cdi_to_json, by = "lab_subject_id") |> 
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -369,8 +369,9 @@ administrations <- d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "manual gaze coding") %>%
-  left_join(cdi_to_json, by = c("lab_subject_id", "age")) %>% 
+  mutate(coding_method = "manual gaze coding",
+         administration_aux_data = NA) %>%
+  # left_join(cdi_to_json, by = c("lab_subject_id", "age")) %>% 
   select(-lab_subject_id) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
