@@ -413,13 +413,27 @@ write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
 peekds::validate_for_db_import(dir_csv = here(output_path))
 
 # OSF integration
-# system specific read-in of validation token
 
-# Commenting out because I don't have write rights for the OSF repository
-# token <- read_lines(here("../token.txt"))[1]
-# osf_token <- osf_auth(token = token)
-# put_processed_data(osf_token, dataset_name, paste0(output_path,"/"),
-#                    osf_address = "pr6wu")
+# Upload processed data to OSF
+# osf_address <- "pr6wu"
+# processed_data_path <- paste0(output_path,"/")
+# put_processed_data(token = NULL, dataset_name = DATASET_NAME,
+#                    path = processed_data_path, osf_address = osf_address)
+
+# Upload raw data to OSF
+# Note: code copied from put_processed_data
+# raw_data_path <- paste0(data_path, "/")
+# path <- raw_data_path
+# osfr::osf_retrieve_node(osf_address) %>%
+#   osfr::osf_ls_files(n_max = Inf) %>%
+#   dplyr::filter(.data$name == dataset_name) %>%
+#   osfr::osf_ls_files(n_max = Inf) %>%
+#   dplyr::filter(.data$name == "raw_data") %>%
+#   osfr::osf_upload(path = stringr::str_c(path,
+#                                          list.files(path = path,
+#                                                     recursive = TRUE)),
+#                    recurse = TRUE, conflicts = "overwrite", verbose = TRUE,
+#                    progress = TRUE)
 
 ################## ENTERTAINING PLOT ##################
 # feel free to modify
