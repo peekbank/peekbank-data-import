@@ -409,7 +409,7 @@ write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
 
 
 # run validator
-peekds::validate_for_db_import(dir_csv = output_path)
+peekds::validate_for_db_import(dir_csv = here(output_path))
 
 # OSF integration
 # system specific read-in of validation token
