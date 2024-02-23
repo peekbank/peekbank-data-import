@@ -48,9 +48,8 @@ cdi_data <- questionnaire_data %>%
     values_to = "rawscore",
   ) %>%
   mutate(
-    instrument_type = NA, # not reported
-    percentile = NA, # not reported
-    language = NA # TODO workbank format? 
+    instrument_type = "wg", # determined by the amount of different values in CDIwords.csv
+    language = "Dutch"
   )
 
 library(jsonlite)
@@ -67,14 +66,6 @@ subjects <- questionnaire_data %>%
       list(cdi_responses = cdi_data[cdi_data$ID == lab_subject_id,] %>%
              select(-ID)), na="null")
   )
-
-
-cdi_words <- read_csv(here(data_path, "CDIwords.csv"))
-# according to the analysis script the authors provided, NA means "unknown word"
-# 1 and 2 are not specified, plausible would be
-# 1 equals "understands"
-# 2 equals "understands and says"
-# do we need this for familiarity or is familiarity defined by the experimenter?
 
 
 fixations <- read_csv(here(data_path, "rawdata_Fixation.csv")) %>%
@@ -111,7 +102,7 @@ stimuli <- fixations %>%
   select(-side) %>%
   mutate(original_stimulus_label = target,
          english_stimulus_label = translation_vector[target],
-         stimulus_novelty = "familiar", # TODO CDIwords.csv
+         stimulus_novelty = "familiar",
          lab_stimulus_id = NA,
          stimulus_image_path = image,
          image_description = image,
@@ -147,9 +138,6 @@ administrations <- questionnaire_data %>%
 
 
 ### 4.5 Prepare Data
-
-# TODO: ask martin - dynamic/varying points of disambig
-# TODO rezero and normalize times
 
 # regarding varying points of disambiguation, these are the relevant parts of
 # the paper (however, they do not explain the data pattern fully, as the first
@@ -213,6 +201,11 @@ d <- fixations %>%
            OnDistractor ~ "distractor",
            TRUE ~ "other"
          )) %>%
+  # this filter is based in a hist() plot of the resampled t_norm, nearly all data points fall
+  # into the -4000 to 3000 range, with very few outliers having earlier t_norms.
+  # the authors do not provide explanations for this in their original analysis,
+  # so we prune this data, as it is likely an artefact of some experiment mishap
+  filter(t_norm > -4000) %>% 
   select(subject_id, lab_trial_id, aoi_timepoint_id, xy_timepoint_id, target, target_image, target_side, distractor_image, condition, point_of_disambiguation, x , y, t_norm, aoi) %>%
   group_by(target, target_image, target_side, distractor_image, condition, point_of_disambiguation) %>%
   mutate(trial_type_id = cur_group_id() - 1) %>%
@@ -247,7 +240,7 @@ trial_types <- d %>%
          full_phrase_language = "dut",
          aoi_region_set_id = 0,
          dataset_id = 0,
-         vanilla_trial = TRUE, # TODO: How to handle a non familiar word, as these differ between participants?
+         vanilla_trial = TRUE,
          trial_type_aux_data = NA) %>%
   left_join(stimuli, by = c("distractor_image" = "stimulus_image_path", "original_stimulus_label" = "original_stimulus_label")) %>%
   rename(distractor_id = stimulus_id) %>%
