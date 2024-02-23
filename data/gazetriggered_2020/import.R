@@ -69,7 +69,7 @@ subjects <- questionnaire_data %>%
 
 
 fixations <- read_csv(here(data_path, "rawdata_Fixation.csv")) %>%
-  filter(condition == 'original') #TODO ask martin: gazetriggered seems unfitting for our study - the first item looked at automatically becomes the distractor here
+  filter(condition == 'original') #gazetriggered condition seems unfitting for peekbank - the first item looked at automatically becomes the distractor here
 
 translation_vector <- c(
   "appel" = "Apple",
