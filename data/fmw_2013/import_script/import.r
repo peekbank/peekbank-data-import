@@ -489,8 +489,8 @@ cdi_processed <- cdi_data |>
   mutate(wgprod18age = wgcomp18age) |> 
   pivot_longer(cols = -lab_subject_id) |> 
   separate(col = name, 
-           into = c("instrument_type", "age_group", "name"),
-           sep = c(6, 8)) |> 
+           into = c("instrument_type", "measure", "age_group", "name"),
+           sep = c(2, 6, 8)) |> 
   pivot_wider(names_from = name, 
               values_from = value) |> 
   filter(!is.na(rawscore)) |> 

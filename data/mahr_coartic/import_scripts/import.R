@@ -75,12 +75,19 @@ subjects_table <- subjects %>%
   filter(is.na(Exclude)) %>%
   mutate(subject_id = seq(0, nrow(.)-1, 1),
          sex = "unspecified",
-         native_language = "eng") %>% select(lab_subject_id, lab_age, cdi, subject_id, sex, native_language) %>%
-  mutate(subject_aux_data = NA)
+         native_language = "eng") %>% 
+  select(lab_subject_id, lab_age, rawscore = cdi, subject_id, sex, native_language) %>%
+  mutate(instrument_type = "wsshort",
+         measure = "prod",
+         age = lab_age,
+         language = "English (American)") |> 
+  nest(cdi_responses = c(instrument_type, measure, rawscore, age, language)) |> 
+  nest(subject_aux_data = cdi_responses) |> 
+  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
 
 #build administrations table
 administrations_table <- subjects_table %>% 
-  select(subject_id, lab_age, cdi) %>%
+  select(subject_id, lab_age) %>%
   mutate(administration_id = seq(0, nrow(.)-1),
          dataset_id = dataset_id,
          age = lab_age,
@@ -249,10 +256,7 @@ administrations_table <- administrations_table %>%
          tracker = as.character(tracker),
          coding_method = as.character(coding_method)) %>% 
   select(administration_id, dataset_id, subject_id, age, lab_age, lab_age_units,
-         monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method, eng_wsshort_prod_rawscore = cdi) %>% 
-  rowwise(administration_id) %>% 
-  mutate(administration_aux_data= toJSON(across(eng_wsshort_prod_rawscore)),
-         administration_aux_data = ifelse(is.na(eng_wsshort_prod_rawscore), NA, administration_aux_data)) %>%
+         monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method) %>% 
   write_csv(paste0(write_path, "/", administrations_table_filename))
 
 #datasets table

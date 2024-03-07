@@ -212,6 +212,9 @@ d_tidy_final <- d_tidy %>%
          trial_order = trial
          )
 
+# CDI data ---------------------------------------------------------------------
+
+
 ##### AOI TABLE ####
 aoi_timepoints <- d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
