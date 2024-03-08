@@ -7,5 +7,5 @@ osf_token.txt
 raw_data
 processed_data
 data/pomper_saffran_2016/full_dataset
-
+*.zip
 
