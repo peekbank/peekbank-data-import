@@ -11,6 +11,8 @@ library(here)
 library(peekds)
 library(osfr)
 library(readxl)
+library(purrr)
+library(stringr)
 
 path <- here("data", "dombroski_backgroundnoise_2014")
 data_path <- here(path, "raw_data")
@@ -34,7 +36,7 @@ demo <- read_excel(here(data_path, "demographics", "34m WordLearninginNoise runn
     sex = `...3`,
     age = `...5`
   ) %>% 
-  filter(!is.na(lab_subject_id))
+  filter(!is.na(lab_subject_id) & !is.na(sex))
 
 ### 2. SUBJECTS TABLE
 
@@ -48,10 +50,45 @@ subjects <- demo %>%
 # TODO heavily wip
 
 
+### 3. STIMULI TABLE
+
+### 4. Administrations Table
+
+### 4.5 Prepare Data
+
+### 5. Trial Types Table
+
+### 6. TRIALS TABLE
+
+### 7. AOI REGION SETS TABLE
+
+### 8. XY TABLE
+
+### 9. AOI TIMEPOINTS TABLE
+
+
 # going by the paper, there is a 1:1 mapping
 # between participants and administrations
 
 
+
+file_paths <- list.files(path = file.path(data_path, "Studies 1_2"), pattern = "\\.xls$", full.names = TRUE)
+
+averages_file_paths <- file_paths[grep("average", basename(file_paths), ignore.case = TRUE)]
+
+
+# Apply the custom function to every file path
+results <- lapply(averages_file_paths, function(path) {
+  test <- read_excel(path, col_names = FALSE, progress=FALSE)
+  print(colnames(test))
+})
+
+averages_file_paths
+
+combined_data <- averages_file_paths %>%
+  map_dfr(function(x){
+    print(x)
+    read_excel(x, col_names = FALSE)})
 
 
 ################## WRITING AND VALIDATION ##################
