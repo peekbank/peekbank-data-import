@@ -75,7 +75,7 @@ data <- data_raw %>%
          aoi = case_when(
            Accuracy == 0 ~ "distractor", #
            Accuracy == 1 ~ "target",
-           is.na(Accuracy) ~ "missing", # TODO Open: there are weird values in accuracy, ask authors?
+           is.na(Accuracy) ~ "missing",
            TRUE ~ "other"
          )) %>%
   select(-Accuracy) %>%
