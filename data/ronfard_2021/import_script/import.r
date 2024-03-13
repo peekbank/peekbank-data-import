@@ -188,7 +188,8 @@ subjects <- d_fin %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(
     native_language="eng") %>%
-  left_join(subject_aux_data, by = join_by(subject_id)) %>% 
+  left_join(subject_aux_data, by = join_by(subject_id)) %>%
+  mutate(subject_aux_data = as.character(subject_aux_data)) %>% 
   write_csv(fs::path(write_path, subject_table_filename))
 
 
