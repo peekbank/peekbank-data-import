@@ -6,6 +6,7 @@ library(tidyverse)
 library(readxl)
 library(peekds)
 library(osfr)
+library(jsonlite)
 
 # NOTES: used Adams Marchman import script as starting point/reference
 
@@ -23,6 +24,8 @@ dataset_name <- "baumgartner_2014"
 read_path <- here("data",dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data/")
 
+dir.create(here(write_path), showWarnings=FALSE)
+
 source(here("data",dataset_name, "import_scripts", "icoder_data_helper.R"))
 
 # processed data filenames
@@ -35,7 +38,7 @@ trial_types_table_filename <- "trial_types.csv"
 trials_table_filename <- "trials.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
@@ -276,13 +279,31 @@ d_tidy_final %>%
   write_csv(fs::path(write_path, aoi_table_filename))
 
 ##### SUBJECTS TABLE ####
+
+demo <- read.csv(here(read_path, "Baumgartner2014_subjectData.csv"))
+
+cdi_data <- demo %>%
+  select(lab_subject_id = Subject, comp = Understands, prod = `Understands.and.Says`, age=age_days) %>%
+  mutate (age = age / (365.25 / 12)) %>%
+  pivot_longer(
+    cols = c(comp, prod),
+    names_to = "measure",
+    values_to = "rawscore",
+  ) %>%
+  mutate(
+    instrument_type = "wsshort", # according to Baumgartner
+    language = "English (American)",
+    rawscore = as.numeric(rawscore) # "NA introduced by coercion" is wanted here
+  )
+
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id, sex) %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language="eng",
-    subject_aux_data = NA) %>% #NOTE: add CDI data (upload data to OSF)
+    subject_aux_data = map_chr(lab_subject_id, ~ toJSON(list(cdi_responses = cdi_data[cdi_data[["lab_subject_id"]] == .x,] %>% select(-lab_subject_id)), na="null"))) %>%
   write_csv(fs::path(write_path, subject_table_filename))
+
 
 ##### ADMINISTRATIONS TABLE ####
 d_tidy_final %>%
