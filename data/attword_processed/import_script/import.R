@@ -29,7 +29,6 @@ balanced_data <- read_csv(paste0(read_path, "balanced.csv")) %>%
   mutate(exp = "Balanced", subj = paste(exp, subj, sep = "_"))
 
 #Add notes here
-
 design.df <- read_delim(paste0(read_path, "design.txt"), delim = "\t")
 
 #pre-process data values to be more English-readable
@@ -49,12 +48,53 @@ data.tidy <- bind_rows(sal_data,nonsal_data,balanced_data) %>%
   filter(lab_age >= 1, condition != "Learning") %>%
   clean_names()
 
+# reconstruct design lists for each experiment type
+
+design.tidy.df <- design.df %>%
+  clean_names() %>%
+  rename(target_side = target_screen_side,
+         target_label = target) |> 
+  filter(type == "Image", !is.na(target_label)) |> 
+  select(-x3, -type) %>%
+  mutate(name = gsub(".jpg", "", name)) %>%
+  separate(name, into = c("left_image", "right_image"), sep = "_")
+
+# Modi = vase-thinggy (mystery), dax = cluster-thinggy (mystery)
+# assume sides for test are the same unless proven otherwise
+design.bal.df <- design.tidy.df |> mutate(exp = "Balanced") |> 
+  mutate(trial_order = 1:n())
+  
+# Salent: Modi = squish, dax = balls
+# As set in the original design doc
+design.sal.df <- design.tidy.df |> mutate(exp = "Salient") |> 
+  mutate(trial_order = 1:n())
+
+# Nonsalient: Modi = balls, dax = squish
+# ASSUME: Just the sides were flipped for those specific novel/me trials
+# All other familiar trials are the same until proven otherwise
+
+design.nonsal.df <- design.tidy.df |> mutate(exp = "NonSalient") |> 
+  mutate(target_side = case_when(target_label == "modi" & left_image == "balls" ~ 1,
+                                 target_label == "modi" & right_image == "balls" ~ 2,
+                                 target_label == "dax" & left_image == "squish" ~ 1,
+                                 target_label == "dax" & right_image == "squish" ~ 2,
+                                 TRUE ~ target_side)) |> 
+  mutate(trial_order = 1:n())
+
+design.tidy.df <- rbind(design.bal.df, design.sal.df, design.nonsal.df) |> 
+  rename(condition = trial_type) %>%
+  mutate(condition = if_else(condition == "new", "Novel", 
+                             if_else(condition == "me", "ME",
+                                     "Familiar"))) |> 
+  mutate(lab_trial_id = paste(exp, condition, sep = "_"))
+
 design.tidy <- design.df %>%
   clean_names() %>%
-  rename(target_side = target_screen_side) %>%
+  rename(target_side = target_screen_side,
+         target_label = target) %>%
   mutate(trial_order = seq(0, nrow(.)-1)) %>%
-  filter(trial_type != "hard") %>% #filter out the hard trials
-  filter(type == "Image", !is.na(target)) %>%
+  filter(trial_type != "hard") %>% #filter out the hard trials (why?)
+  filter(type == "Image", !is.na(target_label)) %>%
   select(-x3, -type) %>%
   mutate(name = gsub(".jpg", "", name)) %>%
   separate(name, into = c("left_image", "right_image"), sep = "_") %>%
@@ -67,16 +107,21 @@ design.tidy <- design.df %>%
 #overall trial order
   mutate(trial_order = seq(0, nrow(.)-1))
 
+# The target during ME phase is determined by the experiment type
+# - salient, modi = squish, dax = balls
+# - nonsalient, modi = balls, dax = squish
+# ASSUMINGL: balanced, modi = squish, dax = balls (but unsure, because the stimuli used are different for balanced)
+
 data.full <- data.tidy %>% left_join(design.tidy) %>%
   mutate(target_side = ifelse(target_side == 1, "left", "right"),
          #replace the novel items with their correct label
-         left_label = ifelse(left_image == "skwish", target, left_image),
-         right_label = ifelse(right_image == "skwish", target, right_image),
+         left_label = ifelse(left_image == "skwish", target_label, left_image),
+         right_label = ifelse(right_image == "skwish", target_label, right_image),
          target_image = ifelse(target_side == "right", right_image, left_image),
          distractor_image = ifelse(target_side == "right", left_image, right_image),
          target_label = ifelse(target_side == "right", right_label, left_label),
          distractor_label = ifelse(target_side == "right", left_label, right_label)) %>% 
-  select(-c(exp,right_label, left_label, left_image, right_image, target))
+  select(-c(exp,right_label, left_label, left_image, right_image, target_label))
 
 
 # DATASETS
