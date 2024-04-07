@@ -17,6 +17,8 @@ data_file_name <- "SME_Final.txt"
 read_path <- here("data",dataset_name,"raw_data/")
 write_path <- here("data",dataset_name, "processed_data/")
 
+dir.create(write_path, showWarnings = FALSE)
+
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
@@ -282,8 +284,9 @@ d_administration_ids <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  distinct(tr_num, condition,full_phrase, target_id, distractor_id, target_side) %>%
-  arrange(tr_num) %>%
+  # add sub num to make the trial ids unique across administrations
+  distinct(tr_num, condition,full_phrase, target_id, distractor_id, target_side, sub_num) %>%
+  arrange(sub_num, tr_num) %>%
   mutate(trial_order=as.numeric(tr_num)) %>% 
   mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
 
@@ -298,6 +301,13 @@ d_tidy_semifinal <- d_tidy %>%
   left_join(d_trial_type_ids) %>%
   left_join(d_trial_ids)
 
+exclusions_raw <- readxl::read_excel(here(read_path, participant_file_name), sheet = "Excluded")
+exclusions <- exclusions_raw %>%
+  filter(`Include?` != "Yes") %>%
+  select(`Sub Num`, Reason) %>%
+  rename(lab_subject_id = `Sub Num`, exclusion_reason = Reason) %>% 
+  mutate(excluded = TRUE, lab_subject_id = as.character(lab_subject_id))
+
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
   mutate(lab_trial_id = paste(target_label,target_image,distractor_image, sep = "-"),
@@ -311,7 +321,12 @@ d_tidy_final <- d_tidy_semifinal %>%
   rename(lab_subject_id = sub_num,
          lab_age = months
   ) %>% 
-  mutate(t = as.numeric(t)) # triple check that t is numeric
+  mutate(t = as.numeric(t)) %>% # triple check that t is numeric
+  left_join(exclusions) %>% 
+  mutate(excluded = replace_na(excluded, FALSE))
+
+
+# TODO: add exclusion and exclusion reason here latest
 
 
 ##### AOI TABLE ####
@@ -327,7 +342,7 @@ d_tidy_final %>%
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id, sex) %>%
   mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-         native_language = "eng") %>%
+         native_language = "eng", subject_aux_data = NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -342,7 +357,7 @@ d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "manual gaze coding") %>%
+  mutate(coding_method = "manual gaze coding", administration_aux_data = NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
@@ -356,11 +371,14 @@ stimulus_table %>%
          image_description_source,
          lab_stimulus_id,
          dataset_id) %>%
+  mutate(stimulus_aux_data = NA) %>% 
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
+  # according to the specification, novel words make for non-vanilla trials
+  mutate(vanilla_trial = stimulus_novelty.y == "familiar") %>% 
   distinct(trial_type_id,
            full_phrase,
            point_of_disambiguation,
@@ -370,15 +388,19 @@ trial_types <- d_tidy_final %>%
            lab_trial_id,
            dataset_id,
            target_id,
-           distractor_id) %>%
-  mutate(full_phrase_language = "eng") %>% 
+           distractor_id,
+           vanilla_trial) %>%
+  mutate(full_phrase_language = "eng", trial_type_aux_data = NA) %>% 
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 #### TRIALS TABLE ####
 trials <- d_tidy_final %>%
   distinct(trial_id,
            trial_order,
-           trial_type_id) %>%
+           trial_type_id,
+           excluded,
+           exclusion_reason) %>%
+  mutate(trial_aux_data = NA) %>% 
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### AOI REGIONS TABLE ####
@@ -411,7 +433,8 @@ data_tab <- tibble(
   dataset_name = "pomper_salientme",
   lab_dataset_id = dataset_name, # (if known)
   cite = "Pomper, R., & Saffran, J. R. (2018). Familiar object salience affects novel word learning. Child Development, 90(2), e246-e262. doi:10.1111/cdev.13053.",
-  shortcite = "Pomper & Saffran (2018)"
+  shortcite = "Pomper & Saffran (2018)",
+  dataset_aux_data = NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
