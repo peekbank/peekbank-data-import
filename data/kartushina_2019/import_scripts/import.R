@@ -45,7 +45,8 @@ df_dataset  <- tibble(
   lab_dataset_id = dataset_name,
   dataset_name = dataset_name,
   cite = "Kartushina, N., & Mayor, J. (2019). Word knowledge in six-to nine-month-old Norwegian infants? Not without additional frequency cues. Royal Society open science, 6(9), 180711.",
-  shortcite = "Kartushina & Mayor (2019)")
+  shortcite = "Kartushina & Mayor (2019)",
+  dataset_aux_data = NA)
 
 #### (2) subjects table ####
 # look at subject info
@@ -61,7 +62,8 @@ df_subjects_final <- read.csv(fs::path(exp_info_path, subject_final_list))
 df_subjects <- df_subjects_info %>%
   mutate(sex = case_when(Gender=="F" ~ "female", Gender=="M" ~ "male", T ~"unspecified"),
          subject_id = seq(0, length(.$lab_subject_id)-1),
-         native_language = "nor"
+         native_language = "nor",
+         subject_aux_data = NA
          ) %>%
   select(-Gender, -lab_age)
 
@@ -141,6 +143,7 @@ df_stimuli <- df_stimuli %>%
          dataset_id = dataset_id,
          stimulus_novelty = "familiar",
          image_description_source = "image path",
+         stimulus_aux_data = NA,
          # the original norwegian labels below were pasted from the paper table 1
          original_stimulus_label = case_when(english_stimulus_label == "cookie" ~ "kjeks",
                                              english_stimulus_label == "belly" ~ "mage",
@@ -264,7 +267,7 @@ df_administrations <- df_subjects_info %>%
   left_join(df_subjects, by = "lab_subject_id") %>%
   filter(.$lab_subject_id %in% subject_list) %>% # filter out subjects that were not included in the trial data
   left_join(df_subjects) %>%
-  select(subject_id, lab_age) %>%
+  select(subject_id, lab_age, lab_subject_id) %>%
   mutate(
     administration_id = seq(0, length(.$subject_id)-1),
     dataset_id = dataset_id,
@@ -274,7 +277,8 @@ df_administrations <- df_subjects_info %>%
     monitor_size_y = 1080,
     sample_rate = 300,
     tracker = "Tobii TX300",
-    coding_method = "preprocessed eyetracking"
+    coding_method = "preprocessed eyetracking",
+    administration_aux_data = NA
   )
 
 # from the paper: "we inserted a 1.5 s period of silence at the beginning of each trial so that infants would have the same exposure to the visual
@@ -294,6 +298,8 @@ df_trial_info <- trial_data %>%
          dataset_id = dataset_id,
          lab_trial_id = NA,
          aoi_region_set_id = NA,
+         trial_type_aux_data = NA,
+         vanilla_trial = TRUE,
          # sound matched manually
          # again, this is a terrible way to do this.
          # I got the English phrases from the paper and did my best to match
@@ -374,6 +380,13 @@ df_trial_types <- df_trial_info %>%
   select(-target, -distractor)
 
 #### (6) Trials table ####
+
+# reasons not apparent from the raw data
+excluded_participants <- tibble(
+  lab_subject_id = setdiff(df_subjects_info$lab_subject_id, df_subjects_final$final_subjects),
+  excluded = TRUE,
+  exclusion_reason = NA)
+
 # confirmed that to one participate only see one type of trial once
 # most participants saw 32 trials with 32 words
 # Some subjects, such as OS_007 has only 17 trials, OS_050 has only 14 trials,
@@ -387,8 +400,14 @@ df_trials <- trial_data %>%
   distinct(lab_subject_id, target, target_side) %>%
   left_join(df_trial_info, by = c("target","target_side")) %>%
   select(lab_subject_id, target, target_side, trial_type_id) %>%
+  left_join(excluded_participants, by=c("lab_subject_id")) %>%
+  mutate(excluded=replace_na(excluded, FALSE)) %>% 
   mutate(trial_id = seq(0, length(.$lab_subject_id)-1),
-         trial_order = seq(0, length(.$lab_subject_id)-1))
+         trial_order = seq(0, length(.$lab_subject_id)-1),
+         trial_aux_data = NA)
+
+
+
 
 # because target and target_side are still needed later for aoi_timepoints df, so we will select out
 # these two columns later
