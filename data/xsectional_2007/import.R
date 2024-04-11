@@ -14,6 +14,8 @@ dataset_name <- "xsectional_2007"
 read_path <- here("data",dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
 
+dir.create(write_path, showWarnings = FALSE)
+
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
@@ -197,7 +199,6 @@ d_administration_ids <- d_tidy %>%
   distinct(subject_id, sub_num, months, order) %>%
   arrange(subject_id, sub_num, months, order) %>%
   mutate(administration_id = seq(0, length(.$order) - 1)) 
-
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
   #order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
@@ -213,7 +214,7 @@ d_tidy_semifinal <- d_tidy %>%
 
 #get zero-indexed trial ids for the trials table
 d_trial_ids <- d_tidy_semifinal %>%
-  distinct(trial_order,trial_type_id) %>%
+  distinct(trial_order,trial_type_id, sub_num, administration_id) %>%
   mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
 
 #join
@@ -250,8 +251,11 @@ d_tidy_final %>%
   distinct(subject_id, lab_subject_id, sex) %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-    native_language="spa") %>%
+    native_language="spa",
+    subject_aux_data = FALSE) %>%
   write_csv(fs::path(write_path, subject_table_filename))
+
+# TODO? The paper states that CDI was administered, but the data might be hard to get due to the age of the article
 
 ##### ADMINISTRATIONS TABLE ####
 d_tidy_final %>%
@@ -265,12 +269,14 @@ d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "manual gaze coding") %>%
+  mutate(coding_method = "manual gaze coding",
+         administration_aux_data = NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
   select(-target_label, -target_image) %>%
+  mutate(stimulus_aux_data = NA) %>% 
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
@@ -278,6 +284,9 @@ d_tidy_final %>%
   distinct(trial_id,
            trial_order,
            trial_type_id) %>%
+  mutate(excluded = FALSE, # not apparent from the provided data, so it is assumes all participants from the file were included
+         exclusion_reason=NA,
+         trial_aux_data = NA) %>% 
   write_csv(fs::path(write_path, trials_table_filename))
 
 
@@ -293,7 +302,9 @@ d_tidy_final %>%
            target_id,
            distractor_id) %>%
     mutate(full_phrase_language = "spa",
-           condition = "") %>% #no condition manipulation based on current documentation
+           condition = "", #no condition manipulation based on current documentation
+           vanilla_trial = TRUE,
+           trial_type_aux_data = NA) %>% 
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### AOI REGIONS TABLE ####
@@ -326,7 +337,8 @@ data_tab <- tibble(
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Hurtado, N., Marchman, V. A., & Fernald, A. (2007). Spoken word recognition by Latino children learning Spanish as their first language. Joural of Child Language, 34(2), 227-249.",
-  shortcite = "Hurtado, Marchman, & Fernald (2007)"
+  shortcite = "Hurtado, Marchman, & Fernald (2007)",
+  dataset_aux_data = NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
@@ -336,4 +348,4 @@ data_tab <- tibble(
 validate_for_db_import(dir_csv = write_path)
 
 ## OSF INTEGRATION ###
-put_processed_data(osf_token, dataset_name, paste0(write_path,'/'), osf_address = "pr6wu")
+#put_processed_data(osf_token, dataset_name, paste0(write_path,'/'), osf_address = "pr6wu")
