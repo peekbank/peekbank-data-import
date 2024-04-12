@@ -15,7 +15,7 @@ dataset_id <- 0
 subid_name <- "Subject" # for extracting info from SMI
 monitor_size_string <- "Calibration Area"
 sample_rate_string <- "Sample Rate"
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 OSF_ADDRESS <- "pr6wu"
 
 #### Define paths and get data from OSF if necessary ####
@@ -26,6 +26,8 @@ exp_info_path <- file.path(DATASET_PATH, "raw_data/experiment_info")
 output_path <- file.path(DATASET_PATH, "processed_data/")
 trial_file_path <- file.path(exp_info_path, "lists.csv")
 participant_file_path <- file.path(exp_info_path,  "eye.tracking.csv")
+
+dir.create(output_path, showWarnings = FALSE)
 
 ## only download if it's not on your machine
 if(length(list.files(full_dataset_path)) == 0 & length(list.files(exp_info_path)) == 0) {
@@ -41,7 +43,8 @@ dataset_data <- tibble(
   lab_dataset_id = dataset_name,
   dataset_name = dataset_name,
   cite="Frank, M. C., Sugarman, E., Horowitz, A. C., Lewis, M. L., & Yurovsky, D. (2016). Using tablets to collect data from young children. Journal of Cognition and Development, 17(1), 1-17.",
-  shortcite="Frank et al. (2016)"
+  shortcite="Frank et al. (2016)",
+  dataset_aux_data = NA
 )
 
 write_peekbank_table("datasets", dataset_data, output_path)
@@ -77,7 +80,8 @@ stimuli_data <- target_distractors %>% # 48 entries
     TRUE ~ NA_character_),
     image_description_source = "image path") %>%
   select(stimulus_id, original_stimulus_label,english_stimulus_label, stimulus_novelty,
-         stimulus_image_path, image_description, image_description_source, lab_stimulus_id, dataset_id)
+         stimulus_image_path, image_description, image_description_source, lab_stimulus_id, dataset_id) %>% 
+  mutate(stimulus_aux_data = NA)
 
 write_peekbank_table("stimuli", stimuli_data, output_path)
 
@@ -107,17 +111,12 @@ trial_types_data <- mega_trials_table %>%
          list = as.character(list),
          lab_trial_id = paste(list,target_side, word, sep="_")) %>%
   select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, target_side,
-         lab_trial_id, aoi_region_set_id, dataset_id, distractor_id, target_id, condition)
+         lab_trial_id, aoi_region_set_id, dataset_id, distractor_id, target_id, condition) %>% 
+  mutate(trial_type_aux_data = NA, vanilla_trial = condition == "familiar-familiar")
 
 write_peekbank_table("trial_types", trial_types_data, output_path)
 
-#### (3a) trials ###
-trials_table <- mega_trials_table %>%
-  select(trial_type_id, original_order) %>%
-  rename(trial_order = original_order) %>%
-  mutate(trial_id = row_number() - 1)
-
-write_peekbank_table("trials", trials_table, output_path)
+### 3a - trials will come further down as we need info from the timepoint data
 
 ####(4) administrations ####
 original_subinfo <- read_csv(here(exp_info_path, "et_demographics.csv"))
@@ -161,17 +160,19 @@ administration_data <- all_subjects_data %>% # create a data frame by adding abo
          monitor_size_y = y.max,
          sample_rate = sample_rate,
          coding_method = "eyetracking",
+         administration_aux_data = NA,
          administration_id = subject_id) %>%
   select(administration_id, dataset_id, subject_id, age, lab_age,
          lab_age_units, monitor_size_x, monitor_size_y, sample_rate, tracker,
-         coding_method)
+         coding_method, administration_aux_data)
 
 write_peekbank_table("administrations", administration_data, output_path)
 
 #### (5) subjects ####
 subjects_data <- all_subjects_data %>%
   mutate(native_language = "eng") %>%
-  select(subject_id, sex, lab_subject_id, native_language) 
+  select(subject_id, sex, lab_subject_id, native_language) %>% 
+  mutate(subject_aux_data = NA)
 
 write_peekbank_table("subjects", subjects_data, output_path)
 
@@ -207,10 +208,31 @@ timepoint_data <- raw_timepoint_data %>%
                                   right_pic %in% unique(trial_types_data$lab_trial_id) ~ right_pic)) %>%
   select(xy_timepoint_id, x, y, t, lab_subject_id, lab_trial_id)
 
+
+#### Do (3a) trials here, as the new schema wants unique trial ids per-administration
+
+# administrations are uniquely identifies by subjects, as every subject was only tested once
+# exclusions are here for future proofing, but the excluded subjects get filtered out during the import right now
+
+trials_table <- timepoint_data %>%
+  distinct(lab_subject_id, lab_trial_id) %>%
+  left_join(trial_types_data %>%
+              distinct(lab_trial_id, trial_type_id)) %>% 
+  left_join(original_subinfo %>%
+              select(lab_subject_id = SID, excluded = exclude, exclusion_reason = exclusion.crit)
+            ) %>% 
+  left_join(mega_trials_table %>%
+              select(trial_type_id, original_order)) %>%
+  select(trial_order = original_order, excluded, exclusion_reason, trial_type_id, lab_subject_id) %>%
+  mutate(trial_id = row_number() - 1, trial_aux_data = NA) 
+
+write_peekbank_table("trials", trials_table %>% select(-lab_subject_id), output_path)
+
+
 # subject 2 and 27 does not have eyetracking data
 xy_data <- timepoint_data %>% # merge in administration_id and trial_id
   left_join(trial_types_data %>% select(lab_trial_id, trial_type_id)) %>%
-  left_join(trials_table %>% select(trial_type_id, trial_id)) %>%
+  left_join(trials_table %>% select(trial_type_id, trial_id, lab_subject_id), by=join_by(trial_type_id, lab_subject_id)) %>%
   filter(!is.na(trial_id)) %>% # remove filler trials (4 per subject)
   left_join(subjects_data %>% select(subject_id, lab_subject_id)) %>%
   left_join(administration_data %>% select(subject_id, administration_id)) %>%
@@ -308,6 +330,6 @@ aoi_data_joined %>%
   summarise(mean = mean(target_pct, na.rm=TRUE))
 
 ### add to OSF ####
-put_processed_data(osf_token, dataset_name, output_path, osf_address = OSF_ADDRESS)
+#put_processed_data(osf_token, dataset_name, output_path, osf_address = OSF_ADDRESS)
 
 
