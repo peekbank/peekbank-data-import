@@ -326,9 +326,6 @@ d_tidy_final <- d_tidy_semifinal %>%
   mutate(excluded = replace_na(excluded, FALSE))
 
 
-# TODO: add exclusion and exclusion reason here latest
-
-
 ##### AOI TABLE ####
 d_tidy_final %>%
   select(t, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
