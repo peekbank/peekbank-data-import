@@ -14,6 +14,8 @@ dataset_name = "bacon_gendercues"
 read_path <- here::here("data" ,dataset_name,"raw_data")
 write_path <- here::here("data",dataset_name, "processed_data","")
 
+dir.create(write_path, showWarnings = FALSE)
+
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
@@ -24,7 +26,7 @@ trials_table_filename <- "trials.csv"
 trial_types_table_filename <- "trial_types.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 
 
 # download datata from osf
@@ -65,7 +67,7 @@ d_tidy <- d_tidy %>%
   #remove unneeded columns
   select(-max_n,-lost_n, -percent_missing_frames,
          -has_sibs,-num_sibs,-num_male_sibs,-num_fem_sibs,
-         -childcare,-sib_dif_sex,-cdi_comprehends,-cdi_says) %>%
+         -childcare,-sib_dif_sex) %>%
   #left-right is from the coder's perspective - flip to participant's perspective - CHECK THIS!!!
   mutate(target_side = factor(target_side, 
                               levels = c('Left','Right'), 
@@ -97,7 +99,8 @@ stimulus_table <- d_tidy %>%
          stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
          image_description = target_label,
          image_description_source = "image path",
-         lab_stimulus_id = target_image
+         lab_stimulus_id = target_image,
+         stimulus_aux_data = NA,
   ) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
@@ -120,9 +123,9 @@ d_tidy <- d_tidy %>%
 
 #get zero-indexed administration ids
 d_administration_ids <- d_tidy %>%
-  distinct(subject_id, sub_num, age_months, order) %>%
-  arrange(subject_id, sub_num, age_months, order) %>%
-  mutate(administration_id = seq(0, length(.$order) - 1)) 
+  distinct(subject_id, sub_num, age_months) %>%
+  arrange(subject_id, sub_num, age_months) %>%
+  mutate(administration_id = seq(0, length(.$sub_num) - 1)) 
 
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
@@ -137,8 +140,8 @@ d_tidy_semifinal <- d_tidy %>%
 
 #get zero-indexed trial ids for the trials table
 d_trial_ids <- d_tidy_semifinal %>%
-  distinct(trial_order,trial_type_id) %>%
-  mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
+  distinct(trial_order,trial_type_id, sub_num) %>%
+  mutate(trial_id = seq(0, nrow(.) - 1))
 
 #join
 d_tidy_semifinal <- d_tidy_semifinal %>%
@@ -176,11 +179,23 @@ d_tidy_final %>%
   write_csv(fs::path(write_path, aoi_table_filename))
 
 ##### SUBJECTS TABLE ####
+
 d_tidy_final %>%
-  distinct(subject_id, lab_subject_id,sex) %>%
+  distinct(subject_id, lab_subject_id,sex, cdi_comprehends, cdi_says, lab_age) %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language="eng") %>%
+  mutate(subject_aux_data = pmap(
+    list(cdi_comprehends, cdi_says, lab_age),
+    function(comp, prod, age){
+      toJSON(list(cdi_responses = list(
+        list(rawscore = unbox(comp), age = unbox(age), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg")),
+        list(rawscore = unbox(prod), age = unbox(age), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wg"))
+      )))
+    }
+  )) %>%
+  select(-c(cdi_says, cdi_comprehends, lab_age)) %>%
+  mutate(subject_aux_data = as.character(subject_aux_data)) %>% 
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -195,12 +210,14 @@ d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "preprocessed eyetracking") %>% #CHECK THIS!!! also manual gaze coding
+  mutate(coding_method = "preprocessed eyetracking", #CHECK THIS!!! also manual gaze coding
+         administration_aux_data = NA) %>% 
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
   select(-target_label, -target_image) %>%
+  mutate(stimulus_aux_data = NA) %>% 
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 #### TRIALS TABLE ####
@@ -208,6 +225,9 @@ trials <- d_tidy_final %>%
   distinct(trial_id,
            trial_order,
            trial_type_id) %>%
+  mutate(excluded = FALSE, # no indication in the data, so we assume we only got included participants
+         exclusion_reason = NA,
+         trial_aux_data = NA) %>% 
   write_csv(fs::path(write_path, trials_table_filename))
 
 ##### TRIAL TYPES TABLE ####
@@ -222,7 +242,8 @@ trial_types <- d_tidy_final %>%
            dataset_id,
            target_id,
            distractor_id) %>%
-  mutate(full_phrase_language = "eng") %>%
+  mutate(full_phrase_language = "eng", trial_type_aux_data = NA,
+         vanilla_trial=TRUE) %>% # according to the paper, the speaker changes between trials as part of the experimental condition - should we put false here?
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### DATASETS TABLE ####
@@ -232,7 +253,8 @@ data_tab <- tibble(
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Bacon, D, & Saffran, J. (2022). Role of speaker gender in toddler lexical processing. Infancy, 27, 291-300. https://doi.org/10.1111/infa.12455",
-  shortcite = "Bacon & Saffran (2022)"
+  shortcite = "Bacon & Saffran (2022)",
+  dataset_aux_data = NA,
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
