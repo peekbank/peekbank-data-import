@@ -15,6 +15,8 @@ read_path <- here("data" ,dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
 read_orders_path <- here("data",dataset_name,"raw_data","orders")
 
+dir.create(write_path, showWarnings = FALSE)
+
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
@@ -164,8 +166,8 @@ d_processed_1 <- d_processed_1 %>%
 # get idx of first time series
 first_t_idx_1 <- length(metadata_names_1) + 1            
 last_t_idx_1 <- colnames(d_processed_1) %>% length()
-d_tidy_1 <- d_processed_1 %>%
-  pivot_longer(first_t_idx:last_t_idx,names_to = "t", values_to = "aoi") 
+d_tidy <- d_processed_1 %>%
+  pivot_longer(first_t_idx_1:last_t_idx_1,names_to = "t", values_to = "aoi") 
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -292,11 +294,32 @@ d_tidy_final %>%
   write_csv(fs::path(write_path, aoi_table_filename))
 
 ##### SUBJECTS TABLE ####
+
+# TODO: The existing cdi data does not match the ids of the looking data
+cdi_raw <- read.csv(here(read_path, "canine2_subjectMeans.csv")) 
+
+cdi_data <- cdi_raw %>% 
+  filter(!is.na(MCDI)) %>% 
+  select(lab_subject_id = Sub.Num, ageMonths, MCDI) %>%
+  mutate(MCDI = as.numeric(MCDI)) %>% 
+  mutate(subject_aux_data = pmap(
+    list(MCDI, ageMonths),
+    function(cdi, age){
+      toJSON(list(cdi_responses = list(
+        # TODO measure, language and instrument_type are not apparent from the file
+        list(rawscore = unbox(cdi), age = unbox(age), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg"))
+      )))
+    }
+  ), lab_subject_id = as.character(lab_subject_id)) %>% 
+  select(lab_subject_id , subject_aux_data) %>% 
+  mutate(subject_aux_data = as.character(subject_aux_data))
+  
+
 d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-         native_language="eng",
-         subject_aux_data=NA) %>%
+         native_language="eng") %>%
+  left_join(cdi_data) %>% 
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
