@@ -305,8 +305,9 @@ cdi_data <- cdi_raw %>% filter(CDI != ".") %>%
         list(rawscore = unbox(cdi), age = unbox(age), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg"))
       )))
     }
-  )) %>% 
-  select(lab_subject_id = subNum, subject_aux_data)
+  ), subNum = as.character(subNum)) %>% 
+  select(lab_subject_id = subNum, subject_aux_data) %>% 
+mutate(subject_aux_data = as.character(subject_aux_data))
 
 subjects <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
@@ -314,7 +315,6 @@ subjects <- d_tidy_final %>%
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language = "spa, eng") %>%
   left_join(cdi_data) %>% 
-  mutate(subject_aux_data = as.character(subject_aux_data)) %>% 
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
