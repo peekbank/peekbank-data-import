@@ -296,8 +296,9 @@ subjects_table <- d_tidy %>% distinct(lab_subject_id) %>%
   distinct(sex, native_language, lab_subject_id, eng_lds_rawscore, lab_age) %>%
   mutate(subject_aux_data = map2(
     eng_lds_rawscore, lab_age, 
-    ~ toJSON(list(list(rawscore = .x, age = .y, language = "English (American)", instrument_type = "LDS"))))) %>% 
+    ~ toJSON(list(lang_measures = list(list(rawscore = .x, age = .y, language = "English (American)", instrument_type = "LDS")))))) %>% 
 select(-c(eng_lds_rawscore, lab_age)) %>%
+  mutate(subject_aux_data = as.character(subject_aux_data)) %>% 
   mutate(subject_id = row_number()-1)
 
 subjects_table %>% write_csv(here(write_path, "subjects.csv"))
