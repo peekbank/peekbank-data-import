@@ -232,8 +232,8 @@ subjects <- d_tidy_final %>%
     list(cdi.und, cdi.say, days),
     function(comp, prod, days){
       toJSON(list(cdi_responses = list(
-      list(rawscore = comp, age = days/30.5, measure="comp", language = "English (American)", instrument_type = "wg"),
-      list(rawscore = prod, age = days/30.5, measure="prod", language = "English (American)", instrument_type = "wg")
+      list(rawscore = unbox(comp), age = unbox(days/30.5), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg")),
+      list(rawscore = unbox(prod), age = unbox(days/30.5), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wg"))
       )))
       }
     )) %>% 
