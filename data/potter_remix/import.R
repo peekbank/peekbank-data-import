@@ -14,6 +14,8 @@ dataset_name = "potter_remix"
 read_path <- here("data" ,dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
 
+dir.create(write_path, showWarnings = FALSE)
+
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
@@ -24,7 +26,7 @@ trials_table_filename <- "trials.csv"
 trial_types_table_filename <- "trial_types.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 
 
 remove_repeat_headers <- function(d, idx_var) {
@@ -290,12 +292,29 @@ aoi_timepoints <- d_tidy_final %>%
 
 
 ##### SUBJECTS TABLE ####
+
+cdi_raw <- read.csv(here(read_path, "ReMix.n20.csv"))
+
+cdi_data <- cdi_raw %>% filter(CDI != ".") %>%
+  mutate(CDI = as.numeric(CDI)) %>% 
+  mutate(subject_aux_data = pmap(
+    list(CDI, ageMonths),
+    function(cdi, age){
+      toJSON(list(cdi_responses = list(
+        # TODO measure, language and instrument_type are not apparent from the file
+        list(rawscore = unbox(cdi), age = unbox(age), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg"))
+      )))
+    }
+  )) %>% 
+  select(lab_subject_id = subNum, subject_aux_data)
+
 subjects <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-    native_language = "spa, eng",
-    subject_aux_data =NA) %>%
+    native_language = "spa, eng") %>%
+  left_join(cdi_data) %>% 
+  mutate(subject_aux_data = as.character(subject_aux_data)) %>% 
   write_csv(fs::path(write_path, subject_table_filename))
 
 ##### ADMINISTRATIONS TABLE ####
@@ -394,4 +413,4 @@ data_tab <- tibble(
 validate_for_db_import(dir_csv = write_path)
 
 ## OSF INTEGRATION ###
-put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
+#put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
