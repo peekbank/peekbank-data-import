@@ -285,33 +285,33 @@ cdi_data[cdi_data  == 999] <- NA
 cdi_data_cleaned <- cdi_data |> 
   rename(
     lab_subject_id = `sub1 Subject #`,
-    wgcomp_18_age = `WG18age Age`,
-    wgcomp_18_rawscore = `WG18comp Comprehension 18m`,
-    wgcomp_18_percentile = `WG18compp Comprehension 18m %tile`,
-    wgprod_18_rawscore = `WG18prod Production 18m`,
-    wgprod_18_percentile = `WG18prodp Production 18m %tile`,
-    wsprod_18_age = `WS18age`,
-    wsprod_18_rawscore = `WS18prod`,
-    wsprod_18_percentile = `WS18prodp`,
-    wsprod_21_age = `WS21age Age`,
-    wsprod_21_rawscore = `WS21prod Words Production 21m`,
-    wsprod_21_percentile = `WS21prodp Word Production 21m %tile`,
-    wsprod_24_age = `WS24age AgeCDi 24m`,
-    wsprod_24_rawscore = `WS24prod Words Production 24m`,
-    wsprod_24_percentile = `WS24prodp Word Production 24m %tile`,
-    wsprod_30_age = `WS30age AgeCDI 30m`,
-    wsprod_30_rawscore = `WS30prod Words Production 30m`,
-    wsprod_30_percentile = `WS30prodp Word Production 30m %tile`
+    wg_comp_18_age = `WG18age Age`,
+    wg_comp_18_rawscore = `WG18comp Comprehension 18m`,
+    wg_comp_18_percentile = `WG18compp Comprehension 18m %tile`,
+    wg_prod_18_rawscore = `WG18prod Production 18m`,
+    wg_prod_18_percentile = `WG18prodp Production 18m %tile`,
+    ws_prod_18_age = `WS18age`,
+    ws_prod_18_rawscore = `WS18prod`,
+    ws_prod_18_percentile = `WS18prodp`,
+    ws_prod_21_age = `WS21age Age`,
+    ws_prod_21_rawscore = `WS21prod Words Production 21m`,
+    ws_prod_21_percentile = `WS21prodp Word Production 21m %tile`,
+    ws_prod_24_age = `WS24age AgeCDi 24m`,
+    ws_prod_24_rawscore = `WS24prod Words Production 24m`,
+    ws_prod_24_percentile = `WS24prodp Word Production 24m %tile`,
+    ws_prod_30_age = `WS30age AgeCDI 30m`,
+    ws_prod_30_rawscore = `WS30prod Words Production 30m`,
+    ws_prod_30_percentile = `WS30prodp Word Production 30m %tile`
   ) |> 
-  mutate(wgprod_18_age = wgcomp_18_age,
+  mutate(wg_prod_18_age = wg_comp_18_age,
          lab_subject_id = as.character(lab_subject_id)) |> 
   pivot_longer(cols = -lab_subject_id,
-               names_to = c("instrument_type", "age_group", "name"),
+               names_to = c("instrument_type", "measure", "age_group", "name"),
                names_sep = "_") |> 
   pivot_wider(names_from = "name",
               values_from = "value") |> 
   filter(!is.na(age)) |> 
-  select(lab_subject_id, instrument_type, rawscore, percentile, age) |> 
+  select(lab_subject_id, instrument_type, measure, rawscore, percentile, age) |> 
   mutate(language = "English (American)")
 
 # lwl_ages <- d_tidy_final |> 

@@ -16,6 +16,8 @@ dataset_name = "pomper_yumme"
 read_path <- here("data" ,dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
 
+dir.create(write_path, showWarnings = FALSE)
+
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
@@ -26,7 +28,7 @@ trials_table_filename <- "trials.csv"
 trial_types_table_filename <- "trial_types.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 
 
 
@@ -201,7 +203,7 @@ d_administration_ids <- d_tidy %>%
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
   distinct(tr_num, #full_phrase, 
-           target_id, distractor_id, target_side) %>%
+           target_id, distractor_id, target_side, sub_num) %>%
   mutate(trial_id = seq(0, length(.$tr_num) - 1)) 
 
 # create zero-indexed ids for trial_types
@@ -237,9 +239,11 @@ d_tidy_final <- d_tidy_semifinal %>%
          t_norm=t
   )
 
+
 ##### AOI TABLE ####
 aoi_timepoints <- d_tidy_final %>%
-  select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
+  select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>%
+  filter(!is.na(t_norm)) %>% 
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
@@ -251,7 +255,8 @@ subjects <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id, sex) %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-    native_language = "eng") %>%
+    native_language = "eng",
+    subject_aux_data = NA) %>%
   write_csv(fs::path(write_path, subject_table_filename))
 
 
@@ -267,11 +272,12 @@ administrations <- d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "eyetracking") %>%
+  mutate(coding_method = "eyetracking", administration_aux_data = NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
+  mutate(stimulus_aux_data = NA) %>% 
   write_csv(fs::path(write_path, stimuli_table_filename))
 
 # GK good to here 3/22/22
@@ -289,15 +295,31 @@ trial_types <- d_tidy_final %>%
     dataset_id,
     target_id,
     distractor_id) %>%
-  mutate(full_phrase_language = "eng")  %>%
+  mutate(full_phrase_language = "eng", vanilla_trial = TRUE, trial_type_aux_data = NA)  %>%
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 # FixMe: full_phrase missing
 
 ##### TRIALS TABLE ####
-trials_table <- d_tidy_final %>% 
-  distinct(trial_id, trial_type_id, tr_num) %>%
+
+PARTICIPANT_FILR_NAME = "YumME_Participants_deID.xlsx"
+exclusions <- readxl::read_excel(here(read_path, PARTICIPANT_FILR_NAME), sheet = "Pilot4") %>%
+  select(`Sub Num`, `Include?`) %>%
+  rbind(
+    readxl::read_excel(here(read_path, PARTICIPANT_FILR_NAME), sheet = "Pilot 5") %>%
+      select(`Sub Num`, `Include?`)
+    ) %>% 
+  filter(tolower(`Include?`) != "yes" & tolower(`Include?`) != "y") %>% 
+  select(lab_subject_id = `Sub Num`) %>% 
+  mutate(excluded = TRUE, exclusion_reason = NA)
+
+
+trials_table <- d_tidy_final %>%
+  left_join(exclusions) %>% 
+  mutate(excluded = replace_na(excluded, FALSE)) %>% 
+  distinct(trial_id, trial_type_id, tr_num, excluded, exclusion_reason) %>%
   rename(trial_order = tr_num) %>%
+  mutate(trial_aux_data = NA) %>% 
   write_csv(fs::path(write_path, trials_table_filename))
 
 # do we no longer need empty AOI regions and XY timepoints files?
@@ -331,17 +353,15 @@ data_tab <- tibble(
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Pomper, R. & Saffran, J. R. (2018). Familiar object salience affects novel word learning. Child Development, 90(2). doi:10.1111/cdev.13053",
-  shortcite = "Pomper & Saffran (2018)")  %>%
+  shortcite = "Pomper & Saffran (2018)",
+  dataset_aux_data = NA)  %>%
   write_csv(fs::path(write_path, dataset_table_filename))
 
 
 # validation check ----------------------------------------------------------
 validate_for_db_import(dir_csv = write_path)
-# Warning messages:
-#1: In validate_for_db_import(dir_csv = write_path) :
-#  Cannot find required file: /Users/gkacherg/Documents/GitHub/peekbank-data-import/data/pomper_yumme/processed_data/aoi_region_sets.csv
-#2: In validate_for_db_import(dir_csv = write_path) :
-#  Cannot find required file: /Users/gkacherg/Documents/GitHub/peekbank-data-import/data/pomper_yumme/processed_data/xy_timepoints.csv
+
+remainder <- unique(aoi_timepoints$t_norm %% 1000/40)
 
 ## OSF INTEGRATION ###
-put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
+#put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")

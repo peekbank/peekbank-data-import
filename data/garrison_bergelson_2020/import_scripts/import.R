@@ -15,7 +15,9 @@ data_path <- here("data","garrison_bergelson_2020","raw_data")
 output_path <- here("data","garrison_bergelson_2020","processed_data")
 dataset_name <- "garrison_bergelson_2020"
 
-osf_token <- read_lines(here("osf_token.txt"))
+dir.create(output_path, showWarnings = FALSE)
+
+#osf_token <- read_lines(here("osf_token.txt"))
 if(length(list.files(data_path)) == 0) {
   get_raw_data(lab_dataset_id = dataset_name, path = data_path, osf_address = "pr6wu")
 }
@@ -41,6 +43,25 @@ demographics <- read_csv(here(data_path, "yoursmy_ages.csv")) %>%
               rename(SubjectNumber = Name) %>% 
               mutate(SubjectNumber = str_to_lower(SubjectNumber)))
 
+raw_cdi_data <- read_csv(here(data_path, "yoursmy_CDI_data_b_clean.csv"))
+
+cdi_data <- raw_cdi_data %>% 
+  mutate(
+    lab_subject_id = paste0("y", str_pad(subject_id, 2, pad = "0")),
+    comp = as.numeric(`Words Understood`), 
+    ) %>%
+  mutate(subject_aux_data = pmap(
+    list(`Words Understood`, `Words Produced`, age),
+    function(comp, prod, age){
+      toJSON(list(cdi_responses = list(
+        list(rawscore = unbox(comp), age = unbox(age), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg")),
+        list(rawscore = unbox(prod), age = unbox(age), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wg"))
+      )))
+    }
+  )) %>%
+  select(lab_subject_id, subject_aux_data) 
+  
+
 subjects <- demographics %>%
   select(SubjectNumber, Sex) %>%
   mutate(subject_id = 0:(n() - 1), 
@@ -48,7 +69,9 @@ subjects <- demographics %>%
          Sex = ifelse(Sex == "M", "male", "female")) %>%
   rename(lab_subject_id = SubjectNumber, 
          sex = Sex) %>%
-  mutate(subject_aux_data = NA)
+  left_join(cdi_data) %>% 
+  mutate(subject_aux_data = as.character(subject_aux_data))
+  
   
 
 ### 3. STIMULI TABLE 
@@ -74,19 +97,6 @@ stimuli <- d_low %>%
 
 ### 4. ADMINISTRATIONS TABLE 
 
-raw_cdi_data <- read_csv(here(data_path, "yoursmy_CDI_data_b_clean.csv"))
-
-cdi_data <- raw_cdi_data %>% 
-  mutate(lab_subject_id = paste0("y", str_pad(subject_id, 2, pad = "0")))  %>% 
-  select(lab_subject_id, 
-         eng_wg_comp_rawscore = `Words Understood`, 
-         eng_wg_comp_age = age,
-         eng_wg_prod_rawscore = `Words Produced`,
-         eng_wg_prod_age = age) %>%
-  left_join(subjects %>% select(subject_id, lab_subject_id)) |> 
-  rowwise(c(subject_id, lab_subject_id)) %>% 
-  summarize(administration_aux_data= toJSON(across()))
-
 administrations <- demographics %>%
   mutate(administration_id = 0:(n() - 1), 
          subject_id = 0:(n() - 1), 
@@ -98,8 +108,8 @@ administrations <- demographics %>%
          monitor_size_y = 1024,
          sample_rate = 500,
          tracker = "Eyelink 1000+",
-         coding_method = "eyetracking") %>% 
-  left_join(cdi_data) |> 
+         coding_method = "eyetracking",
+         administration_aux_data = NA) %>% 
   select(administration_id, dataset_id, subject_id, age, lab_age, lab_age_units, 
          monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method, administration_aux_data)
 

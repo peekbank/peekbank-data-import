@@ -20,7 +20,9 @@ point_of_disambiguation <- start_frames * sample_rate_ms
 read_path <- here("data/newman_sinewave/raw_data")
 write_path <- here("data/newman_sinewave/processed_data")
 
-osf_token <- read_lines(here("osf_token.txt"))
+dir.create(write_path, showWarnings = FALSE)
+
+#osf_token <- read_lines(here("osf_token.txt"))
 if(length(list.files(read_path)) == 0) {
   get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
 }
@@ -291,9 +293,13 @@ d_tidy <- d_tidy %>%
 # Subjects table
 subjects_table <- d_tidy %>% distinct(lab_subject_id) %>%
   left_join(demo_data_tidy) %>%
-  distinct(sex, native_language, lab_subject_id) %>%
-  mutate(subject_id = row_number()-1,
-         subject_aux_data = NA)
+  distinct(sex, native_language, lab_subject_id, eng_lds_rawscore, lab_age) %>%
+  mutate(subject_aux_data = map2(
+    eng_lds_rawscore, lab_age, 
+    ~ toJSON(list(lang_measures = list(list(rawscore = unbox(as.numeric(.x)), age = unbox(.y), language = unbox("English (American)"), instrument_type = unbox("LDS"))))))) %>% 
+select(-c(eng_lds_rawscore, lab_age)) %>%
+  mutate(subject_aux_data = as.character(subject_aux_data)) %>% 
+  mutate(subject_id = row_number()-1)
 
 subjects_table %>% write_csv(here(write_path, "subjects.csv"))
 
@@ -307,9 +313,7 @@ administrations_table <- d_tidy %>% distinct(subject_id) %>%
   left_join(subjects_table %>% 
               select(lab_subject_id, subject_id)) %>% 
   left_join(demo_data_tidy) %>% 
-  distinct(subject_id, lab_age, eng_lds_rawscore) %>%
-  rowwise(-c(eng_lds_rawscore)) %>%
-  summarize(administration_aux_data= toJSON(across(eng_lds_rawscore))) |> 
+  distinct(subject_id, lab_age) %>%
   ungroup() |> 
   mutate(age = lab_age,
          lab_age_units = "months",
@@ -319,7 +323,8 @@ administrations_table <- d_tidy %>% distinct(subject_id) %>%
          administration_id = seq(0, length(subject_id) - 1),
          dataset_id = dataset_id,
          monitor_size_x = NA,
-         monitor_size_y = NA)
+         monitor_size_y = NA,
+         administration_aux_data = NA)
 
 administrations_table %>% write_csv(here(write_path, "administrations.csv"))
 

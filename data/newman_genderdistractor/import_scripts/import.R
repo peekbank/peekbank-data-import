@@ -21,7 +21,9 @@ point_of_disambiguation <- start_frames * sample_rate_ms
 read_path <- here("data/newman_genderdistractor/raw_data")
 write_path <- here("data/newman_genderdistractor/processed_data")
 
-osf_token <- read_lines(here("osf_token.txt"))
+dir.create(write_path, showWarnings = FALSE)
+
+#osf_token <- read_lines(here("osf_token.txt"))
 if(length(list.files(read_path)) == 0) {
   get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
 }
@@ -310,6 +312,8 @@ subjects_table <- d_tidy %>%
   mutate(subject_id = row_number()-1,
          subject_aux_data = NA)
 
+d_tidy %>% distinct(mcdi)
+
 d_tidy <- d_tidy %>% left_join(subjects_table) %>% 
   select(-c(order, id_number,race_ethnicity, 
             due_date, 
@@ -317,10 +321,7 @@ d_tidy <- d_tidy %>% left_join(subjects_table) %>%
 
 subjects_table %>% write_csv(here(write_path, "subjects.csv"))
 
-administrations_aux_data <- d_tidy |> 
-  distinct(subject_id, eng_lds_rawscore) |> 
-  rowwise(-c(eng_lds_rawscore)) %>%
-  summarize(administration_aux_data= toJSON(across(eng_lds_rawscore)))
+
 
 administrations_table <- d_tidy %>% 
   distinct(subject_id, lab_age) %>%
@@ -333,7 +334,7 @@ administrations_table <- d_tidy %>%
          dataset_id = dataset_id,
          monitor_size_x = NA,
          monitor_size_y = NA) %>%
-  left_join(administrations_aux_data) |> 
+  mutate(administration_aux_data = NA) |> 
   select(administration_id, dataset_id, subject_id, age, 
          lab_age, lab_age_units, monitor_size_x, 
          monitor_size_y, sample_rate, tracker, coding_method, administration_aux_data)

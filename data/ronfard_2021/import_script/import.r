@@ -14,6 +14,8 @@ dataset_name <- "ronfard_2021"
 read_path <- here("data",dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
 
+dir.create(write_path, showWarnings = FALSE)
+
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
 subject_table_filename <- "subjects.csv"
@@ -24,7 +26,7 @@ trials_table_filename <- "trials.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 #peekds::get_raw_data(dataset_name, path = read_path)
 
 d_raw <- read.csv(fs::path(read_path,"LWLdata_Ronfard_Wei_Rowe_04272021.csv"))
@@ -99,19 +101,11 @@ d_subject_ids <- d_tidy %>%
 d_tidy <- d_tidy %>%
   left_join(d_subject_ids, by = "id")
 
-administration_aux_data <- d_tidy |> 
-  distinct(subject_id, cditotal, cdipct, luitotal, luipct) |> 
-  rename(eng_wsshort_prod_rawscore = cditotal, eng_wsshort_prod_percentile = cdipct, 
-         eng_lui_rawscore = luitotal, eng_lui_percentile = luipct) |> 
-  rowwise(subject_id) %>%
-  summarize(administration_aux_data= toJSON(across(c(eng_wsshort_prod_rawscore, eng_wsshort_prod_percentile, 
-                                                     eng_lui_rawscore, eng_lui_percentile))))
-
 d_administration_ids <- d_tidy %>%
   distinct(subject_id, id, age_months) %>%
   arrange(subject_id, id, age_months) %>%
   mutate(administration_id = seq(0, length(.$age_months) - 1)) |> 
-    left_join(administration_aux_data)
+    mutate(administration_aux_data=NA)
 
 d_trial_type_ids <- d_tidy %>%
   distinct(target_id, distractor_id, target_side, full_phrase) %>% 
@@ -159,11 +153,43 @@ aoi_timepoints <- d_fin %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
   write_csv(fs::path(write_path, aoi_table_filename))
 
+
 ##### SUBJECTS TABLE ####
+
+
+subject_aux_data <- d_tidy %>%
+  distinct(subject_id, cditotal, cdipct, luitotal, age_months) %>%  
+  mutate(subject_aux_data = pmap(list(cditotal, luitotal, cdipct, age_months), function(cditotal, luitotal, cdipct, age_months) {
+    list(
+      cdi_responses = list(
+        list(
+          instrument_type = "wsshort",
+          measure = "comp",
+          rawscore = cditotal,
+          percentile = cdipct,
+          age = age_months, # same date as eyetracking according to paper
+          language = "English (American)"
+        )
+      ),
+      lang_measures = list(
+        list(
+          instrument_type = "LUI",
+          rawscore = luitotal,
+          age = age_months, # same date as eyetracking according to paper
+          language = "English (American)"
+        )
+      )
+    )
+  })) %>%  
+  mutate(subject_aux_data = map(subject_aux_data, toJSON)) %>%  
+  select(subject_id, subject_aux_data)
+
 subjects <- d_fin %>% 
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(
-    native_language="eng", subject_aux_data=NA) %>%   
+    native_language="eng") %>%
+  left_join(subject_aux_data, by = join_by(subject_id)) %>%
+  mutate(subject_aux_data = as.character(subject_aux_data)) %>% 
   write_csv(fs::path(write_path, subject_table_filename))
 
 

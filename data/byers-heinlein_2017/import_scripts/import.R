@@ -160,21 +160,39 @@ d_tidy <- raw %>%
   filter(t >= 0#, # a few -13.. ## alternative would be to use the rezeroing process
          )
 
-aux_data <- subj_info %>% select(lab_subject_id = id,
-                                 eng_exposure = per_eng,
-                                 eng_ws_prod_rawscore = cdi_prod_eng,
-                                 fre_exposure = per_fr,
-                                 fr_ws_prod_rawscore = cdi_prod_fr) %>% 
-  rowwise(lab_subject_id) %>%
-  summarize(subject_aux_data= toJSON(across(ends_with("exposure"))),
-            administration_aux_data = toJSON(across(ends_with("rawscore"))))
+lang_exposures <- subj_info |> 
+  select(lab_subject_id = id,
+         `English (American)` = per_eng,
+         `French (Quebecois)` = per_fr) |> 
+  pivot_longer(cols = c(`English (American)`, `French (Quebecois)`),
+               names_to = "language",
+               values_to = "exposure") |> 
+  nest(lang_exposures = -lab_subject_id)
+
+cdi_responses <- subj_info |> 
+  select(lab_subject_id = id,
+         age = months,
+         `English (American)` = cdi_prod_eng,
+         `French (Quebecois)` = cdi_prod_fr) |> 
+  pivot_longer(cols = -c(lab_subject_id, age),
+               names_to = "language",
+               values_to = "rawscore") |> 
+  mutate(instrument_type = "ws",
+         measure = "prod") |> 
+  select(lab_subject_id, instrument_type, measure, rawscore, age, language) |> 
+  nest(cdi_responses = -lab_subject_id)
+
+subj_aux_data <- lang_exposures |> 
+  left_join(cdi_responses, by = "lab_subject_id") |> 
+  nest(subject_aux_data = -lab_subject_id) |> 
+  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
 
 # subjects table
 subjects <- d_tidy %>%
   distinct(lab_subject_id, sex) %>%
   mutate(native_language = "eng, fre") %>% 
   mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
-  left_join(aux_data %>% select(lab_subject_id,subject_aux_data)) %>%
+  left_join(subj_aux_data, by = "lab_subject_id") %>%
   write_csv(fs::path(output_path, "subjects.csv"))
 #join subject_id back in with d_tidy
 d_tidy <- d_tidy %>%
@@ -183,7 +201,7 @@ d_tidy <- d_tidy %>%
 
 
 # administrations table
-administrations <-d_tidy %>%
+administrations <- d_tidy %>%
   distinct(subject_id, 
            age,
            lab_age,
@@ -194,10 +212,8 @@ administrations <-d_tidy %>%
          tracker = tracker_name,
          monitor_size_x = monitor_size_x,
          monitor_size_y = monitor_size_y,
-         sample_rate = sample_rate) %>% 
-  left_join(aux_data %>% 
-              left_join(subjects %>% select(lab_subject_id, subject_id)) %>%
-              select(subject_id, administration_aux_data)) %>%
+         sample_rate = sample_rate,
+         administration_aux_data = NA) %>% 
   write_csv(fs::path(output_path, "administrations.csv"))
 
 #add administrations back in to keep ids consistent

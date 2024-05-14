@@ -51,6 +51,7 @@ aoi_path <- fs::path(project_root,"data", dataset_name, "raw_data","test_aois")
 
 #output path
 output_path <- fs::path(project_root,"data",dataset_name,"processed_data")
+dir.create(output_path, showWarnings = FALSE)
 
 file_ext = '.txt'
 
@@ -104,8 +105,10 @@ timepoint.data <- lapply(all_file_paths,process_smi_eyetracking_file)%>%
   bind_rows() %>%
   mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
   mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1) %>%
-  mutate(trial_order = trial_type_id + 1,
-         trial_id = trial_type_id)
+  mutate(trial_order = trial_type_id + 1) %>% 
+  group_by(subject_id, trial_type_id) %>% 
+  mutate(trial_id = cur_group_id() - 1) %>% 
+  ungroup()
 
 ##extract unique participant ids from eyetracking data (in order to filter participant demographic file)
 participant_id_table <- timepoint.data %>%

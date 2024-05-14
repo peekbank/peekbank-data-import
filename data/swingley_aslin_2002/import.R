@@ -15,6 +15,8 @@ dataset_name <- "swingley_aslin_2002"
 read_path <- here("data",dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
 
+dir.create(write_path, showWarnings = FALSE)
+
 # processed data filenames
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
@@ -25,7 +27,7 @@ trial_types_table_filename <- "trial_types.csv"
 trials_table_filename <- "trials.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 
 # download datata from osf
 #peekds::get_raw_data(dataset_name, path = read_path)
@@ -222,18 +224,23 @@ aoi_timepoints <- d_tidy_final %>%
   write_csv(fs::path(write_path, aoi_table_filename))
 
 ##### SUBJECTS TABLE ####
+
 subjects <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex,native_language) %>% 
-  mutate(subject_aux_data = NA) %>%
+  left_join(subj_raw %>% select(subj, cdi.und, cdi.say, days), by = c("lab_subject_id" = "subj")) %>%
+  mutate(subject_aux_data = pmap(
+    list(cdi.und, cdi.say, days),
+    function(comp, prod, days){
+      toJSON(list(cdi_responses = list(
+      list(rawscore = unbox(comp), age = unbox(days/30.5), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg")),
+      list(rawscore = unbox(prod), age = unbox(days/30.5), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wg"))
+      )))
+      }
+    )) %>% 
+  select(-c(cdi.say, cdi.und, days)) %>%
+  mutate(subject_aux_data = as.character(subject_aux_data)) %>% 
   write_csv(fs::path(write_path, subject_table_filename))
 
-admin_aux <- subj_raw %>% 
-  left_join(subjects, by = c("subj" = "lab_subject_id")) %>%
-  select(subject_id,
-         eng_wg_comp_rawscore = cdi.und,
-         eng_wg_prod_rawscore = cdi.say) %>% 
-  rowwise(subject_id) %>% 
-  summarize(administration_aux_data= toJSON(across()))
 
 ##### ADMINISTRATIONS TABLE ####
 d_tidy_final %>%
@@ -248,7 +255,7 @@ d_tidy_final %>%
            sample_rate,
            tracker,
            coding_method) %>%
-  left_join(admin_aux) %>%
+  mutate(administration_aux_data = NA) %>%
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
