@@ -33,9 +33,10 @@ trials_table_filename <- "trials.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
+dir.create(here(write_path), showWarnings=FALSE)
 
 #read data
-load("/Users/shihuanhuan/Desktop/peekbank-data-import/data/borovsky_2019/Clean_Dataset.Rdata")
+load(here(read_path, "Clean_Dataset.Rdata"))
 
 #write.csv(acc1700_window_clean_wSubjExcl, "borovsky_2019.csv")
 
@@ -180,4 +181,4 @@ write_csv(datasets, fs::path(write_path, "datasets.csv"))
 validate_for_db_import(dir_csv = write_path)
 
 ################### OSF integration
-put_processed_data(osf_token, "borovsky_2019", write_path, osf_address="pr6wu")
+#put_processed_data(osf_token, "borovsky_2019", write_path, osf_address="pr6wu")
