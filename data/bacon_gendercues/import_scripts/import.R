@@ -190,7 +190,7 @@ d_tidy_final %>%
     list( cdi_says, lab_age),
     function(prod, age){
       toJSON(list(cdi_responses = list(
-        list(rawscore = unbox(prod), age = unbox(age), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wsshortprod"))
+        list(rawscore = unbox(prod), age = unbox(age), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wsshort"))
       )))
     }
   )) %>%

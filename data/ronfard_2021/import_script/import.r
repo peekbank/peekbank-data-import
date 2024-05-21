@@ -163,7 +163,7 @@ subject_aux_data <- d_tidy %>%
     list(
       cdi_responses = list(
         list(
-          instrument_type = "wsshortprod",
+          instrument_type = "wsshort",
           measure = "prod",
           rawscore = cditotal,
           percentile = cdipct,

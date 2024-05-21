@@ -19,6 +19,7 @@ DATASET_NAME <- "moore_bergelson_2022_verb"
 data_path <- glue("data/{DATASET_NAME}/raw_data")
 output_path <- glue("data/{DATASET_NAME}/processed_data")
 
+dir.create(output_path, showWarnings = FALSE)
 
 DATASET_ID <- 0  # single dataset, zero-indexed
 NATIVE_LANGUAGE <- "eng"  # same for every kid
@@ -53,7 +54,7 @@ SINGLE_AOI_REGION_SET_ID <- 0
 ################## DATASET SPECIFIC READ IN CODE ##################
 
 fixations_binned <-
-  here(data_path, "data/eyetracking/vna_test_taglowdata.Rds") %>%
+  here(data_path, "vna_test_taglowdata.Rds") %>%
   readRDS %>%
   rename(lab_subject_id = SubjectNumber,
          target_image_path = TargetImage,
@@ -71,7 +72,7 @@ fixations_binned <-
 
 demographics <-
   read_csv(
-    here(data_path, "data", "demographics", "vna_age_gender_deid.csv"),
+    here(data_path, "vna_age_gender_deid.csv"),
     col_types = cols(
       name = col_character(),
       sex = col_character(),
@@ -87,7 +88,7 @@ demographics <-
 
 cdi_data <- 
   read_csv(
-    here(data_path, "data", "cdi", "vna_cdi_totals_both_ages.csv"),
+    here(data_path, "vna_cdi_totals_both_ages.csv"),
     col_types = cols(
       SubjectNumber = col_character(),
       age = col_integer(),
@@ -102,7 +103,7 @@ cdi_data <-
   )
 
 excluded_participants <- read_csv(
-  here(data_path, "data/eyetracking/vna_excluded_participants.csv"),
+  here(data_path, "vna_excluded_participants.csv"),
   col_types = cols(
     SubjectNumber = col_character(),
     good_trials = col_integer(),

@@ -111,9 +111,9 @@ administrations <- demo %>%
   # should be included, it should automatically get the correct eyetracker
   inner_join(data %>% distinct(subject_id, tracker), by=join_by(subject_id)) %>%
   mutate(tracker = case_when(tracker == 'tobii' ~ "Tobii X2-60",
-                             tracker == 'lwl' ~ "manual",
+                             tracker == 'lwl' ~ "video_camera",
                              TRUE ~ "ERROR"),
-         coding_method = case_when(tracker == 'Tobii X2-60' ~ "eyetracking",
+         coding_method = case_when(tracker == 'Tobii X2-60' ~ "preprocessed eyetracking",
                                    tracker == 'lwl' ~ "manual gaze coding",
                                    TRUE ~ "ERROR"))
 
