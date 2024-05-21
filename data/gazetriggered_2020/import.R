@@ -92,23 +92,23 @@ translation_vector <- c(
 
 ### 3. STIMULI TABLE
 stimuli <- fixations %>%
-  select(left_image, right_image, target) %>%
-  distinct() %>%
+  select(left_image, right_image) %>%
   pivot_longer(
     cols = c(left_image, right_image),
     names_to = "side",
     values_to = "image"
   ) %>%
+  distinct() %>%
   select(-side) %>%
-  mutate(original_stimulus_label = target,
-         english_stimulus_label = translation_vector[target],
+  mutate(original_stimulus_label = image,
+         english_stimulus_label = translation_vector[image],
          stimulus_novelty = "familiar",
          lab_stimulus_id = NA,
          stimulus_image_path = image,
          image_description = image,
          image_description_source = 'image path',
          dataset_id = 0) %>%
-  select(-c(target, image)) %>%
+  select(-c(image)) %>%
   distinct() %>%
   mutate(stimulus_id = 0:(n() - 1),
          stimulus_aux_data = NA)
@@ -235,16 +235,15 @@ trial_types <- d %>%
   select(target, target_image, target_side, distractor_image, condition, point_of_disambiguation, lab_trial_id, trial_type_id) %>%
   distinct() %>%
   mutate(full_phrase = target,
-         original_stimulus_label = target, 
          condition = condition,
          full_phrase_language = "dut",
          aoi_region_set_id = 0,
          dataset_id = 0,
          vanilla_trial = TRUE,
          trial_type_aux_data = NA) %>%
-  left_join(stimuli, by = c("distractor_image" = "stimulus_image_path", "original_stimulus_label" = "original_stimulus_label")) %>%
+  left_join(stimuli, by = c("distractor_image" = "stimulus_image_path")) %>%
   rename(distractor_id = stimulus_id) %>%
-  left_join(stimuli, by = c("target_image" = "stimulus_image_path", "original_stimulus_label" = "original_stimulus_label")) %>%
+  left_join(stimuli, by = c("target_image" = "stimulus_image_path")) %>%
   rename(target_id = stimulus_id) %>% 
   select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
          target_side, lab_trial_id, condition, vanilla_trial, trial_type_aux_data, 
