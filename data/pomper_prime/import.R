@@ -129,9 +129,9 @@ administrations <- demo %>%
          age = `Age (not adjusted)`,
          lab_age = `Age (not adjusted)`,
          lab_age_units = "months",
-         monitor_size_x = NA, # TODO Open: Ask Martin
-         monitor_size_y = NA, # TODO Open: Ask Martin
-         sample_rate = NA, # TODO Open: Ask Martin
+         monitor_size_x = 1920,
+         monitor_size_y = 1080,
+         sample_rate = 30,
          administration_aux_data = NA) %>%
   select(administration_id, dataset_id, subject_id, age,
          lab_age, lab_age_units, monitor_size_x, monitor_size_y,
@@ -140,10 +140,10 @@ administrations <- demo %>%
   # the fam trials are all coded with tobii, but if we decide that more trials
   # should be included, it should automatically get the correct eyetracker
   inner_join(data %>% distinct(subject_id, tracker), by=join_by(subject_id)) %>%
-  mutate(tracker = case_when(tracker == 'tobii' ~ "tobii", # TODO Open: Ask Martin: what specific tracker
+  mutate(tracker = case_when(tracker == 'tobii' ~ "Tobii X2-60",
                              tracker == 'lwl' ~ "manual",
                              TRUE ~ "ERROR"),
-         coding_method = case_when(tracker == 'tobii' ~ "eyetracking",
+         coding_method = case_when(tracker == 'Tobii X2-60' ~ "eyetracking",
                                    tracker == 'lwl' ~ "manual gaze coding",
                                    TRUE ~ "ERROR"))
 
