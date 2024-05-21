@@ -6,6 +6,7 @@ library(tidyverse)
 library(readxl)
 library(peekds)
 library(osfr)
+library(jsonlite)
 
 ## constants
 sampling_rate_hz <- 30
@@ -186,15 +187,14 @@ d_tidy_final %>%
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language="eng") %>%
   mutate(subject_aux_data = pmap(
-    list(cdi_comprehends, cdi_says, lab_age),
-    function(comp, prod, age){
+    list( cdi_says, lab_age),
+    function(prod, age){
       toJSON(list(cdi_responses = list(
-        list(rawscore = unbox(comp), age = unbox(age), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg")),
-        list(rawscore = unbox(prod), age = unbox(age), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wg"))
+        list(rawscore = unbox(prod), age = unbox(age), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wsshortprod"))
       )))
     }
   )) %>%
-  select(-c(cdi_says, cdi_comprehends, lab_age)) %>%
+  select(-c(cdi_says, lab_age)) %>%
   mutate(subject_aux_data = as.character(subject_aux_data)) %>% 
   write_csv(fs::path(write_path, subject_table_filename))
 
@@ -243,7 +243,7 @@ trial_types <- d_tidy_final %>%
            target_id,
            distractor_id) %>%
   mutate(full_phrase_language = "eng", trial_type_aux_data = NA,
-         vanilla_trial=TRUE) %>% # according to the paper, the speaker changes between trials as part of the experimental condition - should we put false here?
+         vanilla_trial=TRUE) %>% # according to the paper, the speaker changes between trials as part of the experimental condition - but not within conditions, so we can put vanilla
   write_csv(fs::path(write_path, trial_types_table_filename))
 
 ##### DATASETS TABLE ####
