@@ -163,8 +163,8 @@ subject_aux_data <- d_tidy %>%
     list(
       cdi_responses = list(
         list(
-          instrument_type = "wsshort",
-          measure = "comp",
+          instrument_type = "wsshortprod",
+          measure = "prod",
           rawscore = cditotal,
           percentile = cdipct,
           age = age_months, # same date as eyetracking according to paper
