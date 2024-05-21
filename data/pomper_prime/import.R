@@ -1,5 +1,4 @@
 # import script for
-# TODO citation - what did Ron Pomper / Jenny Saffran write?
 
 library(tidyverse)
 library(here)
@@ -19,8 +18,8 @@ dataset <- tibble(
   lab_dataset_id = 0,
   dataset_name = dataset_name,
   name = dataset_name,
-  shortcite = "TODO", # TODO citation
-  cite = "", # TODO citation
+  shortcite = "",
+  cite = "",
   dataset_aux_data = NA
 )
 
@@ -42,7 +41,7 @@ subjects <- demo %>%
          native_language = 'eng' # according to Martin, all monoling
          ) 
 
-### 3. STIMULI TABLE
+### 2.5 Data wrangling
 
 data_raw <- read.delim(here(data_path, "Prime_CombinedData_Interpolated_n98.txt")) 
 
@@ -89,38 +88,9 @@ data <- data_raw %>%
   left_join(
     exclusion_data,
     by="lab_subject_id"
-  ) %>% left_join(
-    administrations %>%
-      select(subject_id, administration_id),
-    by = "subject_id"
-  ) 
+  )
 
-
-
-stimuli <- data %>%
-  distinct(distractor, target) %>%
-  mutate(label = target) %>% 
-  pivot_longer(
-    cols = c(distractor, target),
-    names_to = "kind",
-    values_to = "image"
-  ) %>%
-  select(-kind) %>%
-  mutate(original_stimulus_label = label,
-         english_stimulus_label = label,
-         stimulus_novelty = "familiar",
-         lab_stimulus_id = NA,
-         stimulus_image_path = image,
-         image_description = image,
-         image_description_source = 'image path',
-         dataset_id = 0) %>%
-  select(-c(label, image)) %>%
-  distinct() %>%
-  mutate(stimulus_id = 0:(n() - 1),
-         stimulus_aux_data = NA)
-
-   
-### 4. Administrations Table
+### 3. Administrations Table
 
 administrations <- demo %>%
   mutate(administration_id = 0:(n() - 1),
@@ -147,6 +117,36 @@ administrations <- demo %>%
                                    tracker == 'lwl' ~ "manual gaze coding",
                                    TRUE ~ "ERROR"))
 
+# add administration id to the data
+data <- data %>% left_join(
+  administrations %>%
+    select(subject_id, administration_id),
+  by = "subject_id"
+) 
+### 4. STIMULI TABLE
+
+stimuli <- data %>%
+  distinct(distractor, target) %>%
+  pivot_longer(
+    cols = c(distractor, target),
+    names_to = "kind",
+    values_to = "image"
+  ) %>%
+  select(-kind) %>%
+  mutate(original_stimulus_label = image,
+         english_stimulus_label = image,
+         stimulus_novelty = "familiar",
+         lab_stimulus_id = NA,
+         stimulus_image_path = image,
+         image_description = image,
+         image_description_source = 'image path',
+         dataset_id = 0) %>%
+  select(-c(image)) %>%
+  distinct() %>%
+  mutate(stimulus_id = 0:(n() - 1),
+         stimulus_aux_data = NA)
+
+
 ### 5. Trial Types Table
 
 trial_types <- data %>%
@@ -156,16 +156,15 @@ trial_types <- data %>%
            target_side == "l" ~ "left",
            target_side == "r" ~ "right",
            TRUE ~ "ERROR"),
-         original_stimulus_label = target, 
          condition = condition,
          full_phrase_language = "eng",
          aoi_region_set_id = 0,
          dataset_id = 0,
          vanilla_trial = TRUE,
          trial_type_aux_data = NA) %>%
-  left_join(stimuli, by = c("distractor" = "stimulus_image_path", "original_stimulus_label" = "original_stimulus_label")) %>%
+  left_join(stimuli, by = c("distractor" = "stimulus_image_path")) %>%
   rename(distractor_id = stimulus_id) %>%
-  left_join(stimuli, by = c("target" = "stimulus_image_path", "original_stimulus_label" = "original_stimulus_label")) %>%
+  left_join(stimuli, by = c("target" = "stimulus_image_path")) %>%
   rename(target_id = stimulus_id) %>% 
   select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
          target_side, lab_trial_id, condition, vanilla_trial, trial_type_aux_data, 
@@ -180,27 +179,6 @@ trials <- data %>%
   mutate(
     trial_aux_data = NA
   )
-
-### 7. 8. no aoi regionset and no xy timepoints in the data
-
-xy_timepoints <- tibble(
-  xy_timepoint_id = numeric(),
-  x = numeric(),
-  y = numeric(),
-  t_norm = numeric(),
-  administration_id = numeric(),
-  trial_id = numeric()
-)
-
-aoi_region_sets <- tibble(aoi_region_set_id = 0,
-                          l_x_max = NA,
-                          l_x_min = NA,
-                          l_y_max = NA,
-                          l_y_min = NA,
-                          r_x_max = NA,
-                          r_x_min = NA,
-                          r_y_max = NA,
-                          r_y_min = NA)
 
 ### 9. AOI TIMEPOINTS TABLE
 
@@ -233,8 +211,8 @@ write_csv(stimuli, file = here(output_path,  "stimuli.csv"))
 write_csv(administrations, file = here(output_path, "administrations.csv"))
 write_csv(trial_types, file = here(output_path, "trial_types.csv"))
 write_csv(trials, file = here(output_path, "trials.csv"))
-write_csv(aoi_region_sets, file = here(output_path, "aoi_region_sets.csv"))
-write_csv(xy_timepoints, file = here(output_path, "xy_timepoints.csv"))
+#write_csv(aoi_region_sets, file = here(output_path, "aoi_region_sets.csv"))
+#write_csv(xy_timepoints, file = here(output_path, "xy_timepoints.csv"))
 write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
 
 # run validator
