@@ -35,12 +35,22 @@ xy_table_filename <-  "xy_timepoints.csv"
 
 dir.create(here(write_path), showWarnings=FALSE)
 
+# download datata from osf
+if (!file.exists(read_path) || length(list.files(read_path)) == 0) {
+  dir.create(read_path, showWarnings = FALSE)
+  peekds::get_raw_data(dataset_name, path = read_path)
+}
+
 #read data
 load(here(read_path, "Clean_Dataset.Rdata"))
 
 #write.csv(acc1700_window_clean_wSubjExcl, "borovsky_2019.csv")
 
 d_tidy <- acc1700_window_clean_wSubjExcl
+
+cdi_raw <- acc1700_window_clean_wSubjExcl %>%
+  select(lab_subject_id = partID, age_cdi = AgeInMonths, cdi_perc = CDIWS18_Percentile, cdi_prod = CDIWS18_words_produced) %>%
+  distinct()
 
 #data cleaning
 d_tidy <- d_tidy %>%
@@ -79,9 +89,19 @@ datasets <- tibble(
 subjects <- d_tidy %>%
   distinct(lab_subject_id, age, sex) %>%
   mutate(sex = tolower(sex),
-         subject_aux_data = NA,
          subject_id = row_number() - 1,
-         native_language = "eng")
+         native_language = "eng") %>%
+  left_join(cdi_raw) %>% 
+  mutate(subject_aux_data = pmap(
+    list(age_cdi, cdi_prod, cdi_perc),
+    function(age_cdi, cdi_prod, cdi_perc){
+      toJSON(list(cdi_responses = list(
+        list(rawscore = unbox(cdi_prod), percentile=unbox(cdi_perc), age = unbox(age_cdi), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("ws"))
+      )))
+    }
+  )) %>% select(-age_cdi, -cdi_prod, -cdi_perc)
+
+
 d_tidy <- d_tidy %>% left_join(subjects,by = "lab_subject_id")
 
 #### (3) stimuli ####
@@ -130,14 +150,17 @@ d_tidy <- d_tidy %>% left_join(trial_types)
 #### (5) trials ##############
 ##get trial IDs for the trials table
 trials <- d_tidy %>%
-  distinct(condition, trial_order, trial_type_id)%>%
-  mutate(excluded = FALSE)%>%
-  mutate(exclusion_reason = NA)%>%
-  mutate(trial_aux_data = NA)%>%
-  mutate(trial_id = seq(0, length(.$trial_type_id) - 1))
+  distinct(condition, trial_order, trial_type_id, lab_subject_id) %>% #only one administration per subject  
+  mutate(
+    excluded = FALSE,
+    exclusion_reason = NA,
+    trial_aux_data = NA,
+    trial_id = seq(0, length(.$trial_type_id) - 1)
+    )
 # join in trial ID  
 d_tidy <- d_tidy %>% left_join(trials) 
 
+trials <- trials %>% select(-lab_subject_id)
 
 #### (6) administrations ########
 administrations <- subjects %>%
@@ -165,9 +188,9 @@ aoi_timepoints<- d_tidy %>%
   select (timestamp,administration_id, trial_id,aoi)%>%
   rename(t_norm = timestamp)%>%
   resample_times(table_type = "aoi_timepoints") 
-View(aoi_timepoints)
-d_tidy <- aoi_timepoints %>% left_join(trials, by = "trial_id") %>%
-  left_join(administrations) %>% left_join(subjects)
+
+#d_tidy <- aoi_timepoints %>% left_join(trials, by = "trial_id") %>%
+#  left_join(administrations) %>% left_join(subjects)
 
 write_csv(aoi_timepoints, fs::path(write_path, "aoi_timepoints.csv"))
 write_csv(subjects, fs::path(write_path, "subjects.csv"))
