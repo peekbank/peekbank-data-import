@@ -10,7 +10,7 @@ library(osfr)
 ## constants
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
-dataset_name = "potter_canine"
+dataset_name <- "potter_canine"
 read_path <- here("data" ,dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
 read_orders_path <- here("data",dataset_name,"raw_data","orders")
@@ -34,83 +34,25 @@ remove_repeat_headers <- function(d, idx_var) {
 }
 
 # download datata from osf
-#peekds::get_raw_data(dataset_name, path = read_path)
+if (!file.exists(read_path) || length(list.files(read_path)) == 0) {
+  dir.create(read_path, showWarnings = FALSE)
+  peekds::get_raw_data(dataset_name, path = read_path)
+}
 
-### Canine 1 preprocessing
-# To-do: could unify this a bit, but separating the process here to avoid rewriting old code and avoid tweaking incompatibilities between the
-#new Canine dataset and the old one
 
-# read raw icoder files
-d_raw_1 <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
-                    delim = "\t") %>%
+d_raw_2 <- read_delim(fs::path(read_path, "canine2_rawLookingTimeData.n34.txt"),
+                      delim = "\t") %>%
   mutate(administration_num = 0) %>%
   relocate(administration_num, .after = `Sub Num`)
 
-# read in order files
-# These files contain additional information about the target labels and carrier phrases
-trial_order_paths <- list.files(read_orders_path, full.names = TRUE, pattern = ".txt")
-trial_orders <- map_df(trial_order_paths, read_delim, delim = "\t")
-
-#read in stimulus lookup table
-stimulus_lookup_table <- read_csv(fs::path(read_path,"canine_stimulus_lookup_table.csv"))
-
-# remove any column with all NAs (these are columns
-# where there were variable names but no eye tracking data)
-d_filtered_1 <- d_raw_1 %>%
-  select_if(~sum(!is.na(.)) > 0)
-
-# Create clean column headers --------------------------------------------------
-d_processed_1 <-  d_filtered_1 %>%
-  remove_repeat_headers(idx_var = "Months") %>%
-  clean_names()
-
-#rename order and trial number column names for trial_orders, then join with d_processed
-trial_orders <- trial_orders %>%
-  rename(order=Name, tr_num=`trial number`) %>%
-  clean_names() %>%
-  select(order,tr_num,sound_stimulus) # select just the columns we need - really only need sound_stimulus, everything else important already in main icoder file
-
-d_processed_1 <- d_processed_1 %>%
-  mutate(tr_num=as.numeric(as.character(tr_num))) %>% #make trial number numeric
-  left_join(trial_orders,by=c("order","tr_num")) %>%
-  relocate(c(order, tr_num,sound_stimulus),.after = `sub_num`)
-
-# Relabel time bins --------------------------------------------------
-old_names_1 <- colnames(d_processed_1)
-metadata_names_1 <- old_names_1[!str_detect(old_names_1,"x\\d|f\\d")]
-pre_dis_names_1 <- old_names_1[str_detect(old_names_1, "x\\d")]
-post_dis_names_1  <- old_names_1[str_detect(old_names_1, "f\\d")]
-
-pre_dis_names_clean_1 <- round(seq(from = length(pre_dis_names_1) * sampling_rate_ms,
-                           to = sampling_rate_ms,
-                           by = -sampling_rate_ms) * -1,0)
-
-post_dis_names_clean_1 <-  post_dis_names_1 %>% str_remove("f")
-
-colnames(d_processed_1) <- c(metadata_names_1, pre_dis_names_clean_1, post_dis_names_clean_1)
-
-### truncate columns at 3600, since trials are almost never coded later than this timepoint
-## TO DO: check in about this decision
-post_dis_names_clean_cols_to_remove_1 <- post_dis_names_clean_1[110:length(post_dis_names_clean_1)]
-#remove
-d_processed_1 <- d_processed_1 %>%
-  select(-all_of(post_dis_names_clean_cols_to_remove_1))
-
-# Convert to long format --------------------------------------------------
-
-# get idx of first time series
-first_t_idx_1 <- length(metadata_names_1) + 1            
-last_t_idx_1 <- colnames(d_processed_1) %>% length()
-d_tidy_1 <- d_processed_1 %>%
-  pivot_longer(first_t_idx_1:last_t_idx_1,names_to = "t", values_to = "aoi") 
-
-##Canine2 preprocessing
+##Preprocessing
 # read raw icoder files
 d_raw_1 <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
                       delim = "\t") %>%
   mutate(administration_num = 0) %>%
   relocate(administration_num, .after = `Sub Num`)
 
+d_raw <- bind_rows(d_raw_1, d_raw_2)
 # read in order files
 # These files contain additional information about the target labels and carrier phrases
 trial_order_paths <- list.files(read_orders_path, full.names = TRUE, pattern = ".txt")
@@ -121,7 +63,7 @@ stimulus_lookup_table <- read_csv(fs::path(read_path,"canine_stimulus_lookup_tab
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
-d_filtered_1 <- d_raw_1 %>%
+d_filtered_1 <- d_raw %>%
   select_if(~sum(!is.na(.)) > 0)
 
 # Create clean column headers --------------------------------------------------
@@ -295,19 +237,25 @@ d_tidy_final %>%
 
 ##### SUBJECTS TABLE ####
 
-# TODO: The existing cdi data does not match the ids of the looking data
-cdi_raw <- read.csv(here(read_path, "canine2_subjectMeans.csv")) 
 
-cdi_data <- cdi_raw %>% 
-  filter(!is.na(MCDI)) %>% 
-  select(lab_subject_id = Sub.Num, ageMonths, MCDI) %>%
-  mutate(MCDI = as.numeric(MCDI)) %>% 
+cdi_raw1 <- read.csv(here(read_path, "Canine.Means.367-2000.n36.csv")) %>%
+  select(lab_subject_id = Sub.Num, cdi = CDIwords) %>% 
+  left_join((d_tidy_final %>%
+               distinct(lab_subject_id, age) %>%
+               mutate(lab_subject_id = as.numeric(lab_subject_id))))
+
+cdi_raw2 <- read.csv(here(read_path, "canine2_subjectMeans.csv"))  %>% 
+  select(lab_subject_id = Sub.Num, cdi = MCDI, age = ageMonths) 
+
+cdi_data <- cdi_raw1 %>% 
+  rbind(cdi_raw2) %>%
+  filter(!is.na(cdi)) %>% 
+  mutate(cdi = as.numeric(cdi)) %>% 
   mutate(subject_aux_data = pmap(
-    list(MCDI, ageMonths),
+    list(cdi, age),
     function(cdi, age){
       toJSON(list(cdi_responses = list(
-        # TODO measure, language and instrument_type are not apparent from the file
-        list(rawscore = unbox(cdi), age = unbox(age), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg"))
+        list(rawscore = unbox(cdi), age = unbox(age), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("ws"))
       )))
     }
   ), lab_subject_id = as.character(lab_subject_id)) %>% 
