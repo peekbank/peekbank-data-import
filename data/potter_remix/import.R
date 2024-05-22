@@ -34,9 +34,11 @@ remove_repeat_headers <- function(d, idx_var) {
 }
 
 
-# download data from osf
-# peekds::get_raw_data(dataset_name, path = read_path)
-
+# download datata from osf
+if (!file.exists(read_path) || length(list.files(read_path)) == 0) {
+  dir.create(read_path, showWarnings = FALSE)
+  peekds::get_raw_data(dataset_name, path = read_path)
+}
 
 # read raw icoder files
 d_raw <- read_delim(fs::path(read_path, "ReMixData1_23_18.txt"),
@@ -293,17 +295,26 @@ aoi_timepoints <- d_tidy_final %>%
 
 ##### SUBJECTS TABLE ####
 
-cdi_raw <- read.csv(here(read_path, "ReMix.n20.csv"))
+cdi_raw <- read.csv(here(read_path, "osf_summarized_data_cdi","SpanishMix.n20.Means.csv"))
+   
 
-cdi_data <- cdi_raw %>% filter(CDI != ".") %>%
-  mutate(CDI = as.numeric(CDI)) %>% 
+cdi_data <- cdi_raw %>%
+  mutate(SpanishCDI = ifelse(Dominant == "Spanish", CDI_Dominant, CDI_NonDominant),
+         EnglishCDI = ifelse(Dominant == "English", CDI_Dominant, CDI_NonDominant)) %>% 
+  select(subNum, ageMonths, SpanishCDI, EnglishCDI) %>%
+  mutate(SpanishCDI = suppressWarnings(as.numeric(SpanishCDI)),
+         EnglishCDI = suppressWarnings(as.numeric(EnglishCDI))) %>%
+  filter(!is.na(EnglishCDI) | !is.na(SpanishCDI)) %>% 
   mutate(subject_aux_data = pmap(
-    list(CDI, ageMonths),
-    function(cdi, age){
-      toJSON(list(cdi_responses = list(
-        # TODO measure, language and instrument_type are not apparent from the file
-        list(rawscore = unbox(cdi), age = unbox(age), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg"))
-      )))
+    list(SpanishCDI, EnglishCDI, ageMonths),
+    function(SpanishCDI, EnglishCDI, age){
+      toJSON(list(cdi_responses = compact(list(
+        if(!is.na(EnglishCDI)) { 
+          list(rawscore = unbox(EnglishCDI), age = unbox(age), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wsshort"))
+          },
+        if (!is.na(SpanishCDI)) {
+          list(rawscore = unbox(SpanishCDI), age = unbox(age), measure=unbox("prod"), language = unbox("Spanish"), instrument_type = unbox("wsshort"))
+          }))))
     }
   ), subNum = as.character(subNum)) %>% 
   select(lab_subject_id = subNum, subject_aux_data) %>% 
