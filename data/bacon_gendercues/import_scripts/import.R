@@ -14,6 +14,7 @@ sampling_rate_ms <- 1000/30
 dataset_name = "bacon_gendercues"
 read_path <- here::here("data" ,dataset_name,"raw_data")
 write_path <- here::here("data",dataset_name, "processed_data","")
+EYETRACKER <- "Tobii"
 
 dir.create(write_path, showWarnings = FALSE)
 
@@ -165,7 +166,7 @@ d_tidy_final <- d_tidy_semifinal %>%
   mutate(
     tracker = case_when(
       source == "lwl" ~ "video_camera",
-      source == "tobii" ~ "Tobii"
+      source == "tobii" ~ EYETRACKER
     )
   ) %>%
   select(-source)
@@ -210,8 +211,13 @@ d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "preprocessed eyetracking", #CHECK THIS!!! also manual gaze coding
-         administration_aux_data = NA) %>% 
+  mutate(
+    coding_method = case_when(
+      # currently broken, as the validator does not allow for varying coding methods between administrations (bug)
+      tracker == "video_camera" ~ "preprocessed eyetracking",#"manual gaze coding",
+      tracker == EYETRACKER ~ "preprocessed eyetracking",
+      TRUE ~ NA),
+    administration_aux_data = NA) %>% 
   write_csv(fs::path(write_path, administrations_table_filename))
 
 ##### STIMULUS TABLE ####
