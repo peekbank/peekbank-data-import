@@ -10,6 +10,8 @@ library(stringr)
 library(peekds)
 library(osfr)
 
+# override of peekds get_raw_data that relies on broken osfr 
+source(here("helper_functions", "osf.R"))
 
 path <- here("data", "gazetriggered_2020")
 data_path <- here(path, "raw_data")
@@ -17,6 +19,7 @@ output_path <- here("data", "gazetriggered_2020", "processed_data")
 dataset_name <- "gazetriggered_2020"
 
 if (length(list.files(data_path)) == 0) {
+  dir.create(data_path, showWarnings = FALSE)
   get_raw_data(
     lab_dataset_id = dataset_name,
     path = data_path,
