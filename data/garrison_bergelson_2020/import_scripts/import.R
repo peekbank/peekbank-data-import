@@ -2,7 +2,6 @@
 # Garrison et al. (2020), Infancy raw data
 # https://doi.org/10.1111/infa.12333
 # Mike Frank 12/8/202
-# Peekbank team updates (last on 4/30/21)
 
 library(tidyverse)
 library(here)
@@ -18,7 +17,8 @@ dataset_name <- "garrison_bergelson_2020"
 dir.create(output_path, showWarnings = FALSE)
 
 #osf_token <- read_lines(here("osf_token.txt"))
-if(length(list.files(data_path)) == 0) {
+if(length(list.files(data_path)) == 0 || !file.exists(data_path)) {
+  dir.create(data_path, showWarnings = FALSE)
   get_raw_data(lab_dataset_id = dataset_name, path = data_path, osf_address = "pr6wu")
 }
 
@@ -113,9 +113,17 @@ administrations <- demographics %>%
   select(administration_id, dataset_id, subject_id, age, lab_age, lab_age_units, 
          monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method, administration_aux_data)
 
-### 5. TRIAL TYPES TABLE 
-trial_info <- d_low %>%
-  select(AudioTarget, TrialType, TargetSide, TargetImage, DistractorImage, TargetOnset, Trial, SubjectNumber) %>%
+### 4.5 TRIAL TABLE PREP
+trial_table <- d_low %>%
+  select(
+    AudioTarget,
+    condition = TrialType,
+    target_side = TargetSide,
+    target_image_full = TargetImage,
+    distractor_image_full = DistractorImage,
+    point_of_disambiguation = TargetOnset,
+    trial_order = Trial,
+    lab_subject_id = SubjectNumber) %>%
   distinct() %>%
   ungroup() %>%
   separate(AudioTarget, into = c("full_phrase", "original_stimulus_label"), 
@@ -124,41 +132,40 @@ trial_info <- d_low %>%
                                  full_phrase == "do" ~ "Do you see the", 
                                  full_phrase == "look" ~ "Look at the",
                                  full_phrase == "where" ~ "Where is the"), 
-         target_image = str_replace(TargetImage, "[0-9]*\\.jpg",""),
-         distractor_image = str_replace(DistractorImage, "[0-9]*\\.jpg",""), 
-         trial_type_id = 0:(n() - 1), 
-         lab_trial_id = NA,
+         target_image = str_replace(target_image_full, "[0-9]*\\.jpg",""),
+         distractor_image = str_replace(distractor_image_full, "[0-9]*\\.jpg",""),
+         ) %>% 
+  group_by(target_image, target_side, distractor_image, condition, point_of_disambiguation) %>%
+  mutate(trial_type_id = cur_group_id() - 1) %>%
+  ungroup()
+
+### 5. TRIAL TYPES TABLE 
+trial_types <- trial_table %>%
+  mutate(target_side = ifelse(target_side == "L", "left", "right")) %>%
+  left_join(stimuli %>%  # join in target IDs
+              select(stimulus_id, lab_stimulus_id) %>% 
+              rename(target_image_full = lab_stimulus_id)) %>%
+  rename(target_id = stimulus_id) %>%
+  left_join(stimuli %>% # join in distractor IDs
+              select(stimulus_id, lab_stimulus_id) %>% 
+              rename(distractor_image_full = lab_stimulus_id)) %>%
+  rename(distractor_id = stimulus_id) |> 
+  select(trial_type_id, full_phrase, point_of_disambiguation, 
+         target_side, condition, distractor_id, target_id) %>% 
+  mutate(lab_trial_id = NA,
          full_phrase_language = "eng", 
          aoi_region_set_id = 0, 
          dataset_id = 0,
          vanilla_trial = TRUE,
          trial_type_aux_data = NA)
 
-# Trial types is very long because the onset is very variable
-trial_types <- trial_info %>%
-  rename(point_of_disambiguation = TargetOnset, 
-         target_side = TargetSide, 
-         condition = TrialType) %>%
-  mutate(target_side = ifelse(target_side == "L", "left", "right")) %>%
-  left_join(stimuli %>%  # join in target IDs
-              select(stimulus_id, lab_stimulus_id) %>% 
-              rename(TargetImage = lab_stimulus_id)) %>%
-  rename(target_id = stimulus_id) %>%
-  left_join(stimuli %>% # join in distractor IDs
-              select(stimulus_id, lab_stimulus_id) %>% 
-              rename(DistractorImage = lab_stimulus_id)) %>%
-  rename(distractor_id = stimulus_id) |> 
-  select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
-         target_side, lab_trial_id, condition, vanilla_trial, trial_type_aux_data, 
-         aoi_region_set_id, dataset_id, distractor_id, target_id)
-
 ### 6. TRIALS TABLE 
-trials <- trial_info %>%
-  distinct(trial_order = Trial, trial_type_id, lab_subject_id = SubjectNumber) %>%
+trials <- trial_table %>%
+  distinct(trial_order, trial_type_id, lab_subject_id) %>%
   mutate(trial_id = 0:(n() - 1),
          trial_aux_data = NA,
          excluded = FALSE,
-         exclusion_reason = NA) 
+         exclusion_reason = NA)
 
 ### 7. AOI REGION SETS TABLE
 # recall screen is 1280 x 1024
@@ -182,7 +189,7 @@ timepoints <- d_low %>%
          t = Time,
          lab_subject_id = SubjectNumber, 
          trial_order = Trial) %>%
-  left_join(trial_info) %>% 
+  left_join(trial_table) %>% 
   left_join(trials) %>%
   left_join(subjects) %>%
   left_join(administrations) %>%
