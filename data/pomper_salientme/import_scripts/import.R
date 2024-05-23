@@ -83,10 +83,6 @@ post_dis_names_clean_cols_to_remove <- post_dis_names_clean[133:length(post_dis_
 d_processed <- d_processed %>%
   select(-all_of(post_dis_names_clean_cols_to_remove))
 
-# remove excluded trials
-d_processed <- d_processed %>% 
-  filter(is.na(prescreen_notes))
-
 
 # Convert to long format --------------------------------------------------
 # get idx of first time series
@@ -302,7 +298,7 @@ d_tidy_semifinal <- d_tidy %>%
   left_join(d_trial_ids)
 
 exclusions_raw <- readxl::read_excel(here(read_path, participant_file_name), sheet = "Excluded")
-exclusions <- exclusions_raw %>%
+exclusions_external <- exclusions_raw %>%
   filter(`Include?` != "Yes") %>%
   select(`Sub Num`, Reason) %>%
   rename(lab_subject_id = `Sub Num`, exclusion_reason = Reason) %>% 
@@ -321,9 +317,11 @@ d_tidy_final <- d_tidy_semifinal %>%
   rename(lab_subject_id = sub_num,
          lab_age = months
   ) %>% 
-  mutate(t = as.numeric(t)) %>% # triple check that t is numeric
-  left_join(exclusions) %>% 
-  mutate(excluded = replace_na(excluded, FALSE))
+  mutate(t = as.numeric(t)) %>%
+  left_join(exclusions_external) %>%
+  mutate(exclusion_reason = ifelse(is.na(exclusion_reason), prescreen_notes, exclusion_reason),
+         excluded = ifelse(is.na(exclusion_reason), FALSE, TRUE),
+         excluded = replace_na(excluded, FALSE))
 
 
 ##### AOI TABLE ####
