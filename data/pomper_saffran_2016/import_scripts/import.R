@@ -26,20 +26,20 @@ trial_types_table_filename <- "trial_types.csv"
 aoi_regions_table_filename <-  "aoi_region_sets.csv"
 xy_table_filename <-  "xy_timepoints.csv"
 
-
+dir.create(write_path, showWarnings = FALSE)
 #osf_token <- read_lines(here("osf_token.txt"))
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
 
-source(here("helper_functions", "osf.R"))
-
-# only download data if it's not on your machine
- if(!file.exists(read_path) || length(list.files(read_path)) == 0 && length(list.files(paste0(read_path, "/orders"))) == 0) {
-   dir.create(read_path, showWarnings = FALSE)
-   get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
- }
+# The download for this dataset is broken, likely some issues in osfrs download function 
+# source(here("helper_functions", "osf.R"))
+## only download data if it's not on your machine
+# if(!file.exists(read_path) || length(list.files(read_path)) == 0 && length(list.files(paste0(read_path, "/orders"))) == 0) {
+#   dir.create(read_path, showWarnings = FALSE)
+#   get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
+# }
 
 
 # read raw icoder files
@@ -334,8 +334,8 @@ trial_types <- d_tidy_final %>%
 trials_table <- d_tidy_final %>% 
   select(trial_id, trial_order, trial_type_id, exclusion_reason = prescreen_notes)  %>% 
   mutate(excluded = case_when(
-    is.na(exclusion_reason) ~ TRUE,
-    !is.na(exclusion_reason) ~ FALSE), 
+    is.na(exclusion_reason) ~ FALSE,
+    !is.na(exclusion_reason) ~ TRUE),
     trial_aux_data = NA) %>%
   distinct(trial_id, trial_order, trial_type_id, trial_aux_data, excluded, exclusion_reason) %>%
   write_csv(fs::path(write_path, trials_table_filename))
