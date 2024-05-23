@@ -33,10 +33,13 @@ remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
 
+source(here("helper_functions", "osf.R"))
+
 # only download data if it's not on your machine
-# if(length(list.files(read_path)) == 0 && length(list.files(paste0(read_path, "/orders"))) == 0) {
-#   get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
-# }
+ if(!file.exists(read_path) || length(list.files(read_path)) == 0 && length(list.files(paste0(read_path, "/orders"))) == 0) {
+   dir.create(read_path, showWarnings = FALSE)
+   get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
+ }
 
 
 # read raw icoder files
