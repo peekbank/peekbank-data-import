@@ -12,14 +12,12 @@ point_of_disambiguation = 1000 # pod = 1s
 read_path <- here("data/attword_processed/raw_data/")
 write_path <- here("data/attword_processed/processed_data/")
 
-#--
+dir.create(write_path, showWarnings = FALSE)
 
-#TODO: Install from osf
-
-osf_token <- read_lines(here("osf_token.txt"))
-if(length(list.files(read_path)) == 0) {
-  get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
-}
+#osf_token <- read_lines(here("osf_token.txt"))
+#if(length(list.files(read_path)) == 0) {
+#  get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
+#}
 
 sal_data <- read_csv(paste0(read_path, "salient.csv")) %>%
   mutate(exp = "Salient", subj = paste(exp, subj, sep = "_"))
@@ -115,19 +113,20 @@ design.tidy <- design.df %>%
 data.full <- data.tidy %>% left_join(design.tidy) %>%
   mutate(target_side = ifelse(target_side == 1, "left", "right"),
          #replace the novel items with their correct label
-         left_label = ifelse(left_image == "skwish", target_label, left_image),
-         right_label = ifelse(right_image == "skwish", target_label, right_image),
+         left_label = ifelse(left_image == "skwish" | left_image == "balls", target_label, left_image),
+         right_label = ifelse(right_image == "skwish" | right_image == "balls", target_label, right_image),
          target_image = ifelse(target_side == "right", right_image, left_image),
          distractor_image = ifelse(target_side == "right", left_image, right_image),
          target_label = ifelse(target_side == "right", right_label, left_label),
          distractor_label = ifelse(target_side == "right", left_label, right_label)) %>% 
-  select(-c(exp,right_label, left_label, left_image, right_image, target_label))
+  select(-c(exp,right_label, left_label, left_image, right_image))
 
 
 # DATASETS
 dataset.df <- tibble(dataset_id = dataset_id,
                         lab_dataset_id = dataset_name,
                         dataset_name = dataset_name,
+                        dataset_aux_data = NA,
                         shortcite = "Yurovsky & Frank (2017)",
                         cite = "Yurovsky, D., & Frank, M. C. (2017). Beyond naïve cue combination: Salience and social cues in early word learning. Developmental Science, 20(2), e12349. doi: 10.1111/desc.12349.")
 
@@ -136,7 +135,8 @@ dataset.df %>% write_csv(paste0(write_path, "datasets.csv"))
 #SUBJECTS
 subjects.df <- data.full %>% 
   distinct(lab_subject_id, sex) %>% 
-  mutate(native_language = "eng", 
+  mutate(native_language = "eng",
+         subject_aux_data = NA, # no cdi scores provided in the raw_data
          subject_id = seq(0, nrow(.)-1)) 
 
 subjects.df %>% write_csv(paste0(write_path, "subjects.csv"))
@@ -153,6 +153,7 @@ administrations.df <- data.full %>%
          sample_rate = sample_rate,
          tracker = "SMI iView",
          coding_method = "preprocessed eyetracking",
+         administration_aux_data = NA,
          administration_id = seq(0, nrow(.)-1),
          dataset_id = dataset_id)
 
@@ -172,8 +173,9 @@ stimuli.df <- rbind(data.full %>% distinct(target_label, target_image) %>%
          image_description = stimulus_image_path,
          image_description_source = "image path",
          stimulus_image_path = paste0(stimulus_image_path, ".jpg"),
-         stimulus_novelty = ifelse(lab_stimulus_id == "skwish", "novel", "familiar"),
+         stimulus_novelty = ifelse(lab_stimulus_id == "skwish" | lab_stimulus_id == "balls", "novel", "familiar"),
          dataset_id = dataset_id,
+         stimulus_aux_data = NA,
          stimulus_id = seq(0, nrow(.)-1))
 
 stimuli.df %>% write_csv(paste0(write_path, "stimuli.csv"))
@@ -191,19 +193,28 @@ trial_types.df <- data.full %>% select(target_side, target_id, distractor_id, co
          full_phrase = NA,
          aoi_region_set_id = 0,
          lab_trial_id = NA,
+         vanilla_trial = condition == "Familiar",
+         trial_type_aux_data = NA,
          trial_type_id = seq(0, nrow(.)-1))
 
 trial_types.df %>% write_csv(paste0(write_path, "trial_types.csv"))
 
 data.full <- data.full %>% left_join(trial_types.df)
+
 #TRIALS
 #note: the trial order for each participant is encoded in the design.tidy
-trials.df <- data.full %>% distinct(trial_type_id, trial_order) %>% arrange(trial_order) %>%
-  mutate(trial_id = seq(0, nrow(.)-1))
-
-trials.df %>% write_csv(paste0(write_path, "trials.csv"))
+trials.df <- data.full %>%
+  distinct(trial_type_id, trial_order, administration_id) %>%
+  arrange(trial_order) %>%
+  mutate(trial_id = seq(0, nrow(.)-1),
+         trial_aux_data = NA,
+         exclusion_reason = NA,
+         excluded = FALSE) # no info given on exclusion, so we assume we only got included participants
 
 data.full <- data.full %>% left_join(trials.df)
+
+trials.df <- trials.df %>% select(-administration_id) 
+trials.df %>% write_csv(paste0(write_path, "trials.csv"))
 
 # AOI Timepoints
 aoi_timepoints.df <- data.full %>% 
