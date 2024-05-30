@@ -57,15 +57,14 @@ data <- data_raw %>%
 subjects <- data %>%
   distinct(lab_subject_id, subject_id, sex, native_language, age, cdi) %>%
   mutate(native_language = "eng") %>% 
-  mutate(subject_aux_data = pmap(
+  mutate(subject_aux_data = as.character(pmap(
     list(age, cdi),
     function(age, cdi){
       toJSON(list(cdi_responses = list(
-        # TODO  measure, instrument
         list(rawscore = unbox(cdi), age = unbox(age), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg"))
       )))
     }
-  )) %>% select(-age, -cdi)
+  ))) %>% select(-age, -cdi)
 
 
 ### 3. Administrations Table
@@ -74,8 +73,8 @@ administrations <- data %>%
   distinct(administration_id, subject_id, age, lab_age, tracker, coding_method) %>% 
   mutate(dataset_id = 0,
          lab_age_units = "days",
-         monitor_size_x = NA, # TODO
-         monitor_size_y = NA, # TODO
+         monitor_size_x = NA, 
+         monitor_size_y = NA, 
          sample_rate = NA,
          administration_aux_data = NA)
 
@@ -138,10 +137,11 @@ aoi_timepoints <- data %>%
 
 
 lookingscores <- aoi_timepoints %>%
+  filter(aoi %in% c("target", "distractor")) %>% 
   mutate(lookingscore = case_when(
-    aoi == "distractor" ~ -1,
+    aoi == "distractor" ~ 0,
     aoi == "target" ~ 1,
-    TRUE ~ 0
+    TRUE ~ NA
   )) %>%
   group_by(t_norm) %>%
   summarise(ls = mean(lookingscore)) %>%

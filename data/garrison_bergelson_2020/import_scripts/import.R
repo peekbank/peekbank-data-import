@@ -8,7 +8,7 @@ library(here)
 library(stringr)
 library(peekds) 
 library(osfr)
-library(rjson)
+library(jsonlite)
 
 data_path <- here("data","garrison_bergelson_2020","raw_data")
 output_path <- here("data","garrison_bergelson_2020","processed_data")
@@ -245,4 +245,3 @@ aoi_timepoints %>%
   ylim(.4, .75) + 
   geom_hline(aes(yintercept = .5), lty = 2) +
   theme_bw()
-

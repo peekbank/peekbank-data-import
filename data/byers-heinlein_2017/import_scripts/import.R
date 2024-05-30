@@ -13,13 +13,14 @@ library(peekds)
 library(osfr)
 
 ## for pushing to OSF
-osf_token <- read_lines(here("osf_token.txt"))
+#osf_token <- read_lines(here("osf_token.txt"))
 
 # constants
 dataset_name = "byers-heinlein_2017"
 read_path <- here("data",dataset_name,"raw_data")
 output_path <- here("data",dataset_name,"processed_data")
 
+dir.create(output_path, showWarnings = FALSE)
 ### Search ### FIXME for things to continue working on
 
 if(length(list.files(read_path)) == 0) {
@@ -179,13 +180,18 @@ cdi_responses <- subj_info |>
                values_to = "rawscore") |> 
   mutate(instrument_type = "ws",
          measure = "prod") |> 
-  select(lab_subject_id, instrument_type, measure, rawscore, age, language) |> 
+  select(lab_subject_id, instrument_type, measure, rawscore, age, language) |>
+  filter(!is.na(rawscore)) |>
   nest(cdi_responses = -lab_subject_id)
 
 subj_aux_data <- lang_exposures |> 
   left_join(cdi_responses, by = "lab_subject_id") |> 
   nest(subject_aux_data = -lab_subject_id) |> 
-  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
+  mutate(subject_aux_data = sapply(subject_aux_data, function(x) {
+    json_str <- jsonlite::toJSON(x)
+    substr(json_str, 2, nchar(json_str) - 1)
+  }))
+  
 
 # subjects table
 subjects <- d_tidy %>%
