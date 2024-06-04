@@ -213,8 +213,7 @@ d_tidy_final %>%
            tracker) %>%
   mutate(
     coding_method = case_when(
-      # currently broken, as the validator does not allow for varying coding methods between administrations (bug)
-      tracker == "video_camera" ~ "preprocessed eyetracking",#"manual gaze coding",
+      tracker == "video_camera" ~ "manual gaze coding",
       tracker == EYETRACKER ~ "preprocessed eyetracking",
       TRUE ~ NA),
     administration_aux_data = NA) %>% 
@@ -267,7 +266,7 @@ data_tab <- tibble(
 
 
 # validation check ----------------------------------------------------------
-validate_for_db_import(dir_csv = write_path)
+validate_for_db_import(dir_csv = write_path, cdi_expected = TRUE)
 
 ## OSF INTEGRATION ###
 #put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
