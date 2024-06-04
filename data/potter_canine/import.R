@@ -251,16 +251,15 @@ cdi_data <- cdi_raw1 %>%
   rbind(cdi_raw2) %>%
   filter(!is.na(cdi)) %>% 
   mutate(cdi = as.numeric(cdi)) %>% 
-  mutate(subject_aux_data = pmap(
+  mutate(subject_aux_data = as.character(pmap(
     list(cdi, age),
     function(cdi, age){
-      toJSON(list(cdi_responses = list(
-        list(rawscore = unbox(cdi), age = unbox(age), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("ws"))
+      jsonlite::toJSON(list(cdi_responses = list(
+        list(rawscore = jsonlite::unbox(cdi), age = jsonlite::unbox(age), measure=jsonlite::unbox("prod"), language = jsonlite::unbox("English (American)"), instrument_type = jsonlite::unbox("ws"))
       )))
     }
-  ), lab_subject_id = as.character(lab_subject_id)) %>% 
-  select(lab_subject_id , subject_aux_data) %>% 
-  mutate(subject_aux_data = as.character(subject_aux_data))
+  )), lab_subject_id = as.character(lab_subject_id)) %>% 
+  select(lab_subject_id , subject_aux_data)
   
 
 d_tidy_final %>%
@@ -370,7 +369,7 @@ data_tab <- tibble(
 
 
 # validation check ----------------------------------------------------------
-validate_for_db_import(dir_csv = write_path)
+validate_for_db_import(dir_csv = write_path, cdi_expected = TRUE)
 
 ## OSF INTEGRATION ###
 #put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
