@@ -26,6 +26,7 @@ init <- function(dataset_name){
 }
 
 write_and_validate <- function(
+    cdi_expected,
     dataset,
     subjects,
     stimuli,
@@ -37,6 +38,9 @@ write_and_validate <- function(
     aoi_timepoints
     ){
   
+  if(missing(cdi_expected)){
+    stop("Need to specifiy cdi_expected boolean argument to validator")
+  }
   ################## WRITING AND VALIDATION ##################
   
   dir.create(here(output_path), showWarnings=FALSE)
@@ -58,5 +62,5 @@ write_and_validate <- function(
   }
   
   # run validator
-  peekds::validate_for_db_import(dir_csv = output_path)
+  peekds::validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected)
 }
