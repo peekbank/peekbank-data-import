@@ -216,4 +216,4 @@ write_csv(trials, file = here(output_path, "trials.csv"))
 write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
 
 # run validator
-peekds::validate_for_db_import(dir_csv = output_path)
+peekds::validate_for_db_import(dir_csv = output_path, cdi_expected = FALSE)
