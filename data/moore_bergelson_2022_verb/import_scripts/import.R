@@ -154,7 +154,7 @@ subjects <- subject_info %>%
 
 # Target and distractor stimuli are treated separately because targets have a (potentially mispronounced) verb and a carrier phrase associated with them, while distractors do not. See readme.txt for more details.
 
-target_stimuli <- fixations_binned %>%
+stimuli <- fixations_binned %>%
   select(stimulus_image_path = target_image_path,
          stimulus_audio_path = audio_path) %>%
   distinct() %>%
@@ -171,19 +171,7 @@ target_stimuli <- fixations_binned %>%
     english_stimulus_label = original_stimulus_label,  # joomp
     stimulus_novelty = if_else(image_name == word, 'familiar', 'novel'),  # joomp - novel, jump would be familiar
     lab_stimulus_id = glue('{image_name}_{carrier_phrase_label}-{word}'),  # jump_can-joomp
-    )
-
-distractor_stimuli <- fixations_binned %>%
-  select(stimulus_image_path = distractor_image_path) %>%
-  distinct() %>%
-  mutate(
-    image_name = file_path_sans_ext(stimulus_image_path),
-    lab_stimulus_id = glue('{image_name}_distractor'),
-    stimulus_novelty = 'familiar')
-
-
-stimuli <-
-  bind_rows(target_stimuli, distractor_stimuli) %>%
+    ) %>%
   mutate(image_description = image_name,  # jump
     image_description_source = "image path",
     dataset_id = DATASET_ID
@@ -244,8 +232,14 @@ administrations <- subject_info %>%
 #
 # *Note: This wasn't guaranteed: there could have been trials with the same trial type (out of 32) *and* the same target word onset. It just didn't happen that way.
 
-lab_to_peekbank_id_map <- stimuli %>%
+lab_to_peekbank_id_map_target <- stimuli %>%
   select(lab_stimulus_id, stimulus_id) %>%
+  deframe
+
+# distractors the "correctly pronounced label" for iding purposes, even though there is no pronounciation for distractors
+lab_to_peekbank_id_map_distractor <- stimuli %>%
+  filter(stimulus_novelty == "familiar") %>% 
+  select(image_description, stimulus_id) %>%
   deframe
 
 trial_info <- fixations_binned %>%
@@ -269,10 +263,10 @@ trial_info <- fixations_binned %>%
     target_image_name = file_path_sans_ext(target_image_path),
     distractor_image_name = file_path_sans_ext(distractor_image_path),
     lab_target_id = glue('{target_image_name}_{carrier_label}-{target_label}'),
-    lab_distractor_id = glue('{distractor_image_name}_distractor'),
+    lab_distractor_id = glue('{distractor_image_name}'),
     lab_trial_id = glue('{lab_target_id}_{lab_distractor_id}'),
-    target_id = lab_to_peekbank_id_map[lab_target_id],
-    distractor_id = lab_to_peekbank_id_map[lab_distractor_id],
+    target_id = lab_to_peekbank_id_map_target[lab_target_id],
+    distractor_id = lab_to_peekbank_id_map_distractor[lab_distractor_id],
     vanilla_trial = pronunciation == 'CP',  # correctly pronounced
     pronunciation = PRONUNCIATION_CONDITIONS[pronunciation],
     verb_type = VERB_TYPE_CONDITIONS[verb_type],
@@ -411,7 +405,7 @@ write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
 
 
 # run validator
-peekds::validate_for_db_import(dir_csv = here(output_path))
+peekds::validate_for_db_import(dir_csv = here(output_path), cdi_expected = TRUE)
 
 # OSF integration
 
