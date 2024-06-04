@@ -9,6 +9,7 @@ library(here)
 library(stringr)
 library(peekds)
 library(osfr)
+library(jsonlite)
 
 # override of peekds get_raw_data that relies on broken osfr 
 source(here("helper_functions", "osf.R"))
@@ -55,7 +56,7 @@ cdi_data <- questionnaire_data %>%
     language = "Dutch"
   )
 
-library(jsonlite)
+
 
 # Select and rename columns to match the subjects table
 subjects <- questionnaire_data %>%
@@ -93,6 +94,13 @@ translation_vector <- c(
   "auto" = "Car"
 )
 
+phrase_vector <- c(
+  "kijk" = "Kijk!",
+  "wat" = "Wat is dat nou?",
+  "leuk" = "Wat leuk!",
+  "zien" = "Zie je het?"
+)
+
 ### 3. STIMULI TABLE
 stimuli <- fixations %>%
   select(left_image, right_image) %>%
@@ -123,8 +131,9 @@ stimuli <- fixations %>%
 # between participants and administrations
 
 administrations <- questionnaire_data %>%
+  # ensure subject ids are consistent with the subjects table
+  inner_join(subjects %>% select(lab_subject_id, subject_id), by=join_by(ID == lab_subject_id)) %>%
   mutate(administration_id = 0:(n() - 1),
-         subject_id = 0:(n() - 1),
          dataset_id = 0,
          age = `Age.(Months)`,
          lab_age = `Age.(Months)`,
@@ -190,6 +199,7 @@ d <- fixations %>%
   mutate(aoi_timepoint_id = 0:(n() - 1),
          xy_timepoint_id = 0:(n() - 1),
          target_image = ifelse(target_side == "left", left_image, right_image),
+         full_phrase = paste0(phrase_vector[audio1], " Een ", audio2, "!"),
          distractor_image = ifelse(target_side == "right", left_image, right_image),
          point_of_disambiguation = audio2_onset,
          subject_id = Participant,
@@ -209,8 +219,8 @@ d <- fixations %>%
   # the authors do not provide explanations for this in their original analysis,
   # so we prune this data, as it is likely an artefact of some experiment mishap
   filter(t_norm > -4000) %>% 
-  select(subject_id, lab_trial_id, aoi_timepoint_id, xy_timepoint_id, target, target_image, target_side, distractor_image, condition, point_of_disambiguation, x , y, t_norm, aoi) %>%
-  group_by(target, target_image, target_side, distractor_image, condition, point_of_disambiguation) %>%
+  select(subject_id, lab_trial_id, aoi_timepoint_id, xy_timepoint_id, target, target_image, target_side, distractor_image, condition, point_of_disambiguation, x , y, t_norm, aoi, full_phrase) %>%
+  group_by(target, target_image, target_side, distractor_image, condition, point_of_disambiguation, full_phrase) %>%
   mutate(trial_type_id = cur_group_id() - 1) %>%
   ungroup() %>%
   group_by(subject_id) %>%
@@ -235,10 +245,9 @@ d <- fixations %>%
 ### 5. Trial Types Table
 
 trial_types <- d %>%
-  select(target, target_image, target_side, distractor_image, condition, point_of_disambiguation, lab_trial_id, trial_type_id) %>%
+  select(target, target_image, target_side, distractor_image, condition, point_of_disambiguation, lab_trial_id, trial_type_id, full_phrase) %>%
   distinct() %>%
-  mutate(full_phrase = target,
-         condition = condition,
+  mutate(condition = condition,
          full_phrase_language = "dut",
          aoi_region_set_id = 0,
          dataset_id = 0,
