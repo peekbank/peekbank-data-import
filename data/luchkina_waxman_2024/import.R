@@ -14,7 +14,7 @@ dataset <- tibble(
   dataset_aux_data = NA
 )
 
-# cdi_raw <- read.csv(here(data_path, "Peekbank_LuchkinaWaxman_MCDI_data.csv"))
+cdi_raw <- read.csv(here(data_path, "Peekbank_LuchkinaWaxman_MCDI_data.csv"))
 data_raw <- read.csv(here(data_path, "Peekbank_LuchkinaWaxman_looking_data.csv"))
 
 ### 1.5 Prepare data
@@ -52,19 +52,31 @@ data <- data_raw %>%
   mutate(administration_id = cur_group_id() - 1) %>% 
   ungroup()
 
+cdi <- cdi_raw %>%
+  # the cdi score reported in the data table is non canonical due to the added words
+  select(-c("cat", "horse", "jacket", "bus", "truck", "apple", "banana", "orange")) %>%
+  mutate(prod = rowSums(sapply(.[,-c(1:3)], function(col) grepl("\\bsays\\b", tolower(col))))) %>% 
+  mutate(comp = rowSums(sapply(.[,-c(1:3)], function(col) grepl("\\bunderstands\\b", tolower(col))))) %>% 
+  select(lab_subject_id = Subject_ID, comp, prod) %>% 
+  distinct()
 
 ### 2. SUBJECTS TABLE
 subjects <- data %>%
-  distinct(lab_subject_id, subject_id, sex, native_language, age, cdi) %>%
-  mutate(native_language = "eng") %>% 
+  distinct(lab_subject_id, subject_id, sex, native_language, age) %>%
+  mutate(native_language = "eng") %>%
+  left_join(cdi, by=join_by(lab_subject_id)) %>% 
   mutate(subject_aux_data = as.character(pmap(
-    list(age, cdi),
-    function(age, cdi){
-      toJSON(list(cdi_responses = list(
-        list(rawscore = unbox(cdi), age = unbox(age), measure=unbox("comp"), language = unbox("English (American)"), instrument_type = unbox("wg"))
-      )))
+    list(age, comp, prod),
+    function(age, comp, prod){
+      if(is.na(prod) && is.na(prod)){
+        return(NA)
+      }
+      jsonlite::toJSON(list(cdi_responses = list(
+        list(rawscore = comp, age = age, measure="comp", language = "English (American)", instrument_type = "wg"),
+        list(rawscore = prod, age = age, measure="prod", language = "English (American)", instrument_type = "wg")
+      )), auto_unbox = TRUE)
     }
-  ))) %>% select(-age, -cdi)
+  ))) %>% select(-age, -comp, -prod)
 
 
 ### 3. Administrations Table
@@ -153,6 +165,7 @@ ggplot(lookingscores, aes(x = t_norm, y = ls)) +
   labs(x = "t_norm", y = "ls")
 
 write_and_validate(
+  cdi_expected = TRUE,
   dataset,
   subjects,
   stimuli,
