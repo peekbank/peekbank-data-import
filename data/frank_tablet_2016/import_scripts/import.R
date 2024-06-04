@@ -129,7 +129,7 @@ all_subjects_data <- read_csv(participant_file_path) %>%
                       labels = c("male", "female", "unspecified")),
          lab_age = age,
          lab_age_units = "years",
-         age = round(12*(ifelse(age == "NaN", NA, age)))) %>%  # converting age from years to months # 1659 entries
+         age = 12*(ifelse(age == "NaN", NA, age))) %>%  # converting age from years to months # 1659 entries
   distinct() %>%
   mutate(subject_id = row_number() - 1) %>% # 110 distinct subjects
   left_join(select(original_subinfo, SID, exclude) %>% 
