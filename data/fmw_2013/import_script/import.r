@@ -14,6 +14,8 @@ dataset_name <- "fmw_2013"
 read_path <- here("data",dataset_name,"raw_data")
 write_path <- here("data",dataset_name, "processed_data")
 
+dir.create(write_path, showWarnings = FALSE)
+
 dataset_table_filename <- "datasets.csv"
 aoi_table_filename <- "aoi_timepoints.csv"
 subject_table_filename <- "subjects.csv"
@@ -603,7 +605,7 @@ data_tab <- tibble(
   write_csv(fs::path(write_path, dataset_table_filename))
 
 # validation check ----------------------------------------------------------
-validate_for_db_import(dir_csv = write_path)
+validate_for_db_import(dir_csv = write_path, cdi_expected = TRUE) 
 
 #### Validation Plot
 
