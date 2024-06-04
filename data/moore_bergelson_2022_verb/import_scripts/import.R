@@ -86,21 +86,7 @@ demographics <-
     age_at_test_days = age_at_test,
     lab_subject_id = name)
 
-cdi_data <- 
-  read_csv(
-    here(data_path, "vna_cdi_totals_both_ages.csv"),
-    col_types = cols(
-      SubjectNumber = col_character(),
-      age = col_integer(),
-      produces = col_integer(),
-      CDIcomp = col_integer()
-    )
-  ) %>%
-  rename(
-    lab_subject_id = SubjectNumber,
-    eng_wg_comp_rawscore = CDIcomp,
-    eng_wg_prod_rawscore = produces,
-  )
+
 
 excluded_participants <- read_csv(
   here(data_path, "vna_excluded_participants.csv"),
@@ -126,6 +112,24 @@ datasets <- tibble(dataset_id = DATASET_ID,
 
 
 ### 2. SUBJECTS TABLE
+
+cdi_data <- 
+  read_csv(
+    here(data_path, "vna_cdi_totals_both_ages.csv"),
+    col_types = cols(
+      SubjectNumber = col_character(),
+      age = col_integer(),
+      produces = col_integer(),
+      CDIcomp = col_integer()
+    )
+  ) %>%
+  select(
+    lab_subject_id = SubjectNumber,
+    comp = CDIcomp,
+    prod = produces,
+    age_cdi = age
+  )
+
 # Start from the subjects with eyetracking data
 subject_info <- fixations_binned %>%
   distinct(lab_subject_id) %>%
@@ -141,8 +145,25 @@ subject_info <- fixations_binned %>%
            sex == "F" ~ 'female',
            is.na(sex) ~ SEX_NA_VALUE,
            .default = 'error'
-         ),
-         subject_aux_data = NA)
+         )) %>%
+  left_join(cdi_data) %>%
+  mutate(age_cdi = ifelse(is.na(age_cdi),age_at_test_mo, age_cdi)) %>%  # we can substitute here if missing, since cdi was administered along with the experiment
+  mutate(subject_aux_data = as.character(pmap(
+    list(comp, prod, age_cdi),
+    function(comp, prod, age){
+      if(is.na(prod) && is.na(prod)){
+        return(NA)
+      }
+      jsonlite::toJSON(list(cdi_responses = compact(list(
+        if(!is.na(prod)) { 
+          list(rawscore = prod, age = age, measure="prod", language = "English (American)", instrument_type = "wg")
+        },
+        if (!is.na(comp)) {
+          list(rawscore = comp, age = age, measure="comp", language = "English (American)", instrument_type = "wg")
+        }))), auto_unbox = TRUE)
+    }
+  ))) %>% 
+  select(-comp, -prod, -age_cdi)
 
 # Note: Sex is not NA for any subjects. It can be NA in the demographics file - for subjects which were excluded before looking at their eyetracking data. Data from those subjects are not included in this dataset, however, so sex will never be NA in the subject_info table.
 
@@ -188,24 +209,6 @@ stimuli <- fixations_binned %>%
 
 ### 4. ADMINISTRATIONS TABLE 
 
-administrations_aux_data <- subjects %>%
-  select(subject_id, lab_subject_id) %>%
-  left_join(cdi_data,
-             by = "lab_subject_id",
-             relationship = 'one-to-one') %>%
-  mutate(
-    eng_wg_comp_age = age,
-    eng_wg_prod_age = age
-  ) %>%
-  rowwise(subject_id) %>% 
-  mutate(
-    administration_aux_data = toJSON(across(
-      c("eng_wg_comp_rawscore", "eng_wg_comp_age",
-        "eng_wg_prod_rawscore","eng_wg_prod_age")
-    ))) %>%
-  select(subject_id, administration_aux_data)
-  
-
 administrations <- subject_info %>%
   select(subject_id, age_at_test_days) %>%
   mutate(
@@ -220,10 +223,9 @@ administrations <- subject_info %>%
     monitor_size_y = MONITOR_SIZE_Y,
     sample_rate = SAMPLE_RATE,
     tracker = TRACKER,
-    coding_method = CODING_METHOD
-  ) %>%
-  inner_join(administrations_aux_data, by = "subject_id",
-             relationship = 'one-to-one')
+    coding_method = CODING_METHOD,
+    administration_aux_data = NA
+  )
 
 
 ### 5. TRIAL TYPES TABLE
