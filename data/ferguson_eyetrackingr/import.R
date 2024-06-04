@@ -16,6 +16,9 @@ library(osfr)
 dataset_name <- "ferguson_eyetrackingr"
 data_path <- here("data",dataset_name,"raw_data")
 write_path <- here("data",dataset_name,"processed_data")
+
+dir.create(write_path, showWarnings = FALSE)
+
 # http://www.eyetracking-r.com/docs/word_recognition
 # Description: Data from a simple 2-alternative forced choice (2AFC) word recognition task 
 # administered to 19- and 24-month-olds. On each trial, infants were shown a picture of an 
@@ -101,7 +104,7 @@ d_tidy <- proc_data %>%
 
 
 ### 1. DATASET TABLE 
-dataset <- tibble(dataset_id = 0, # leave as 0 for all
+dataset <- tibble(dataset_id = 0,
                   lab_dataset_id = dataset_name,
                   dataset_name = dataset_name,
                   name = dataset_name, 
@@ -114,10 +117,16 @@ cdi_to_json <- d_tidy %>%
   distinct(lab_subject_id, age, rawscore) %>%
   mutate(language="English (American)", 
          measure="prod",
-         instrument_type="wsshort") %>% # MacArthur Short Form Vocabulary Checklist: Level II (Form A) 
-  nest(subject_aux_data = -lab_subject_id) %>% 
-  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
-
+         instrument_type="wsshort") %>% # MacArthur Short Form Vocabulary Checklist: Level II (Form A)
+  mutate(subject_aux_data = as.character(pmap(
+    list(rawscore, age),
+    function(cdi, age){
+      jsonlite::toJSON(list(cdi_responses = list(
+        list(rawscore = cdi, age = age, measure="prod", language = "English (American)", instrument_type = "ws")
+      )), auto_unbox = TRUE)
+    }
+  ))) %>% select(lab_subject_id, subject_aux_data)
+  
 ### 2. SUBJECTS TABLE 
 subjects <- d_tidy %>% 
   distinct(lab_subject_id, sex, native_language) %>%
@@ -164,7 +173,7 @@ administrations <- d_tidy %>%
          dataset_id = 0, 
          lab_age = age, 
          lab_age_units = "months", 
-         monitor_size_x = 1920, # only thing specified in paper is "57.3 x 45 cm"
+         monitor_size_x = 1920,
          monitor_size_y = 1080, 
          sample_rate = 60, # Hz
          tracker = "Tobii T60XL", # from paper
@@ -176,8 +185,8 @@ administrations <- d_tidy %>%
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
   mutate(full_phrase = paste("Where is the",english_stimulus_label,"?")) %>% 
-  distinct(TrialNum, full_phrase, 
-           target_id, distractor_id, target_side) %>% 
+  distinct(subject_id, TrialNum, full_phrase,
+           target_id, distractor_id, target_side) %>% # one subject per administration, so subject is a fitting standin
   mutate(trial_id = seq(0, length(.$TrialNum) - 1)) 
 
 # create zero-indexed ids for trial_types
@@ -267,14 +276,7 @@ write_csv(xy_timepoints, file = here(write_path, xy_table_filename))
 write_csv(aoi_timepoints, file = here(write_path, aoi_table_filename))
 
 # run validator
-peekds::validate_for_db_import(dir_csv = write_path)
-
-# OSF integration
-# system specific read-in of validation token
-token <- read_lines(here("../token.txt"))[1]
-osf_token <- osf_auth(token = token) 
-put_processed_data(osf_token, dataset_name, paste0(write_path,"/"),
-                   osf_address = "pr6wu")
+peekds::validate_for_db_import(dir_csv = write_path, cdi_expected=TRUE)
 
 ################## ENTERTAINING PLOT ##################
 # feel free to modify
