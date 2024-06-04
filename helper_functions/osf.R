@@ -22,10 +22,10 @@ get_raw_data <- function(osf_address="pr6wu", lab_dataset_id, path="."){
   )
   
   raw_data <- fromJSON(rawToChar(
-    GET(paste0(page$data[[1]]$relationships$files$links$related$href,'?filter[name]=raw_data'))$content))
+    GET(paste0(page$data$relationships$files$links$related$href,'?filter[name]=raw_data'))$content))
   
   # no idea why this is necessary all of the sudden, worked without it in the past? maybe package versioning problems?
-  raw_data$data <- raw_data$data[[1]]
+  raw_data$data <- raw_data$data
   
   osfr::osf_ls_files(new_tibble(
     tibble(
