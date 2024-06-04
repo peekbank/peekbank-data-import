@@ -4,13 +4,13 @@ library(peekds)
 library(osfr)
 library(janitor)
 
-dataset_name <- "attword_processed"
+dataset_name <- "yurovsky_2017"
 dataset_id <- 0
 sample_rate <- 60 # Hz
 point_of_disambiguation = 1000 # pod = 1s
 
-read_path <- here("data/attword_processed/raw_data/")
-write_path <- here("data/attword_processed/processed_data/")
+read_path <- here("data/yurovsky_2017/raw_data/")
+write_path <- here("data/yurovsky_2017/processed_data/")
 
 dir.create(write_path, showWarnings = FALSE)
 
