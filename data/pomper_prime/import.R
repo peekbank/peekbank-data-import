@@ -114,7 +114,7 @@ administrations <- demo %>%
                              tracker == 'lwl' ~ "video_camera",
                              TRUE ~ "ERROR"),
          coding_method = case_when(tracker == 'Tobii X2-60' ~ "preprocessed eyetracking",
-                                   tracker == 'lwl' ~ "manual gaze coding",
+                                   tracker == 'video_camera' ~ "manual gaze coding",
                                    TRUE ~ "ERROR"))
 
 # add administration id to the data
