@@ -28,8 +28,7 @@ extract_smi_info <- function(file_path,parameter_name) {
 
 # Note: If lab age units are months, no processing is needed. 
 # If lab age units are days, divide by 365.25
-# If lab age units are years to decimal precision, multiply by 12
-# If lab age units are whole years, multiply by 12 and add 6
+# If lab age units are years, multiply by 12
 process_subjects_info <- function(file_path) {
   data <- read.csv(file_path)%>%
     dplyr::select(subid, age, gender)%>%
@@ -39,7 +38,7 @@ process_subjects_info <- function(file_path) {
                         labels = c("male", "female", "unspecified")),
            lab_age = age, 
            lab_age_units = "years",
-           age = round(12*(ifelse(age == "NaN", NA, age)))) #converting age from years to months
+           age = 12*(ifelse(age == "NaN", NA, age)))
   
   return(data)
 }

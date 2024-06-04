@@ -200,7 +200,7 @@ d_tidy_final <- d_tidy %>%
          monitor_size_x = NA, #unknown TO DO
          monitor_size_y = NA, #unknown TO DO
          lab_age_units = "days",
-         age = round(as.numeric(days)/ (365.25/12),2), # convert to months 
+         age = as.numeric(days)/ (365.25/12), # convert to months 
          point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz
          tracker = "video_camera",
          sample_rate = sampling_rate_hz,
