@@ -15,7 +15,7 @@ init <- function(dataset_name){
   dataset_name <<- dataset_name
   
   if (length(list.files(data_path)) == 0) {
-    get_raw_data(
+    get_raw_data_fixed(
       lab_dataset_id = dataset_name,
       osf_address = "pr6wu"
     )

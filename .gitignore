@@ -10,3 +10,4 @@ processed_data
 ek_import_moore-bergelson-2022
 data/pomper_saffran_2016/full_dataset
 *.zip
+*.curltmp
