@@ -43,14 +43,18 @@ if (!file.exists(read_path) || length(list.files(read_path)) == 0) {
 d_raw_2 <- read_delim(fs::path(read_path, "canine2_rawLookingTimeData.n34.txt"),
                       delim = "\t") %>%
   mutate(administration_num = 0) %>%
-  relocate(administration_num, .after = `Sub Num`)
+  mutate(study = 2) %>% 
+  relocate(administration_num, study, .after = `Sub Num`)
+  
 
 ##Preprocessing
 # read raw icoder files
 d_raw_1 <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
                       delim = "\t") %>%
   mutate(administration_num = 0) %>%
-  relocate(administration_num, .after = `Sub Num`)
+  mutate(study = 1) %>% 
+  relocate(administration_num, study, .after = `Sub Num`)
+  
 
 d_raw <- bind_rows(d_raw_1, d_raw_2)
 # read in order files
@@ -59,7 +63,12 @@ trial_order_paths <- list.files(read_orders_path, full.names = TRUE, pattern = "
 trial_orders <- map_df(trial_order_paths, read_delim, delim = "\t")
 
 #read in stimulus lookup table
-stimulus_lookup_table <- read_csv(fs::path(read_path,"canine_stimulus_lookup_table.csv"))
+stimulus_lookup_table <- read_csv(fs::path(read_path,"canine_stimulus_lookup_table.csv")) %>%
+  mutate(study = 1) %>% 
+  bind_rows(
+    read_csv(here("data" ,dataset_name,"canine2_stimulus_lookup_table.csv")) %>% # created according to the table in the paper
+      mutate(study = 2)
+  )
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
@@ -136,7 +145,8 @@ d_tidy <- d_tidy %>%
   # first, split condition column to isolate the target label condition
   separate(condition,into=c("carrier_phrase_condition","target_label_condition"),sep="-", remove=FALSE) %>%
   # join data frame with stimulus lookup table in order to determine high and low target label
-  left_join(stimulus_lookup_table,by=c('target_image' = 'image_name')) %>%
+  mutate(study = as.numeric(study)) %>% 
+  left_join(stimulus_lookup_table,by=c('target_image' = 'image_name', 'study' = 'study')) %>%
   relocate(c(high_label,low_label),.after=target_image) %>%
   # determine target label
   mutate(target_label = case_when(
@@ -365,7 +375,6 @@ data_tab <- tibble(
   dataset_aux_data = NA
 ) %>%
   write_csv(fs::path(write_path, dataset_table_filename))
-
 
 
 # validation check ----------------------------------------------------------
