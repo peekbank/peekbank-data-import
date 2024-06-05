@@ -13,11 +13,10 @@ library(osfr)
 
 # MacArthur Short Form Vocabulary Checklist: Level II (Form A)  - WSshort, right?
 
+source(here("helper_functions", "common.R"))
 dataset_name <- "ferguson_eyetrackingr"
-data_path <- here("data",dataset_name,"raw_data")
-write_path <- here("data",dataset_name,"processed_data")
+data_path <- init(dataset_name)
 
-dir.create(write_path, showWarnings = FALSE)
 
 # http://www.eyetracking-r.com/docs/word_recognition
 # Description: Data from a simple 2-alternative forced choice (2AFC) word recognition task 
@@ -46,22 +45,8 @@ trial_stim <- tibble(original_stimulus_label = c("FamiliarBottle", "FamiliarDog"
 #  select(Trial, SceneName, Position, SceneType) %>%
 #  rename(original_stimulus_label = Trial) 
 
-# processed data filenames
-dataset_table_filename <- "datasets.csv"
-aoi_table_filename <- "aoi_timepoints.csv"
-subject_table_filename <- "subjects.csv"
-administrations_table_filename <- "administrations.csv"
-stimuli_table_filename <- "stimuli.csv"
-trials_table_filename <- "trials.csv" 
-trial_types_table_filename <- "trial_types.csv"
-aoi_regions_table_filename <-  "aoi_region_sets.csv"
-xy_table_filename <-  "xy_timepoints.csv"
 
 cdi_language = "English (American)"
-
-# only download data if it's not on your machine
-if(length(list.files(data_path)) == 0 && length(list.files(paste0(data_path, "/orders"))) == 0) {
-  get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")}
 
 ################## DATASET SPECIFIC READ IN CODE ##################
 
@@ -110,8 +95,7 @@ dataset <- tibble(dataset_id = 0,
                   name = dataset_name, 
                   shortcite = "Ferguson, Graf, & Waxman (2014)", 
                   cite = "Ferguson, B., Graf, E., & Waxman, S. R. (2014). Infants use known verbs to learn novel nouns: Evidence from 15- and 19-month-olds. Cognition, 131(1), 139-146.",
-                  dataset_aux_data = NA) 
-dataset %>% write_csv(fs::path(write_path, dataset_table_filename))
+                  dataset_aux_data = NA)
 
 cdi_to_json <- d_tidy %>% 
   distinct(lab_subject_id, age, rawscore) %>%
@@ -132,7 +116,6 @@ subjects <- d_tidy %>%
   distinct(lab_subject_id, sex, native_language) %>%
   mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
   left_join(cdi_to_json, by = "lab_subject_id")
-subjects %>% write_csv(fs::path(write_path, subject_table_filename))
 
 ### 3. STIMULI TABLE 
 stimulus_table <- d_tidy %>% 
@@ -149,8 +132,6 @@ stimulus_table <- d_tidy %>%
          lab_stimulus_id = original_stimulus_label,
          dataset_id = 0,
          stimulus_aux_data=NA)
-stimulus_table %>%
-  write_csv(fs::path(write_path, stimuli_table_filename))
 
 
 d_tidy <- d_tidy %>%
@@ -255,28 +236,16 @@ aoi_region_sets <- tibble(aoi_region_set_id = 0,
 ### 8. XY TABLE - raw data does not include x/y locations, just AOI
 xy_timepoints <- d_tidy_final %>%
   mutate(x = NA, y = NA) %>%
-  select(x, y, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
-  peekds::resample_times(table_type = "xy_timepoints") 
+  select(x, y, t_norm, point_of_disambiguation, administration_id, trial_id) %>% 
+  resample_times(table_type="xy_timepoints")
 
 
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- d_tidy_final %>%
   select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
   resample_times(table_type="aoi_timepoints") %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
-  write_csv(fs::path(write_path, aoi_table_filename))
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
 
-################## WRITING AND VALIDATION ##################
-
-write_csv(administrations, file = here(write_path, administrations_table_filename))
-write_csv(trial_types, file = here(write_path, trial_types_table_filename))
-write_csv(trials, file = here(write_path, trials_table_filename))
-write_csv(aoi_region_sets, file = here(write_path, aoi_regions_table_filename))
-write_csv(xy_timepoints, file = here(write_path, xy_table_filename)) 
-write_csv(aoi_timepoints, file = here(write_path, aoi_table_filename))
-
-# run validator
-peekds::validate_for_db_import(dir_csv = write_path, cdi_expected=TRUE)
 
 ################## ENTERTAINING PLOT ##################
 # feel free to modify
@@ -292,3 +261,17 @@ aoi_timepoints %>%
   ylim(.4, .75) + 
   geom_hline(aes(yintercept = .5), lty = 2) +
   theme_bw()
+
+write_and_validate(
+  dataset_name = dataset_name,
+  cdi_expected = TRUE,
+  dataset,
+  subjects,
+  stimuli = stimulus_table,
+  administrations,
+  trial_types,
+  trials,
+  aoi_region_sets,
+  xy_timepoints,
+  aoi_timepoints
+)

@@ -6,18 +6,14 @@
 # https://doi.org/10.1121/1.4898051
 
 
-library(tidyverse)
 library(here)
-library(peekds)
-library(osfr)
 library(readxl)
 library(purrr)
-library(stringr)
 
-path <- here("data", "dombroski_backgroundnoise_2014")
-data_path <- here(path, "raw_data")
-output_path <- here("data", "dombroski_backgroundnoise_2014", "processed_data")
+source(here("helper_functions", "common.R"))
 dataset_name <- "dombroski_backgroundnoise_2014"
+data_path <- init(dataset_name)
+
 
 ### 1. DATASET TABLE
 dataset <- tibble(
@@ -90,20 +86,16 @@ combined_data <- averages_file_paths %>%
     print(x)
     read_excel(x, col_names = FALSE)})
 
-
-################## WRITING AND VALIDATION ##################
-
-dir.create(here(output_path), showWarnings=FALSE)
-
-write_csv(dataset, file = here(output_path, "datasets.csv"))
-write_csv(subjects, file = here(output_path, "subjects.csv"))
-write_csv(stimuli, file = here(output_path,  "stimuli.csv"))
-write_csv(administrations, file = here(output_path, "administrations.csv"))
-write_csv(trial_types, file = here(output_path, "trial_types.csv"))
-write_csv(trials, file = here(output_path, "trials.csv"))
-write_csv(aoi_region_sets, file = here(output_path, "aoi_region_sets.csv"))
-write_csv(xy_timepoints, file = here(output_path, "xy_timepoints.csv"))
-write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
-
-# run validator
-peekds::validate_for_db_import(dir_csv = output_path)
+write_and_validate(
+  dataset_name = dataset_name,
+  cdi_expected = FALSE,
+  dataset,
+  subjects,
+  stimuli,
+  administrations,
+  trial_types,
+  trials,
+  aoi_region_sets = NA,
+  xy_timepoints = NA,
+  aoi_timepoints
+)

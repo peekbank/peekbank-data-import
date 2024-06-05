@@ -39,11 +39,26 @@ write_and_validate <- function(
   if(missing(cdi_expected)){
     stop("Need to specifiy cdi_expected boolean argument to validator")
   }
-  ################## WRITING AND VALIDATION ##################
   
-  output_path <- here("data", dataset_name, "processed_data")
-  
+  basepath <- here("data", dataset_name)
+  output_path <- here(basepath, "processed_data")
   dir.create(here(output_path), showWarnings=FALSE)
+  
+  # generate these so the global validator can check if the cdi was saved correctly
+  cdi_expected_file <- here(basepath, "cdi_indicated.txt")
+  no_cdi_expected_file <- here(basepath, "no_cdi_indicated.txt")
+  
+  if(file.exists(cdi_expected_file))file.remove(cdi_expected_file)
+  if(file.exists(no_cdi_expected_file))file.remove(no_cdi_expected_file)
+  
+  cat(
+    "this file is auto generated and is needed when validating all datasets at once. It is gitignored. Please do not delete it.",
+    file=ifelse(
+      cdi_expected,
+      cdi_expected_file,
+      no_cdi_expected_file
+      )
+    )
   
   write_csv(dataset, file = here(output_path, "datasets.csv"))
   write_csv(subjects, file = here(output_path, "subjects.csv"))
@@ -53,11 +68,11 @@ write_and_validate <- function(
   write_csv(trials, file = here(output_path, "trials.csv"))
   write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
   
-  if(!is.na(aoi_region_sets)){
+  if(length(aoi_region_sets) != 1 || !is.na(aoi_region_sets)){
     write_csv(aoi_region_sets, file = here(output_path, "aoi_region_sets.csv"))
   }
   
-  if(!is.na(xy_timepoints)){
+  if(length(xy_timepoints) != 1 || !is.na(xy_timepoints)){
     write_csv(xy_timepoints, file = here(output_path, "xy_timepoints.csv"))
   }
   

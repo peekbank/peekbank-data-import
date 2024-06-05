@@ -2,38 +2,19 @@
 ## libraries
 library(here)
 library(janitor)
-library(tidyverse)
 library(readxl)
-library(peekds)
-library(osfr)
+
+source(here("helper_functions", "common.R"))
+dataset_name <- "adams_marchman_2018"
+read_path <- init(dataset_name)
 
 ## constants
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
-dataset_name <- "adams_marchman_2018"
-read_path <- here("data",dataset_name,"raw_data")
-write_path <- here("data",dataset_name, "processed_data")
-
-# processed data filenames
-dataset_table_filename <- "datasets.csv"
-aoi_table_filename <- "aoi_timepoints.csv"
-subject_table_filename <- "subjects.csv"
-administrations_table_filename <- "administrations.csv"
-stimuli_table_filename <- "stimuli.csv"
-trial_types_table_filename <- "trial_types.csv"
-trials_table_filename <- "trials.csv"
-aoi_regions_table_filename <-  "aoi_region_sets.csv"
-xy_table_filename <-  "xy_timepoints.csv"
-#osf_token <- read_lines(here("osf_token.txt"))
-
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
-
-
-# download datata from osf
-#peekds::get_raw_data(dataset_name, path = read_path)
 
 
 # read raw icoder files
@@ -230,26 +211,24 @@ d_tidy_final <- d_tidy_semifinal %>%
          )
 
 ##### AOI TABLE ####
-d_tidy_final %>%
+aoi_timepoints <- d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
   select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
-  write_csv(fs::path(write_path, aoi_table_filename))
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
 
 ##### SUBJECTS TABLE ####
-d_tidy_final %>%
+subjects <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   filter(!(lab_subject_id == "12608"&sex=="M")) %>% #one participant has different entries for sex - 12608 is female via V Marchman
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language="eng",
-    subject_aux_data = NA) %>%
-  write_csv(fs::path(write_path, subject_table_filename))
+    subject_aux_data = NA)
 
 ##### ADMINISTRATIONS TABLE ####
-d_tidy_final %>%
+administrations <- d_tidy_final %>%
   distinct(administration_id,
            dataset_id,
            subject_id,
@@ -261,14 +240,12 @@ d_tidy_final %>%
            sample_rate,
            tracker) %>%
   mutate(coding_method = "manual gaze coding",
-         administration_aux_data = NA) %>%
-  write_csv(fs::path(write_path, administrations_table_filename))
+         administration_aux_data = NA)
 
 ##### STIMULUS TABLE ####
-stimulus_table %>%
+stimuli <- stimulus_table %>%
   select(-target_label, -target_image) %>%
-  mutate(stimulus_aux_data=NA) %>%
-  write_csv(fs::path(write_path, stimuli_table_filename))
+  mutate(stimulus_aux_data=NA)
 
 #### TRIALS TABLE ####
 trials <- d_tidy_final %>%
@@ -277,8 +254,7 @@ trials <- d_tidy_final %>%
            trial_type_id,
            excluded,
            exclusion_reason) %>%
-  mutate(trial_aux_data = NA) %>%
-  write_csv(fs::path(write_path, trials_table_filename))
+  mutate(trial_aux_data = NA)
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
@@ -293,48 +269,32 @@ trial_types <- d_tidy_final %>%
            distractor_id) %>%
     mutate(full_phrase_language = "eng",
            condition = "", #no condition manipulation based on current documentation
-           vanilla_trial = TRUE,
+           vanilla_trial = TRUE, #all trials are vanilla
            trial_type_aux_data = NA
-           ) %>% #all trials are vanilla
-  write_csv(fs::path(write_path, trial_types_table_filename))
+           )
 
-##### AOI REGIONS TABLE ####
-# create empty other files aoi_region_sets.csv and xy_timepoints
-# don't need 
-# tibble(administration_id = d_tidy_final$administration_id[1],
-#       aoi_region_set_id=NA,
-#        l_x_max=NA ,
-#        l_x_min=NA ,
-#        l_y_max=NA ,
-#        l_y_min=NA ,
-#        r_x_max=NA ,
-#        r_x_min=NA ,
-#        r_y_max=NA ,
-#        r_y_min=NA ) %>%
-#   write_csv(fs::path(write_path, aoi_regions_table_filename))
-
-##### XY TIMEPOINTS TABLE ####
-# d_tidy_final %>% distinct(trial_id, administration_id) %>%
-#   mutate(x = NA,
-#          y = NA,
-#          t = NA,
-#          xy_timepoint_id = 0:(n()-1)) %>%
-#   write_csv(fs::path(write_path, xy_table_filename))
 
 ##### DATASETS TABLE ####
 # write Dataset table
-data_tab <- tibble(
+dataset <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Adams, K. A., Marchman, V. A., Loi, E. C., Ashland, M. D., Fernald, A., & Feldman, H. M. (2018). Caregiver talk and medical risk as predictors of language outcomes in full term and preterm toddlers. Child Development, 89(5), 1674-1690. https://doi.org/10.1111/cdev.12818",
   shortcite = "Adams et al. (2018)",
   dataset_aux_data = NA
-) %>%
-  write_csv(fs::path(write_path, dataset_table_filename))
+)
 
-# validation check ----------------------------------------------------------
-validate_for_db_import(dir_csv = write_path)
-
-## OSF INTEGRATION ###
-#put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
+write_and_validate(
+  dataset_name = dataset_name,
+  cdi_expected = FALSE,
+  dataset,
+  subjects,
+  stimuli,
+  administrations,
+  trial_types,
+  trials,
+  aoi_region_sets = NA,
+  xy_timepoints = NA,
+  aoi_timepoints
+)

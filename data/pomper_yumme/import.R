@@ -4,40 +4,21 @@
 ## libraries
 library(here)
 library(janitor)
-library(tidyverse)
 library(readxl)
-library(peekds)
-library(osfr)
+
+source(here("helper_functions", "common.R"))
+dataset_name <- "pomper_yumme"
+read_path <- init(dataset_name)
 
 ## constants
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
-dataset_name = "pomper_yumme"
-read_path <- here("data" ,dataset_name,"raw_data")
-write_path <- here("data",dataset_name, "processed_data")
-
-dir.create(write_path, showWarnings = FALSE)
-
-# processed data filenames
-dataset_table_filename <- "datasets.csv"
-aoi_table_filename <- "aoi_timepoints.csv"
-subject_table_filename <- "subjects.csv"
-administrations_table_filename <- "administrations.csv"
-stimuli_table_filename <- "stimuli.csv"
-trials_table_filename <- "trials.csv"
-trial_types_table_filename <- "trial_types.csv"
-aoi_regions_table_filename <-  "aoi_region_sets.csv"
-xy_table_filename <-  "xy_timepoints.csv"
-#osf_token <- read_lines(here("osf_token.txt"))
-
 
 
 # phrase from paper: e.g. "Find the pifo" <- 12 familiar, 4 novel words
 # but for an additional 12 familiar trials, "Where's the cat?" 
 # so which is it??
 
-# download datata from osf
-#peekds::get_raw_data(dataset_name, path = read_path)
 
 #### read in data ####
 remove_repeat_headers <- function(d, idx_var) {
@@ -246,8 +227,7 @@ aoi_timepoints <- d_tidy_final %>%
   filter(!is.na(t_norm)) %>% 
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
-  write_csv(fs::path(write_path, aoi_table_filename))
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
 
 
 ##### SUBJECTS TABLE ####
@@ -256,8 +236,7 @@ subjects <- d_tidy_final %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language = "eng",
-    subject_aux_data = NA) %>%
-  write_csv(fs::path(write_path, subject_table_filename))
+    subject_aux_data = NA)
 
 
 ##### ADMINISTRATIONS TABLE ####
@@ -272,13 +251,11 @@ administrations <- d_tidy_final %>%
            monitor_size_y,
            sample_rate,
            tracker) %>%
-  mutate(coding_method = "eyetracking", administration_aux_data = NA) %>%
-  write_csv(fs::path(write_path, administrations_table_filename))
+  mutate(coding_method = "manual gaze coding", administration_aux_data = NA)
 
 ##### STIMULUS TABLE ####
-stimulus_table %>%
-  mutate(stimulus_aux_data = NA) %>% 
-  write_csv(fs::path(write_path, stimuli_table_filename))
+stimuli <- stimulus_table %>%
+  mutate(stimulus_aux_data = NA)
 
 # GK good to here 3/22/22
 
@@ -295,8 +272,7 @@ trial_types <- d_tidy_final %>%
     dataset_id,
     target_id,
     distractor_id) %>%
-  mutate(full_phrase_language = "eng", vanilla_trial = TRUE, trial_type_aux_data = NA)  %>%
-  write_csv(fs::path(write_path, trial_types_table_filename))
+  mutate(full_phrase_language = "eng", vanilla_trial = TRUE, trial_type_aux_data = NA)
 
 # FixMe: full_phrase missing
 
@@ -314,54 +290,37 @@ exclusions <- readxl::read_excel(here(read_path, PARTICIPANT_FILR_NAME), sheet =
   mutate(excluded = TRUE, exclusion_reason = NA)
 
 
-trials_table <- d_tidy_final %>%
+trials <- d_tidy_final %>%
   left_join(exclusions) %>% 
   mutate(excluded = replace_na(excluded, FALSE)) %>% 
   distinct(trial_id, trial_type_id, tr_num, excluded, exclusion_reason) %>%
   rename(trial_order = tr_num) %>%
-  mutate(trial_aux_data = NA) %>% 
-  write_csv(fs::path(write_path, trials_table_filename))
+  mutate(trial_aux_data = NA)
 
-# do we no longer need empty AOI regions and XY timepoints files?
-
-##### AOI REGIONS TABLE ####
-# create empty other files aoi_region_sets.csv and xy_timepoints
-# tibble(administration_id = d_tidy_final$administration_id[1],
-#       aoi_region_set_id=NA,
-#        l_x_max=NA ,
-#        l_x_min=NA ,
-#        l_y_max=NA ,
-#        l_y_min=NA ,
-#        r_x_max=NA ,
-#        r_x_min=NA ,
-#        r_y_max=NA ,
-#        r_y_min=NA ) %>%
-#   write_csv(fs::path(write_path, aoi_regions_table_filename))
-
-##### XY TIMEPOINTS TABLE ####
-# d_tidy_final %>% distinct(trial_id, administration_id) %>%
-#   mutate(x = NA,
-#          y = NA,
-#          t = NA,
-#          xy_timepoint_id = 0:(n()-1)) %>%
-#   write_csv(fs::path(write_path, xy_table_filename))
 
 ##### DATASETS TABLE ####
 # replace with correct citation
-data_tab <- tibble(
+dataset <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Pomper, R. & Saffran, J. R. (2018). Familiar object salience affects novel word learning. Child Development, 90(2). doi:10.1111/cdev.13053",
   shortcite = "Pomper & Saffran (2018)",
-  dataset_aux_data = NA)  %>%
-  write_csv(fs::path(write_path, dataset_table_filename))
+  dataset_aux_data = NA)
 
-
-# validation check ----------------------------------------------------------
-validate_for_db_import(dir_csv = write_path)
 
 remainder <- unique(aoi_timepoints$t_norm %% 1000/40)
 
-## OSF INTEGRATION ###
-#put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
+write_and_validate(
+  dataset_name = dataset_name,
+  cdi_expected = FALSE,
+  dataset,
+  subjects,
+  stimuli,
+  administrations,
+  trial_types,
+  trials,
+  aoi_region_sets = NA,
+  xy_timepoints = NA,
+  aoi_timepoints
+)

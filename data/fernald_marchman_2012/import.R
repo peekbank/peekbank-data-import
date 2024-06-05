@@ -1,36 +1,17 @@
 # process Fernald & Marchman (2012) data
-## libraries
 library(here)
 library(janitor)
-library(tidyverse)
 library(readxl)
-library(peekds)
-library(osfr)
 
 ## constants
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
+
+source(here("helper_functions", "common.R"))
 dataset_name <- "fernald_marchman_2012"
-read_path <- here("data",dataset_name,"raw_data")
-write_path <- here("data",dataset_name, "processed_data")
+read_path <- init(dataset_name)
 
 source(here("data",dataset_name,"icoder_data_helper.R"))
-
-
-# processed data filenames
-dataset_table_filename <- "datasets.csv"
-aoi_table_filename <- "aoi_timepoints.csv"
-subject_table_filename <- "subjects.csv"
-administrations_table_filename <- "administrations.csv"
-stimuli_table_filename <- "stimuli.csv"
-trial_types_table_filename <- "trial_types.csv"
-trials_table_filename <- "trials.csv"
-aoi_regions_table_filename <-  "aoi_region_sets.csv"
-xy_table_filename <-  "xy_timepoints.csv"
-osf_token <- read_lines(here("osf_token.txt"))
-
-# download datata from osf
-#peekds::get_raw_data(dataset_name, path = read_path)
 
 # read raw icoder files
 #18-month-olds
@@ -335,13 +316,12 @@ cdi_to_json <- cdi_data_cleaned |>
 
 ##### AOI TABLE ####
 #TODO comment this, it just takes a while to run!
-d_tidy_final %>%
+aoi_timepoints <- d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
   select(t_norm, aoi, trial_id, administration_id,lab_subject_id) %>%
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
-  write_csv(fs::path(write_path, aoi_table_filename))
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
 
 ##### SUBJECTS TABLE ####
 subs <- d_tidy_final %>%
@@ -353,8 +333,7 @@ subs <- d_tidy_final %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
     native_language = "eng") |> 
-  left_join(cdi_to_json, by = "lab_subject_id") |> 
-  write_csv(fs::path(write_path, subject_table_filename))
+  left_join(cdi_to_json, by = "lab_subject_id")
 
 ##### ADMINISTRATIONS TABLE ####
 administrations <- d_tidy_final %>%
@@ -372,13 +351,11 @@ administrations <- d_tidy_final %>%
   mutate(coding_method = "manual gaze coding",
          administration_aux_data = NA) %>%
   # left_join(cdi_to_json, by = c("lab_subject_id", "age")) %>% 
-  select(-lab_subject_id) %>%
-  write_csv(fs::path(write_path, administrations_table_filename))
+  select(-lab_subject_id)
 
 ##### STIMULUS TABLE ####
 stimulus_table %>%
-  select(-target_label, -clean_target_image) %>%
-  write_csv(fs::path(write_path, stimuli_table_filename))
+  select(-target_label, -clean_target_image)
 
 #### TRIALS TABLE ####
 trials <- d_tidy_final %>%
@@ -387,8 +364,7 @@ trials <- d_tidy_final %>%
            trial_type_id,
            excluded,
            exclusion_reason) %>%
-  mutate(trial_aux_data=NA) |> 
-  write_csv(fs::path(write_path, trials_table_filename))
+  mutate(trial_aux_data=NA)
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
@@ -404,26 +380,30 @@ trial_types <- d_tidy_final %>%
            condition,
            vanilla_trial) %>%
     mutate(full_phrase_language = "eng",
-           trial_type_aux_data=NA) %>% 
-  write_csv(fs::path(write_path, trial_types_table_filename))
+           trial_type_aux_data=NA)
 
 
 ##### DATASETS TABLE ####
-# write Dataset table
-data_tab <- tibble(
-  dataset_id = 0, # make zero 0 for all
+dataset <- tibble(
+  dataset_id = 0,
   dataset_name = dataset_name,
-  lab_dataset_id = dataset_name, # internal name from the lab (if known)
+  lab_dataset_id = dataset_name,
   cite = "Fernald, A., & Marchman, V. A. (2012). Individual differences in lexical processing at 18 months predict vocabulary growth in typically developing and late‐talking toddlers. Child development, 83(1), 203-222.  https://doi.org/10.1111/j.1467-8624.2011.01692.x",
   shortcite = "Fernald & Marchman (2012)",
   dataset_aux_data=NA
-) %>%
-  write_csv(fs::path(write_path, dataset_table_filename))
+)
 
 
-
-# validation check ----------------------------------------------------------
-validate_for_db_import(dir_csv = write_path)
-
-## OSF INTEGRATION ###
-#put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
+write_and_validate(
+  dataset_name = dataset_name,
+  cdi_expected = TRUE,
+  dataset,
+  subjects = subs,
+  stimuli = stimulus_table,
+  administrations,
+  trial_types,
+  trials,
+  aoi_region_sets = NA,
+  xy_timepoints = NA,
+  aoi_timepoints
+)

@@ -47,7 +47,7 @@ subjects <- questionnaire_data %>%
   mutate(
     sex = 'unspecified',
     native_language = 'dut', # according to the paper, this was the same for everyone
-    subject_aux_data = toJSON(
+    subject_aux_data = jsonlite::toJSON(
       list(cdi_responses = cdi_data[cdi_data$ID == lab_subject_id,] %>%
              select(-ID)), na="null")
   )
@@ -313,7 +313,7 @@ write_and_validate(
   administrations,
   trial_types,
   trials,
-  aoi_region_sets = NA,
-  xy_timepoints = NA,
+  aoi_region_sets,
+  xy_timepoints,
   aoi_timepoints
 )

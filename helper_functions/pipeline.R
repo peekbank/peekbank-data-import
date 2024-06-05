@@ -1,10 +1,10 @@
 library(here)
 library(purrr)
 
+source(here("helper_functions", "osf.R"))
+
 # to prevent source calls in the import scripts to bleed through functions into the global environment
 formals(source)$local <- TRUE 
-
-source(here("helper_functions", "osf.R"))
 
 # returns a list of all datasets that are in the active pipeline
 list_all <- function(activeonly = TRUE){
@@ -33,22 +33,66 @@ download_all <- function(overwrite = FALSE, activeonly = FALSE){
   })
 }
 
-
-# TODO 
-# Have write_and_validate write a gitignored cdi indicator into the dataset directory
-# cdi_indicated.txt
-# no_cdi_indicated.txt
-#
-# this file is auto generated and is needed when validating all datasets at once. It is gitignored. Please do not delete it.
-#
-#
-# have write_and_validate write a gitignored validation_results file
-
+validate_all <- function(){
+  
+  datasets <- list_all(activeonly=TRUE)
+  
+  failed_validations <- datasets %>% 
+    lapply(\(dataset){
+      print(glue("Validating {dataset}"))
+      
+      if(file.exists(here("data", dataset, "cdi_indicated.txt"))){
+        cdi_expected <- TRUE
+      }else if(file.exists(here("data", dataset, "no_cdi_indicated.txt"))){
+        cdi_expected <- FALSE
+      }else{
+        return(glue("{dataset}: no cdi indicator found - be sure to use the write_and_valiate function in the script"))
+      }
+      
+      # only validate if processed_data is present
+      output_path <- here("data", dataset,"processed_data")
+      if(!file.exists(output_path)){
+        return("")
+      }
+      
+      tryCatch({
+        errors <- peekds::validate_for_db_import(
+          dir_csv = output_path,
+          cdi_expected = cdi_expected
+          )
+          
+          error_string  <- paste(errors, collapse=' ')
+          ifelse(!is.null(errors), glue("{dataset}: {error_string}"), "")
+        
+      }, error = \(e) {
+        glue("{dataset}: validator threw error, {e}")
+      })
+    }) %>% 
+    unlist()
+  
+  print("These datasets failed validation:")
+  print(failed_validations[failed_validations != ""])
+}
 
 # nocache: download all data again, even if it already exists
-run_all <- function(nocache=FALSE){
+# clean: remove all previous process_data, even if the current import script does not execute
+run_all <- function(nocache=FALSE, clean = TRUE){
   datasets <- list_all(activeonly=TRUE)
   download_all(overwrite = nocache, activeonly = TRUE)
+  
+  # delete previous processed data to ensure that only the results of the
+  # latest script runs are present. This measure prevents confusion in cases
+  # where old processed files are there, but the current version of the
+  # import script fails
+  if(clean){
+    datasets %>% 
+    purrr::walk(\(dataset){
+      output_path <- here("data", dataset,"processed_data")
+      if(file.exists(output_path)){
+        unlink(output_path, recursive = TRUE)
+      }
+    })
+  }
   
   failed_datasets <- datasets %>% 
     lapply(\(dataset){
@@ -60,23 +104,17 @@ run_all <- function(nocache=FALSE){
         source(import_script, local = new.env())
         return("")
       }, error = \(e) {
-        return(dataset)  # Return the dataset name if an error occurs
+        glue("{dataset}: import error {e}")
       })
     }) %>% 
     unlist()
 
-  # Remove NULL values from the vector
+  validate_all()
+  
+  print("These import scripts threw errors:")
   print(failed_datasets[failed_datasets != ""])
-  
 }
 
 
-validate_all <- function(){
-  
-  datasets <- list_all(activeonly=TRUE)
-  
-  # TODO run validation over all datasets
-  
-}
-
-
+#run_all()
+validate_all()
