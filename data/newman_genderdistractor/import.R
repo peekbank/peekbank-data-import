@@ -376,7 +376,7 @@ aoi_table <- d_tidy %>%
 
 write_and_validate(
   dataset_name = dataset_name,
-  cdi_expected = FALSE,
+  cdi_expected = TRUE,
   dataset = datasets_table,
   subjects = subjects_table,
   stimuli = stimuli_table,

@@ -199,11 +199,11 @@ aoi_timepoints = all_timepoints_table %>%
   peekds::resample_times("aoi_timepoints")
 
 ### Clean up tables and prepare for import! ------------------------------------
-mega_trials %>% 
+trials <- mega_trials %>% 
   distinct(trial_type_id, trial_order, trial_id, excluded, exclusion_reason)%>%
   mutate(trial_aux_data = NA)
 
-mega_trials %>% 
+trial_types <- mega_trials %>% 
   mutate(lab_trial_id = paste(condition, target_lab_id, 
                                distractor_lab_id, target_side, sep = "-")) %>%
   distinct(trial_type_id, full_phrase, full_phrase_language,
@@ -299,8 +299,8 @@ write_and_validate(
   subjects = subjects_table,
   stimuli = stimuli_table,
   administrations = administrations_table,
-  trial_types = trials_types_table,
-  trials = trials_table,
+  trial_types = trial_types,
+  trials = trials,
   aoi_region_sets = aoi_region_sets_table,
   xy_timepoints = xy_timepoints_table,
   aoi_timepoints = aoi_timepoints_table
