@@ -1,5 +1,10 @@
 library(here)
-source(here("helper_functions", "common.R"))
+library(purrr)
+
+# to prevent source calls in the import scripts to bleed through functions into the global environment
+formals(source)$local <- TRUE 
+
+source(here("helper_functions", "osf.R"))
 
 # returns a list of all datasets that are in the active pipeline
 list_all <- function(activeonly = TRUE){
@@ -9,7 +14,7 @@ list_all <- function(activeonly = TRUE){
   
   ignored_folders <- NOT_DATASETS
   if(activeonly){
-    ignored_folders <- c(ignored_datasets, CURRENTLY_IGNORED)
+    ignored_folders <- c(ignored_folders, CURRENTLY_IGNORED)
   }
   
   folder_names <- basename(list.dirs(here("data"), recursive = FALSE))
@@ -29,7 +34,6 @@ download_all <- function(overwrite = FALSE, activeonly = FALSE){
 }
 
 
-
 # TODO 
 # Have write_and_validate write a gitignored cdi indicator into the dataset directory
 # cdi_indicated.txt
@@ -46,14 +50,24 @@ run_all <- function(nocache=FALSE){
   datasets <- list_all(activeonly=TRUE)
   download_all(overwrite = nocache, activeonly = TRUE)
   
-  # TODO run all datasets
+  failed_datasets <- datasets %>% 
+    lapply(\(dataset){
+      print(glue("Running {dataset}"))
+      import_script <- here("data", dataset, "import.R")
+      tryCatch({
+        # Loaded packages might bleed through, but for these validation-runs this
+        # should be fine, as we aren't using highly specified package versions
+        source(import_script, local = new.env())
+        return("")
+      }, error = \(e) {
+        return(dataset)  # Return the dataset name if an error occurs
+      })
+    }) %>% 
+    unlist()
+
+  # Remove NULL values from the vector
+  print(failed_datasets[failed_datasets != ""])
   
-  # Not sure if namespaces bleed through, but for these validation runs this
-  # should be fine, as we aren't using highly specified package versions
-  source(myTmpFile, local=TRUE)
-  
-  # alternative approach to consider if source() runs into trouble
-  # system("Rscript import.R")
 }
 
 

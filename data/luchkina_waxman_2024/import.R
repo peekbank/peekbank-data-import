@@ -1,7 +1,8 @@
 library(here)
-source(here("helper_functions", "common.R"))
 
-init("luchkina_waxman_2024")
+source(here("helper_functions", "common.R"))
+dataset_name <- "luchkina_waxman_2024"
+data_path <- init(dataset_name)
 
 ### 1. DATASET TABLE
 dataset <- tibble(
@@ -165,6 +166,7 @@ ggplot(lookingscores, aes(x = t_norm, y = ls)) +
   labs(x = "t_norm", y = "ls")
 
 write_and_validate(
+  dataset_name = dataset_name,
   cdi_expected = TRUE,
   dataset,
   subjects,

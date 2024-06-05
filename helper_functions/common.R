@@ -10,9 +10,7 @@ source(here("helper_functions", "osf.R"))
 
 init <- function(dataset_name){
   path <- here("data", dataset_name)
-  data_path <<- here(path, "raw_data")
-  output_path <<- here(path, "processed_data")
-  dataset_name <<- dataset_name
+  data_path <- here(path, "raw_data")
   
   if (length(list.files(data_path)) == 0) {
     get_raw_data_fixed(
@@ -20,9 +18,12 @@ init <- function(dataset_name){
       osf_address = "pr6wu"
     )
   }
+  
+  return(data_path)
 }
 
 write_and_validate <- function(
+    dataset_name,
     cdi_expected,
     dataset,
     subjects,
@@ -39,6 +40,8 @@ write_and_validate <- function(
     stop("Need to specifiy cdi_expected boolean argument to validator")
   }
   ################## WRITING AND VALIDATION ##################
+  
+  output_path <- here("data", dataset_name, "processed_data")
   
   dir.create(here(output_path), showWarnings=FALSE)
   
