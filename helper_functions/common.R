@@ -4,7 +4,6 @@ library(tidyverse)
 library(here)
 library(stringr)
 library(peekds)
-library(osfr)
 
 # override of peekds get_raw_data that relies on broken osfr 
 source(here("helper_functions", "osf.R"))
@@ -16,10 +15,8 @@ init <- function(dataset_name){
   dataset_name <<- dataset_name
   
   if (length(list.files(data_path)) == 0) {
-    dir.create(data_path, showWarnings = FALSE)
     get_raw_data(
       lab_dataset_id = dataset_name,
-      path = data_path,
       osf_address = "pr6wu"
     )
   }
