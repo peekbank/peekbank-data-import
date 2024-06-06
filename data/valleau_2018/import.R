@@ -46,7 +46,7 @@ d_tidy <- d_raw %>%
   rename(subphase = sr)%>% #rename the subphase column
   #mutate(subphase = if_else(subphase == "Salience", "Baseline", subphase))%>%  #change the name of the subphases
   mutate(lab_trial_id = trials)%>%
-  select(-mcdi_2, -item, -frames_from_subphase_onset,-subphase,-scene)%>% # remove other columns, we only keep the response phase and now delete the subphase column
+  select(-item, -frames_from_subphase_onset,-subphase,-scene)%>% # remove other columns, we only keep the response phase and now delete the subphase column
   mutate(image1 = word(trials, 1, sep = "-"),
          image2 = word(trials, 2, sep = "-"))%>%
   mutate(distractor_image = ifelse(target_image == image1, image2, image1))%>%# add distractor column
@@ -81,12 +81,21 @@ datasets <- tibble(
 
 #### (2) subjects ####
 subjects <- d_tidy %>%
-  distinct(lab_subject_id, age, sex) %>%
+  distinct(lab_subject_id, age, sex, mcdi_2) %>%
   mutate(sex = tolower(sex),
-         subject_aux_data = NA,
+         age = as.numeric(age),
+         mcdi_2 = as.numeric(mcdi_2),
          subject_id = row_number() - 1,
-         native_language = "eng")
-View(subjects)
+         native_language = "eng",
+         subject_aux_data = as.character(pmap(
+           list(mcdi_2, age),
+           function(cdi, age){
+             jsonlite::toJSON(list(cdi_responses = compact(list(
+                 list(rawscore = cdi, age = age, measure="prod", language = "English (American)", instrument_type = "wsshort")
+               ))), auto_unbox = TRUE)
+           }
+         ))) %>% select(-mcdi_2)
+
 #joint subjects table back to the big table  
 d_tidy <- d_tidy %>% left_join(subjects,by = "lab_subject_id")
 
@@ -138,20 +147,7 @@ trial_types <- d_tidy %>%
 d_tidy <- d_tidy %>% left_join(trial_types) 
 
 
-
-#### (5) trials ##############
-##get trial IDs for the trials table
-trials <- d_tidy %>%
-  distinct(trial_order, trial_type_id, nv)%>%
-  mutate(excluded = FALSE)%>%
-  mutate(exclusion_reason = NA)%>%
-  mutate(trial_aux_data = NA)%>%
-  mutate(trial_id = seq(0, length(.$trial_type_id) - 1))
-
-# join in trial ID  
-d_tidy <- d_tidy %>% left_join(trials) 
-
-#### (6) administrations ########
+#### (5) administrations ########
 administrations <- subjects %>%
   mutate(dataset_id = dataset_id,
          coding_method = "preprocessed eyetracking",
@@ -171,6 +167,19 @@ administrations <- subjects %>%
 d_tidy <- d_tidy %>% left_join(administrations, by = c("dataset_id", "subject_id"))
 
 
+#### (6) trials ##############
+##get trial IDs for the trials table
+trials <- d_tidy %>%
+  distinct(trial_order, trial_type_id, administration_id)%>%
+  mutate(excluded = FALSE)%>%
+  mutate(exclusion_reason = NA)%>%
+  mutate(trial_aux_data = NA)%>%
+  mutate(trial_id = seq(0, length(.$trial_type_id) - 1))
+  
+# join in trial ID  
+d_tidy <- d_tidy %>% left_join(trials, by = join_by(trial_order, trial_type_id, administration_id)) 
+
+trials <- trials %>% select(-administration_id)
 
 #### (7) aoi_timepoints #######
 aoi_timepoints<- d_tidy %>%
