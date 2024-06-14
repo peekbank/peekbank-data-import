@@ -2,124 +2,57 @@
 ## libraries
 library(here)
 library(janitor)
-library(tidyverse)
 library(readxl)
-library(peekds)
-library(osfr)
+
+source(here("helper_functions", "common.R"))
+dataset_name <- "potter_canine"
+read_path <- init(dataset_name)
 
 ## constants
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
-dataset_name = "potter_canine"
-read_path <- here("data" ,dataset_name,"raw_data")
-write_path <- here("data",dataset_name, "processed_data")
-read_orders_path <- here("data",dataset_name,"raw_data","orders")
 
-# processed data filenames
-dataset_table_filename <- "datasets.csv"
-aoi_table_filename <- "aoi_timepoints.csv"
-subject_table_filename <- "subjects.csv"
-administrations_table_filename <- "administrations.csv"
-stimuli_table_filename <- "stimuli.csv"
-trial_types_table_filename <- "trial_types.csv"
-trials_table_filename <- "trials.csv"
-aoi_regions_table_filename <-  "aoi_region_sets.csv"
-xy_table_filename <-  "xy_timepoints.csv"
-#osf_token <- read_lines(here("osf_token.txt"))
+read_orders_path <- here(read_path, "orders")
+
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
 
-# download datata from osf
-#peekds::get_raw_data(dataset_name, path = read_path)
 
-### Canine 1 preprocessing
-# To-do: could unify this a bit, but separating the process here to avoid rewriting old code and avoid tweaking incompatibilities between the
-#new Canine dataset and the old one
-
-# read raw icoder files
-d_raw_1 <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
-                    delim = "\t") %>%
+d_raw_2 <- read_delim(fs::path(read_path, "canine2_rawLookingTimeData.n34.txt"),
+                      delim = "\t") %>%
   mutate(administration_num = 0) %>%
-  relocate(administration_num, .after = `Sub Num`)
+  mutate(study = 2) %>% 
+  relocate(administration_num, study, .after = `Sub Num`)
+  
 
-# read in order files
-# These files contain additional information about the target labels and carrier phrases
-trial_order_paths <- list.files(read_orders_path, full.names = TRUE, pattern = ".txt")
-trial_orders <- map_df(trial_order_paths, read_delim, delim = "\t")
-
-#read in stimulus lookup table
-stimulus_lookup_table <- read_csv(fs::path(read_path,"canine_stimulus_lookup_table.csv"))
-
-# remove any column with all NAs (these are columns
-# where there were variable names but no eye tracking data)
-d_filtered_1 <- d_raw_1 %>%
-  select_if(~sum(!is.na(.)) > 0)
-
-# Create clean column headers --------------------------------------------------
-d_processed_1 <-  d_filtered_1 %>%
-  remove_repeat_headers(idx_var = "Months") %>%
-  clean_names()
-
-#rename order and trial number column names for trial_orders, then join with d_processed
-trial_orders <- trial_orders %>%
-  rename(order=Name, tr_num=`trial number`) %>%
-  clean_names() %>%
-  select(order,tr_num,sound_stimulus) # select just the columns we need - really only need sound_stimulus, everything else important already in main icoder file
-
-d_processed_1 <- d_processed_1 %>%
-  mutate(tr_num=as.numeric(as.character(tr_num))) %>% #make trial number numeric
-  left_join(trial_orders,by=c("order","tr_num")) %>%
-  relocate(c(order, tr_num,sound_stimulus),.after = `sub_num`)
-
-# Relabel time bins --------------------------------------------------
-old_names_1 <- colnames(d_processed_1)
-metadata_names_1 <- old_names_1[!str_detect(old_names_1,"x\\d|f\\d")]
-pre_dis_names_1 <- old_names_1[str_detect(old_names_1, "x\\d")]
-post_dis_names_1  <- old_names_1[str_detect(old_names_1, "f\\d")]
-
-pre_dis_names_clean_1 <- round(seq(from = length(pre_dis_names_1) * sampling_rate_ms,
-                           to = sampling_rate_ms,
-                           by = -sampling_rate_ms) * -1,0)
-
-post_dis_names_clean_1 <-  post_dis_names_1 %>% str_remove("f")
-
-colnames(d_processed_1) <- c(metadata_names_1, pre_dis_names_clean_1, post_dis_names_clean_1)
-
-### truncate columns at 3600, since trials are almost never coded later than this timepoint
-## TO DO: check in about this decision
-post_dis_names_clean_cols_to_remove_1 <- post_dis_names_clean_1[110:length(post_dis_names_clean_1)]
-#remove
-d_processed_1 <- d_processed_1 %>%
-  select(-all_of(post_dis_names_clean_cols_to_remove_1))
-
-# Convert to long format --------------------------------------------------
-
-# get idx of first time series
-first_t_idx_1 <- length(metadata_names_1) + 1            
-last_t_idx_1 <- colnames(d_processed_1) %>% length()
-d_tidy_1 <- d_processed_1 %>%
-  pivot_longer(first_t_idx_1:last_t_idx_1,names_to = "t", values_to = "aoi") 
-
-##Canine2 preprocessing
+##Preprocessing
 # read raw icoder files
 d_raw_1 <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
                       delim = "\t") %>%
   mutate(administration_num = 0) %>%
-  relocate(administration_num, .after = `Sub Num`)
+  mutate(study = 1) %>% 
+  relocate(administration_num, study, .after = `Sub Num`)
+  
 
+d_raw <- bind_rows(d_raw_1, d_raw_2)
 # read in order files
 # These files contain additional information about the target labels and carrier phrases
 trial_order_paths <- list.files(read_orders_path, full.names = TRUE, pattern = ".txt")
 trial_orders <- map_df(trial_order_paths, read_delim, delim = "\t")
 
 #read in stimulus lookup table
-stimulus_lookup_table <- read_csv(fs::path(read_path,"canine_stimulus_lookup_table.csv"))
+stimulus_lookup_table <- read_csv(fs::path(read_path,"canine_stimulus_lookup_table.csv")) %>%
+  mutate(study = 1) %>% 
+  bind_rows(
+    read_csv(here("data" ,dataset_name,"canine2_stimulus_lookup_table.csv")) %>% # created according to the table in the paper
+      mutate(study = 2)
+  )
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
-d_filtered_1 <- d_raw_1 %>%
+d_filtered_1 <- d_raw %>%
   select_if(~sum(!is.na(.)) > 0)
 
 # Create clean column headers --------------------------------------------------
@@ -164,8 +97,8 @@ d_processed_1 <- d_processed_1 %>%
 # get idx of first time series
 first_t_idx_1 <- length(metadata_names_1) + 1            
 last_t_idx_1 <- colnames(d_processed_1) %>% length()
-d_tidy_1 <- d_processed_1 %>%
-  pivot_longer(first_t_idx:last_t_idx,names_to = "t", values_to = "aoi") 
+d_tidy <- d_processed_1 %>%
+  pivot_longer(first_t_idx_1:last_t_idx_1,names_to = "t", values_to = "aoi") 
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -192,7 +125,8 @@ d_tidy <- d_tidy %>%
   # first, split condition column to isolate the target label condition
   separate(condition,into=c("carrier_phrase_condition","target_label_condition"),sep="-", remove=FALSE) %>%
   # join data frame with stimulus lookup table in order to determine high and low target label
-  left_join(stimulus_lookup_table,by=c('target_image' = 'image_name')) %>%
+  mutate(study = as.numeric(study)) %>% 
+  left_join(stimulus_lookup_table,by=c('target_image' = 'image_name', 'study' = 'study')) %>%
   relocate(c(high_label,low_label),.after=target_image) %>%
   # determine target label
   mutate(target_label = case_when(
@@ -284,23 +218,47 @@ d_tidy_final <- d_tidy_semifinal %>%
          )
 
 ##### AOI TABLE ####
-d_tidy_final %>%
+aoi_timepoints <- d_tidy_final %>%
   select(t_norm, aoi, trial_id, administration_id) %>%
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
-  write_csv(fs::path(write_path, aoi_table_filename))
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
 
 ##### SUBJECTS TABLE ####
-d_tidy_final %>%
+
+
+cdi_raw1 <- read.csv(here(read_path, "Canine.Means.367-2000.n36.csv")) %>%
+  select(lab_subject_id = Sub.Num, cdi = CDIwords) %>% 
+  left_join((d_tidy_final %>%
+               distinct(lab_subject_id, age) %>%
+               mutate(lab_subject_id = as.numeric(lab_subject_id))))
+
+cdi_raw2 <- read.csv(here(read_path, "canine2_subjectMeans.csv"))  %>% 
+  select(lab_subject_id = Sub.Num, cdi = MCDI, age = ageMonths) 
+
+cdi_data <- cdi_raw1 %>% 
+  rbind(cdi_raw2) %>%
+  filter(!is.na(cdi)) %>% 
+  mutate(cdi = as.numeric(cdi)) %>% 
+  mutate(subject_aux_data = as.character(pmap(
+    list(cdi, age),
+    function(cdi, age){
+      jsonlite::toJSON(list(cdi_responses = list(
+        list(rawscore = jsonlite::unbox(cdi), age = jsonlite::unbox(age), measure=jsonlite::unbox("prod"), language = jsonlite::unbox("English (American)"), instrument_type = jsonlite::unbox("ws"))
+      )))
+    }
+  )), lab_subject_id = as.character(lab_subject_id)) %>% 
+  select(lab_subject_id , subject_aux_data)
+  
+
+subjects <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-         native_language="eng",
-         subject_aux_data=NA) %>%
-  write_csv(fs::path(write_path, subject_table_filename))
+         native_language="eng") %>%
+  left_join(cdi_data)
 
 ##### ADMINISTRATIONS TABLE ####
-d_tidy_final %>%
+administrations <- d_tidy_final %>%
   distinct(administration_id,
            dataset_id,
            subject_id,
@@ -312,17 +270,15 @@ d_tidy_final %>%
            sample_rate,
            tracker) %>%
   mutate(coding_method = "manual gaze coding",
-         administration_aux_data=NA) %>%
-  write_csv(fs::path(write_path, administrations_table_filename))
+         administration_aux_data=NA)
 
 ##### STIMULUS TABLE ####
-stimulus_table %>%
+stimuli <- stimulus_table %>%
   select(-target_label, -target_image) %>%
-  mutate(stimulus_aux_data = NA) %>%
-  write_csv(fs::path(write_path, stimuli_table_filename))
+  mutate(stimulus_aux_data = NA)
 
 #### TRIALS TABLE ####
-d_tidy_final %>%
+trials <- d_tidy_final %>%
   mutate(trial_aux_data = NA) %>%
   mutate(
     excluded = case_when(
@@ -339,11 +295,10 @@ d_tidy_final %>%
            trial_type_id,
            trial_aux_data,
            excluded,
-           exclusion_reason) %>%
-  write_csv(fs::path(write_path, trials_table_filename))
+           exclusion_reason)
 
 ##### TRIAL TYPES TABLE ####
-d_tidy_final %>%
+trial_types <- d_tidy_final %>%
   mutate(trial_type_aux_data = NA,
          vanilla_trial = ifelse(condition == "Common-High"|condition == "Common-Low", TRUE, FALSE)) %>%
   distinct(trial_type_id,
@@ -358,48 +313,30 @@ d_tidy_final %>%
            dataset_id,
            target_id,
            distractor_id) %>%
-  mutate(full_phrase_language = "eng") %>% 
-  write_csv(fs::path(write_path, trial_types_table_filename))
+  mutate(full_phrase_language = "eng")
 
-##### AOI REGIONS TABLE ####
-# create empty other files aoi_region_sets.csv and xy_timepoints
-# don't need 
-# tibble(administration_id = d_tidy_final$administration_id[1],
-#       aoi_region_set_id=NA,
-#        l_x_max=NA ,
-#        l_x_min=NA ,
-#        l_y_max=NA ,
-#        l_y_min=NA ,
-#        r_x_max=NA ,
-#        r_x_min=NA ,
-#        r_y_max=NA ,
-#        r_y_min=NA ) %>%
-#   write_csv(fs::path(write_path, aoi_regions_table_filename))
-
-##### XY TIMEPOINTS TABLE ####
-# d_tidy_final %>% distinct(trial_id, administration_id) %>%
-#   mutate(x = NA,
-#          y = NA,
-#          t = NA,
-#          xy_timepoint_id = 0:(n()-1)) %>%
-#   write_csv(fs::path(write_path, xy_table_filename))
 
 ##### DATASETS TABLE ####
-# write Dataset table
-data_tab <- tibble(
-  dataset_id = 0, # make zero 0 for all
+dataset <- tibble(
+  dataset_id = 0, 
   dataset_name = dataset_name,
-  lab_dataset_id = dataset_name, # internal name from the lab (if known)
+  lab_dataset_id = dataset_name,
   cite = "Potter, C. E., & Lew-Williams, C. (2023). Frequent vs. infrequent words shape toddlers’ real-time sentence comprehension. Journal of Child Language, 1-11. doi:10.1017/S0305000923000387",
   shortcite = "Potter, C., & Lew-Williams, C. (2023)",
   dataset_aux_data = NA
-) %>%
-  write_csv(fs::path(write_path, dataset_table_filename))
+)
 
 
-
-# validation check ----------------------------------------------------------
-validate_for_db_import(dir_csv = write_path)
-
-## OSF INTEGRATION ###
-#put_processed_data(osf_token, dataset_name, write_path, osf_address = "pr6wu")
+write_and_validate(
+  dataset_name = dataset_name,
+  cdi_expected = TRUE,
+  dataset,
+  subjects,
+  stimuli,
+  administrations,
+  trial_types,
+  trials,
+  aoi_region_sets = NA,
+  xy_timepoints = NA,
+  aoi_timepoints
+)

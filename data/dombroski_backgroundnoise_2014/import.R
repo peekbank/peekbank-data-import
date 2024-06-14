@@ -6,16 +6,14 @@
 # https://doi.org/10.1121/1.4898051
 
 
-library(tidyverse)
 library(here)
-library(peekds)
-library(osfr)
 library(readxl)
+library(purrr)
 
-path <- here("data", "dombroski_backgroundnoise_2014")
-data_path <- here(path, "raw_data")
-output_path <- here("data", "dombroski_backgroundnoise_2014", "processed_data")
+source(here("helper_functions", "common.R"))
 dataset_name <- "dombroski_backgroundnoise_2014"
+data_path <- init(dataset_name)
+
 
 ### 1. DATASET TABLE
 dataset <- tibble(
@@ -34,7 +32,7 @@ demo <- read_excel(here(data_path, "demographics", "34m WordLearninginNoise runn
     sex = `...3`,
     age = `...5`
   ) %>% 
-  filter(!is.na(lab_subject_id))
+  filter(!is.na(lab_subject_id) & !is.na(sex))
 
 ### 2. SUBJECTS TABLE
 
@@ -48,25 +46,56 @@ subjects <- demo %>%
 # TODO heavily wip
 
 
+### 3. STIMULI TABLE
+
+### 4. Administrations Table
+
+### 4.5 Prepare Data
+
+### 5. Trial Types Table
+
+### 6. TRIALS TABLE
+
+### 7. AOI REGION SETS TABLE
+
+### 8. XY TABLE
+
+### 9. AOI TIMEPOINTS TABLE
+
+
 # going by the paper, there is a 1:1 mapping
 # between participants and administrations
 
 
 
+file_paths <- list.files(path = file.path(data_path, "Studies 1_2"), pattern = "\\.xls$", full.names = TRUE)
 
-################## WRITING AND VALIDATION ##################
+averages_file_paths <- file_paths[grep("average", basename(file_paths), ignore.case = TRUE)]
 
-dir.create(here(output_path), showWarnings=FALSE)
 
-write_csv(dataset, file = here(output_path, "datasets.csv"))
-write_csv(subjects, file = here(output_path, "subjects.csv"))
-write_csv(stimuli, file = here(output_path,  "stimuli.csv"))
-write_csv(administrations, file = here(output_path, "administrations.csv"))
-write_csv(trial_types, file = here(output_path, "trial_types.csv"))
-write_csv(trials, file = here(output_path, "trials.csv"))
-write_csv(aoi_region_sets, file = here(output_path, "aoi_region_sets.csv"))
-write_csv(xy_timepoints, file = here(output_path, "xy_timepoints.csv"))
-write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
+# Apply the custom function to every file path
+results <- lapply(averages_file_paths, function(path) {
+  test <- read_excel(path, col_names = FALSE, progress=FALSE)
+  print(colnames(test))
+})
 
-# run validator
-peekds::validate_for_db_import(dir_csv = output_path)
+averages_file_paths
+
+combined_data <- averages_file_paths %>%
+  map_dfr(function(x){
+    print(x)
+    read_excel(x, col_names = FALSE)})
+
+write_and_validate(
+  dataset_name = dataset_name,
+  cdi_expected = FALSE,
+  dataset,
+  subjects,
+  stimuli,
+  administrations,
+  trial_types,
+  trials,
+  aoi_region_sets = NA,
+  xy_timepoints = NA,
+  aoi_timepoints
+)

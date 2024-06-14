@@ -4,25 +4,10 @@
 # Behavior research methods, 52(5), 2188–2201.
 # https://doi.org/10.3758/s13428-020-01385-5
 
-library(tidyverse)
 library(here)
-library(stringr)
-library(peekds)
-library(osfr)
-
-
-path <- here("data", "gazetriggered_2020")
-data_path <- here(path, "raw_data")
-output_path <- here("data", "gazetriggered_2020", "processed_data")
+source(here("helper_functions", "common.R"))
 dataset_name <- "gazetriggered_2020"
-
-if (length(list.files(data_path)) == 0) {
-  get_raw_data(
-    lab_dataset_id = dataset_name,
-    path = data_path,
-    osf_address = "pr6wu"
-  )
-}
+data_path <- init(dataset_name)
 
 ### 1. DATASET TABLE
 dataset <- tibble(
@@ -52,7 +37,7 @@ cdi_data <- questionnaire_data %>%
     language = "Dutch"
   )
 
-library(jsonlite)
+
 
 # Select and rename columns to match the subjects table
 subjects <- questionnaire_data %>%
@@ -62,7 +47,7 @@ subjects <- questionnaire_data %>%
   mutate(
     sex = 'unspecified',
     native_language = 'dut', # according to the paper, this was the same for everyone
-    subject_aux_data = toJSON(
+    subject_aux_data = jsonlite::toJSON(
       list(cdi_responses = cdi_data[cdi_data$ID == lab_subject_id,] %>%
              select(-ID)), na="null")
   )
@@ -90,25 +75,32 @@ translation_vector <- c(
   "auto" = "Car"
 )
 
+phrase_vector <- c(
+  "kijk" = "Kijk!",
+  "wat" = "Wat is dat nou?",
+  "leuk" = "Wat leuk!",
+  "zien" = "Zie je het?"
+)
+
 ### 3. STIMULI TABLE
 stimuli <- fixations %>%
-  select(left_image, right_image, target) %>%
-  distinct() %>%
+  select(left_image, right_image) %>%
   pivot_longer(
     cols = c(left_image, right_image),
     names_to = "side",
     values_to = "image"
   ) %>%
+  distinct() %>%
   select(-side) %>%
-  mutate(original_stimulus_label = target,
-         english_stimulus_label = translation_vector[target],
+  mutate(original_stimulus_label = image,
+         english_stimulus_label = translation_vector[image],
          stimulus_novelty = "familiar",
          lab_stimulus_id = NA,
          stimulus_image_path = image,
          image_description = image,
          image_description_source = 'image path',
          dataset_id = 0) %>%
-  select(-c(target, image)) %>%
+  select(-c(image)) %>%
   distinct() %>%
   mutate(stimulus_id = 0:(n() - 1),
          stimulus_aux_data = NA)
@@ -120,8 +112,9 @@ stimuli <- fixations %>%
 # between participants and administrations
 
 administrations <- questionnaire_data %>%
+  # ensure subject ids are consistent with the subjects table
+  inner_join(subjects %>% select(lab_subject_id, subject_id), by=join_by(ID == lab_subject_id)) %>%
   mutate(administration_id = 0:(n() - 1),
-         subject_id = 0:(n() - 1),
          dataset_id = 0,
          age = `Age.(Months)`,
          lab_age = `Age.(Months)`,
@@ -187,6 +180,7 @@ d <- fixations %>%
   mutate(aoi_timepoint_id = 0:(n() - 1),
          xy_timepoint_id = 0:(n() - 1),
          target_image = ifelse(target_side == "left", left_image, right_image),
+         full_phrase = paste0(phrase_vector[audio1], " Een ", audio2, "!"),
          distractor_image = ifelse(target_side == "right", left_image, right_image),
          point_of_disambiguation = audio2_onset,
          subject_id = Participant,
@@ -206,8 +200,8 @@ d <- fixations %>%
   # the authors do not provide explanations for this in their original analysis,
   # so we prune this data, as it is likely an artefact of some experiment mishap
   filter(t_norm > -4000) %>% 
-  select(subject_id, lab_trial_id, aoi_timepoint_id, xy_timepoint_id, target, target_image, target_side, distractor_image, condition, point_of_disambiguation, x , y, t_norm, aoi) %>%
-  group_by(target, target_image, target_side, distractor_image, condition, point_of_disambiguation) %>%
+  select(subject_id, lab_trial_id, aoi_timepoint_id, xy_timepoint_id, target, target_image, target_side, distractor_image, condition, point_of_disambiguation, x , y, t_norm, aoi, full_phrase) %>%
+  group_by(target, target_image, target_side, distractor_image, condition, point_of_disambiguation, full_phrase) %>%
   mutate(trial_type_id = cur_group_id() - 1) %>%
   ungroup() %>%
   group_by(subject_id) %>%
@@ -232,19 +226,17 @@ d <- fixations %>%
 ### 5. Trial Types Table
 
 trial_types <- d %>%
-  select(target, target_image, target_side, distractor_image, condition, point_of_disambiguation, lab_trial_id, trial_type_id) %>%
+  select(target, target_image, target_side, distractor_image, condition, point_of_disambiguation, lab_trial_id, trial_type_id, full_phrase) %>%
   distinct() %>%
-  mutate(full_phrase = target,
-         original_stimulus_label = target, 
-         condition = condition,
+  mutate(condition = condition,
          full_phrase_language = "dut",
          aoi_region_set_id = 0,
          dataset_id = 0,
          vanilla_trial = TRUE,
          trial_type_aux_data = NA) %>%
-  left_join(stimuli, by = c("distractor_image" = "stimulus_image_path", "original_stimulus_label" = "original_stimulus_label")) %>%
+  left_join(stimuli, by = c("distractor_image" = "stimulus_image_path")) %>%
   rename(distractor_id = stimulus_id) %>%
-  left_join(stimuli, by = c("target_image" = "stimulus_image_path", "original_stimulus_label" = "original_stimulus_label")) %>%
+  left_join(stimuli, by = c("target_image" = "stimulus_image_path")) %>%
   rename(target_id = stimulus_id) %>% 
   select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
          target_side, lab_trial_id, condition, vanilla_trial, trial_type_aux_data, 
@@ -311,19 +303,17 @@ ggplot(lookingscores, aes(x = t_norm, y = ls)) +
   geom_line() +
   labs(x = "t_norm", y = "ls")
 
-################## WRITING AND VALIDATION ##################
 
-dir.create(here(output_path), showWarnings=FALSE)
-
-write_csv(dataset, file = here(output_path, "datasets.csv"))
-write_csv(subjects, file = here(output_path, "subjects.csv"))
-write_csv(stimuli, file = here(output_path,  "stimuli.csv"))
-write_csv(administrations, file = here(output_path, "administrations.csv"))
-write_csv(trial_types, file = here(output_path, "trial_types.csv"))
-write_csv(trials, file = here(output_path, "trials.csv"))
-write_csv(aoi_region_sets, file = here(output_path, "aoi_region_sets.csv"))
-write_csv(xy_timepoints, file = here(output_path, "xy_timepoints.csv"))
-write_csv(aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
-
-# run validator
-peekds::validate_for_db_import(dir_csv = output_path)
+write_and_validate(
+  dataset_name = dataset_name,
+  cdi_expected = TRUE,
+  dataset,
+  subjects,
+  stimuli,
+  administrations,
+  trial_types,
+  trials,
+  aoi_region_sets,
+  xy_timepoints,
+  aoi_timepoints
+)

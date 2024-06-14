@@ -7,33 +7,19 @@ library(readxl)
 library(peekds)
 library(osfr)
 
+
+source(here("helper_functions", "common.R"))
+dataset_name <- "potter_remix"
+read_path <- init(dataset_name)
+
 ## constants
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
-dataset_name = "potter_remix"
-read_path <- here("data" ,dataset_name,"raw_data")
-write_path <- here("data",dataset_name, "processed_data")
-
-# processed data filenames
-dataset_table_filename <- "datasets.csv"
-aoi_table_filename <- "aoi_timepoints.csv"
-subject_table_filename <- "subjects.csv"
-administrations_table_filename <- "administrations.csv"
-stimuli_table_filename <- "stimuli.csv"
-trials_table_filename <- "trials.csv"
-trial_types_table_filename <- "trial_types.csv"
-aoi_regions_table_filename <-  "aoi_region_sets.csv"
-xy_table_filename <-  "xy_timepoints.csv"
-osf_token <- read_lines(here("osf_token.txt"))
 
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[,idx_var] != idx_var,]
 }
-
-
-# download data from osf
-# peekds::get_raw_data(dataset_name, path = read_path)
 
 
 # read raw icoder files
@@ -285,18 +271,42 @@ aoi_timepoints <- d_tidy_final %>%
   select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>% 
   #resample timepoints
   resample_times(table_type="aoi_timepoints") %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
-  write_csv(fs::path(write_path, aoi_table_filename))
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
 
 
 ##### SUBJECTS TABLE ####
+
+cdi_raw <- read.csv(here(read_path, "osf_summarized_data_cdi","SpanishMix.n20.Means.csv"))
+   
+
+cdi_data <- cdi_raw %>%
+  mutate(SpanishCDI = ifelse(Dominant == "Spanish", CDI_Dominant, CDI_NonDominant),
+         EnglishCDI = ifelse(Dominant == "English", CDI_Dominant, CDI_NonDominant)) %>% 
+  select(subNum, ageMonths, SpanishCDI, EnglishCDI) %>%
+  mutate(SpanishCDI = suppressWarnings(as.numeric(SpanishCDI)),
+         EnglishCDI = suppressWarnings(as.numeric(EnglishCDI))) %>%
+  filter(!is.na(EnglishCDI) | !is.na(SpanishCDI)) %>% 
+  mutate(subject_aux_data = pmap(
+    list(SpanishCDI, EnglishCDI, ageMonths),
+    function(SpanishCDI, EnglishCDI, age){
+      toJSON(list(cdi_responses = compact(list(
+        if(!is.na(EnglishCDI)) { 
+          list(rawscore = unbox(EnglishCDI), age = unbox(age), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wsshort"))
+          },
+        if (!is.na(SpanishCDI)) {
+          list(rawscore = unbox(SpanishCDI), age = unbox(age), measure=unbox("prod"), language = unbox("Spanish"), instrument_type = unbox("wsshort"))
+          }))))
+    }
+  ), subNum = as.character(subNum)) %>% 
+  select(lab_subject_id = subNum, subject_aux_data) %>% 
+mutate(subject_aux_data = as.character(subject_aux_data))
+
 subjects <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id,sex) %>%
   mutate(
     sex = factor(sex, levels = c('M','F'), labels = c('male','female')),
-    native_language = "spa, eng",
-    subject_aux_data =NA) %>%
-  write_csv(fs::path(write_path, subject_table_filename))
+    native_language = "spa, eng") %>%
+  left_join(cdi_data)
 
 ##### ADMINISTRATIONS TABLE ####
 administrations <- d_tidy_final %>%
@@ -311,13 +321,11 @@ administrations <- d_tidy_final %>%
            sample_rate,
            tracker) %>%
   mutate(coding_method = "manual gaze coding",
-         administration_aux_data = NA) %>%
-  write_csv(fs::path(write_path, administrations_table_filename))
+         administration_aux_data = NA)
 
 ##### STIMULUS TABLE ####
-stimulus_table %>%
-  mutate(stimulus_aux_data = NA) %>%
-  write_csv(fs::path(write_path, stimuli_table_filename))
+stimuli <- stimulus_table %>%
+  mutate(stimulus_aux_data = NA)
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
@@ -337,61 +345,39 @@ trial_types <- d_tidy_final %>%
       str_detect(condition,"english_to")  ~ "eng",
       str_detect(condition,"spanish_to") ~ "spa",
       TRUE ~ NA_character_),
-      trial_type_aux_data = NA) %>%
-    write_csv(fs::path(write_path, trial_types_table_filename))
+      trial_type_aux_data = NA)
 
 ##### TRIALS TABLE ####
-# trial_id	PrimaryKey	row identifier for the trials table indexing from zero
-# trial_order	IntegerField	index of the trial in order of presentation during the experiment
-# trial_type_id	ForeignKey	row identifier for the trial_types table indexing from zero
 
-trials_table <- d_tidy_final %>% 
+trials <- d_tidy_final %>% 
   distinct(trial_id, trial_type_id, tr_num,
            excluded,
            exclusion_reason) %>%
   rename(trial_order = tr_num) %>%
-  mutate(trial_aux_data = NA) %>%
-  write_csv(fs::path(write_path, trials_table_filename))
+  mutate(trial_aux_data = NA)
 
-##### AOI REGIONS TABLE ####
-# create empty other files aoi_region_sets.csv and xy_timepoints
-# don't need 
-# tibble(administration_id = d_tidy_final$administration_id[1],
-#       aoi_region_set_id=NA,
-#        l_x_max=NA ,
-#        l_x_min=NA ,
-#        l_y_max=NA ,
-#        l_y_min=NA ,
-#        r_x_max=NA ,
-#        r_x_min=NA ,
-#        r_y_max=NA ,
-#        r_y_min=NA ) %>%
-#   write_csv(fs::path(write_path, aoi_regions_table_filename))
-
-##### XY TIMEPOINTS TABLE ####
-# d_tidy_final %>% distinct(trial_id, administration_id) %>%
-#   mutate(x = NA,
-#          y = NA,
-#          t = NA,
-#          xy_timepoint_id = 0:(n()-1)) %>%
-#   write_csv(fs::path(write_path, xy_table_filename))
 
 ##### DATASETS TABLE ####
-# write Dataset table
-data_tab <- tibble(
-  dataset_id = 0, # make zero 0 for all
+dataset <- tibble(
+  dataset_id = 0, 
   dataset_name = dataset_name,
-  lab_dataset_id = dataset_name, # internal name from the lab (if known)
+  lab_dataset_id = dataset_name,
   cite = "Potter, C.E., Fourakis, E., Morin-Lessard, E., Byers-Heinlein, K., & Lew-Williams, C. (2019). Bilingual toddlers' comprehension of mixed sentences is asymmetrical across their two languages. Developmental Science, 22(4), e12794. https://doi.org/10.1111/desc.12794",
   shortcite = "Potter et al. (2019)",
   dataset_aux_data = NA
-) %>%
-  write_csv(fs::path(write_path, dataset_table_filename))
+)
 
 
-
-# validation check ----------------------------------------------------------
-validate_for_db_import(dir_csv = write_path)
-
-## OSF INTEGRATION ###
-put_processed_data(osf_token, dataset_name, paste0(write_path,"/"), osf_address = "pr6wu")
+write_and_validate(
+  dataset_name = dataset_name,
+  cdi_expected = TRUE,
+  dataset,
+  subjects,
+  stimuli,
+  administrations,
+  trial_types,
+  trials,
+  aoi_region_sets = NA,
+  xy_timepoints = NA,
+  aoi_timepoints
+)

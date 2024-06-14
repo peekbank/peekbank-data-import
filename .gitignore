@@ -4,8 +4,12 @@
 .Ruserdata
 *DS_Store
 osf_token.txt
+*/raw_data/*
 raw_data
 processed_data
+ek_import_moore-bergelson-2022
 data/pomper_saffran_2016/full_dataset
 *.zip
-
+*.curltmp
+cdi_indicated.txt
+no_cdi_indicated.txt
