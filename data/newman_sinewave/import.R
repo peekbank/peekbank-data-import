@@ -334,10 +334,13 @@ trials_table <- d_tidy %>%
          excluded = FALSE,
          exclusion_reason = NA,
          trial_aux_data = NA) %>%
-  rename(trial_order = trial_order_num)
+  rename(trial_order = trial_order_num) 
+  
 
 d_tidy <- d_tidy %>% rename(trial_order = trial_order_num) %>%
   left_join(trials_table)
+
+trials_table <- trials_table %>% select(-administration_id)
 
 # generate the remaining tables from the large table
 

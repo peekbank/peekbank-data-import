@@ -24,7 +24,7 @@ process_subjects_info <- function(file_path) {
                         labels = c("male", "female", "unspecified")),
            lab_age = age, 
            lab_age_units = "years",
-           age = round(12*(ifelse(age == "NaN", NA, age)))) #converting age from years to months
+           age = 12*(ifelse(age == "NaN", NA, age))) #converting age from years to months
   
   return(data)
 }

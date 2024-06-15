@@ -294,7 +294,8 @@ cdi_data <- cdi_raw %>%
           list(rawscore = unbox(EnglishCDI), age = unbox(age), measure=unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wsshort"))
           },
         if (!is.na(SpanishCDI)) {
-          list(rawscore = unbox(SpanishCDI), age = unbox(age), measure=unbox("prod"), language = unbox("Spanish"), instrument_type = unbox("wsshort"))
+          # TODO: this was the us, so Spanish (Mexican) makes more sense, put that choice into the readme ("Spanish" on its own is not valid according to wordbank)
+          list(rawscore = unbox(SpanishCDI), age = unbox(age), measure=unbox("prod"), language = unbox("Spanish (Mexican)"), instrument_type = unbox("wsshort"))
           }))))
     }
   ), subNum = as.character(subNum)) %>% 

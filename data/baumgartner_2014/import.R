@@ -150,7 +150,8 @@ d_tidy$excluded <- case_when(d_tidy$include_filter == 1 ~ FALSE,
   
 # convert exclusion to factor
 d_tidy$exclusion_reason <- as.factor(d_tidy$exclusion_reason)
-levels(d_tidy$exclusion_reason) <- c("included", "< 50% looking on trial", "no looking 1st target window (367-2333ms)", "no looking 2nd target window (4500-5967", "no pre-onset looking")
+levels(d_tidy$exclusion_reason) <- c(NA, "< 50% looking on trial", "no looking 1st target window (367-2333ms)", "no looking 2nd target window (4500-5967", "no pre-onset looking")
+
 
 d_tidy <- d_tidy %>%
   mutate(vanilla_trial = case_when(

@@ -5,7 +5,7 @@ library(readxl)
 
 source(here("helper_functions", "common.R"))
 dataset_name <- "newman_genderdistractor"
-data_path <- init(dataset_name)
+read_path <- init(dataset_name)
 
 #----
 #Setup
@@ -16,15 +16,6 @@ sample_rate_ms <- 1000/30
 start_frames <- 68 # TODO: start of phrase or start of word?
 point_of_disambiguation <- start_frames * sample_rate_ms
 
-read_path <- here("data/newman_genderdistractor/raw_data")
-write_path <- here("data/newman_genderdistractor/processed_data")
-
-dir.create(write_path, showWarnings = FALSE)
-
-#osf_token <- read_lines(here("osf_token.txt"))
-if(length(list.files(read_path)) == 0) {
-  get_raw_data(lab_dataset_id = dataset_name, path = read_path, osf_address = "pr6wu")
-}
 
 #----
 #### FUNCTIONS ###

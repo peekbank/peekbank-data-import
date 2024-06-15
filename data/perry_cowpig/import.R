@@ -286,7 +286,6 @@ dataset <- tibble(
   dataset_aux_data = NA
 )
 
-
 write_and_validate(
   dataset_name = dataset_name,
   cdi_expected = FALSE,
@@ -300,3 +299,4 @@ write_and_validate(
   xy_timepoints = NA,
   aoi_timepoints
 )
+

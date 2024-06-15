@@ -305,4 +305,3 @@ write_and_validate(
   xy_timepoints = xy_timepoints_table,
   aoi_timepoints = aoi_timepoints_table
 )
-

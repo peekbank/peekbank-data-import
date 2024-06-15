@@ -84,7 +84,7 @@ aoi_ids <- aoi.data.all %>%
 #create dataset data
 dataset.data <- process_smi_dataset()%>%
                 mutate(dataset_aux_data = "NA")
-View(dataset.data)
+
 ##create stimuli data
 stimuli.data <- process_smi_stimuli(trial_file_path) %>%
   mutate(stimulus_id = seq(0,length(stimulus_label)-1),
@@ -124,6 +124,7 @@ administration.data <- participant_id_table %>%
   dplyr::select(-lab_subject_id) %>%
   dplyr::select(dataset_id, subject_id, age, lab_age, lab_age_units, 
                 monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method) %>%
+  mutate(lab_age = ifelse(is.nan(lab_age), NA, lab_age)) %>% 
   mutate(administration_id = seq(0,length(subject_id)-1))%>%
   mutate(administration_aux_data = "NA")
 
@@ -150,7 +151,6 @@ trial_types.data <- process_smi_trial_info(trial_file_path) %>%
    mutate(trial_type_aux_data = "NA")%>%
    mutate(vanilla_trial = "FALSE")
 
-View(trial_types.data) 
 #create xy data
 xy_merged.data <- timepoint.data %>%
   mutate(dataset_id = dataset_id) %>%

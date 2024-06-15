@@ -260,6 +260,7 @@ stimuli <- unique_targets %>%
   ) %>% 
   mutate(stimulus_aux_data = NA)
 
+
 # rejoin stimulus and distractor ids for creating trials tables
 ## joining by target/ distractor words because these uniquely identify stimuli (object-label asdsociations)
 d_tidy_final <- d_tidy %>% 
@@ -358,6 +359,7 @@ trial_types <- d_tidy_final %>%
   mutate(trial_type_aux_data = NA) %>%
   arrange(trial_type_id)
   
+
 #### AOI timepoints Table ####
 aoi_timepoints <- d_tidy_final %>% 
   mutate(
@@ -386,7 +388,6 @@ xy_timepoints <- d_tidy_final %>%
   peekds::normalize_times(.) %>%
   peekds::resample_times(.,table_type="xy_timepoints") %>%
   mutate(xy_timepoint_id = 0:(n()-1))
-
 
 write_and_validate(
   dataset_name = dataset_name,

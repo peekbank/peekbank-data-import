@@ -42,7 +42,7 @@ cdi_data <- questionnaire_data %>%
 # Select and rename columns to match the subjects table
 subjects <- questionnaire_data %>%
   mutate(subject_id = 0:(n() - 1),
-         lab_subject_id = ID) %>%
+         lab_subject_id = as.numeric(ID)) %>%
   select(lab_subject_id, subject_id) %>%
   mutate(
     sex = 'unspecified',
@@ -112,6 +112,7 @@ stimuli <- fixations %>%
 # between participants and administrations
 
 administrations <- questionnaire_data %>%
+  mutate(ID = as.numeric(ID)) %>% 
   # ensure subject ids are consistent with the subjects table
   inner_join(subjects %>% select(lab_subject_id, subject_id), by=join_by(ID == lab_subject_id)) %>%
   mutate(administration_id = 0:(n() - 1),
@@ -168,6 +169,9 @@ exclusion_data <- tibble(
   excluded = TRUE
 )
 
+#nrow(fixations %>% filter(!is.na(audio2_onset)) %>% distinct(Participant))
+#nrow(d %>% distinct(subject_id)
+
 d <- fixations %>%
   filter(!is.na(audio2_onset)) %>% # point of disambiguation missing
   arrange(Participant, Timestamp) %>%
@@ -183,7 +187,7 @@ d <- fixations %>%
          full_phrase = paste0(phrase_vector[audio1], " Een ", audio2, "!"),
          distractor_image = ifelse(target_side == "right", left_image, right_image),
          point_of_disambiguation = audio2_onset,
-         subject_id = Participant,
+         lab_subject_id = Participant,
          t_norm = new_timestamp - point_of_disambiguation, # normalize
          x = x,
          y = y,
@@ -195,6 +199,7 @@ d <- fixations %>%
            OnDistractor ~ "distractor",
            TRUE ~ "other"
          )) %>%
+  left_join(subjects %>% select(subject_id, lab_subject_id), by=join_by(lab_subject_id)) %>% 
   # this filter is based in a hist() plot of the resampled t_norm, nearly all data points fall
   # into the -4000 to 3000 range, with very few outliers having earlier t_norms.
   # the authors do not provide explanations for this in their original analysis,
