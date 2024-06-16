@@ -100,7 +100,6 @@ subjects <- d_tidy %>%
 d_tidy <- d_tidy %>% left_join(subjects,by = "lab_subject_id")
 
 
-
 #### (3) stimuli ####
 stimulus_table <- d_tidy %>%
   distinct(lab_trial_id, target_label) %>%
@@ -162,6 +161,8 @@ administrations <- subjects %>%
   select(administration_id, dataset_id, subject_id, lab_age,lab_age_units, age, 
          monitor_size_x, monitor_size_y, sample_rate, tracker,administration_aux_data,
          coding_method)
+
+subjects <- subjects %>% select(-age)
 
 #join to the big table
 d_tidy <- d_tidy %>% left_join(administrations, by = c("dataset_id", "subject_id"))

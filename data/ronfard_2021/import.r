@@ -2,6 +2,7 @@ library(here)
 library(janitor)
 library(readxl)
 library(haven)
+library(rjson)
 
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
@@ -140,7 +141,7 @@ aoi_timepoints <- d_fin %>%
 
 subject_aux_data <- d_tidy %>%
   distinct(subject_id, cditotal, cdipct, luitotal, age_months) %>%  
-  mutate(subject_aux_data = pmap(list(cditotal, luitotal, cdipct, age_months), function(cditotal, luitotal, cdipct, age_months) {
+  dplyr::mutate(subject_aux_data = purrr::pmap(list(cditotal, luitotal, cdipct, age_months), function(cditotal, luitotal, cdipct, age_months) {
     list(
       cdi_responses = list(
         list(
@@ -162,7 +163,7 @@ subject_aux_data <- d_tidy %>%
       )
     )
   })) %>%  
-  mutate(subject_aux_data = map(subject_aux_data, toJSON)) %>%  
+  mutate(subject_aux_data = map(subject_aux_data, rjson::toJSON)) %>%  
   select(subject_id, subject_aux_data)
 
 subjects <- d_fin %>% 

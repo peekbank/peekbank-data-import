@@ -354,7 +354,7 @@ administrations <- d_tidy_final %>%
   select(-lab_subject_id)
 
 ##### STIMULUS TABLE ####
-stimulus_table %>%
+stimulus_table <- stimulus_table %>%
   select(-target_label, -clean_target_image)
 
 #### TRIALS TABLE ####

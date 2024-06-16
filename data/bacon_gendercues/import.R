@@ -186,7 +186,7 @@ subjects <- d_tidy_final %>%
       )))
     }
   )) %>%
-  select(-c(cdi_says, lab_age)) %>%
+  select(-c(cdi_says, lab_age, cdi_comprehends)) %>%
   mutate(subject_aux_data = as.character(subject_aux_data))
 
 ##### ADMINISTRATIONS TABLE ####

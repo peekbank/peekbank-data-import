@@ -304,7 +304,7 @@ administrations <- d_fin %>%
 
 ##### STIMULUS TABLE ####
 stimuli <- stimulus_table %>%
-  select(-target_label,-target_image) %>%
+  select(-target_label,-target_image, -vanilla_trial) %>%
   mutate(stimulus_aux_data=NA)
 
 #### TRIALS TABLE ####

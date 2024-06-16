@@ -9,7 +9,6 @@ dataset <- tibble(
   dataset_id = 0,
   lab_dataset_id = 0,
   dataset_name = dataset_name,
-  name = dataset_name,
   shortcite = "Luchkina, E., & Waxman, S. (2024)",
   cite = "Luchkina, E., & Waxman, S. (2024). Fifteen-month-olds represent never-seen objects and learn their names. PloS One",
   dataset_aux_data = NA
@@ -148,22 +147,6 @@ aoi_timepoints <- data %>%
   select(aoi, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
   peekds::resample_times(table_type = "aoi_timepoints")
 
-
-lookingscores <- aoi_timepoints %>%
-  filter(aoi %in% c("target", "distractor")) %>% 
-  mutate(lookingscore = case_when(
-    aoi == "distractor" ~ 0,
-    aoi == "target" ~ 1,
-    TRUE ~ NA
-  )) %>%
-  group_by(t_norm) %>%
-  summarise(ls = mean(lookingscore)) %>%
-  select(t_norm, ls) %>% 
-  filter(t_norm < 5000)
-
-ggplot(lookingscores, aes(x = t_norm, y = ls)) +
-  geom_line() +
-  labs(x = "t_norm", y = "ls")
 
 write_and_validate(
   dataset_name = dataset_name,

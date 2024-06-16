@@ -99,7 +99,6 @@ excluded_participants <- read_csv(
 datasets <- tibble(dataset_id = DATASET_ID,
                    lab_dataset_id = "VNA",
                    dataset_name = DATASET_NAME,
-                   name = DATASET_NAME, 
                    shortcite = "Moore & Bergelson (2022)", 
                    cite = "Moore, C., & Bergelson, E. (2022). Examining the roles of regularity and lexical class in 18–26-month-olds’ representations of how words sound. Journal of Memory and Language, 126, 104337.",
                    dataset_aux_data = NA)
@@ -204,14 +203,14 @@ stimuli <- fixations_binned %>%
 ### 4. ADMINISTRATIONS TABLE 
 
 administrations <- subject_info %>%
-  select(subject_id, age_at_test_days) %>%
+  mutate(lab_age = age_at_test_days) %>%
+  select(subject_id, lab_age) %>%
   mutate(
     administration_id = subject_id,
     dataset_id = DATASET_ID,
     # conversion formula from the list of peekbank dataset columns at
     # https://docs.google.com/spreadsheets/d/1Z24n9vfrAmEk6_HpoTSh58LnkmSGmNJagguRpI1jwdo
-    age = age_at_test_days / (365.25 / 12),
-    lab_age = age_at_test_days,
+    age = lab_age / (365.25 / 12),
     lab_age_units = "days",
     monitor_size_x = MONITOR_SIZE_X,
     monitor_size_y = MONITOR_SIZE_Y,

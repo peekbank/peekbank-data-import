@@ -308,7 +308,6 @@ stimuli <- stimulus_table %>%
 trials <- d_tidy_final %>%
   distinct(trial_id,
            trial_order,
-           trial,
            trial_type_id,
            excluded,
            exclusion_reason) %>%

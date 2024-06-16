@@ -272,7 +272,7 @@ administrations <- d_tidy_final %>%
 stimuli <- stimulus_table %>%
   mutate(english_stimulus_label = target_word) %>%
   rename(original_stimulus_label = target_word) %>%
-  select(-trial_type, -target_image) %>%
+  select(-trial_type, -target_image, -stimulus_label) %>%
   mutate(stimulus_aux_data = NA)
 
 

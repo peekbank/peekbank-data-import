@@ -20,7 +20,6 @@ d_low <- readRDS(here(data_path, "eyetracking/yoursmy_test_taglowdata.Rds"))
 dataset <- tibble(dataset_id = 0,
                   lab_dataset_id = "yoursmy",
                   dataset_name = "garrison_bergelson_2020",
-                  name = "garrison_bergelson_2020", 
                   shortcite = "Garrison et al. (2020)", 
                   cite = "Garrison, H., Baudet, G., Breitfeld, E., Aberman, A., & Bergelson, E. (2020). Familiarity plays a small role in noun comprehension at 12-18 months. Infancy, 25, 458-477.",
                   dataset_aux_data = NA)
@@ -153,7 +152,8 @@ trials <- trial_table %>%
   mutate(trial_id = 0:(n() - 1),
          trial_aux_data = NA,
          excluded = FALSE,
-         exclusion_reason = NA)
+         exclusion_reason = NA) %>% 
+  select(-lab_subject_id)
 
 ### 7. AOI REGION SETS TABLE
 # recall screen is 1280 x 1024

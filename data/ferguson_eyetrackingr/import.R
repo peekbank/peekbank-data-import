@@ -92,7 +92,6 @@ d_tidy <- proc_data %>%
 dataset <- tibble(dataset_id = 0,
                   lab_dataset_id = dataset_name,
                   dataset_name = dataset_name,
-                  name = dataset_name, 
                   shortcite = "Ferguson, Graf, & Waxman (2014)", 
                   cite = "Ferguson, B., Graf, E., & Waxman, S. R. (2014). Infants use known verbs to learn novel nouns: Evidence from 15- and 19-month-olds. Cognition, 131(1), 139-146.",
                   dataset_aux_data = NA)

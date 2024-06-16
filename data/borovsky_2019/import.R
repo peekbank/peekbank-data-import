@@ -73,7 +73,7 @@ d_tidy <- d_tidy %>% left_join(subjects,by = "lab_subject_id")
 
 #### (3) stimuli ####
 stimulus_table <- d_tidy %>%
-  distinct(target_label, target_image, condition) %>%
+  distinct(target_label, target_image) %>%
   mutate(
     dataset_id = 0,
     stimulus_novelty = "familiar",
@@ -84,17 +84,18 @@ stimulus_table <- d_tidy %>%
     lab_stimulus_id = target_image,
     stimulus_aux_data = NA,
     image_description_source = "experiment documentation", 
-    stimulus_id = row_number() - 1)
+    stimulus_id = row_number() - 1) %>% 
+  select(-target_label, -target_image)
 
 #### (4) trial types ####
 
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id,condition), 
-            by=c('target_image' = 'lab_stimulus_id', 'condition' = 'condition'))%>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), 
+            by=c('target_image' = 'lab_stimulus_id'))%>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id,condition),
-            by = c('distractor_image' = 'lab_stimulus_id','condition' = 'condition')) %>% 
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id),
+            by = c('distractor_image' = 'lab_stimulus_id')) %>% 
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)##becuase each target image has two target ID (semrelated. semunrelated), each distractor image also has two distractor ID
 
@@ -117,7 +118,7 @@ d_tidy <- d_tidy %>% left_join(trial_types)
 #### (5) trials ##############
 ##get trial IDs for the trials table
 trials <- d_tidy %>%
-  distinct(condition, trial_order, trial_type_id, lab_subject_id) %>% #only one administration per subject  
+  distinct(trial_order, trial_type_id, lab_subject_id) %>% #only one administration per subject  
   mutate(
     excluded = FALSE,
     exclusion_reason = NA,
@@ -155,6 +156,8 @@ aoi_timepoints <- d_tidy %>%
   rename(t_norm = timestamp)%>%
   resample_times(table_type = "aoi_timepoints") 
 
+
+subjects <- subjects %>% select(-age)
 
 write_and_validate(
   dataset_name = dataset_name,

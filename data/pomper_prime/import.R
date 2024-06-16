@@ -11,7 +11,6 @@ dataset <- tibble(
   dataset_id = 0,
   lab_dataset_id = 0,
   dataset_name = dataset_name,
-  name = dataset_name,
   shortcite = "",
   cite = "",
   dataset_aux_data = NA

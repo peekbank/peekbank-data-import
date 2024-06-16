@@ -274,7 +274,7 @@ administrations <- d_tidy_final %>%
 
 ##### STIMULUS TABLE ####
 stimuli <- stimulus_table %>%
-  select(-target_label, -target_image) %>%
+  select(-target_label, -target_image, -target_label_condition) %>%
   mutate(stimulus_aux_data = NA)
 
 #### TRIALS TABLE ####

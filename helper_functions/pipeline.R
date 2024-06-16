@@ -117,6 +117,6 @@ run_all <- function(nocache=FALSE, clean = TRUE){
   print(failed_datasets[failed_datasets != ""])
 }
 
-
+#global_block_peekbank_summary <- TRUE
 #run_all()
 validate_all()

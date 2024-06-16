@@ -142,7 +142,6 @@ process_smi_dataset <- function(lab_dataset_id) {
     dataset_id = dataset_id, #hard code data set id for now
     lab_dataset_id = lab_dataset_id,
     dataset_name = lab_dataset_id,
-    name = lab_dataset_id, 
     shortcite = "Yurovsky et al. (under review)", 
     cite = "Yurovsky, D., Wade, A., Kraus, A. M., Gengoux, G. W., Hardan, A. Y., Frank, M. C. (under review). Developmental changes in the speed of social attention in early word learning."
   )

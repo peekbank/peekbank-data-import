@@ -135,7 +135,7 @@ df_stimuli <- rbind(df_words_match, df_words_related)
 target_distractor <- select(df_stimuli, target, distractor, condition)
 
 df_stimuli <- df_stimuli %>%
-  select(target, stimulus_image_path, condition, image_description) %>%
+  select(target, stimulus_image_path, image_description) %>%
   rename(english_stimulus_label = target) %>%
   mutate(stimulus_id = seq(0,length(.$english_stimulus_label)-1),
          lab_stimulus_id = english_stimulus_label,
@@ -299,44 +299,6 @@ df_trial_info <- trial_data %>%
          aoi_region_set_id = NA,
          trial_type_aux_data = NA,
          vanilla_trial = TRUE,
-         # sound matched manually
-         # again, this is a terrible way to do this.
-         # I got the English phrases from the paper and did my best to match
-         # to the Norwegian audio files using google translate ...
-         # now this is not being used but I'll keep it here in case someone needs to import with
-         # English full phrases in the future...
-         full_phrase_english = case_when(target == "table" |
-                                           target == "phone" |
-                                           target == "moon" |
-                                           target == "glasses" |
-                                           target == "diaper" |
-                                           target == "dog" |
-                                           target == "cookie" |
-                                           target == "belly" ~ paste0("Can you find the ", target, "?"),
-                                         target == "water" |
-                                           target == "spoon" |
-                                           target == "foot" |
-                                           target == "cat" |
-                                           target == "carpet" |
-                                           target == "bathtub" |
-                                           target == "apple" ~ paste0("Where is the ", target, "?"),
-                                         target == "keys" ~ paste0("Where are the ", target, "?"),
-                                         target == "pillow" |
-                                           target == "pacifier" |
-                                           target == "pants" |
-                                           target == "hair" |
-                                           target == "couch" |
-                                           target == "cup" |
-                                           target == "car" |
-                                           target == "banana" ~ paste0("Do you see the ", target, "?"),
-                                         target == "toothbrush" |
-                                           target == "sun" |
-                                           target == "leg" |
-                                           target == "jacket" |
-                                           target == "bottle" |
-                                           target == "bread" |
-                                           target == "book" |
-                                           target == "ball"~ paste0("Look at the ", target, ".")),
          full_phrase = case_when(target == "table" |
                                    target == "phone" |
                                    target == "moon" |
@@ -373,7 +335,8 @@ df_trial_info <- trial_data %>%
   rename("target_id" = "stimulus_id") %>%
   left_join(df_stimuli %>% select(english_stimulus_label, stimulus_id), by = c("distractor" = "english_stimulus_label")) %>%
   rename("distractor_id" = "stimulus_id") %>%
-  mutate(trial_type_id = seq(0,length(.$target)-1))
+  mutate(trial_type_id = seq(0,length(.$target)-1)) %>% 
+  select(-original_stimulus_label)
 
 df_trial_types <- df_trial_info %>%
   select(-target, -distractor)
@@ -429,34 +392,9 @@ df_aoi_timepoints <- trial_data %>%
   select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
 df_trials <- df_trials %>%
-  select(-target, -target_side)
+  select(-target, -target_side, -lab_subject_id)
 
-#### create a simple visualization plot for this dataset. ####
-accs <- df_aoi_timepoints %>%
-  left_join(df_administrations) %>%
-  left_join(df_trials) %>%
-  left_join(df_trial_types) %>%
-  mutate(condition_type = ifelse(str_detect(condition, "context"), "context", "frequency"),
-         is_match = ifelse(str_detect(condition, "match"), "match", "related")) %>%
-  filter(administration_id %in% df_administrations$administration_id) %>%
-  # mutate(age_group = ifelse(age < mean(age), "13-17", "17-20")) %>%
-  group_by(t_norm, administration_id, condition_type, is_match) %>%
-  filter(aoi %in% c("target", "distractor")) %>%
-  summarise(correct = mean(aoi == "target")) %>%
-  group_by(t_norm, condition_type, is_match) %>%
-  summarise(se = sd(correct) / sqrt(length(correct)),
-            correct = mean(correct))
-
-ggplot(accs, aes(x = t_norm, y = correct, col = is_match)) +
-  facet_wrap(~condition_type, ncol = 1) +
-  geom_pointrange(aes(ymin = correct - se,
-                      ymax = correct + se)) +
-  geom_hline(yintercept = .5, lty = 2, col = "black") + #  langcog::theme_mikabr() + langcog::scale_color_solarized(name = "Age Group") +
-  xlim(-2000, 3000) +
-  xlab("Time from target word onset (msec)") +
-  ylab("Proportion correct") +
-  theme(legend.position = "bottom")
-
+df_administrations <- df_administrations %>% select(-lab_subject_id)
 
 write_and_validate(
   dataset_name = dataset_name,

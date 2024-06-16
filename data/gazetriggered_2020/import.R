@@ -14,7 +14,6 @@ dataset <- tibble(
   dataset_id = 0,
   lab_dataset_id = 0,
   dataset_name = dataset_name,
-  name = dataset_name,
   shortcite = "Egger et al. (2020)",
   cite = "Egger, J., Rowland, C. F., & Bergmann, C. (2020). Improving the robustness of infant lexical processing speed measures. Behavior research methods, 52(5), 2188–2201. https://doi.org/10.3758/s13428-020-01385-5",
   dataset_aux_data = NA
