@@ -112,9 +112,9 @@ write_and_validate <- function(
     
     # subject data
     cat("\n------ Subject Data ------\n")
-    print(paste("Average age in months:", mean(administrations$age) %>% round(digits = 2)))
-    print(paste("Min age in months:", min(administrations$age)))
-    print(paste("Max age in months:", max(administrations$age)))
+    print(paste("Average age in months:", mean(administrations$age,na.rm=TRUE) %>% round(digits = 2)))
+    print(paste("Min age in months:", min(administrations$age,na.rm=TRUE)))
+    print(paste("Max age in months:", max(administrations$age,na.rm=TRUE)))
     cat("Sex distribution:")
     print(table(subjects$sex))
     cat("Native languages:")
@@ -165,6 +165,7 @@ write_and_validate <- function(
         print(cdi %>%
                 group_by(measure, language, instrument_type) %>%
                 summarize(
+                  count = n(),
                   min_rawscore = min(rawscore, na.rm = TRUE),
                   max_rawscore = max(rawscore, na.rm = TRUE),
                   avg_rawscore = mean(rawscore, na.rm = TRUE)
@@ -183,7 +184,7 @@ write_and_validate <- function(
     # adapted from
     # https://github.com/mzettersten/peekbank-vignettes/blob/main/peekbank_items/peekbank_item_vignette.Rmd
     
-    cat("\n------ Subject-level Accuracies ------\n")
+    #cat("\n------ Subject-level Accuracies ------\n")
     aoi_data_joined <- aoi_timepoints %>%
       right_join(administrations) %>%
       right_join(subjects) %>%
@@ -264,7 +265,7 @@ write_and_validate <- function(
       )
     
     
-    print(by_subj_means, n=10000)
+    #print(by_subj_means, n=10000)
     
     cat("\n\n------ Plotting... ------\n")
     
@@ -330,20 +331,20 @@ write_and_validate <- function(
     
     if(length(na.omit(unique(summarize_across_subj_by_condition$condition)) >= 2)){
       
-      ggplot(filter(summarize_across_subj_by_condition,N>length(unique(full_data$administration_id))/3),aes(x=t_norm,y=accuracy,color=condition,group=condition))+
-        geom_line()+
-        geom_smooth(method="gam",se=FALSE)+
-        geom_vline(xintercept=0)+
-        geom_vline(xintercept=300,linetype="dotted")+
-        geom_hline(yintercept=0.5,linetype="dashed")
+      # plot(ggplot(filter(summarize_across_subj_by_condition,N>length(unique(full_data$administration_id))/3),aes(x=t_norm,y=accuracy,color=condition,group=condition))+
+      #   geom_line()+
+      #   geom_smooth(method="gam",se=FALSE)+
+      #   geom_vline(xintercept=0)+
+      #   geom_vline(xintercept=300,linetype="dotted")+
+      #   geom_hline(yintercept=0.5,linetype="dashed"))
       
-      ggplot(filter(summarize_across_subj_by_condition,t_norm>-500&t_norm<=2000),aes(x=t_norm,y=accuracy,color=condition,group=condition))+
+      plot(ggplot(filter(summarize_across_subj_by_condition,t_norm>-500&t_norm<=2000),aes(x=t_norm,y=accuracy,color=condition,group=condition))+
         geom_smooth(data=filter(summarize_by_subj_by_condition,t_norm>-500&t_norm<=2000),aes(y=mean_accuracy),method="gam")+
         geom_errorbar(aes(ymin=accuracy-se_accuracy,ymax=accuracy+se_accuracy),width=0)+
         geom_point()+
         geom_vline(xintercept=0)+
         geom_vline(xintercept=300,linetype="dotted")+
-        geom_hline(yintercept=0.5,linetype="dashed")
+        geom_hline(yintercept=0.5,linetype="dashed"))
        
     }
     
@@ -352,21 +353,21 @@ write_and_validate <- function(
     # adapted from
     # https://github.com/mzettersten/peekbank-vignettes/blob/main/peekbank_items/peekbank_item_vignette.Rmd
     
-    plot(ggplot(by_item_means,aes(reorder(target_label,target_looking,mean),target_looking,color=target_label))+
+    
+    plot(ggplot(by_subj_means,aes(avg_target_looking))+
+      geom_histogram()+
+      geom_vline(xintercept=0.5,linetype="dashed")+
+      xlab("Proportion Target Looking")+
+      theme_bw()+
+      ylab("Number of Subjects"))
+    
+    plot(ggplot(by_subj_item_means,aes(reorder(target_label,avg_target_looking,mean),avg_target_looking,color=target_label))+
+      geom_hline(yintercept=0.5,linetype="dashed")+
       geom_boxplot()+
       #geom_point()+
       theme(legend.position="none")+
-      theme(axis.text.x=element_text(angle=90,size=4,vjust=0.5))+
+      theme(axis.text.x=element_text(angle=90,size=10,vjust=0.5))+
       xlab("Target Label")+
       ylab("Proportion Target Looking"))
-    
-    plot(ggplot(filter(by_item_means,!is.na(corrected_looking)),aes(reorder(target_label,corrected_looking,mean),corrected_looking,color=target_label))+
-      geom_boxplot()+
-      #geom_point()+
-      theme(legend.position="none")+
-      theme(axis.text.x=element_text(angle=90,size=4,vjust=0.5))+
-      xlab("Target Label")+
-      ylab("Proportion Corrected Target Looking"))
-    
   }
 }
