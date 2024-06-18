@@ -23,9 +23,9 @@ First, we set some constants and file paths. Your data will need to be in the fo
 
 ```{r constants}
 sampling_rate_hz <- 30
-sampling_rate_ms <- 1000/30
+sampling_rate_ms <- 1000 / 30
 dataset_name <- "adams_marchman_2018" # change to your_dataset_name
-read_path <- here("data", dataset_name,"raw_data")
+read_path <- here("data", dataset_name, "raw_data")
 write_path <- here("data", dataset_name, "processed_data")
 ```
 
@@ -36,18 +36,21 @@ After loading in this dataset, it's nearly there, but it's in wide format: there
 ```{r read-data, message = FALSE, warning = FALSE}
 raw_data <- read_data(read_path)
 
-raw_data %>% 
-  select(sub_num, months, sex, trial_order, r_image, l_image,
-                            target_side, `-600`, `0`, `100`, `300`) %>% 
+raw_data %>%
+  select(
+    sub_num, months, sex, trial_order, r_image, l_image,
+    target_side, `-600`, `0`, `100`, `300`
+  ) %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 ```
 
 Let's pivot_longer so we have one row per time point. Coded looking (area of interest, or AOI) is  coded numerically, so let's also convert that to the correct format (target, distractor, other, missing).
 
 ```{r make-long, message = FALSE, warning = FALSE}
 d_tidy <- raw_data %>%
-    pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi")
+  pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi")
 
 d_tidy <- d_tidy %>%
   rename(aoi_old = aoi) %>%
@@ -61,11 +64,14 @@ d_tidy <- d_tidy %>%
   )) %>%
   mutate(t = as.numeric(t))
 
-d_tidy %>% 
-  select(t, sub_num, months, sex, trial_order, r_image, l_image,
-                            target_side, aoi) %>% 
+d_tidy %>%
+  select(
+    t, sub_num, months, sex, trial_order, r_image, l_image,
+    target_side, aoi
+  ) %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 ```
 
 Next, let's get rid of some columns we don't need and rename others to fix the schema. In this dataset, the target and distractor sides (left, right) are coded from the coder's perspective--let's switch that to the participant's perspective. We'll make a column for the target_label, the label used for the target object (like "baby", "kitty" or "shoe"). 
@@ -73,27 +79,34 @@ Next, let's get rid of some columns we don't need and rename others to fix the s
 ```{r rename-things, message = FALSE, warning = FALSE}
 d_tidy <- d_tidy %>%
   filter(!is.na(sub_num)) %>%
-  select(-prescreen_notes, -c_image,-response,-condition, -first_shift_gap,-rt) %>%
+  select(-prescreen_notes, -c_image, -response, -condition, -first_shift_gap, -rt) %>%
   # flip left-right to participant's perspective
-  mutate(target_side = factor(target_side, levels = c('l','r'), labels = c('right','left'))) %>%
+  mutate(target_side = factor(target_side, levels = c("l", "r"), labels = c("right", "left"))) %>%
   rename(left_image = r_image, right_image = l_image) %>%
   # target label is already given in the target_image column
   mutate(target_label = target_image) %>%
-  rename(target_image_old = target_image) %>% 
+  rename(target_image_old = target_image) %>%
   # now rename target_image using the left_image and right_image columns
-  mutate(target_image = case_when(target_side == "right" ~ right_image,
-                                      TRUE ~ left_image)) %>%
-  mutate(distractor_image = case_when(target_side == "right" ~ left_image,
-                                      TRUE ~ right_image)) %>%
-  filter(!(sub_num == "12608" & sex == "M")) 
-  # one participant has different entries for sex - 12608 is female via V Marchman
-  # just filter out this participant
+  mutate(target_image = case_when(
+    target_side == "right" ~ right_image,
+    TRUE ~ left_image
+  )) %>%
+  mutate(distractor_image = case_when(
+    target_side == "right" ~ left_image,
+    TRUE ~ right_image
+  )) %>%
+  filter(!(sub_num == "12608" & sex == "M"))
+# one participant has different entries for sex - 12608 is female via V Marchman
+# just filter out this participant
 
-d_tidy %>% 
-  select(t, sub_num, months, sex, trial_order, target_label, target_image, distractor_image,
-                            target_side, aoi) %>% 
+d_tidy %>%
+  select(
+    t, sub_num, months, sex, trial_order, target_label, target_image, distractor_image,
+    target_side, aoi
+  ) %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 ```
 
 Now we have nearly all the data we need, all in one big table. We want to split this up into multiple tables--a subjects table, stimulus table, trials table, AOI timepoints table (with coded looking at each time point), and so on--all linked with unique IDs so they can be stored efficiently and joined back together selectively.
@@ -104,12 +117,13 @@ Let's start with the stimulus table by grabbing all distinct target images and l
 stimulus_table <- d_tidy %>%
   distinct(target_image, target_label) %>%
   filter(!is.na(target_image)) %>%
-  mutate(dataset_id = 0,
-         stimulus_novelty = "familiar",
-         original_stimulus_label = target_label,
-         english_stimulus_label = target_label,
-         stimulus_image_path = target_image, 
-         lab_stimulus_id = target_image
+  mutate(
+    dataset_id = 0,
+    stimulus_novelty = "familiar",
+    original_stimulus_label = target_label,
+    english_stimulus_label = target_label,
+    stimulus_image_path = target_image,
+    lab_stimulus_id = target_image
   ) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 ```
@@ -118,20 +132,25 @@ Next, we'll join that stimulus table back into our big dataset table, by the tar
 
 ```{r join-stimuli, message = FALSE, warning = FALSE}
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), 
-            by=c('target_image' = 'lab_stimulus_id')) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id),
+    by = c("target_image" = "lab_stimulus_id")
+  ) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), 
-            by=c('distractor_image' = 'lab_stimulus_id')) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id),
+    by = c("distractor_image" = "lab_stimulus_id")
+  ) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
-d_tidy %>% 
-  select(t, sub_num, months, sex, trial_order, target_id, distractor_id,
-                            target_side, aoi) %>%
+d_tidy %>%
+  select(
+    t, sub_num, months, sex, trial_order, target_id, distractor_id,
+    target_side, aoi
+  ) %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 ```
 
 Now we'll do the same thing for subjects: get all the distinct subjects in the big table, give them unique subject IDs, and then join those back in to the big table.
@@ -151,7 +170,7 @@ d_tidy <- d_tidy %>%
 d_administration_ids <- d_tidy %>%
   distinct(subject_id, sub_num, months, order_uniquified) %>%
   arrange(subject_id, sub_num, months, order_uniquified) %>%
-  mutate(administration_id = seq(0, length(.$order_uniquified) - 1)) 
+  mutate(administration_id = seq(0, length(.$order_uniquified) - 1))
 ```
 
 Next, let's make a table of trial types. These are unique pairings of targets, distractors, target side (left or right) and full phrases (e.g., "Do you see the ball?") used to prompt looking to the target. We also need to specify the condition manipulation in that trial. 
@@ -163,19 +182,21 @@ Finally, using these trial IDs, we'll create a trials table. This table is disti
 ```{r trials, message = FALSE, warning = FALSE}
 d_trial_type_ids <- d_tidy %>%
   distinct(trial_order, target_id, distractor_id, target_side) %>%
-  mutate(full_phrase = NA, # unknown
-         condition = "") %>% # no trial-wise condition manipulation
-  mutate(trial_type_id = seq(0, length(trial_order) - 1)) 
+  mutate(
+    full_phrase = NA, # unknown
+    condition = ""
+  ) %>% # no trial-wise condition manipulation
+  mutate(trial_type_id = seq(0, length(trial_order) - 1))
 
 # join in trial type IDs and administration IDs
 d_tidy <- d_tidy %>%
   left_join(d_administration_ids) %>%
-  left_join(d_trial_type_ids) 
+  left_join(d_trial_type_ids)
 
 # get trial IDs for the trials table
 d_trial_ids <- d_tidy %>%
   distinct(trial_order, trial_type_id) %>%
-  mutate(trial_id = seq(0, length(.$trial_type_id) - 1)) 
+  mutate(trial_id = seq(0, length(.$trial_type_id) - 1))
 
 # join in trial IDs
 d_tidy <- d_tidy %>%
@@ -188,18 +209,22 @@ Note here that since the desired age format is in months, we don't need to do an
 
 ```{r renaming, message = FALSE, warning = FALSE}
 d_tidy <- d_tidy %>%
-  mutate(dataset_id = 0, # dataset id is always zero since there's only one dataset
-         lab_trial_id = paste(order, tr_num, sep = "-"),
-         aoi_region_set_id = NA, # not applicable
-         monitor_size_x = NA, # unknown 
-         monitor_size_y = NA, # unknown 
-         lab_age_units = "months",
-         age = as.numeric(months), 
-         point_of_disambiguation = 0, # data was already centered at point_of_disambiguation
-         tracker = "video_camera",
-         sample_rate = sampling_rate_hz) %>% 
-  rename(lab_subject_id = sub_num,
-         lab_age = months) 
+  mutate(
+    dataset_id = 0, # dataset id is always zero since there's only one dataset
+    lab_trial_id = paste(order, tr_num, sep = "-"),
+    aoi_region_set_id = NA, # not applicable
+    monitor_size_x = NA, # unknown
+    monitor_size_y = NA, # unknown
+    lab_age_units = "months",
+    age = as.numeric(months),
+    point_of_disambiguation = 0, # data was already centered at point_of_disambiguation
+    tracker = "video_camera",
+    sample_rate = sampling_rate_hz
+  ) %>%
+  rename(
+    lab_subject_id = sub_num,
+    lab_age = months
+  )
 ```
 
 From the big table, let's make the `aoi_timepoints` table. If time in your dataset doesn't restart on each trial, you'll need to call `rezero_times()`; once it is zeroed at the beginning of each trial, you'll need to call `normalize_times()` to center it at the `point_of_disambiguation`. 
@@ -210,13 +235,14 @@ Since this dataset already has timepoints centered at the `point_of_disambiguati
 aoi_table <- d_tidy %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
   select(t_norm, aoi, trial_id, administration_id, lab_subject_id) %>%
-  #resample timepoints
+  # resample timepoints
   resample_times(table_type = "aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) # create zero-indexed IDs for aoi_timepoints table
 
-aoi_table %>% 
+aoi_table %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 ```
 
 Let's create the final subjects table by getting all distinct subjects from the big table and recoding sex to fit the schema. All the `subjects` here have English as a native language, so we'll code that as well. We'll do the same for the `administrations` table. Let's look at a selection from each of these final tables.
@@ -224,65 +250,85 @@ Let's create the final subjects table by getting all distinct subjects from the 
 ```{r subjects, message = FALSE, warning = FALSE}
 subjects <- d_tidy %>%
   distinct(subject_id, lab_subject_id, sex) %>%
-  mutate(sex = factor(sex, levels = c('M','F'), labels = c('male','female')), 
-         native_language = "eng")
+  mutate(
+    sex = factor(sex, levels = c("M", "F"), labels = c("male", "female")),
+    native_language = "eng"
+  )
 
-subjects %>% slice(1:5) %>%
-  kable() %>% kable_styling()
+subjects %>%
+  slice(1:5) %>%
+  kable() %>%
+  kable_styling()
 
 administrations <- d_tidy %>%
-  distinct(administration_id,
-           dataset_id,
-           subject_id,
-           age,
-           lab_age,
-           lab_age_units,
-           monitor_size_x,
-           monitor_size_y,
-           sample_rate,
-           tracker) %>%
+  distinct(
+    administration_id,
+    dataset_id,
+    subject_id,
+    age,
+    lab_age,
+    lab_age_units,
+    monitor_size_x,
+    monitor_size_y,
+    sample_rate,
+    tracker
+  ) %>%
   mutate(coding_method = "manual gaze coding") # add coding type
 
-administrations %>% slice(1:5) %>%
+administrations %>%
+  slice(1:5) %>%
   select(lab_age, subject_id, administration_id, lab_age_units, age, sample_rate, coding_method) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 ```
 
 We'll do the same with the `stimuli` table, the `trials` table, and the `trial_types` table.
 
 ```{r trials-final, message = FALSE, warning = FALSE}
-stimulus_table <- stimulus_table %>% 
+stimulus_table <- stimulus_table %>%
   # we already made a stimulus table that roughly fits the schema,
   # so we'll pull from that instead of from the big table
   select(-target_label, -target_image)
 
-stimulus_table %>% slice(1:5) %>%
-  kable() %>% kable_styling()
+stimulus_table %>%
+  slice(1:5) %>%
+  kable() %>%
+  kable_styling()
 
 trials_table <- d_tidy %>%
-  distinct(trial_id,
-           trial_order,
-           trial_type_id) 
+  distinct(
+    trial_id,
+    trial_order,
+    trial_type_id
+  )
 
-trials_table %>% slice(1:5) %>%
-  kable() %>% kable_styling()
+trials_table %>%
+  slice(1:5) %>%
+  kable() %>%
+  kable_styling()
 
 trial_types_table <- d_tidy %>%
-  distinct(trial_type_id,
-           full_phrase,
-           point_of_disambiguation,
-           target_side,
-           lab_trial_id,
-           aoi_region_set_id,
-           dataset_id,
-           target_id,
-           distractor_id) %>%
-    mutate(full_phrase_language = "eng")
+  distinct(
+    trial_type_id,
+    full_phrase,
+    point_of_disambiguation,
+    target_side,
+    lab_trial_id,
+    aoi_region_set_id,
+    dataset_id,
+    target_id,
+    distractor_id
+  ) %>%
+  mutate(full_phrase_language = "eng")
 
-trial_types_table %>% slice(1:5) %>%
-  select(trial_type_id, target_id, distractor_id, target_side, point_of_disambiguation,
-         full_phrase, full_phrase_language) %>%
-  kable() %>% kable_styling()
+trial_types_table %>%
+  slice(1:5) %>%
+  select(
+    trial_type_id, target_id, distractor_id, target_side, point_of_disambiguation,
+    full_phrase, full_phrase_language
+  ) %>%
+  kable() %>%
+  kable_styling()
 ```
 
 Finally, let's add the `datasets` table, with all the datasets we're importing. We're only importing one dataset here. We'll add the dataset name here to identify this dataset, as well as the citation for the relevant paper the data are used in and a shortened citation.
@@ -294,22 +340,24 @@ datasets <- tibble(
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
   cite = "Adams, K. A., Marchman, V. A., Loi, E. C., Ashland, M. D., Fernald, A., & Feldman, H. M. (2018). Caregiver talk and medical risk as predictors of language outcomes in full term and preterm toddlers. Child Development, 89(5), 1674–1690. https://doi.org/10.1111/cdev.12818",
   shortcite = "Adams et al. (2018)"
-  ) 
+)
 
-datasets %>% slice(1:5) %>%
-  kable() %>% kable_styling()
+datasets %>%
+  slice(1:5) %>%
+  kable() %>%
+  kable_styling()
 ```
 
 That's it! Now we write all the files and validate that they fit the schema. These are commented out so you don't accidentally write a bunch of files when running this script.
 
 ```{r write-files, message = FALSE, warning = FALSE}
-#write_csv(aoi_table, fs::path(write_path, aoi_table_filename))
-#write_csv(subjects, fs::path(write_path, subject_table_filename))
-#write_csv(administrations, fs::path(write_path, administrations_table_filename))
-#write_csv(stimulus_table, fs::path(write_path, stimuli_table_filename))
-#write_csv(trials_table, fs::path(write_path, trials_table_filename))
-#write_csv(trial_types_table, fs::path(write_path, trial_types_table_filename))
-#write_csv(datasets, fs::path(write_path, dataset_table_filename))
+# write_csv(aoi_table, fs::path(write_path, aoi_table_filename))
+# write_csv(subjects, fs::path(write_path, subject_table_filename))
+# write_csv(administrations, fs::path(write_path, administrations_table_filename))
+# write_csv(stimulus_table, fs::path(write_path, stimuli_table_filename))
+# write_csv(trials_table, fs::path(write_path, trials_table_filename))
+# write_csv(trial_types_table, fs::path(write_path, trial_types_table_filename))
+# write_csv(datasets, fs::path(write_path, dataset_table_filename))
 
 # validation check
 # validate_for_db_import(dir_csv = write_path)
@@ -318,50 +366,52 @@ That's it! Now we write all the files and validate that they fit the schema. The
 Finally, once the data passes a validation check, it's useful to plot the data to see if it passes the "eyecheck" of what looking-while-listening data typically looks like (and e.g. to compare it to existing plots if the dataset is from a published paper). Here's an example of this visual "validation check"
 
 ```{r}
-#### Plot Timecourse #### 
+#### Plot Timecourse ####
 
-#rename columns for distractor
+# rename columns for distractor
 distractor_stimulus_table <- stimulus_table
-colnames(distractor_stimulus_table) <- paste("distractor_",colnames(stimulus_table),sep="")
+colnames(distractor_stimulus_table) <- paste("distractor_", colnames(stimulus_table), sep = "")
 
-#join to full dataset
+# join to full dataset
 full_data <- aoi_table %>%
   left_join(administrations) %>%
   left_join(trials_table) %>%
   left_join(trial_types_table) %>%
-  left_join(stimulus_table,by=c("target_id"="stimulus_id","dataset_id")) %>%
-  left_join(distractor_stimulus_table %>% select(-distractor_dataset_id),by=c("distractor_id"="distractor_stimulus_id"))
+  left_join(stimulus_table, by = c("target_id" = "stimulus_id", "dataset_id")) %>%
+  left_join(distractor_stimulus_table %>% select(-distractor_dataset_id), by = c("distractor_id" = "distractor_stimulus_id"))
 
-#mutate aoi
+# mutate aoi
 full_data <- full_data %>%
-  mutate(aoi_new=case_when(
-    aoi=="target" ~ 1,
-    aoi=="distractor"~0,
-    aoi=="missing"~ NaN
+  mutate(aoi_new = case_when(
+    aoi == "target" ~ 1,
+    aoi == "distractor" ~ 0,
+    aoi == "missing" ~ NaN
   )) %>%
-  mutate(aoi_new=ifelse(is.nan(aoi_new),NA,aoi_new))
+  mutate(aoi_new = ifelse(is.nan(aoi_new), NA, aoi_new))
 
 ##### summarize by subject (really: administrations) ####
 summarize_by_subj <- full_data %>%
   group_by(administration_id, t_norm) %>%
-  summarize(N=sum(!is.na(aoi_new)),mean_accuracy=mean(aoi_new,na.rm=TRUE))
+  summarize(N = sum(!is.na(aoi_new)), mean_accuracy = mean(aoi_new, na.rm = TRUE))
 
 #### summarize across subjects ####
 summarize_across_subj <- summarize_by_subj %>%
   group_by(t_norm) %>%
-  summarize(N=sum(!is.na(mean_accuracy)),
-         accuracy=mean(mean_accuracy,na.rm=TRUE),
-         sd_accuracy=sd(mean_accuracy,na.rm=TRUE))
+  summarize(
+    N = sum(!is.na(mean_accuracy)),
+    accuracy = mean(mean_accuracy, na.rm = TRUE),
+    sd_accuracy = sd(mean_accuracy, na.rm = TRUE)
+  )
 
-#plot (remove data points where not a lot of subjects contributed, to avoid discontinuities in the slope)
-ggplot(filter(summarize_across_subj,N>length(unique(full_data$administration_id))/3),aes(t_norm,accuracy))+
-  geom_line(data=filter(summarize_by_subj,N>10),aes(y=mean_accuracy,color=as.factor(administration_id),group=as.factor(administration_id)),alpha=0.2)+
-  geom_line()+
-  geom_smooth(method="gam",se=FALSE)+
-  geom_vline(xintercept=0)+
-  geom_vline(xintercept=300,linetype="dotted")+
-  geom_hline(yintercept=0.5,linetype="dashed")+
-  theme(legend.position="none")
+# plot (remove data points where not a lot of subjects contributed, to avoid discontinuities in the slope)
+ggplot(filter(summarize_across_subj, N > length(unique(full_data$administration_id)) / 3), aes(t_norm, accuracy)) +
+  geom_line(data = filter(summarize_by_subj, N > 10), aes(y = mean_accuracy, color = as.factor(administration_id), group = as.factor(administration_id)), alpha = 0.2) +
+  geom_line() +
+  geom_smooth(method = "gam", se = FALSE) +
+  geom_vline(xintercept = 0) +
+  geom_vline(xintercept = 300, linetype = "dotted") +
+  geom_hline(yintercept = 0.5, linetype = "dashed") +
+  theme(legend.position = "none")
 ```
 
 Once all validation checks are passed, data should be uploaded to the Open Science Framework project page (https://osf.io/pr6wu/).

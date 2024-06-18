@@ -25,7 +25,7 @@ questionnaire_data <-
 
 cdi_data <- questionnaire_data %>%
   select(ID, age = `CDI-agedays`, comp = comprehension, prod = produce) %>%
-  mutate (age = age / (365.25 / 12)) %>%
+  mutate(age = age / (365.25 / 12)) %>%
   pivot_longer(
     cols = c(comp, prod),
     names_to = "measure",
@@ -40,20 +40,24 @@ cdi_data <- questionnaire_data %>%
 
 # Select and rename columns to match the subjects table
 subjects <- questionnaire_data %>%
-  mutate(subject_id = 0:(n() - 1),
-         lab_subject_id = as.numeric(ID)) %>%
+  mutate(
+    subject_id = 0:(n() - 1),
+    lab_subject_id = as.numeric(ID)
+  ) %>%
   select(lab_subject_id, subject_id) %>%
   mutate(
-    sex = 'unspecified',
-    native_language = 'dut', # according to the paper, this was the same for everyone
+    sex = "unspecified",
+    native_language = "dut", # according to the paper, this was the same for everyone
     subject_aux_data = jsonlite::toJSON(
-      list(cdi_responses = cdi_data[cdi_data$ID == lab_subject_id,] %>%
-             select(-ID)), na="null")
+      list(cdi_responses = cdi_data[cdi_data$ID == lab_subject_id, ] %>%
+        select(-ID)),
+      na = "null"
+    )
   )
 
 
 fixations <- read_csv(here(data_path, "rawdata_Fixation.csv")) %>%
-  filter(condition == 'original') #gazetriggered condition seems unfitting for peekbank - the first item looked at automatically becomes the distractor here
+  filter(condition == "original") # gazetriggered condition seems unfitting for peekbank - the first item looked at automatically becomes the distractor here
 
 translation_vector <- c(
   "appel" = "Apple",
@@ -91,18 +95,22 @@ stimuli <- fixations %>%
   ) %>%
   distinct() %>%
   select(-side) %>%
-  mutate(original_stimulus_label = image,
-         english_stimulus_label = translation_vector[image],
-         stimulus_novelty = "familiar",
-         lab_stimulus_id = NA,
-         stimulus_image_path = image,
-         image_description = image,
-         image_description_source = 'image path',
-         dataset_id = 0) %>%
+  mutate(
+    original_stimulus_label = image,
+    english_stimulus_label = translation_vector[image],
+    stimulus_novelty = "familiar",
+    lab_stimulus_id = NA,
+    stimulus_image_path = image,
+    image_description = image,
+    image_description_source = "image path",
+    dataset_id = 0
+  ) %>%
   select(-c(image)) %>%
   distinct() %>%
-  mutate(stimulus_id = 0:(n() - 1),
-         stimulus_aux_data = NA)
+  mutate(
+    stimulus_id = 0:(n() - 1),
+    stimulus_aux_data = NA
+  )
 
 
 ### 4. Administrations Table
@@ -111,23 +119,27 @@ stimuli <- fixations %>%
 # between participants and administrations
 
 administrations <- questionnaire_data %>%
-  mutate(ID = as.numeric(ID)) %>% 
+  mutate(ID = as.numeric(ID)) %>%
   # ensure subject ids are consistent with the subjects table
-  inner_join(subjects %>% select(lab_subject_id, subject_id), by=join_by(ID == lab_subject_id)) %>%
-  mutate(administration_id = 0:(n() - 1),
-         dataset_id = 0,
-         age = `Age.(Months)`,
-         lab_age = `Age.(Months)`,
-         lab_age_units = "months",
-         monitor_size_x = 1600,
-         monitor_size_y = 900,
-         sample_rate = 1000,
-         tracker = "Eyelink Portable Duo",
-         coding_method = "eyetracking",
-         administration_aux_data = NA) %>%
-  select(administration_id, dataset_id, subject_id, age,
-         lab_age, lab_age_units, monitor_size_x, monitor_size_y,
-         sample_rate, tracker, coding_method, administration_aux_data)
+  inner_join(subjects %>% select(lab_subject_id, subject_id), by = join_by(ID == lab_subject_id)) %>%
+  mutate(
+    administration_id = 0:(n() - 1),
+    dataset_id = 0,
+    age = `Age.(Months)`,
+    lab_age = `Age.(Months)`,
+    lab_age_units = "months",
+    monitor_size_x = 1600,
+    monitor_size_y = 900,
+    sample_rate = 1000,
+    tracker = "Eyelink Portable Duo",
+    coding_method = "eyetracking",
+    administration_aux_data = NA
+  ) %>%
+  select(
+    administration_id, dataset_id, subject_id, age,
+    lab_age, lab_age_units, monitor_size_x, monitor_size_y,
+    sample_rate, tracker, coding_method, administration_aux_data
+  )
 
 
 ### 4.5 Prepare Data
@@ -168,8 +180,8 @@ exclusion_data <- tibble(
   excluded = TRUE
 )
 
-#nrow(fixations %>% filter(!is.na(audio2_onset)) %>% distinct(Participant))
-#nrow(d %>% distinct(subject_id)
+# nrow(fixations %>% filter(!is.na(audio2_onset)) %>% distinct(Participant))
+# nrow(d %>% distinct(subject_id)
 
 d <- fixations %>%
   filter(!is.na(audio2_onset)) %>% # point of disambiguation missing
@@ -180,37 +192,41 @@ d <- fixations %>%
     audio2_onset = audio2_onset - min(Timestamp) # relative to trial onset
   ) %>%
   ungroup() %>%
-  mutate(aoi_timepoint_id = 0:(n() - 1),
-         xy_timepoint_id = 0:(n() - 1),
-         target_image = ifelse(target_side == "left", left_image, right_image),
-         full_phrase = paste0(phrase_vector[audio1], " Een ", audio2, "!"),
-         distractor_image = ifelse(target_side == "right", left_image, right_image),
-         point_of_disambiguation = audio2_onset,
-         lab_subject_id = Participant,
-         t_norm = new_timestamp - point_of_disambiguation, # normalize
-         x = x,
-         y = y,
-         lab_trial_id = NA,
-         condition = condition,
-         aoi = case_when(
-           !OnScreen ~ "missing",
-           OnTarget ~ "target",
-           OnDistractor ~ "distractor",
-           TRUE ~ "other"
-         )) %>%
-  left_join(subjects %>% select(subject_id, lab_subject_id), by=join_by(lab_subject_id)) %>% 
+  mutate(
+    aoi_timepoint_id = 0:(n() - 1),
+    xy_timepoint_id = 0:(n() - 1),
+    target_image = ifelse(target_side == "left", left_image, right_image),
+    full_phrase = paste0(phrase_vector[audio1], " Een ", audio2, "!"),
+    distractor_image = ifelse(target_side == "right", left_image, right_image),
+    point_of_disambiguation = audio2_onset,
+    lab_subject_id = Participant,
+    t_norm = new_timestamp - point_of_disambiguation, # normalize
+    x = x,
+    y = y,
+    lab_trial_id = NA,
+    condition = condition,
+    aoi = case_when(
+      !OnScreen ~ "missing",
+      OnTarget ~ "target",
+      OnDistractor ~ "distractor",
+      TRUE ~ "other"
+    )
+  ) %>%
+  left_join(subjects %>% select(subject_id, lab_subject_id), by = join_by(lab_subject_id)) %>%
   # this filter is based in a hist() plot of the resampled t_norm, nearly all data points fall
   # into the -4000 to 3000 range, with very few outliers having earlier t_norms.
   # the authors do not provide explanations for this in their original analysis,
   # so we prune this data, as it is likely an artefact of some experiment mishap
-  filter(t_norm > -4000) %>% 
-  select(subject_id, lab_trial_id, aoi_timepoint_id, xy_timepoint_id, target, target_image, target_side, distractor_image, condition, point_of_disambiguation, x , y, t_norm, aoi, full_phrase) %>%
+  filter(t_norm > -4000) %>%
+  select(subject_id, lab_trial_id, aoi_timepoint_id, xy_timepoint_id, target, target_image, target_side, distractor_image, condition, point_of_disambiguation, x, y, t_norm, aoi, full_phrase) %>%
   group_by(target, target_image, target_side, distractor_image, condition, point_of_disambiguation, full_phrase) %>%
   mutate(trial_type_id = cur_group_id() - 1) %>%
   ungroup() %>%
   group_by(subject_id) %>%
-  mutate(trial_change = ifelse(trial_type_id != lag(trial_type_id), 1, 0),
-         trial_order = cumsum(replace_na(trial_change, 0))) %>%
+  mutate(
+    trial_change = ifelse(trial_type_id != lag(trial_type_id), 1, 0),
+    trial_order = cumsum(replace_na(trial_change, 0))
+  ) %>%
   ungroup() %>%
   select(-trial_change) %>%
   group_by(subject_id, trial_order) %>%
@@ -220,10 +236,10 @@ d <- fixations %>%
     administrations %>%
       select(subject_id, administration_id),
     by = "subject_id"
-  ) %>% 
+  ) %>%
   left_join(
     exclusion_data,
-    by="subject_id"
+    by = "subject_id"
   ) %>%
   mutate(excluded = replace_na(excluded, FALSE))
 
@@ -232,20 +248,24 @@ d <- fixations %>%
 trial_types <- d %>%
   select(target, target_image, target_side, distractor_image, condition, point_of_disambiguation, lab_trial_id, trial_type_id, full_phrase) %>%
   distinct() %>%
-  mutate(condition = condition,
-         full_phrase_language = "dut",
-         aoi_region_set_id = 0,
-         dataset_id = 0,
-         vanilla_trial = TRUE,
-         trial_type_aux_data = NA) %>%
+  mutate(
+    condition = condition,
+    full_phrase_language = "dut",
+    aoi_region_set_id = 0,
+    dataset_id = 0,
+    vanilla_trial = TRUE,
+    trial_type_aux_data = NA
+  ) %>%
   left_join(stimuli, by = c("distractor_image" = "stimulus_image_path")) %>%
   rename(distractor_id = stimulus_id) %>%
   left_join(stimuli, by = c("target_image" = "stimulus_image_path")) %>%
-  rename(target_id = stimulus_id) %>% 
-  select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
-         target_side, lab_trial_id, condition, vanilla_trial, trial_type_aux_data, 
-         aoi_region_set_id, dataset_id, distractor_id, target_id)
-  
+  rename(target_id = stimulus_id) %>%
+  select(
+    trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation,
+    target_side, lab_trial_id, condition, vanilla_trial, trial_type_aux_data,
+    aoi_region_set_id, dataset_id, distractor_id, target_id
+  )
+
 
 ### 6. TRIALS TABLE
 
@@ -261,25 +281,27 @@ trials <- d %>%
 # not reported afaik, but due to the amount of data present, this code
 # was able to extract the borders from the fixation data:
 
-#aoi_approx <- fixations %>% filter(OnScreen & (OnTarget | OnDistractor)) %>% select(x, y, OnTarget, target_side)
+# aoi_approx <- fixations %>% filter(OnScreen & (OnTarget | OnDistractor)) %>% select(x, y, OnTarget, target_side)
 #
-#left_aoi <- aoi_approx %>%
+# left_aoi <- aoi_approx %>%
 #  filter((OnTarget & target_side == 'left') | (!OnTarget & target_side == 'right')) %>%
 #  summarise(min_x = min(x), max_x = max(x), min_y = min(y), max_y = max(y))
 #
-#right_aoi <- aoi_approx %>%
+# right_aoi <- aoi_approx %>%
 #  filter((OnTarget & target_side == 'right') | (!OnTarget & target_side == 'left')) %>%
 #  summarise(min_x = min(x), max_x = max(x), min_y = min(y), max_y = max(y))
 
-aoi_region_sets <- tibble(aoi_region_set_id = 0,
-                          l_x_max = 700,
-                          l_x_min = 0,
-                          l_y_max = 900,
-                          l_y_min = 0,
-                          r_x_max = 1600,
-                          r_x_min = 900,
-                          r_y_max = 900,
-                          r_y_min = 0)
+aoi_region_sets <- tibble(
+  aoi_region_set_id = 0,
+  l_x_max = 700,
+  l_x_min = 0,
+  l_y_max = 900,
+  l_y_min = 0,
+  r_x_max = 1600,
+  r_x_min = 900,
+  r_y_max = 900,
+  r_y_min = 0
+)
 
 
 ### 8. XY TABLE

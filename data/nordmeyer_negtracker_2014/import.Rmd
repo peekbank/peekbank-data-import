@@ -23,14 +23,13 @@ Note that 5_1 and 5_2 are designations for Experiment 1 (the two orders). 5_3 an
 This information will be saved as conditions in table trial_types table.
 
 ```{r parameters, message = FALSE, warning = FALSE}
-
 source(here("helper_functions", "common.R"))
 dataset_name <- "nordmeyer_negtracker_2014"
 raw_data_path <- init(dataset_name)
 
 project_root <- here::here()
 dataset_id <- 0
-file_ext = '.txt'
+file_ext <- ".txt"
 OSF_ADDRESS <- "pr6wu"
 
 # check raw data directory
@@ -56,8 +55,9 @@ df_dataset <- tibble(
   shortcite = "Nordmeyer & Frank (2014)"
 )
 
-df_dataset %>% 
-  kable() %>% kable_styling()
+df_dataset %>%
+  kable() %>%
+  kable_styling()
 ```
 
 <!-- Next, let's read in the area of interest (AOI) information.  -->
@@ -107,12 +107,14 @@ This is the code from `https://github.com/anordmey/Negtracker/blob/master/materi
 Let's create df_administrations and df_subjects from participant info file.
 
 ```{r}
-#Load in demographics
+# Load in demographics
 demographics <- read_csv(participant_file_path) |>
-  filter(exclude == 0, 
-         (`study version` %in% c("5_1","5_2","5_3","5_4")), 
-         agegroup %in% c("2","3","4")) |>
-  mutate(experiment = ifelse(`study version` %in% c("5_1","5_2"), 1, 2))
+  filter(
+    exclude == 0,
+    (`study version` %in% c("5_1", "5_2", "5_3", "5_4")),
+    agegroup %in% c("2", "3", "4")
+  ) |>
+  mutate(experiment = ifelse(`study version` %in% c("5_1", "5_2"), 1, 2))
 
 demographics |>
   group_by(experiment, agegroup) |>
@@ -123,9 +125,8 @@ df_subjects <- demographics |>
   mutate(native_language = "eng") |>
   mutate(lab_subject_id = subid) |>
   mutate(sex = gender) |>
-  mutate(subject_id = seq(0,length(subid)-1)) |>
+  mutate(subject_id = seq(0, length(subid) - 1)) |>
   select(subject_id, sex, native_language, lab_subject_id)
-  
 ```
 
 This filtering gets us a list that reproduces the original numbers from the paper for each experiment. (Note this is kids included **before** trial-level exclusions). 
@@ -134,139 +135,148 @@ This filtering gets us a list that reproduces the original numbers from the pape
 # this code modified from the negtracker repository
 # https://github.com/anordmey/Negtracker/tree/master/materials/analysis
 
-x.max <- 1680 #this is the resolution
+x.max <- 1680 # this is the resolution
 all.data <- data.frame()
-to.n <- function(x) {as.numeric(as.character(x))}
-
-#get list of files for data analysis
-files <- 0
-for (i in 1:length(demographics$subid)) {
-  files[i] <- paste("negtracker",demographics$`study version`[i],"_",demographics$subid[i],"-eye_data Samples.txt", sep="")
+to.n <- function(x) {
+  as.numeric(as.character(x))
 }
 
-#Make longform dataframe
+# get list of files for data analysis
+files <- 0
+for (i in 1:length(demographics$subid)) {
+  files[i] <- paste("negtracker", demographics$`study version`[i], "_", demographics$subid[i], "-eye_data Samples.txt", sep = "")
+}
+
+# Make longform dataframe
 for (f in 1:length(files)) {
   print(files[f])
-  
+
   ############ DATA CLEANING ###########
-  #Load in data file (skip removes header rows)
-  idf.data <- read.table(paste0(full_dataset_path,"/", files[f]),
-                         sep="\t",header=TRUE,fill=TRUE, comment.char="", skip=40)
-  names(idf.data) <- c("Time","Type","Trial","L.POR.X..px.","L.POR.Y..px.","R.POR.X..px.","R.POR.Y..px.","Frame","Aux1")
-  
+  # Load in data file (skip removes header rows)
+  idf.data <- read.table(paste0(full_dataset_path, "/", files[f]),
+    sep = "\t", header = TRUE, fill = TRUE, comment.char = "", skip = 40
+  )
+  names(idf.data) <- c("Time", "Type", "Trial", "L.POR.X..px.", "L.POR.Y..px.", "R.POR.X..px.", "R.POR.Y..px.", "Frame", "Aux1")
+
   ### split data into messages and data
-  ###First get data:
-  data <- subset(idf.data,idf.data$Type=="SMP")
-  
+  ### First get data:
+  data <- subset(idf.data, idf.data$Type == "SMP")
+
   ## average monocular gaze data to get binocular vision
   data$"L.POR.X..px." <- to.n(data$"L.POR.X..px.")
   data$"R.POR.X..px." <- to.n(data$"R.POR.X..px.")
   data$"L.POR.Y..px." <- to.n(data$"L.POR.Y..px.")
   data$"R.POR.Y..px." <- to.n(data$"R.POR.Y..px.")
-  data$x.pos <- rowMeans(data[,c("L.POR.X..px.","R.POR.X..px.")])
-  data$y.pos <- rowMeans(data[,c("L.POR.Y..px.","R.POR.Y..px.")])
-  
-  #clean up data
-  data <- data[,c("Time","x.pos")]
-  
-  ###Now get messages: 
-  msgs <- subset(idf.data,idf.data$Type=="MSG")
-  msgs <- msgs[,c("Time","L.POR.X..px.")]
-  names(msgs) <- c("Time","Message")
+  data$x.pos <- rowMeans(data[, c("L.POR.X..px.", "R.POR.X..px.")])
+  data$y.pos <- rowMeans(data[, c("L.POR.Y..px.", "R.POR.Y..px.")])
+
+  # clean up data
+  data <- data[, c("Time", "x.pos")]
+
+  ### Now get messages:
+  msgs <- subset(idf.data, idf.data$Type == "MSG")
+  msgs <- msgs[, c("Time", "L.POR.X..px.")]
+  names(msgs) <- c("Time", "Message")
   msgs$Message <- as.character(msgs$Message)
-  msgs$trial <- gsub("# Message: ", "",msgs$Message)
-  
+  msgs$trial <- gsub("# Message: ", "", msgs$Message)
+
   ## merge trial information back into data frame
-  data$trial <- sapply(data$Time,function(x) {set <- msgs$trial[msgs$Time < x]
-  set[length(set)]})
-  
+  data$trial <- sapply(data$Time, function(x) {
+    set <- msgs$trial[msgs$Time < x]
+    set[length(set)]
+  })
+
   ## drop the times before the first video
-  data <- data[grep(".",data$trial,fixed=TRUE),]
+  data <- data[grep(".", data$trial, fixed = TRUE), ]
   data$trial <- unlist(data$trial)
-  
+
   ## set up some timing variables
-  #Mark trial change
-  data$stim.change <- c(diff(as.numeric(as.factor(data$trial))) != 0,0)
-  #count time from start of trial to end of experiment
-  data$t <- (data$Time - data$Time[1])/(1000000)
-  
-  #count time from beginning to end of each trial
-  data$dt <- c(diff(data$t),0)
+  # Mark trial change
+  data$stim.change <- c(diff(as.numeric(as.factor(data$trial))) != 0, 0)
+  # count time from start of trial to end of experiment
+  data$t <- (data$Time - data$Time[1]) / (1000000)
+
+  # count time from beginning to end of each trial
+  data$dt <- c(diff(data$t), 0)
   t <- 0
-  data$t.stim <- mapply(function (x,y) { 
-    if(x==T) {
+  data$t.stim <- mapply(function(x, y) {
+    if (x == T) {
       t <<- 0
       return(t)
     } else {
       t <<- t + y
       return(t)
-    }},data$stim.change,data$dt)
-  
-  #Find test trials only (no fillers, practice trials, etc.)
-  data <- data[grepl("item",data$trial),]
-  data <- data[!grepl("practice",data$trial),]
-  data <- data[!grepl("pos",data$trial),] #feedback slide
-  data <- data[!grepl("neg",data$trial),] #feedback slide
-  
-  #get trial number
-  data$trial.num <- cumsum(data$stim.change)+1
-  
-  #Get info out of file name
-  splits <- strsplit(files[f],"_")[[1]]
-  data$subid <- paste(splits[3],str_sub(splits[4],start=1,end=2),sep="_")
-  
-  #get condition.  "nothing" is Exp 1 and "something" is Exp 2
-  data$condition <- 
+    }
+  }, data$stim.change, data$dt)
+
+  # Find test trials only (no fillers, practice trials, etc.)
+  data <- data[grepl("item", data$trial), ]
+  data <- data[!grepl("practice", data$trial), ]
+  data <- data[!grepl("pos", data$trial), ] # feedback slide
+  data <- data[!grepl("neg", data$trial), ] # feedback slide
+
+  # get trial number
+  data$trial.num <- cumsum(data$stim.change) + 1
+
+  # Get info out of file name
+  splits <- strsplit(files[f], "_")[[1]]
+  data$subid <- paste(splits[3], str_sub(splits[4], start = 1, end = 2), sep = "_")
+
+  # get condition.  "nothing" is Exp 1 and "something" is Exp 2
+  data$condition <-
     if (splits[2] == "1" | splits[2] == "2") {
       data$condition <- "nothing"
-    } else if (splits[2] == "3" | splits[2] == "4"){ 		
+    } else if (splits[2] == "3" | splits[2] == "4") {
       data$condition <- "something"
     }
-  
-  #Label item
-  data$item <- as.character(sapply(data$trial,function(x) {strsplit(x,"_")[[1]][1]}))
-  
-  ##Merge onsets: this gives onsets of multiple parts of the trial sentence
+
+  # Label item
+  data$item <- as.character(sapply(data$trial, function(x) {
+    strsplit(x, "_")[[1]][1]
+  }))
+
+  ## Merge onsets: this gives onsets of multiple parts of the trial sentence
   if (splits[2] == "1" | splits[2] == "3") {
     onsets <- read.csv(paste0(exp_info_path, "/timing_exp1.csv"))
-  } else if (splits[2] == "2" | splits[2] == "4"){ 		
+  } else if (splits[2] == "2" | splits[2] == "4") {
     onsets <- read.csv(paste0(exp_info_path, "/timing_exp2.csv"))
   }
-  
-  data <- merge(data,onsets,sort=FALSE,all.x=T)
-  
-  #t.target centers timing around onset of the target noun
+
+  data <- merge(data, onsets, sort = FALSE, all.x = T)
+
+  # t.target centers timing around onset of the target noun
   data$t.target <- data$t.stim - data$noun_onset
-  
-  #Use sentence type and item side to determine what side the target character was on
-  data$left.side <- grepl("itemL",data$trial) #what side of the screen was the character with target items on?
-  data$target.side <- mapply(function (x,y) { 
-    if(x=="positive" & y==T) {
+
+  # Use sentence type and item side to determine what side the target character was on
+  data$left.side <- grepl("itemL", data$trial) # what side of the screen was the character with target items on?
+  data$target.side <- mapply(function(x, y) {
+    if (x == "positive" & y == T) {
       t <<- "left"
       return(t)
-    } else if (x=="positive" & y==F) {
+    } else if (x == "positive" & y == F) {
       t <<- "right"
       return(t)
-    } else if (x=="negative" & y==T) {
+    } else if (x == "negative" & y == T) {
       t <<- "right"
       return(t)
-    } else if (x=="negative" & y==F) {
+    } else if (x == "negative" & y == F) {
       t <<- "left"
       return(t)
-    }},data$type,data$left.side)
-  
-  ##clean up x position data
+    }
+  }, data$type, data$left.side)
+
+  ## clean up x position data
   data$x.pos[data$x.pos < 1 | data$x.pos > x.max] <- NA
-  
-  #Identify whether gaze was on target side 
+
+  # Identify whether gaze was on target side
   data$target.looks <- data$x.pos
   data$target.looks[data$target.side == "left"] <- x.max - data$target.looks[data$target.side == "left"]
-  data$on.target <- data$target.looks > (x.max / 2) + 200 
-  
+  data$on.target <- data$target.looks > (x.max / 2) + 200
+
   ## clean up data frame
-  data <- data[,c("subid","condition","item","trial.num","trial","type","t.stim","t.target","x.pos","on.target","target.side","noun_onset")]
-  
-  all.data <- bind_rows(all.data,data)
+  data <- data[, c("subid", "condition", "item", "trial.num", "trial", "type", "t.stim", "t.target", "x.pos", "on.target", "target.side", "noun_onset")]
+
+  all.data <- bind_rows(all.data, data)
 }
 
 all.data$condition <- as.factor(all.data$condition)
@@ -277,10 +287,9 @@ Some cleanup for subsequent processing.
 ```{r}
 all_data <- all.data |>
   left_join(demographics |>
-              select(subid, `experiment`, `study version`, age, gender)) |>
+    select(subid, `experiment`, `study version`, age, gender)) |>
   as_tibble() |>
   clean_names()
-  
 ```
 
 Now we can back out the Peekbank data. 
@@ -295,29 +304,34 @@ Note that we need to load in distractor stimuli AND we need to add a "nothing" s
 
 ```{r stimuli, message = FALSE, warning = FALSE}
 expt_2_distractors <- read_csv(paste0(exp_info_path, "/experiment_2_distractors.csv")) |>
-  mutate(target = sapply(strsplit(trial, '_'), `[`, 1)) |>
+  mutate(target = sapply(strsplit(trial, "_"), `[`, 1)) |>
   mutate(side = case_when(substrRight(trial, 4, 4) == "L"))
 
-tmp <- sapply(strsplit(expt_2_distractors$trial, '_'), `[`, 1) 
+tmp <- sapply(strsplit(expt_2_distractors$trial, "_"), `[`, 1)
 
 items <- unique(all_data$item)
-singulars <- c("carrot", "cookie", "cake","spoon","bucket","organge","lollipop","car",
-               "kite","banana","fish","balloon","apple","ball","ice cream","flower")
+singulars <- c(
+  "carrot", "cookie", "cake", "spoon", "bucket", "organge", "lollipop", "car",
+  "kite", "banana", "fish", "balloon", "apple", "ball", "ice cream", "flower"
+)
 
-##create stimuli data
-stimuli_data <- data_frame(original_stimulus_label = items,
-                           english_stimulus_label =  singulars,
-                           stimulus_novelty = "familiar", 
-                           stimulus_image_path = NA, 
-                           image_description = paste0("boy with ",  unique(all_data$item)),
-                           image_description_source = "Peekbank discretion",
-                           lab_stimulus_id = NA, 
-                           datset_id = 0) |>
+## create stimuli data
+stimuli_data <- data_frame(
+  original_stimulus_label = items,
+  english_stimulus_label = singulars,
+  stimulus_novelty = "familiar",
+  stimulus_image_path = NA,
+  image_description = paste0("boy with ", unique(all_data$item)),
+  image_description_source = "Peekbank discretion",
+  lab_stimulus_id = NA,
+  datset_id = 0
+) |>
   mutate(stimulus_id = 1:n() - 1)
 
 stimuli_data %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 ```
 
 
@@ -328,49 +342,53 @@ Now we'll create the `trials` and `trial_types` tables.
 The `trial_types` table specifies different combinations of target items, distractor items, target sides (left or right), AOI region sets and so on--essentially, all the trial-level parameters.
 
 ```{r trials, message = FALSE, warning = FALSE}
-
-  # process_smi_trial_info(trial_file_path) %>%
-  # left_join(stimuli_data %>% 
-  #             select(stimulus_id, english_stimulus_label),
-  #           by=c("distractor_label" = "english_stimulus_label")) %>%
-  # rename(distractor_id = stimulus_id) %>%
-  # left_join(stimuli_data %>% select(stimulus_id, english_stimulus_label),
-  #           by=c("target_label" = "english_stimulus_label")) %>%
-  # rename(target_id = stimulus_id) %>%
-  # left_join(aoi_ids, by="stimulus_name") %>%
-  # mutate(condition = object_type) %>%
-  # mutate(full_phrase = paste0("Can you find the ", target_label, "?")) %>%
-  # dplyr::select(trial_type_id, full_phrase, full_phrase_language, 
-  #               point_of_disambiguation, target_side, 
-  #               lab_trial_id, aoi_region_set_id, dataset_id, 
-  #               distractor_id, target_id, condition)
+# process_smi_trial_info(trial_file_path) %>%
+# left_join(stimuli_data %>%
+#             select(stimulus_id, english_stimulus_label),
+#           by=c("distractor_label" = "english_stimulus_label")) %>%
+# rename(distractor_id = stimulus_id) %>%
+# left_join(stimuli_data %>% select(stimulus_id, english_stimulus_label),
+#           by=c("target_label" = "english_stimulus_label")) %>%
+# rename(target_id = stimulus_id) %>%
+# left_join(aoi_ids, by="stimulus_name") %>%
+# mutate(condition = object_type) %>%
+# mutate(full_phrase = paste0("Can you find the ", target_label, "?")) %>%
+# dplyr::select(trial_type_id, full_phrase, full_phrase_language,
+#               point_of_disambiguation, target_side,
+#               lab_trial_id, aoi_region_set_id, dataset_id,
+#               distractor_id, target_id, condition)
 
 # create trials data and match with stimulus id and aoi_region_set_id
-# trial_types_data <- 
+# trial_types_data <-
 all_data |>
-  select(experiment, condition, type, item, study_version, target_side, 
-         noun_onset) |>
+  select(
+    experiment, condition, type, item, study_version, target_side,
+    noun_onset
+  ) |>
   distinct() |>
-  mutate(trial_type_id = 1:n(),
-         full_phrase = ifelse(type == "positive", 
-                              glue("Look at the boy who has {item}"), 
-                              glue("Look at the boy who has no {item}")),
-         full_phrase_language = "eng",
-        lab_trial_id = glue("{experiment} {study_version} {condition} {item}"),
-        aoi_region_set_id = NA,
-        dataset_id = 1, 
-        ) |>
-  rename(point_of_disambiguation = noun_onset)    
-  
-# trial_type_id, full_phrase, full_phrase_language, 
-  #               point_of_disambiguation, target_side, 
-  #               lab_trial_id, aoi_region_set_id, dataset_id, 
-  #               distractor_id, target_id, condition
-  
-  
-  select(-lab_trial_id, -dataset_id) %>%
+  mutate(
+    trial_type_id = 1:n(),
+    full_phrase = ifelse(type == "positive",
+      glue("Look at the boy who has {item}"),
+      glue("Look at the boy who has no {item}")
+    ),
+    full_phrase_language = "eng",
+    lab_trial_id = glue("{experiment} {study_version} {condition} {item}"),
+    aoi_region_set_id = NA,
+    dataset_id = 1,
+  ) |>
+  rename(point_of_disambiguation = noun_onset)
+
+# trial_type_id, full_phrase, full_phrase_language,
+#               point_of_disambiguation, target_side,
+#               lab_trial_id, aoi_region_set_id, dataset_id,
+#               distractor_id, target_id, condition
+
+
+select(-lab_trial_id, -dataset_id) %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 ```
 
 ```
@@ -390,23 +408,28 @@ trials_data %>%
 
 ```{r timepoint-data, message = FALSE, warning = FALSE}
 # get all file paths in the directory with raw eyetracking data
-all_files <- list.files(path = full_dataset_path, 
-                        pattern = paste0('*',file_ext),
-                        all.files = FALSE)
+all_files <- list.files(
+  path = full_dataset_path,
+  pattern = paste0("*", file_ext),
+  all.files = FALSE
+)
 # create file paths
 all_file_paths <- fs::path(full_dataset_path, all_files)
 
 # create eyetracking timepoint data
-timepoint_data <- lapply(all_file_paths, process_smi_eyetracking_file)%>%
+timepoint_data <- lapply(all_file_paths, process_smi_eyetracking_file) %>%
   bind_rows() %>%
-  mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
-  mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1) %>%
-  mutate(trial_order = trial_type_id + 1,
-         trial_id = trial_type_id)
+  mutate(xy_timepoint_id = seq(0, length(lab_subject_id) - 1)) %>%
+  mutate(subject_id = as.numeric(factor(lab_subject_id, levels = unique(lab_subject_id))) - 1) %>%
+  mutate(
+    trial_order = trial_type_id + 1,
+    trial_id = trial_type_id
+  )
 
-timepoint_data %>% 
+timepoint_data %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 ```
 
 Next, let's make the `subjects` table. In this dataset, we have subject information in a separate file that's linked to subject IDs in the timepoints table. We want to make sure to only include subjects we have data for in the `subjects` table, so we'll get distinct subject IDs from the timepoints data and then join in other subject information from the separate subjects info file.
@@ -414,20 +437,21 @@ Next, let's make the `subjects` table. In this dataset, we have subject informat
 We'll also create the `administrations` table. This is a table with information for each administration, or run of the experiment. It includes information about the eyetracker used and the size of the monitor. If your experiment is longitudinal, there may be multiple administrations per subject. 
 
 ```{r subjects, message = FALSE, warning = FALSE}
-## extract unique subjects ids from eyetracking data 
+## extract unique subjects ids from eyetracking data
 participant_id_table <- timepoint_data %>%
   distinct(lab_subject_id, subject_id)
 
-#create subject data
+# create subject data
 subjects_data <- process_subjects_info(participant_file_path) %>%
-  left_join(participant_id_table, by="lab_subject_id") %>%
+  left_join(participant_id_table, by = "lab_subject_id") %>%
   filter(!is.na(subject_id)) %>%
   mutate(native_language = "eng") %>%
   dplyr::select(subject_id, sex, lab_subject_id, native_language)
 
-subjects_data %>% 
+subjects_data %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 
 # get monitor size and sample rate
 monitor_xy <- extract_smi_info(all_file_paths[1], monitor_size)
@@ -443,28 +467,33 @@ y_max <- as.numeric(as.character(screen_xy[2]))
 We also want to get administrations information. Note that you will need to look at your data and determine the units in which age is recorded, and adjust the processing script accordingly. If the ages in your dataset were in days or years (to decimal precision), you'd need to convert to months, by dividing by 365.25 or multiplying by 12 respectively. If the ages in your dataset are in whole number years, convert to midway through that year in months, e.g., 2 years would become 2*12 + 6 = 30 months. This is so that we don't systematically underestimate the age of children whose ages are recorded in whole years. If this is true of your dataset, `lab_age_units` should be coded as "whole years".
 
 ```{r admins}
-# create administration info 
+# create administration info
 administration.data <- process_subjects_info(participant_file_path) %>%
   dplyr::select(lab_subject_id, age, lab_age, lab_age_units) %>%
-  mutate(dataset_id = dataset_id, 
-         tracker = "SMI", 
-         monitor_size_x = x_max,
-         monitor_size_y = y_max,
-         sample_rate = sample_rate, 
-         coding_method = "eyetracking")
+  mutate(
+    dataset_id = dataset_id,
+    tracker = "SMI",
+    monitor_size_x = x_max,
+    monitor_size_y = y_max,
+    sample_rate = sample_rate,
+    coding_method = "eyetracking"
+  )
 
 # use subjects table and join back in administration info to create final
 # administration table
 administration_data <- participant_id_table %>%
   left_join(administration.data, by = "lab_subject_id") %>%
-  dplyr::select(dataset_id, subject_id, age, lab_age, lab_age_units, 
-                monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method) %>%
-  mutate(administration_id = seq(0,length(subject_id)-1)) 
+  dplyr::select(
+    dataset_id, subject_id, age, lab_age, lab_age_units,
+    monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method
+  ) %>%
+  mutate(administration_id = seq(0, length(subject_id) - 1))
 
-administration_data %>% 
+administration_data %>%
   select(-lab_age) %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 ```
 
 
@@ -476,17 +505,19 @@ Right now, our data has time (in milliseconds) recorded starting at zero at the 
 # create xy data by merging in administration info and trial type info
 xy_merged_data <- timepoint_data %>%
   mutate(dataset_id = dataset_id) %>%
-  left_join(administration_data %>% select(subject_id, administration_id), by = "subject_id")%>%
-  left_join(trial_types_data %>% select(trial_type_id, 
-                                        aoi_region_set_id, 
-                                        target_side,
-                                        point_of_disambiguation), by = "trial_type_id") %>%
-  left_join(aoi_region_sets, by = "aoi_region_set_id") 
+  left_join(administration_data %>% select(subject_id, administration_id), by = "subject_id") %>%
+  left_join(trial_types_data %>% select(
+    trial_type_id,
+    aoi_region_set_id,
+    target_side,
+    point_of_disambiguation
+  ), by = "trial_type_id") %>%
+  left_join(aoi_region_sets, by = "aoi_region_set_id")
 
 # select relevant columns for xy_timepoints
 # rezero, normalize and resample times
 xy_data <- xy_merged_data %>%
-  dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id, point_of_disambiguation) %>%
+  dplyr::select(xy_timepoint_id, x, y, t, administration_id, trial_id, point_of_disambiguation) %>%
   peekds::rezero_times(.) %>%
   peekds::normalize_times(.) %>%
   peekds::resample_times(., table_type = "xy_timepoints") %>%
@@ -494,7 +525,8 @@ xy_data <- xy_merged_data %>%
 
 xy_data %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 
 # create aoi data using peekds function add_aois()
 # rezero, normalize and resample times
@@ -504,17 +536,18 @@ aoi_timepoints_data <- xy_merged_data %>%
   peekds::rezero_times(.) %>%
   peekds::normalize_times(.) %>%
   peekds::resample_times(., table_type = "aoi_timepoints") %>%
-  select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id) 
+  select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
-aoi_timepoints_data %>% 
+aoi_timepoints_data %>%
   slice(1:5) %>%
-  kable() %>% kable_styling()
+  kable() %>%
+  kable_styling()
 ```
 
 That's it! Now, we'll write all the tables to `.csv` files and validate them to make sure they adhere to the schema. The osf write are commented out so you don't accidentally write a bunch of stuff when running this script. There you have it--that's how to import a Peekbank eyetracker dataset.
 
 ```{r write-all, message = FALSE, warning = FALSE}
-#write_and_validate(
+# write_and_validate(
 #  dataset_name = dataset_name,
 #  cdi_expected = FALSE,
 #  dataset,
@@ -526,7 +559,7 @@ That's it! Now, we'll write all the tables to `.csv` files and validate them to 
 #  aoi_region_sets,
 #  xy_timepoints,
 #  aoi_timepoints
-#)
+# )
 ```
 
 Finally, we'll create a simple visualization plot for this dataset.
