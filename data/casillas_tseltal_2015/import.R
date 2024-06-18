@@ -1,26 +1,15 @@
 ### load packages ###
 library(here)
-library(tidyverse)
-library(peekds)
-library(dplyr)
-library(stringr)
-library(osfr)
+
+source(here("helper_functions", "common.R"))
+lab_dataset_id = "casillas_tseltal_2015"
+read_path <- init(lab_dataset_id)
 
 ### general params. ###
-lab_dataset_id = "casillas_tseltal_2015"
+
 sample_rate = 25
-dataset_id = 0 #does this need to be hardcoded?
+dataset_id = 0
 point_of_disambiguation = 3155
-### get raw data ###
-osf_token <- read_lines(here("osf_token.txt"))
-
-read_path <- here("data",lab_dataset_id, "raw_data/")
-write_path <- here("data",lab_dataset_id, "processed_data/")
-
-### download data from OSF if not already present
-if(length(list.files(read_path)) == 0) {
-  peekds::get_raw_data(lab_dataset_id = lab_dataset_id, path = read_path, osf_address = "pr6wu")
-}
 
 ### Read Metadata ###
 
@@ -89,7 +78,8 @@ datasets_table = tibble(
   lab_dataset_id = lab_dataset_id,
   dataset_name = "casillas_tseltal_2015",
   cite = "Casillas, M., Brown, P., & Levinson, S. C. (2017). Casillas HomeBank Corpus. https://homebank.talkbank.org/",
-  shortcite = "Casillas et al. (2017)"
+  shortcite = "Casillas et al. (2017)",
+  dataset_aux_data = NA
 )
 
 ### subjects table ###
@@ -110,7 +100,8 @@ raw_subjects_table$subject_id <- seq(0,nrow(raw_subjects_table)-1,1)
 
 #reordering probably doesn't matter, but easier to check work
 subjects_table <- raw_subjects_table %>% select(subject_id, sex, 
-                                                native_language, lab_subject_id)
+                                                native_language, lab_subject_id) %>%
+  mutate(subject_aux_data = NA)
 
 # ADMINISTRATIONS TABLE #
 #One administration per child
@@ -132,7 +123,7 @@ administrations_table <- administrations_table %>%
   select(administration_id, dataset_id, subject_id,
          age, lab_age, lab_age_units,
          monitor_size_x, monitor_size_y, sample_rate,
-         tracker, coding_method)
+         tracker, coding_method) %>% mutate(administration_aux_data = NA)
 
 ### stimulus table ###
 
@@ -171,7 +162,7 @@ stimuli_table<- stimuli_table %>%
          image_description,
          image_description_source,
          stimulus_novelty, stimulus_image_path, image_description,image_description_source,
-         lab_stimulus_id, dataset_id)
+         lab_stimulus_id, dataset_id) %>% mutate(stimulus_aux_data = NA)
 
 
 ### AOI_REGION_SETS TABLE ###
@@ -219,48 +210,42 @@ trials_types_table$trial_type_id <- seq(0, nrow(trials_types_table)-1,1)
 trials_types_table <- trials_types_table %>% arrange(trial_type_id) %>%
   select(trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation, 
         target_side, lab_trial_id, condition, aoi_region_set_id, dataset_id, distractor_id,
-        target_id)
+        target_id) %>% mutate(vanilla_trial = TRUE, trial_type_aux_data = NA)
 
 ### TRIALS TABLE ###
 
-trials_table <- merge(administrations_table %>% 
-                        select(administration_id, subject_id), 
-                      subjects_table)
-trials_table <- merge(trials_table, part_trial_conv %>% 
-                        select(participant_name, file_name), 
-                      by.x = "lab_subject_id", by.y = "participant_name")
+filenames <- subjects_table %>%
+  dplyr::left_join(part_trial_conv, by=c("lab_subject_id" = "participant_name")) %>%
+  dplyr::pull(file_name)
 
-get_trial_info <- function(file_name){
-  path = fs::path(read_path,"LOG_original", file_name)
-  df = read.csv(fs::path(read_path,"LOG_original",file_name), skip =3, sep = "\t")
-  df = df %>% rowwise()%>%
-    mutate(Code = unlist(strsplit(Code, "\\."))[1]) %>% 
-    mutate(task_type = gsub('[0-9]+', '',Code)) %>% 
-    filter(task_type == "lwl")
-  df <- df %>% arrange(Trial) 
-  df$lab_trial_id <- unlist(lapply(df$Code, 
-                            function(old_code){
-                              paste0("LWL", 
-                                     as.character(as.numeric(str_replace(old_code, 
-                                                                         "lwl", 
-                                                                         ""))))
-                              }
-                            ))
-  
-  df$trial_order <- seq(0, nrow(df)-1)
-  df$file_name <- file_name
-  return(df)
-}
+trials_table <- do.call("rbind",
+                      lapply(filenames,
+                             function(filename){
+                               fs::path(read_path,"LOG_original",filename) %>% 
+                                 read.csv(skip=3, sep = "\t") %>% 
+                                 rowwise() %>%
+                                 mutate(Code = unlist(strsplit(Code, "\\."))[1],
+                                        task_type = gsub('[0-9]+', '',Code)) %>% 
+                                 filter(task_type == "lwl") %>% 
+                                 arrange(Trial) %>%
+                                 mutate(
+                                   lab_trial_id = unlist(
+                                    lapply(Code,
+                                           function(old_code){
+                                             paste0("LWL",
+                                                    as.character(
+                                                      as.numeric(str_replace(
+                                                        old_code, 
+                                                        "lwl",
+                                                        ""))))
+                                            })),
+                                   ) %>% ungroup() %>% mutate(trial_order = 0:(n() - 1))
+                             })
+                      ) %>%
+  mutate(trial_id = 0:(n() - 1)) %>% 
+  select(trial_id, lab_trial_id, trial_order)
 
-all_trials <- do.call("rbind", lapply(trials_table$file_name, get_trial_info))
 
-trials_table <- merge(trials_table, 
-                      all_trials %>% 
-                        select(file_name, lab_trial_id, trial_order))
-trials_table <- merge(trials_table,
-                      trials_types_table %>% select(lab_trial_id, trial_type_id))
-
-trials_table$trial_id <- seq(0, nrow(trials_table)-1,1)
 ### AOI_TIMEPOINTS TABLE ###
 
 ### attempt 2! ###
@@ -295,7 +280,6 @@ get_aoi <- function(trial, target_lwl, target_annotator){
 }
 
 get_administration_aoi <- function(administration){
-  print(administration)
   #takes in an administration id, returns the timepoint_aoi for that adminisitration
   #linked to the correct trial_id
   #need the .txt file name for the participant for the administration
@@ -327,7 +311,7 @@ get_administration_aoi <- function(administration){
                                                                           TRUE ~ aoi)) 
   administration_aoi_data$administration_id = administration
   administration_aoi_data = merge(administration_aoi_data, 
-                                  trials_table %>% rename(trial= lab_trial_id),
+                                  trials_table %>% rename(trial = lab_trial_id),
                                   by.x=c("administration_id", "trial"), by.y = c("administration_id", "trial"))
   
   administration_aoi_data <- administration_aoi_data %>% select(trial_order, trial_type_id, trial_id, 
@@ -372,42 +356,26 @@ trials_table <- trials_table %>% select(trial_id, trial_order, trial_type_id)
 d_tidy <- aoi_timepoints_table %>% left_join(trials_table, by = "trial_id") %>%
   left_join(administrations_table) %>% left_join(subjects_table)
 
-trials_table <- d_tidy %>% distinct(trial_order, trial_type_id) %>% mutate(trial_id = seq(0, nrow(.)-1))
+trials_table <- d_tidy %>%
+  distinct(trial_order, trial_type_id) %>%
+  mutate(trial_id = seq(0, nrow(.)-1)) %>%
+  mutate(excluded = FALSE, exclusion_reason = NA, trial_aux_data = NA)
 
 d_tidy <- d_tidy  %>% select(-trial_id) %>% left_join(trials_table)
 
 aoi_timepoints_table <- d_tidy %>% distinct(t_norm, aoi, trial_id, administration_id, aoi_timepoint_id)
 
-### check datatypes and write to files ###
 
-administrations_table %>% 
-write_csv(fs::path(write_path, "administrations.csv"))
-
-datasets_table %>% 
-  write_csv(fs::path(write_path, "datasets.csv"))
-
-subjects_table %>% 
-  write_csv(fs::path(write_path, "subjects.csv"))
-
-trials_types_table %>% 
-  write_csv(fs::path(write_path, "trial_types.csv"))
-
-trials_table %>%
-  write_csv(fs::path(write_path, "trials.csv"))
-
-
-aoi_timepoints_table %>% 
-  write_csv(fs::path(write_path, "aoi_timepoints.csv"))
-
-aoi_region_sets %>% 
-  write_csv(fs::path(write_path, "aoi_region_sets.csv"))
-
-stimuli_table %>% 
-write_csv(fs::path(write_path, "stimuli.csv"))
-
-
-### Write to OSF ###
-
-peekds::validate_for_db_import(glue::glue("{write_path}/"))
-peekds::put_processed_data(osf_token, lab_dataset_id, path = glue::glue("{write_path}/"))
-
+write_and_validate(
+  dataset_name = lab_dataset_id,
+  cdi_expected = FALSE,
+  dataset = datasets_table,
+  subjects = subjects_table,
+  stimuli = stimuli_table,
+  administrations = administrations_table,
+  trial_types = trials_types_table,
+  trials = trials_table,
+  aoi_region_sets,
+  xy_timepoints = NA,
+  aoi_timepoints = aoi_timepoints_table
+)

@@ -5,6 +5,8 @@ library(here)
 library(stringr)
 library(peekds)
 
+options(dplyr.summarise.inform = FALSE)
+
 # override of peekds get_raw_data that relies on broken osfr 
 source(here("helper_functions", "osf.R"))
 
@@ -77,13 +79,25 @@ write_and_validate <- function(
   }
   
   # run validator
-  print(peekds::validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected))
+  cat("\n\n------ Validating... ------\n\n")
+  errors <- peekds::validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected)
+  if(is.null(errors)){
+    print("Dataset fully passed the validation!")
+  }else{
+    print("Dataset did NOT pass the validation!")
+    print(errors)
+  }
+    
   
   
   # a way to stop the prints/plotting when running the scripts centralized
   # a bit hacky, but good enough for now
   if(!exists("global_block_peekbank_summary")){
     # output some summary data about the processed data for sanity checking
+    
+    cat("\n\n------ Generating summary of processed data files... ------\n\n")
+    
+    
     cat("------ ID Info ------\n")
     
     print(paste("# of subjects:", nrow(subjects)))
@@ -180,18 +194,19 @@ write_and_validate <- function(
     print(paste("These exclusion reasons are present:", as.character(paste(na.omit(unique(trials$exclusion_reason)), collapse = ", "))))
     
     
+    cat("\n\n------ Plotting... ------\n")
+    
     # Accuracy info and accuracy plotting prep (Part 1)
     # adapted from
     # https://github.com/mzettersten/peekbank-vignettes/blob/main/peekbank_items/peekbank_item_vignette.Rmd
     
-    #cat("\n------ Subject-level Accuracies ------\n")
     aoi_data_joined <- aoi_timepoints %>%
-      right_join(administrations) %>%
-      right_join(subjects) %>%
-      right_join(trials) %>%
-      right_join(trial_types) %>%
+      right_join(administrations, by = join_by(administration_id)) %>%
+      right_join(subjects, by = join_by(subject_id)) %>%
+      right_join(trials, by = join_by(trial_id)) %>%
+      right_join(trial_types, by = join_by(dataset_id, trial_type_id)) %>%
       mutate(stimulus_id = target_id) %>% #just joining in the target properties. Add a second join here if the distractor info is needed too
-      right_join(stimuli)
+      right_join(stimuli, by = join_by(dataset_id, stimulus_id))
     
     #### PARAMETERS TO SET ####
     #critical window dimensions roughly consistent with e.g., Swingley & Aslin, 2002
@@ -236,7 +251,7 @@ write_and_validate <- function(
     
     #combine
     by_trial_target_means <- by_trial_means %>%
-      left_join(by_trial_baseline) %>%
+      left_join(by_trial_baseline, by = join_by(subject_id, trial_id, target_label)) %>%
       mutate(corrected_target_looking=prop_target_looking-baseline_looking)
     
     by_subj_item_means <- by_trial_target_means %>%
@@ -264,11 +279,6 @@ write_and_validate <- function(
         corrected_looking = mean(avg_corrected_target_looking,na.rm=TRUE)
       )
     
-    
-    #print(by_subj_means, n=10000)
-    
-    cat("\n\n------ Plotting... ------\n")
-    
     # show a timecourse plot for the looking data
     
     distractor_stimuli_data <- stimuli
@@ -276,9 +286,9 @@ write_and_validate <- function(
     
     #join to full dataset
     full_data <- aoi_timepoints %>%
-      left_join(administrations) %>%
-      left_join(trials) %>%
-      left_join(trial_types) %>%
+      left_join(administrations, by = join_by(administration_id)) %>%
+      left_join(trials, by = join_by(trial_id)) %>%
+      left_join(trial_types, by = join_by(dataset_id, trial_type_id)) %>%
       left_join(stimuli,by=c("target_id"="stimulus_id","dataset_id")) %>%
       left_join(distractor_stimuli_data %>% select(-distractor_dataset_id),by=c("distractor_id"="distractor_stimulus_id"))
     
@@ -304,14 +314,16 @@ write_and_validate <- function(
                 sd_accuracy=sd(mean_accuracy,na.rm=TRUE))
     
     #plot (remove data points where not a lot of subjects contributed, to avoid discontinuities in the slope)
-    plot(ggplot(filter(summarize_across_subj,N>length(unique(full_data$administration_id))/3),aes(t_norm,accuracy))+
+    suppressMessages(plot(ggplot(filter(summarize_across_subj,N>length(unique(full_data$administration_id))/3),aes(t_norm,accuracy))+
       geom_line(data=filter(summarize_by_subj,N>10),aes(y=mean_accuracy,color=as.factor(administration_id),group=as.factor(administration_id)),alpha=0.2)+
       geom_line()+
       geom_smooth(method="gam",se=FALSE)+
       geom_vline(xintercept=0)+
       geom_vline(xintercept=300,linetype="dotted")+
       geom_hline(yintercept=0.5,linetype="dashed")+
-      theme(legend.position="none"))
+      theme(legend.position="none")))
+    
+    print("Plotted proportional target looking timecourse averaged over the entire sample.")
     
     #### by condition plotting (only if applicable) ####
     
@@ -331,43 +343,33 @@ write_and_validate <- function(
     
     if(length(na.omit(unique(summarize_across_subj_by_condition$condition)) >= 2)){
       
-      # plot(ggplot(filter(summarize_across_subj_by_condition,N>length(unique(full_data$administration_id))/3),aes(x=t_norm,y=accuracy,color=condition,group=condition))+
-      #   geom_line()+
-      #   geom_smooth(method="gam",se=FALSE)+
-      #   geom_vline(xintercept=0)+
-      #   geom_vline(xintercept=300,linetype="dotted")+
-      #   geom_hline(yintercept=0.5,linetype="dashed"))
-      
-      plot(ggplot(filter(summarize_across_subj_by_condition,t_norm>-500&t_norm<=2000),aes(x=t_norm,y=accuracy,color=condition,group=condition))+
+      suppressMessages(plot(ggplot(filter(summarize_across_subj_by_condition,t_norm>-500&t_norm<=2000),aes(x=t_norm,y=accuracy,color=condition,group=condition))+
         geom_smooth(data=filter(summarize_by_subj_by_condition,t_norm>-500&t_norm<=2000),aes(y=mean_accuracy),method="gam")+
         geom_errorbar(aes(ymin=accuracy-se_accuracy,ymax=accuracy+se_accuracy),width=0)+
         geom_point()+
         geom_vline(xintercept=0)+
         geom_vline(xintercept=300,linetype="dotted")+
-        geom_hline(yintercept=0.5,linetype="dashed"))
+        geom_hline(yintercept=0.5,linetype="dashed")))
        
+      print("Plotted proportional target looking timecourse for multiple conditions.")
     }
     
-    
-    # accuracy plotting (Part 2)
-    # adapted from
-    # https://github.com/mzettersten/peekbank-vignettes/blob/main/peekbank_items/peekbank_item_vignette.Rmd
-    
-    
-    plot(ggplot(by_subj_means,aes(avg_target_looking))+
+    suppressMessages(plot(ggplot(by_subj_means,aes(avg_target_looking))+
       geom_histogram()+
       geom_vline(xintercept=0.5,linetype="dashed")+
       xlab("Proportion Target Looking")+
       theme_bw()+
-      ylab("Number of Subjects"))
+      ylab("Number of Subjects")))
+    print("Plotted proportional target looking information on a per-subject-level.")
     
-    plot(ggplot(by_subj_item_means,aes(reorder(target_label,avg_target_looking,mean),avg_target_looking,color=target_label))+
+    suppressMessages(plot(ggplot(by_subj_item_means,aes(reorder(target_label,avg_target_looking,mean),avg_target_looking,color=target_label))+
       geom_hline(yintercept=0.5,linetype="dashed")+
       geom_boxplot()+
       #geom_point()+
       theme(legend.position="none")+
       theme(axis.text.x=element_text(angle=90,size=10,vjust=0.5))+
       xlab("Target Label")+
-      ylab("Proportion Target Looking"))
+      ylab("Proportion Target Looking")))
+    print("Plotted proportional target looking information on a per-item-level.")
   }
 }
