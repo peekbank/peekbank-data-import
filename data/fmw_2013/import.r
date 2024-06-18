@@ -2,7 +2,7 @@ library(here)
 library(janitor)
 library(readxl)
 
-#TODO: check
+# SR inferred from "33ms interval" mentioned in paper
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000/30
 
@@ -278,7 +278,7 @@ d_tidy <- d_processed %>%
   mutate(t=as.numeric(as.character(t))) %>%
   arrange(sub_num, months,order,tr_num,t)
 
-# recode 0, 1, ., - as distracter, target, other, NA [check in about this]
+# recode 0, 1, ., - as distracter, target, other, NA
 # this leaves NA as NA
 d_tidy <- d_tidy %>%
   rename(aoi_old = aoi) %>%
@@ -439,8 +439,8 @@ d_tidy_final <- d_tidy_semifinal %>%
          #lab_trial_id = paste(target_label,target_image,distractor_image, sep = "-"),
          lab_trial_id = NA,
          aoi_region_set_id = NA, # not applicable
-         monitor_size_x = NA, # TODO: unknown - look in paper?
-         monitor_size_y = NA, # TODO: unknown 
+         monitor_size_x = NA, # unknown---not in paper
+         monitor_size_y = NA, # unknown---not in paper
          lab_age_units = "months",
          age = as.numeric(months), # months 
          point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz (and adjustment to noun onset above)
@@ -453,7 +453,7 @@ d_tidy_final <- d_tidy_semifinal %>%
 
 #add cdi data
 #999 seem to be NA values, convert now to avoid later issues
-cdi_data[cdi_data  == 999] <- NA
+cdi_data[cdi_data == 999] <- NA
 
 # cdi_responses:
 # instrument_type, rawscore, percentile, age
