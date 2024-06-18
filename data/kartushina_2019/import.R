@@ -59,7 +59,36 @@ df_subjects_info <- read_excel(fs::path(exp_info_path, subject_info)) %>%
 # read inm the final 50 subjects that were used in the paper
 df_subjects_final <- read.csv(fs::path(exp_info_path, subject_final_list))
 
+df_cdi <- read_excel(fs::path(exp_info_path, subject_info),
+                     sheet = "CDI") %>% 
+  select(lab_subject_id = Subject_ID,
+         age,
+         prod = "produces_total_CDI_score(0-396)",
+         comp = "Understands_total_CDI_score(0-396)") %>% 
+  mutate(across(all_of(c("prod", "comp")), \(x) na_if(x, "NC") %>% as.numeric()),
+         instrument_type = "wg",
+         lab_age = age,
+         language = "Norwegian") %>% 
+  pivot_longer(cols = c("prod", "comp"),
+               names_to = "measure",
+               values_to = "rawscore") %>% 
+  filter(!is.na(rawscore)) %>%
+  select(lab_subject_id, lab_age, 
+         instrument_type, measure, rawscore, age, language) %>% 
+  nest(cdi_responses = -c("lab_subject_id", "lab_age")) %>% 
+  nest(subject_aux_data = cdi_responses)
+  
 df_subjects <- df_subjects_info %>%
+<<<<<<< HEAD
+  mutate(sex = case_when(Gender=="F" ~ "female", Gender=="M" ~ "male", T ~"unspecified"),
+         subject_id = seq(0, length(.$lab_subject_id)-1),
+         native_language = "nor",
+         subject_aux_data = NA
+         ) %>%
+  left_join(df_cdi, by = c("lab_subject_id", "lab_age")) %>% 
+  select(-Gender, -lab_age) %>%
+  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
+=======
   mutate(
     sex = case_when(Gender == "F" ~ "female", Gender == "M" ~ "male", T ~ "unspecified"),
     subject_id = seq(0, length(.$lab_subject_id) - 1),
@@ -67,6 +96,7 @@ df_subjects <- df_subjects_info %>%
     subject_aux_data = NA
   ) %>%
   select(-Gender, -lab_age)
+>>>>>>> bdfb03d6968bcae46aa2603d6b15ef50da83e450
 
 #### Eyetracking files only have hit or miss data for eyetracking data, therefore we don't have
 #### aoi_regions_sets and xy_timepoints tables
@@ -141,6 +171,48 @@ target_distractor <- select(df_stimuli, target, distractor, condition)
 df_stimuli <- df_stimuli %>%
   select(target, stimulus_image_path, image_description) %>%
   rename(english_stimulus_label = target) %>%
+<<<<<<< HEAD
+  mutate(stimulus_id = seq(0,length(.$english_stimulus_label)-1),
+         lab_stimulus_id = english_stimulus_label,
+         dataset_id = dataset_id,
+         stimulus_novelty = "familiar",
+         image_description_source = "image path",
+         stimulus_aux_data = NA,
+         # the original norwegian labels below were pasted from the paper table 1
+         original_stimulus_label = case_when(english_stimulus_label == "cookie" ~ "kjeks",
+                                             english_stimulus_label == "belly" ~ "mage",
+                                             english_stimulus_label == "banana" ~ "banan",
+                                             english_stimulus_label == "hair" ~ "hår",
+                                             english_stimulus_label == "apple" ~ "eple",
+                                             english_stimulus_label == "foot" ~ "fot",
+                                             english_stimulus_label == "bread" ~ "brød",
+                                             english_stimulus_label == "leg" ~ "bein",
+                                             english_stimulus_label == "spoon" ~ "skje",
+                                             english_stimulus_label == "bathtub" ~ "badekar",
+                                             english_stimulus_label == "bottle" ~ "flaske",
+                                             english_stimulus_label == "toothbrush" ~ "tannbørste",
+                                             english_stimulus_label == "cup" ~ "kopp",
+                                             english_stimulus_label == "pants" ~ "bukse",
+                                             english_stimulus_label == "table" ~ "bord",
+                                             english_stimulus_label == "diaper" ~ "bleie",
+                                             english_stimulus_label == "dog" ~ "hund",
+                                             english_stimulus_label == "glasses" ~ "briller",
+                                             english_stimulus_label == "cat" ~ "katt",
+                                             english_stimulus_label == "keys" ~ "nøkler",
+                                             english_stimulus_label == "book" ~ "bok",
+                                             english_stimulus_label == "jacket" ~ "jakke",
+                                             english_stimulus_label == "car" ~ "bil",
+                                             english_stimulus_label == "couch" ~ "sofa",
+                                             english_stimulus_label == "pacifier" ~ "smokk",
+                                             english_stimulus_label == "pillow" ~ "pute",
+                                             english_stimulus_label == "ball" ~ "ball",
+                                             english_stimulus_label == "sun" ~ "sol",
+                                             english_stimulus_label == "phone" ~ "telefon",
+                                             english_stimulus_label == "moon" ~ "måne",
+                                             english_stimulus_label == "water" ~ "vann",
+                                             english_stimulus_label == "carpet" ~ "teppe"),
+         stimulus_aux_data = NA
+=======
   mutate(
     stimulus_id = seq(0, length(.$english_stimulus_label) - 1),
     lab_stimulus_id = english_stimulus_label,
@@ -183,6 +255,7 @@ df_stimuli <- df_stimuli %>%
       english_stimulus_label == "water" ~ "vann",
       english_stimulus_label == "carpet" ~ "teppe"
     )
+>>>>>>> bdfb03d6968bcae46aa2603d6b15ef50da83e450
   )
 
 ####################################################################
@@ -289,7 +362,11 @@ df_administrations <- df_subjects_info %>%
   left_join(df_subjects, by = "lab_subject_id") %>%
   filter(.$lab_subject_id %in% subject_list) %>% # filter out subjects that were not included in the trial data
   left_join(df_subjects) %>%
+<<<<<<< HEAD:data/kartushina_2019/import_scripts/import.R
+  select(lab_subject_id, subject_id, lab_age) %>%
+=======
   select(subject_id, lab_age, lab_subject_id) %>%
+>>>>>>> 89bc6ecc08082c98d531c6f3f0afe551a8542867:data/kartushina_2019/import.R
   mutate(
     administration_id = seq(0, length(.$subject_id) - 1),
     dataset_id = dataset_id,
@@ -367,7 +444,11 @@ df_trial_info <- trial_data %>%
   select(-original_stimulus_label)
 
 df_trial_types <- df_trial_info %>%
-  select(-target, -distractor)
+  select(-target, -distractor) %>% 
+  mutate(trial_type_aux_data = NA,
+         # non-vanilla for "*_related" trials (word is not target label) 
+         # and for brød/bein (phonological overlap in onset)
+         vanilla_trial = str_ends(condition, "_match") & !(target_id %in% c(3, 11)))
 
 #### (6) Trials table ####
 
@@ -391,6 +472,15 @@ df_trials <- trial_data %>%
   distinct(lab_subject_id, target, target_side) %>%
   left_join(df_trial_info, by = c("target", "target_side")) %>%
   select(lab_subject_id, target, target_side, trial_type_id) %>%
+<<<<<<< HEAD
+  left_join(excluded_participants, by=c("lab_subject_id")) %>%
+  mutate(excluded=replace_na(excluded, FALSE)) %>% 
+  mutate(trial_id = seq(0, length(.$lab_subject_id)-1),
+         trial_order = seq(0, length(.$lab_subject_id)-1),
+         excluded = F,
+         exclusion_reason = NA,
+         trial_aux_data = NA)
+=======
   left_join(excluded_participants, by = c("lab_subject_id")) %>%
   mutate(excluded = replace_na(excluded, FALSE)) %>%
   mutate(
@@ -398,9 +488,7 @@ df_trials <- trial_data %>%
     trial_order = seq(0, length(.$lab_subject_id) - 1),
     trial_aux_data = NA
   )
-
-
-
+>>>>>>> bdfb03d6968bcae46aa2603d6b15ef50da83e450
 
 # because target and target_side are still needed later for aoi_timepoints df, so we will select out
 # these two columns later
@@ -424,7 +512,56 @@ df_aoi_timepoints <- trial_data %>%
   select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
 df_trials <- df_trials %>%
+<<<<<<< HEAD
+  select(-target, -target_side)
+
+df_administrations <- df_administrations %>% 
+  select(-lab_subject_id)
+
+#### write all the tables to `.csv` files and validate them ####
+# output path
+output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
+dir.create(fs::path(output_path), showWarnings = FALSE)
+
+write_csv(df_dataset, file = here(output_path, "datasets.csv"))
+write_csv(df_subjects, file = here(output_path, "subjects.csv"))
+write_csv(df_stimuli, file = here(output_path,  "stimuli.csv"))
+write_csv(df_administrations, file = here(output_path, "administrations.csv"))
+write_csv(df_trial_types, file = here(output_path, "trial_types.csv"))
+write_csv(df_trials, file = here(output_path, "trials.csv"))
+write_csv(df_aoi_timepoints, file = here(output_path, "aoi_timepoints.csv"))
+
+# run validation
+peekds::validate_for_db_import(dir_csv = output_path)
+
+#### create a simple visualization plot for this dataset. ####
+accs <- df_aoi_timepoints %>%
+  left_join(df_administrations) %>%
+  left_join(df_trials) %>%
+  left_join(df_trial_types) %>%
+  mutate(condition_type = ifelse(str_detect(condition, "context"), "context", "frequency"),
+         is_match = ifelse(str_detect(condition, "match"), "match", "related")) %>%
+  filter(administration_id %in% df_administrations$administration_id) %>%
+  # mutate(age_group = ifelse(age < mean(age), "13-17", "17-20")) %>%
+  group_by(t_norm, administration_id, condition_type, is_match) %>%
+  filter(aoi %in% c("target", "distractor")) %>%
+  summarise(correct = mean(aoi == "target")) %>%
+  group_by(t_norm, condition_type, is_match) %>%
+  summarise(se = sd(correct) / sqrt(length(correct)),
+            correct = mean(correct))
+
+ggplot(accs, aes(x = t_norm, y = correct, col = is_match)) +
+  facet_wrap(~condition_type, ncol = 1) +
+  geom_pointrange(aes(ymin = correct - se,
+                      ymax = correct + se)) +
+  geom_hline(yintercept = .5, lty = 2, col = "black") + #  langcog::theme_mikabr() + langcog::scale_color_solarized(name = "Age Group") +
+  xlim(-2000, 3000) +
+  xlab("Time from target word onset (msec)") +
+  ylab("Proportion correct") +
+  theme(legend.position = "bottom")
+=======
   select(-target, -target_side, -lab_subject_id)
+>>>>>>> bdfb03d6968bcae46aa2603d6b15ef50da83e450
 
 df_administrations <- df_administrations %>% select(-lab_subject_id)
 
