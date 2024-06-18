@@ -26,23 +26,24 @@ dataset <- tibble(
   dataset_aux_data = NA
 )
 
-demo <- read_excel(here(data_path, "demographics", "34m WordLearninginNoise running sheet.xls"), col_names = FALSE)[-c(1,2),c(1,3,5)] %>%
+demo <- read_excel(here(data_path, "demographics", "34m WordLearninginNoise running sheet.xls"), col_names = FALSE)[-c(1, 2), c(1, 3, 5)] %>%
   rename(
     lab_subject_id = `...1`,
     sex = `...3`,
     age = `...5`
-  ) %>% 
+  ) %>%
   filter(!is.na(lab_subject_id) & !is.na(sex))
 
 ### 2. SUBJECTS TABLE
 
-subjects <- demo %>% 
-  select(lab_subject_id, sex) %>% 
-  mutate(subject_id = 0:(n() - 1),
-    native_language = 'eng', # according to the paper, this was the same for everyone
+subjects <- demo %>%
+  select(lab_subject_id, sex) %>%
+  mutate(
+    subject_id = 0:(n() - 1),
+    native_language = "eng", # according to the paper, this was the same for everyone
     subject_aux_data = NA # no mention of cdi in the paper, nothing in the raw_data
   )
-  
+
 # TODO heavily wip
 
 
@@ -75,16 +76,17 @@ averages_file_paths <- file_paths[grep("average", basename(file_paths), ignore.c
 
 # Apply the custom function to every file path
 results <- lapply(averages_file_paths, function(path) {
-  test <- read_excel(path, col_names = FALSE, progress=FALSE)
+  test <- read_excel(path, col_names = FALSE, progress = FALSE)
   print(colnames(test))
 })
 
 averages_file_paths
 
 combined_data <- averages_file_paths %>%
-  map_dfr(function(x){
+  map_dfr(function(x) {
     print(x)
-    read_excel(x, col_names = FALSE)})
+    read_excel(x, col_names = FALSE)
+  })
 
 write_and_validate(
   dataset_name = dataset_name,
