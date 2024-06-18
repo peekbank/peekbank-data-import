@@ -14,11 +14,9 @@ read_path <- init(dataset_name)
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000 / 30
 
-
 # phrase from paper: e.g. "Find the pifo" <- 12 familiar, 4 novel words
 # but for an additional 12 familiar trials, "Where's the cat?"
 # so which is it??
-
 
 #### read in data ####
 remove_repeat_headers <- function(d, idx_var) {
