@@ -190,11 +190,11 @@ d_tidy_final <- d_tidy_semifinal %>%
     monitor_size_x = 1920,
     monitor_size_y = 1200,
     lab_age_units = "months",
-    age = as.numeric(months), # TO DO - lookup participants with missing ages
+    age = as.numeric(months), # TODO - lookup participants with missing ages
     point_of_disambiguation = 0, # data is re-centered to zero based on critonset in datawiz
     tracker = "video_camera",
     sample_rate = sampling_rate_hz
-  ) %>%
+  ) %>% 
   rename(
     lab_subject_id = sub_num,
     lab_age = months
