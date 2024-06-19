@@ -248,7 +248,6 @@ subjects <- d_tidy_final %>%
     subject_aux_data = NA
   )
 
-# TODO? The paper states that CDI was administered, but the data might be hard to get due to the age of the article
 
 ##### ADMINISTRATIONS TABLE ####
 administrations <- d_tidy_final %>%
@@ -315,7 +314,7 @@ dataset <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
-  cite = "Hurtado, N., Marchman, V. A., & Fernald, A. (2007). Spoken word recognition by Latino children learning Spanish as their first language. Joural of Child Language, 34(2), 227-249.",
+  cite = "Hurtado, N., Marchman, V. A., & Fernald, A. (2007). Spoken word recognition by Latino children learning Spanish as their first language. Journal of Child Language, 34(2), 227-249.",
   shortcite = "Hurtado, Marchman, & Fernald (2007)",
   dataset_aux_data = NA
 )
