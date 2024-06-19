@@ -29,7 +29,7 @@ dataset_name <- "reflook_socword"
 project_root <- here::here()
 source(here("data/generic_import_template/smi/import_helpers.R"))
 dataset_id <- 0
-file_ext <- ".txt"
+file_ext = '.txt'
 OSF_ADDRESS <- "pr6wu"
 
 # check raw data directory
@@ -39,9 +39,9 @@ exp_info_path <- fs::path(raw_data_path, "experiment_info")
 aoi_path <- fs::path(raw_data_path, "test_aois")
 
 # only download raw data if it's not on your local machine
-if (length(list.files(full_dataset_path)) == 0 & length(list.files(exp_info_path)) == 0) {
+if(length(list.files(full_dataset_path)) == 0 & length(list.files(exp_info_path)) == 0) {
   # check if raw_data_path exists to avoid generating an error in using get_raw_data
-  if (!file.exists(raw_data_path)) {
+  if (!file.exists(raw_data_path)){
     dir.create(raw_data_path)
   }
   get_raw_data(lab_dataset_id = dataset_name, path = raw_data_path, osf_address = OSF_ADDRESS)
@@ -66,9 +66,8 @@ df_dataset <- tibble(
   shortcite = "Yurovsky et al. (2013)"
 )
 
-df_dataset %>%
-  kable() %>%
-  kable_styling()
+df_dataset %>% 
+  kable() %>% kable_styling()
 ```
 
 Next, let's read in the area of interest (AOI) information. We're using a custom helper function to do this, and you may need to write some custom code to load in your AOI information. If your AOI dimensions are in columns in your eyetracking data file rather than in a separate file, skip this step and get the AOI information after reading in the eyetracking data by grabbing distinct AOIs from that table.
@@ -76,73 +75,63 @@ Next, let's read in the area of interest (AOI) information. We're using a custom
 We'll create two tables: one that has the distinct sets of AOI regions and their dimensions, indexed with unique IDs, and one that connects trial types to these IDs. Only the `aoi_region_sets` will eventually be a table that is written and uploaded to peekbank; the correspondence between trial types and AOI IDs will later be used in the `trial_types` table. There's only one set of AOI regions in this experiment, so all stimuli are linked to AOI region ID `0`.
 
 ```{r aoi, message = FALSE, warning = FALSE}
-aoi_info_all <- process_smi_aoi(trial_file_name, exp_info_path)
+aoi_info_all <- process_smi_aoi(trial_file_name, exp_info_path) 
 
 # clean up aoi_region_sets
 aoi_region_sets <- aoi_info_all %>%
   dplyr::select(-stimulus_name) %>%
   distinct() %>%
-  mutate(aoi_region_set_id = seq(0, length(l_x_min) - 1))
+  mutate(aoi_region_set_id = seq(0,length(l_x_min)-1))
 
-aoi_region_sets %>%
-  kable() %>%
-  kable_styling()
+aoi_region_sets %>% 
+  kable() %>% kable_styling()
 
 # create table of aoi region ids and trial types
-# this information will later be added to the
+# this information will later be added to the 
 aoi_ids <- aoi_info_all %>%
   left_join(aoi_region_sets, by = c("l_x_min", "l_x_max", "l_y_min", "l_y_max", "r_x_min", "r_x_max", "r_y_min", "r_y_max")) %>%
-  distinct(stimulus_name, aoi_region_set_id)
+  distinct(stimulus_name, aoi_region_set_id)  
 
-aoi_ids %>%
+aoi_ids %>% 
   slice(1:5) %>%
-  kable() %>%
-  kable_styling()
+  kable() %>% kable_styling()
 ```
 
 Next, let's create the stimulus table. Stimuli are distinct image-label pairings in the experiment. On each trial, there are two stimuli (e.g., *book* and *frog*). Here, we're reading in the list of stimuli from a file of stimulus names that was already created in the raw data. Alternatively, you could get the stimulus list by reading in the file of eyetracking data and taking distinct items in the stimulus column.
 
 ```{r stimuli, message = FALSE, warning = FALSE}
-## create stimuli data
+##create stimuli data
 stimuli_data <- process_smi_stimuli(trial_file_path) %>%
-  mutate(
-    stimulus_id = seq(0, length(stimulus_label) - 1),
-    original_stimulus_label = stimulus_label
-  ) %>%
+  mutate(stimulus_id = seq(0,length(stimulus_label)-1),
+         original_stimulus_label = stimulus_label) %>%
   rename(english_stimulus_label = stimulus_label)
 
-stimuli_data %>%
+stimuli_data %>% 
   slice(1:5) %>%
-  kable() %>%
-  kable_styling()
+  kable() %>% kable_styling()
 ```
 
 Now we'll read in the actual eyetracking data. Again, we're using a custom helper function here; you may need to write one as well. We want all the eyetracking data, with one row per time point, in a big table.
 
 ```{r timepoint-data, message = FALSE, warning = FALSE}
 # get all file paths in the directory with raw eyetracking data
-all_files <- list.files(
-  path = full_dataset_path,
-  pattern = paste0("*", file_ext),
-  all.files = FALSE
-)
+all_files <- list.files(path = full_dataset_path, 
+                        pattern = paste0('*',file_ext),
+                        all.files = FALSE)
 # create file paths
 all_file_paths <- fs::path(full_dataset_path, all_files)
 
 # create eyetracking timepoint data
-timepoint_data <- lapply(all_file_paths, process_smi_eyetracking_file) %>%
+timepoint_data <- lapply(all_file_paths, process_smi_eyetracking_file)%>%
   bind_rows() %>%
-  mutate(xy_timepoint_id = seq(0, length(lab_subject_id) - 1)) %>%
-  mutate(subject_id = as.numeric(factor(lab_subject_id, levels = unique(lab_subject_id))) - 1) %>%
-  mutate(
-    trial_order = trial_type_id + 1,
-    trial_id = trial_type_id
-  )
+  mutate(xy_timepoint_id = seq(0,length(lab_subject_id)-1)) %>%
+  mutate(subject_id = as.numeric(factor(lab_subject_id, levels=unique(lab_subject_id)))-1) %>%
+  mutate(trial_order = trial_type_id + 1,
+         trial_id = trial_type_id)
 
-timepoint_data %>%
+timepoint_data %>% 
   slice(1:5) %>%
-  kable() %>%
-  kable_styling()
+  kable() %>% kable_styling()
 ```
 
 Next, let's make the `subjects` table. In this dataset, we have subject information in a separate file that's linked to subject IDs in the timepoints table. We want to make sure to only include subjects we have data for in the `subjects` table, so we'll get distinct subject IDs from the timepoints data and then join in other subject information from the separate subjects info file.
@@ -150,26 +139,25 @@ Next, let's make the `subjects` table. In this dataset, we have subject informat
 We'll also create the `administrations` table. This is a table with information for each administration, or run of the experiment. It includes information about the eyetracker used and the size of the monitor. If your experiment is longitudinal, there may be multiple administrations per subject. 
 
 ```{r subjects, message = FALSE, warning = FALSE}
-## extract unique subjects ids from eyetracking data
+## extract unique subjects ids from eyetracking data 
 participant_id_table <- timepoint_data %>%
   distinct(lab_subject_id, subject_id)
 
-# create subject data
+#create subject data
 subjects_data <- process_subjects_info(participant_file_path) %>%
-  left_join(participant_id_table, by = "lab_subject_id") %>%
+  left_join(participant_id_table, by="lab_subject_id") %>%
   filter(!is.na(subject_id)) %>%
   mutate(native_language = "eng") %>%
   dplyr::select(subject_id, sex, lab_subject_id, native_language)
 
-subjects_data %>%
+subjects_data %>% 
   slice(1:5) %>%
-  kable() %>%
-  kable_styling()
+  kable() %>% kable_styling()
 
 # get monitor size and sample rate
 monitor_xy <- extract_smi_info(all_file_paths[1], monitor_size)
 sample_rate <- extract_smi_info(all_file_paths[1], sample_rate)
-
+  
 # get maximum x-y coordinates on screen
 screen_xy <- str_split(monitor_xy, "x") %>%
   unlist()
@@ -180,33 +168,28 @@ y_max <- as.numeric(as.character(screen_xy[2]))
 We also want to get administrations information. Note that you will need to look at your data and determine the units in which age is recorded, and adjust the processing script accordingly. If the ages in your dataset were in days or years (to decimal precision), you'd need to convert to months, by dividing by 365.25 or multiplying by 12 respectively. If the ages in your dataset are in whole number years, convert to midway through that year in months, e.g., 2 years would become 2*12 + 6 = 30 months. This is so that we don't systematically underestimate the age of children whose ages are recorded in whole years. If this is true of your dataset, `lab_age_units` should be coded as "whole years".
 
 ```{r admins}
-# create administration info
+# create administration info 
 administration.data <- process_subjects_info(participant_file_path) %>%
-  dplyr::select(lab_subject_id, age, lab_age, lab_age_units) %>%
-  mutate(
-    dataset_id = dataset_id,
-    tracker = "SMI",
-    monitor_size_x = x_max,
-    monitor_size_y = y_max,
-    sample_rate = sample_rate,
-    coding_method = "eyetracking"
-  )
+    dplyr::select(lab_subject_id, age, lab_age, lab_age_units) %>%
+    mutate(dataset_id = dataset_id, 
+           tracker = "SMI", 
+           monitor_size_x = x_max,
+           monitor_size_y = y_max,
+           sample_rate = sample_rate, 
+           coding_method = "eyetracking")
 
 # use subjects table and join back in administration info to create final
 # administration table
 administration_data <- participant_id_table %>%
   left_join(administration.data, by = "lab_subject_id") %>%
-  dplyr::select(
-    dataset_id, subject_id, age, lab_age, lab_age_units,
-    monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method
-  ) %>%
-  mutate(administration_id = seq(0, length(subject_id) - 1))
+  dplyr::select(dataset_id, subject_id, age, lab_age, lab_age_units, 
+                monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method) %>%
+  mutate(administration_id = seq(0,length(subject_id)-1)) 
 
-administration_data %>%
+administration_data %>% 
   select(-lab_age) %>%
   slice(1:5) %>%
-  kable() %>%
-  kable_styling()
+  kable() %>% kable_styling()
 ```
 
 Now we'll create the `trials` and `trial_types` tables. The `trials` table is created by grabbing all distinct trial orders from the timepoint data. This table is distinct from the `trial_types` table and specifies the different trial orderings subjects can see. If your experiment has only one trial ordering, this table will have a row for each `trial_order` (0, 1, 2, ...) in the experiment, each associated with a `trial_type_id` linked to the `trial_types` table. If there are multiple trial orderings in your experiment, this table will encode each correspondence between trial types and positions in the trial order that was seen by a subject. 
@@ -219,38 +202,31 @@ trials_data <- timepoint_data %>%
   distinct(trial_id, trial_order, trial_type_id)
 
 
-trials_data %>%
+trials_data %>% 
   slice(1:5) %>%
-  kable() %>%
-  kable_styling()
+  kable() %>% kable_styling()
 
 # create trials data and match with stimulus id and aoi_region_set_id
 trial_types_data <- process_smi_trial_info(trial_file_path) %>%
-  left_join(
-    stimuli_data %>%
-      select(stimulus_id, english_stimulus_label),
-    by = c("distractor_label" = "english_stimulus_label")
-  ) %>%
+  left_join(stimuli_data %>% 
+              select(stimulus_id, english_stimulus_label),
+            by=c("distractor_label" = "english_stimulus_label")) %>%
   rename(distractor_id = stimulus_id) %>%
   left_join(stimuli_data %>% select(stimulus_id, english_stimulus_label),
-    by = c("target_label" = "english_stimulus_label")
-  ) %>%
+            by=c("target_label" = "english_stimulus_label")) %>%
   rename(target_id = stimulus_id) %>%
-  left_join(aoi_ids, by = "stimulus_name") %>%
+  left_join(aoi_ids, by="stimulus_name") %>%
   mutate(condition = object_type) %>%
   mutate(full_phrase = paste0("Can you find the ", target_label, "?")) %>%
-  dplyr::select(
-    trial_type_id, full_phrase, full_phrase_language,
-    point_of_disambiguation, target_side,
-    lab_trial_id, aoi_region_set_id, dataset_id,
-    distractor_id, target_id, condition
-  )
+  dplyr::select(trial_type_id, full_phrase, full_phrase_language, 
+                point_of_disambiguation, target_side, 
+                lab_trial_id, aoi_region_set_id, dataset_id, 
+                distractor_id, target_id, condition)
 
-trial_types_data %>%
+trial_types_data %>% 
   select(-lab_trial_id, -dataset_id) %>%
   slice(1:5) %>%
-  kable() %>%
-  kable_styling()
+  kable() %>% kable_styling()
 ```
 
 The timepoint eyetracking data needs to go through some processing to become two tables: `xy_timepoints`, which encodes the x and y coordinates of the subject's eye movements at each time point, and `aoi_timepoints`, which encodes the AOI the subject is looking at (target, distractor, other, or missing) at each timepoint.  
@@ -261,19 +237,17 @@ Right now, our data has time (in milliseconds) recorded starting at zero at the 
 # create xy data by merging in administration info and trial type info
 xy_merged_data <- timepoint_data %>%
   mutate(dataset_id = dataset_id) %>%
-  left_join(administration_data %>% select(subject_id, administration_id), by = "subject_id") %>%
-  left_join(trial_types_data %>% select(
-    trial_type_id,
-    aoi_region_set_id,
-    target_side,
-    point_of_disambiguation
-  ), by = "trial_type_id") %>%
-  left_join(aoi_region_sets, by = "aoi_region_set_id")
+  left_join(administration_data %>% select(subject_id, administration_id), by = "subject_id")%>%
+  left_join(trial_types_data %>% select(trial_type_id, 
+                                        aoi_region_set_id, 
+                                        target_side,
+                                        point_of_disambiguation), by = "trial_type_id") %>%
+  left_join(aoi_region_sets, by = "aoi_region_set_id") 
 
 # select relevant columns for xy_timepoints
 # rezero, normalize and resample times
 xy_data <- xy_merged_data %>%
-  dplyr::select(xy_timepoint_id, x, y, t, administration_id, trial_id, point_of_disambiguation) %>%
+  dplyr::select(xy_timepoint_id,x,y,t, administration_id, trial_id, point_of_disambiguation) %>%
   peekds::rezero_times(.) %>%
   peekds::normalize_times(.) %>%
   peekds::resample_times(., table_type = "xy_timepoints") %>%
@@ -281,8 +255,7 @@ xy_data <- xy_merged_data %>%
 
 xy_data %>%
   slice(1:5) %>%
-  kable() %>%
-  kable_styling()
+  kable() %>% kable_styling()
 
 # create aoi data using peekds function add_aois()
 # rezero, normalize and resample times
@@ -292,12 +265,11 @@ aoi_timepoints_data <- xy_merged_data %>%
   peekds::rezero_times(.) %>%
   peekds::normalize_times(.) %>%
   peekds::resample_times(., table_type = "aoi_timepoints") %>%
-  select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
+  select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id) 
 
-aoi_timepoints_data %>%
+aoi_timepoints_data %>% 
   slice(1:5) %>%
-  kable() %>%
-  kable_styling()
+  kable() %>% kable_styling()
 ```
 
 That's it! Now, we'll write all the tables to `.csv` files and validate them to make sure they adhere to the schema. The write_csv and osf write are commented out so you don't accidentally write a bunch of stuff when running this script. There you have it--that's how to import a Peekbank eyetracker dataset.
@@ -323,7 +295,7 @@ output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
 
 # OSF integration
 # token <- read_lines(here("../token.txt"))[1] # please specific your own personal access token
-# osf_token <- osf_auth(token = token)
+# osf_token <- osf_auth(token = token) 
 # put_processed_data(osf_token, dataset_name, paste0(output_path,"/"), osf_address = OSF_ADDRESS)
 ```
 

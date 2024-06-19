@@ -6,26 +6,27 @@ library(tidyr)
 source(here("helper_functions", "osf.R"))
 
 # to prevent source calls in the import scripts to bleed through functions into the global environment
-formals(source)$local <- TRUE
+formals(source)$local <- TRUE 
 
 # returns a list of all datasets that are in the active pipeline
-list_all <- function(activeonly = TRUE) {
+list_all <- function(activeonly = TRUE){
+  
   CURRENTLY_IGNORED <- readLines(here("helper_functions", "pipeline_ignore.txt"))
   NOT_DATASETS <- c("generic_import_template")
-
+  
   ignored_folders <- NOT_DATASETS
-  if (activeonly) {
+  if(activeonly){
     ignored_folders <- c(ignored_folders, CURRENTLY_IGNORED)
   }
-
+  
   folder_names <- basename(list.dirs(here("data"), recursive = FALSE))
   return(folder_names[!folder_names %in% ignored_folders])
 }
 
-download_all <- function(overwrite = FALSE, activeonly = FALSE) {
+download_all <- function(overwrite = FALSE, activeonly = FALSE){
   list_all(activeonly) %>% purrr::walk(\(dataset){
-    path <- here("data", dataset, "raw_data")
-    if (overwrite && file.exists(path)) {
+    path = here("data", dataset,"raw_data")
+    if(overwrite && file.exists(path)){
       unlink(path, recursive = TRUE)
     }
     if (length(list.files(path)) == 0) {
@@ -34,92 +35,88 @@ download_all <- function(overwrite = FALSE, activeonly = FALSE) {
   })
 }
 
-validate_all <- function() {
-  datasets <- list_all(activeonly = TRUE)
-
-  failed_validations <- datasets %>%
+validate_all <- function(){
+  
+  datasets <- list_all(activeonly=TRUE)
+  
+  failed_validations <- datasets %>% 
     lapply(\(dataset){
       print(glue("Validating {dataset}"))
-
-      if (file.exists(here("data", dataset, "cdi_indicated.txt"))) {
+      
+      if(file.exists(here("data", dataset, "cdi_indicated.txt"))){
         cdi_expected <- TRUE
-      } else if (file.exists(here("data", dataset, "no_cdi_indicated.txt"))) {
+      }else if(file.exists(here("data", dataset, "no_cdi_indicated.txt"))){
         cdi_expected <- FALSE
-      } else {
+      }else{
         return(glue("{dataset}: no cdi indicator found - be sure to use the write_and_valiate function in the script"))
       }
-
+      
       # only validate if processed_data is present
-      output_path <- here("data", dataset, "processed_data")
-      if (!file.exists(output_path)) {
+      output_path <- here("data", dataset,"processed_data")
+      if(!file.exists(output_path)){
         return("")
       }
-
-      tryCatch(
-        {
-          errors <- peekds::validate_for_db_import(
-            dir_csv = output_path,
-            cdi_expected = cdi_expected
+      
+      tryCatch({
+        errors <- peekds::validate_for_db_import(
+          dir_csv = output_path,
+          cdi_expected = cdi_expected
           )
-
-          error_string <- paste(errors, collapse = " ")
+          
+          error_string  <- paste(errors, collapse=' ')
           ifelse(!is.null(errors), glue("{dataset}: {error_string}"), "")
-        },
-        error = \(e) {
-          glue("{dataset}: validator threw error, {e}")
-        }
-      )
-    }) %>%
+        
+      }, error = \(e) {
+        glue("{dataset}: validator threw error, {e}")
+      })
+    }) %>% 
     unlist()
-
+  
   print("These datasets failed validation:")
   print(failed_validations[failed_validations != ""])
 }
 
 # nocache: download all data again, even if it already exists
 # clean: remove all previous process_data, even if the current import script does not execute
-run_all <- function(nocache = FALSE, clean = TRUE) {
-  datasets <- list_all(activeonly = TRUE)
+run_all <- function(nocache=FALSE, clean = TRUE){
+  datasets <- list_all(activeonly=TRUE)
   download_all(overwrite = nocache, activeonly = TRUE)
-
+  
   # delete previous processed data to ensure that only the results of the
   # latest script runs are present. This measure prevents confusion in cases
   # where old processed files are there, but the current version of the
   # import script fails
-  if (clean) {
-    datasets %>%
-      purrr::walk(\(dataset){
-        output_path <- here("data", dataset, "processed_data")
-        if (file.exists(output_path)) {
-          unlink(output_path, recursive = TRUE)
-        }
-      })
+  if(clean){
+    datasets %>% 
+    purrr::walk(\(dataset){
+      output_path <- here("data", dataset,"processed_data")
+      if(file.exists(output_path)){
+        unlink(output_path, recursive = TRUE)
+      }
+    })
   }
-
-  failed_datasets <- datasets %>%
+  
+  failed_datasets <- datasets %>% 
     lapply(\(dataset){
       print(glue("Running {dataset}"))
       import_script <- here("data", dataset, "import.R")
-      tryCatch(
-        {
-          # Loaded packages might bleed through, but for these validation-runs this
-          # should be fine, as we aren't using highly specified package versions
-          source(import_script, local = new.env())
-          return("")
-        },
-        error = \(e) {
-          glue("{dataset}: import error {e}")
-        }
-      )
-    }) %>%
+      tryCatch({
+        # Loaded packages might bleed through, but for these validation-runs this
+        # should be fine, as we aren't using highly specified package versions
+        source(import_script, local = new.env())
+        return("")
+      }, error = \(e) {
+        glue("{dataset}: import error {e}")
+      })
+    }) %>% 
     unlist()
 
   validate_all()
-
+  
   print("These import scripts threw errors:")
   print(failed_datasets[failed_datasets != ""])
 }
 
-# global_block_peekbank_summary <- TRUE
-run_all()
-# validate_all()
+#global_block_peekbank_summary <- TRUE
+#run_all()
+validate_all()
