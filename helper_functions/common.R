@@ -121,7 +121,9 @@ write_and_validate <- function(
     print(paste("Average:", mean(trials_per_admin_info$distinct_trial_ids) %>% round(digits = 2)))
     print(paste("Min:", min(trials_per_admin_info$distinct_trial_ids)))
     print(paste("Max:", max(trials_per_admin_info$distinct_trial_ids)))
-
+    
+    hist(trials_per_admin_info$distinct_trial_ids)
+    
     # subject data
     cat("\n------ Subject Data ------\n")
     print(paste("Average age in months:", mean(administrations$age, na.rm = TRUE) %>% round(digits = 2)))
@@ -154,7 +156,8 @@ write_and_validate <- function(
     print(paste("Average trial duration in seconds:", mean(trial_durations$trial_duration) %>% round(digits = 2)))
     print(paste("Shortest trial duration in seconds:", min(trial_durations$trial_duration)))
     print(paste("Longest trial duration in seconds:", max(trial_durations$trial_duration)))
-
+    
+    hist(trial_durations$trial_duration)
 
     # CDI data
     if (cdi_expected) {
