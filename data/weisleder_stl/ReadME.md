@@ -1,5 +1,8 @@
 #Weisleder & Fernald 2013 ReadME
 
+0. TODO: Investigate these things
+(within code): why do some participants have less trials than others? is it out filtering? the spikes at 32 and 36 represent the two age groups that got a different number of trials, but the outliers are a bit puzzeling.
+
 1. Reference
 Weisleder, A., & Fernald, A. (2013). Talking to Children Matters: Early Language Experience Strengthens Processing and Builds Vocabulary. Psychological Science, 24(11), 2143–2152. https://doi.org/10.1177/0956797613488145
 
@@ -17,4 +20,17 @@ When children were 19 months old, the 8 target nouns were presented four times e
 
 4. Importing decisions
 
+The dataset captures its exclusion reasons on a trial level in the "prescreen_notes". Some trials have the prescreen note "e", which is ambiguous. As these prescreen notes are typically used to indicate exclusion, we interpret this "e" to be a short form of "excluded" and mark trials accordingly when importing.
+
+We interpret the aoi coding in the raw data as following:
+
+0 distractor
+1 target
+. other
+- NA
+  NA
+NA NA  
+
 5. Importing ambiguity
+
+

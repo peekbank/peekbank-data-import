@@ -6,8 +6,7 @@ library(peekds)
 library(osfr)
 library(rjson)
 
-# TODO: check
-sampling_rate_hz <- 30
+sampling_rate_hz <- 30 # webcam, so likely
 sampling_rate_ms <- 1000 / 30
 
 source(here("helper_functions", "common.R"))
@@ -135,9 +134,6 @@ d_processed_24 <- d_raw_24 %>%
 # combine data
 d_processed <- bind_rows(d_processed_18, d_processed_24)
 
-# remove excluded participants
-# d_processed <- d_processed %>%
-#   filter(is.na(prescreen_notes))
 
 # make tidy
 d_tidy <- d_processed %>%
@@ -148,8 +144,7 @@ d_tidy <- d_processed %>%
   ) %>%
   arrange(sub_num, months, order, order, tr_num, t, prescreen_notes)
 
-# recode 0, 1, ., - as distracter, target, other, NA [check in about this]
-# this leaves NA as NA
+
 d_tidy <- d_tidy %>%
   rename(aoi_old = aoi) %>%
   mutate(aoi = case_when(
@@ -379,7 +374,6 @@ dataset <- tibble(
   shortcite = "Weisleder & Fernald (2013)",
   dataset_aux_data = NA,
 )
-
 
 write_and_validate(
   dataset_name = dataset_name,
