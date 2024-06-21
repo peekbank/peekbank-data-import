@@ -1,8 +1,6 @@
 ### load packages ###
 library(here)
 
-#note for the future readme: a for participants have lower trial counts due to early termination of coding (recorded session was deemed unfit)
-
 source(here("helper_functions", "common.R"))
 lab_dataset_id <- "casillas_tseltal_2015"
 read_path <- init(lab_dataset_id)
@@ -107,7 +105,7 @@ stimuli_table <- stim_data_raw %>%
   mutate(
     image_description = target_word,
     image_description_source = "experiment documentation",
-    stimulus_image_path = glue::glue("split_images/{target_image}"),
+    stimulus_image_path = glue::glue("raw_data/split_images/{target_image}"),
     stimulus_novelty = "familiar",
     dataset_id = dataset_id
   ) %>%
@@ -119,7 +117,6 @@ stimuli_table <- stim_data_raw %>%
     stimulus_id = 0:(n() - 1),
     # we lose the information about the native_ labels, but we prioritise
     # having labels that are english words
-    # TODO: how to describe these special items in the readme?
     english_stimulus_label = gsub("native_","",lab_stimulus_id),
     image_description = english_stimulus_label,
     image_description_source = "experiment documentation"
@@ -227,7 +224,7 @@ coded_trials <- do.call(
   mutate(trial_id = 0:(n()-1))
 
 # get the trial order according to the log files
-# TODO: this is a bit strange, since the txt files timestamps always seem to
+# NOTE: this is a bit strange, since the txt files timestamps always seem to
 # go in order 1-30, but the trial order log files sometimes differs.
 # Can we trust the metadata, or was that also created during import and is 
 # therefore prone to errors? Some participant namings diverge in the mapping of files
