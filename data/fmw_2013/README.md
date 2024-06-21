@@ -15,7 +15,7 @@ CDIs and LWL were collected at 18 and 24 months. For LWL, two overlapping sets o
 
 - Data were re-zeroed based on "crit_on_set" (onset of critical period) variable.
 - `distinct` was used to remove duplicates---suggests data error (e.g., participants with different sex labels at 18 and 24 months).
-- "Other" AOIs (labelled ".", "-", and NA) were treated as missing.
+- AOIs labelled ".", "-", or NA were treated as missing (see also README for pomper_saffran_2016).
 - **Note that stimuli table has image paths but images are not present on OSF.**
 
 5. **Importing ambiguity.**
