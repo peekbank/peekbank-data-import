@@ -178,7 +178,7 @@ d_tidy <- d_tidy %>%
     right_image = iconv(right_image, "UTF-8", sub = ""),
     left_image = iconv(left_image, "UTF-8", sub = "")
   ) %>%
-  # correct plátano, pájaro
+  # fix encoding issue: correct plátano, pájaro
   mutate(
     target_image = str_replace_all(target_image, c("pltano" = "plátano", "pjaro" = "pájaro", "pajaro" = "pájaro")),
     right_image = str_replace_all(right_image, c("pltano" = "plátano", "pjaro" = "pájaro", "pajaro" = "pájaro")),
@@ -311,7 +311,7 @@ administrations <- d_fin %>%
     sample_rate,
     tracker
   ) %>%
-  mutate(coding_method = "manual gaze coding") %>% # check
+  mutate(coding_method = "manual gaze coding") %>%
   mutate(administration_aux_data = NA)
 
 ##### STIMULUS TABLE ####
@@ -365,11 +365,10 @@ trial_types <- d_fin %>%
   )
 
 ##### DATASETS TABLE ####
-# write Dataset table
 dataset <- tibble(
-  dataset_id = 0, # make zero 0 for all, check
+  dataset_id = 0,
   dataset_name = dataset_name,
-  lab_dataset_id = dataset_name, # internal name from the lab (if known)
+  lab_dataset_id = dataset_name,
   cite = "Weisleder, A., & Fernald, A. (2013). Talking to children matters: Early language experience strengthens processing and builds vocabulary. Psychological Science, 24(11), 2143–2152. https://doi.org/10.1177/0956797613488145",
   shortcite = "Weisleder & Fernald (2013)",
   dataset_aux_data = NA,
