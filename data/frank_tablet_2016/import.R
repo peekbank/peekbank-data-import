@@ -133,12 +133,15 @@ trial_types_data <- mega_trials_table %>%
 #### (4) administrations ####
 original_subinfo <- read_csv(here(exp_info_path, "et_demographics.csv"))
 
+
 all_subjects_data <- read_csv(participant_file_path) %>%
   select(sid, age, gender) %>%
   rename(
     "lab_subject_id" = "sid",
     "sex" = "gender"
   ) %>%
+  # two subjects did not have eyetracking data
+  filter(!(lab_subject_id %in% c("2014_09_10_97", "2014_07_29_06"))) %>% 
   mutate(
     sex = factor(sex,
       levels = c("Male", "Female", "NaN"),
@@ -151,9 +154,7 @@ all_subjects_data <- read_csv(participant_file_path) %>%
   distinct() %>%
   mutate(subject_id = row_number() - 1) %>% # 110 distinct subjects
   left_join(select(original_subinfo, SID, exclude) %>%
-    mutate(lab_subject_id = SID)) %>%
-  filter(exclude == 0) %>%
-  select(-exclude) # exclusions bring this down to 69 distinct subjects
+    mutate(lab_subject_id = SID))
 
 monitor_size <- full_dataset_path %>% # add in administration info
   list.files(full.names = T) %>% #  info from smi files
@@ -180,7 +181,7 @@ administration_data <- all_subjects_data %>% # create a data frame by adding abo
     sample_rate = sample_rate,
     coding_method = "eyetracking",
     administration_aux_data = NA,
-    administration_id = subject_id
+    administration_id = 0:(n()-1)
   ) %>%
   select(
     administration_id, dataset_id, subject_id, age, lab_age,
@@ -245,11 +246,13 @@ trials_table <- timepoint_data %>%
     select(lab_subject_id = SID, excluded = exclude, exclusion_reason = exclusion.crit)) %>%
   left_join(mega_trials_table %>%
     select(trial_type_id, original_order)) %>%
+  left_join(subjects_data %>% select(subject_id, lab_subject_id)) %>%
+  left_join(administration_data %>% select(subject_id, administration_id)) %>%
+  filter(!is.na(administration_id)) %>% # some of the children in the timepoints data are not in the participants list and thus not in administration_id
   select(trial_order = original_order, excluded, exclusion_reason, trial_type_id, lab_subject_id) %>%
   mutate(trial_id = row_number() - 1, trial_aux_data = NA)
 
 
-# subject 2 and 27 does not have eyetracking data
 xy_data <- timepoint_data %>% # merge in administration_id and trial_id
   left_join(trial_types_data %>% select(lab_trial_id, trial_type_id)) %>%
   left_join(trials_table %>% select(trial_type_id, trial_id, lab_subject_id), by = join_by(trial_type_id, lab_subject_id)) %>%
