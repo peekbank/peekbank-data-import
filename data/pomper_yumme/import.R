@@ -23,10 +23,18 @@ remove_repeat_headers <- function(d, idx_var) {
   d[d[, idx_var] != idx_var, ]
 }
 
+
+
+#### Pomper YumME v4 ####
+
 # read raw icoder files
 d_raw <- read_delim(fs::path(read_path, "YumME_v4_DataCombined_Raw_n37.txt"),
-  delim = "\t"
+                    delim = "\t"
 )
+
+# yzd
+
+#### Pomper YumME v5 ####
 
 d_raw_2 <- read_delim(fs::path(read_path, "YumME_v5_n32.txt"),
   delim = "\t"

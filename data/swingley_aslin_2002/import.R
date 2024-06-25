@@ -50,6 +50,15 @@ post_dis_names_clean <- post_dis_names %>%
 
 colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
 
+# data cleanup: filter one unusual trial
+## this trial is unusual in a few ways:
+## mainly, it is the only instance in which a participant has the same trial number twice (which breaks the pipeline downstream)
+## it also has a different order number (7) than the other trials for this participant (should be fixed within participant)
+## it also has an odd looking pattern (target only, all 1s)
+## decision is to remove this trial given its unusual features and the fact that it causes issues for the pipeline
+d_processed <- d_processed %>%
+  filter(!(subj == 44 & order == 7 & trial == 8))
+
 # Convert to long format --------------------------------------------------
 d_tidy <- d_processed %>%
   pivot_longer(names_to = "t", cols = `-1000`:`3000`, values_to = "aoi") %>%
@@ -67,8 +76,6 @@ d_tidy <- d_tidy %>%
 # join d_tidy and subj_raw
 d_tidy <- d_tidy %>%
   left_join(subj_raw)
-
-### left off here ###
 
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
 d_tidy <- d_tidy %>%
