@@ -48,7 +48,7 @@ trial_orders <- map_df(trial_order_paths, read_delim, delim = "\t")
 stimulus_lookup_table <- read_csv(fs::path(read_path, "canine_stimulus_lookup_table.csv")) %>%
   mutate(study = 1) %>%
   bind_rows(
-    read_csv(here("data", dataset_name, "canine2_stimulus_lookup_table.csv")) %>% # created according to the table in the paper
+    read_csv(here(read_path, "canine2_stimulus_lookup_table.csv")) %>% # created according to the table in the paper
       mutate(study = 2)
   )
 
@@ -146,11 +146,16 @@ d_tidy <- d_tidy %>%
     target_side == "right" ~ left_image,
     TRUE ~ right_image
   )) %>%
+  # determine target label
+  mutate(distractor_label = case_when(
+    target_label_condition == "High" ~ high_label,
+    target_label_condition == "Low" ~ low_label
+  )) %>%
   mutate(lab_stimulus_id = paste0(target_image, "_", target_label_condition))
 
 # create stimulus table
 stimulus_table <- d_tidy %>%
-  distinct(target_image, target_label, lab_stimulus_id, target_label_condition) %>%
+  distinct(study,target_image, target_label, lab_stimulus_id, target_label_condition) %>%
   filter(!is.na(target_image)) %>%
   mutate(
     dataset_id = 0,
@@ -162,13 +167,15 @@ stimulus_table <- d_tidy %>%
     stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
   ) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
+# TODO: need to fix image paths and disambiguate study 1/2 objects
 
-## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
+## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distractor image
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(stimulus_id, target_image, target_label_condition), by = c("target_image", "target_label_condition")) %>%
+  left_join(stimulus_table %>% select(stimulus_id,study, target_image,target_label_condition), by = c("study","target_image", "target_label_condition")) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(stimulus_id, target_image, target_label_condition), by = c("distractor_image" = "target_image", "target_label_condition")) %>%
+  # decision: join in on condition of the target, so choose the low or high distractor label accordingly for uniqueness
+  left_join(stimulus_table %>% select(stimulus_id,study, target_image, target_label_condition,original_stimulus_label), by = c("study","distractor_image" = "target_image", "target_label_condition")) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
@@ -291,7 +298,7 @@ administrations <- d_tidy_final %>%
 
 ##### STIMULUS TABLE ####
 stimuli <- stimulus_table %>%
-  select(-target_label, -target_image, -target_label_condition) %>%
+  select(-study,-target_label, -target_image, -target_label_condition) %>%
   mutate(stimulus_aux_data = NA)
 
 #### TRIALS TABLE ####
