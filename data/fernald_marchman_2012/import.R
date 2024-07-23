@@ -87,8 +87,6 @@ d_processed <- d_processed_18 |>
   mutate(across(everything(), as.character)) |>
   bind_rows(d_processed_24 |> mutate(across(everything(), as.character))) |>
   bind_rows(d_processed_30 |> mutate(across(everything(), as.character))) |>
-  # create trial_order variable as tr_num variable
-  mutate(trial_order = as.numeric(tr_num)) |>
   select(!matches("^\\d|^-"), everything()) # get all the metadata up front
 
 
@@ -220,47 +218,57 @@ d_administration_ids <- d_tidy %>%
   arrange(subject_id, sub_num, months, session) %>%
   mutate(administration_id = seq(0, length(.$session) - 1))
 
-# create zero-indexed ids for trial_types
-d_trial_type_ids <- d_tidy %>%
-  distinct(
-    order, trial_order, target_id, target_image, distractor_image,
-    distractor_id, target_side,
-    condition, condition2, original_condition, cond_orig
-  ) |>
+# TODO for code review: check if this is the correct condition choice
+d_tidy <- d_tidy %>%
   mutate(
-    full_phrase = NA,
-    new_condition = case_when(
+    condition = case_when(
       !is.na(cond_orig) ~ cond_orig,
       !is.na(original_condition) ~ condition2,
       !is.na(condition) ~ condition,
-    ),
+    )
+  )
+
+# create zero-indexed ids for trial_types
+d_trial_type_ids <- d_tidy %>% 
+  distinct(
+    target_id, distractor_id, target_side,
+    condition
+  ) |>
+  mutate(
+    full_phrase = NA,
     vanilla_trial = case_when(
       condition == "familiar" ~ T,
-      cond_orig == "Vanilla" ~ T,
-      original_condition == "familiar" ~ T,
+      condition == "Vanilla" ~ T,
       T ~ F
     ),
     trial_type_aux_data = NA,
-    lab_trial_id = trial_order
+    lab_trial_id = NA
   ) %>%
-  mutate(trial_type_id = seq(0, length(trial_order) - 1))
+  mutate(trial_type_id = 0:(n()-1))
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
   left_join(d_administration_ids) %>%
   left_join(d_trial_type_ids) |>
-  select(-condition, -condition2, -original_condition, -cond_orig) |>
-  rename(condition = new_condition)
+  select(-condition2, -original_condition, -cond_orig)
+  
 
 # get zero-indexed trial ids for the trials table
 d_trial_ids <- d_tidy_semifinal %>%
   distinct(
     sub_num, session, months,
-    prescreen_notes, trial_order, trial_type_id
+    prescreen_notes, trial_type_id
   ) %>%
+  # the prescreen notes are not attached to all rows of a trial (sub_num x session x months x trial_type_id), so we fix this
+  group_by(sub_num, session, months, trial_type_id) %>%
+  summarize(prescreen_notes = first(na.omit(prescreen_notes)), .groups = 'drop') %>% 
   mutate(excluded = !is.na(prescreen_notes)) |>
   rename(exclusion_reason = prescreen_notes) |>
-  mutate(trial_id = seq(0, length(trial_type_id) - 1))
+  group_by(sub_num, session, months) %>%
+  mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
+  ungroup() %>% 
+  mutate(trial_id = 0:(n()-1)) %>% 
+  distinct()
 
 # join
 d_tidy_semifinal <- d_tidy_semifinal %>%
@@ -350,11 +358,10 @@ cdi_to_json <- cdi_data_cleaned |>
   mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
 
 ##### AOI TABLE ####
-# TODO comment this, it just takes a while to run!
+# this just takes a while to run!
 aoi_timepoints <- d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
   select(t_norm, aoi, trial_id, administration_id, lab_subject_id) %>%
-  # resample timepoints
   resample_times(table_type = "aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
 
@@ -438,7 +445,6 @@ dataset <- tibble(
   shortcite = "Fernald & Marchman (2012)",
   dataset_aux_data = NA
 )
-
 
 write_and_validate(
   dataset_name = dataset_name,
