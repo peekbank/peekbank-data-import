@@ -19,15 +19,6 @@ remove_repeat_headers <- function(d, idx_var) {
   d[d[, idx_var] != idx_var, ]
 }
 
-
-d_raw_2 <- read_delim(fs::path(read_path, "canine2_rawLookingTimeData.n34.txt"),
-  delim = "\t"
-) %>%
-  mutate(administration_num = 0) %>%
-  mutate(study = 2) %>%
-  relocate(administration_num, study, .after = `Sub Num`)
-
-
 ## Preprocessing
 # read raw icoder files
 d_raw_1 <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
@@ -37,36 +28,45 @@ d_raw_1 <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
   mutate(study = 1) %>%
   relocate(administration_num, study, .after = `Sub Num`)
 
+d_raw_2 <- read_delim(fs::path(read_path, "canine2_rawLookingTimeData.n34.txt"),
+                      delim = "\t"
+) %>%
+  mutate(administration_num = 0) %>%
+  mutate(study = 2) %>%
+  relocate(administration_num, study, .after = `Sub Num`)
 
-d_raw <- bind_rows(d_raw_1, d_raw_2)
 # read in order files
 # These files contain additional information about the target labels and carrier phrases
 trial_order_paths <- list.files(read_orders_path, full.names = TRUE, pattern = ".txt")
 trial_orders <- map_df(trial_order_paths, read_delim, delim = "\t")
 
-# read in stimulus lookup table
-stimulus_lookup_table <- read_csv(fs::path(read_path, "canine_stimulus_lookup_table.csv")) %>%
-  mutate(study = 1) %>%
-  bind_rows(
-    read_csv(here("data", dataset_name, "canine2_stimulus_lookup_table.csv")) %>% # created according to the table in the paper
-      mutate(study = 2)
-  )
-
-# remove any column with all NAs (these are columns
-# where there were variable names but no eye tracking data)
-d_filtered_1 <- d_raw %>%
-  select_if(~ sum(!is.na(.)) > 0)
-
-# Create clean column headers --------------------------------------------------
-d_processed_1 <- d_filtered_1 %>%
-  remove_repeat_headers(idx_var = "Months") %>%
-  clean_names()
-
-# rename order and trial number column names for trial_orders, then join with d_processed
+# rename order and trial number column names for trial_orders
 trial_orders <- trial_orders %>%
   rename(order = Name, tr_num = `trial number`) %>%
   clean_names() %>%
   select(order, tr_num, sound_stimulus) # select just the columns we need - really only need sound_stimulus, everything else important already in main icoder file
+
+# read in stimulus lookup table
+stimulus_lookup_table <- read_csv(fs::path(read_path, "canine_stimulus_lookup_table.csv")) %>%
+  mutate(study = 1) %>%
+  bind_rows(
+    read_csv(here(read_path, "canine2_stimulus_lookup_table.csv")) %>% # created according to the table in the paper
+      mutate(study = 2)
+  )
+
+## need to work through column renaming and cleaning for each dataset separately
+
+## dataset 1
+
+# remove any column with all NAs (these are columns
+# where there were variable names but no eye tracking data)
+d_filtered_1 <- d_raw_1 %>%
+  select_if(~ sum(!is.na(.)) > 0)
+
+# Create clean column headers --------------------------------------------------
+d_processed_1 <- d_filtered_1 %>%
+  remove_repeat_headers(idx_var = "Sub Num") %>%
+  clean_names()
 
 d_processed_1 <- d_processed_1 %>%
   mutate(tr_num = as.numeric(as.character(tr_num))) %>% # make trial number numeric
@@ -90,7 +90,6 @@ post_dis_names_clean_1 <- post_dis_names_1 %>% str_remove("f")
 colnames(d_processed_1) <- c(metadata_names_1, pre_dis_names_clean_1, post_dis_names_clean_1)
 
 ### truncate columns at 3600, since trials are almost never coded later than this timepoint
-## TO DO: check in about this decision
 post_dis_names_clean_cols_to_remove_1 <- post_dis_names_clean_1[110:length(post_dis_names_clean_1)]
 # remove
 d_processed_1 <- d_processed_1 %>%
@@ -101,8 +100,58 @@ d_processed_1 <- d_processed_1 %>%
 # get idx of first time series
 first_t_idx_1 <- length(metadata_names_1) + 1
 last_t_idx_1 <- colnames(d_processed_1) %>% length()
-d_tidy <- d_processed_1 %>%
+d_tidy_1 <- d_processed_1 %>%
   pivot_longer(first_t_idx_1:last_t_idx_1, names_to = "t", values_to = "aoi")
+
+## dataset 2
+
+# remove any column with all NAs (these are columns
+# where there were variable names but no eye tracking data)
+d_filtered_2 <- d_raw_2 %>%
+  select_if(~ sum(!is.na(.)) > 0) 
+
+# Create clean column headers --------------------------------------------------
+d_processed_2 <- d_filtered_2 %>%
+  remove_repeat_headers(idx_var = "Sub Num") %>%
+  clean_names()
+
+d_processed_2 <- d_processed_2 %>%
+  mutate(tr_num = as.numeric(as.character(tr_num))) %>% # make trial number numeric
+  left_join(trial_orders, by = c("order", "tr_num")) %>%
+  relocate(c(order, tr_num, sound_stimulus), .after = `sub_num`)
+
+# Relabel time bins --------------------------------------------------
+old_names_2 <- colnames(d_processed_2)
+metadata_names_2 <- old_names_2[!str_detect(old_names_2, "x\\d|f\\d")]
+pre_dis_names_2 <- old_names_2[str_detect(old_names_2, "x\\d")]
+post_dis_names_2 <- old_names_2[str_detect(old_names_2, "f\\d")]
+
+pre_dis_names_clean_2 <- round(seq(
+  from = length(pre_dis_names_2) * sampling_rate_ms,
+  to = sampling_rate_ms,
+  by = -sampling_rate_ms
+) * -1, 0)
+
+post_dis_names_clean_2 <- post_dis_names_2 %>% str_remove("f")
+
+colnames(d_processed_2) <- c(metadata_names_2, pre_dis_names_clean_2, post_dis_names_clean_2)
+
+### truncate columns at 3600, since trials are almost never coded later than this timepoint
+post_dis_names_clean_cols_to_remove_2 <- post_dis_names_clean_2[110:length(post_dis_names_clean_2)]
+# remove
+d_processed_2 <- d_processed_2 %>%
+  select(-all_of(post_dis_names_clean_cols_to_remove_2))
+
+# Convert to long format --------------------------------------------------
+
+# get idx of first time series
+first_t_idx_2 <- length(metadata_names_2) + 1
+last_t_idx_2 <- colnames(d_processed_2) %>% length()
+d_tidy_2 <- d_processed_2 %>%
+  pivot_longer(first_t_idx_2:last_t_idx_2, names_to = "t", values_to = "aoi")
+
+# Combine data
+d_tidy <- bind_rows(d_tidy_1, d_tidy_2)
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -146,11 +195,16 @@ d_tidy <- d_tidy %>%
     target_side == "right" ~ left_image,
     TRUE ~ right_image
   )) %>%
+  # determine target label
+  mutate(distractor_label = case_when(
+    target_label_condition == "High" ~ high_label,
+    target_label_condition == "Low" ~ low_label
+  )) %>%
   mutate(lab_stimulus_id = paste0(target_image, "_", target_label_condition))
 
 # create stimulus table
 stimulus_table <- d_tidy %>%
-  distinct(target_image, target_label, lab_stimulus_id, target_label_condition) %>%
+  distinct(study,target_image, image_stimulus_name,full_image_path,target_label, lab_stimulus_id, target_label_condition) %>%
   filter(!is.na(target_image)) %>%
   mutate(
     dataset_id = 0,
@@ -159,16 +213,17 @@ stimulus_table <- d_tidy %>%
     english_stimulus_label = target_label,
     image_description = target_image,
     image_description_source = "experiment documentation",
-    stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
+    stimulus_image_path = full_image_path
   ) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
-## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
+## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distractor image
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(stimulus_id, target_image, target_label_condition), by = c("target_image", "target_label_condition")) %>%
+  left_join(stimulus_table %>% select(stimulus_id,study, target_image,target_label_condition), by = c("study","target_image", "target_label_condition")) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(stimulus_id, target_image, target_label_condition), by = c("distractor_image" = "target_image", "target_label_condition")) %>%
+  # decision: join in on condition of the target, so choose the low or high distractor label accordingly for uniqueness
+  left_join(stimulus_table %>% select(stimulus_id,study, target_image, target_label_condition,original_stimulus_label), by = c("study","distractor_image" = "target_image", "target_label_condition")) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
@@ -291,7 +346,7 @@ administrations <- d_tidy_final %>%
 
 ##### STIMULUS TABLE ####
 stimuli <- stimulus_table %>%
-  select(-target_label, -target_image, -target_label_condition) %>%
+  select(-study,-target_label, -target_image, -target_label_condition,-image_stimulus_name,-full_image_path) %>%
   mutate(stimulus_aux_data = NA)
 
 #### TRIALS TABLE ####

@@ -40,7 +40,7 @@ dataset_data <- tibble(
 
 #### (2) stimuli ####
 # list 1, 2 each has 24 trial types with 24 distinct target words and 24 distinct distractor words -  meaning within one list, one target label only appeared once
-# 32 distinctive labels in total, among whch
+# 32 distinctive labels in total, among which
 # 8 labels only used for target: "dog"    "cookie" "bottle" "cat"    "horse"  "carrot" "lion"   "hammer"
 # 8 labels only used for distractor: "book"   "baby"   "bird"   "ball"   "clock"  "lamp"   "table"  "sheep"
 # rest 16 used for both target and distractor
@@ -62,7 +62,7 @@ stimuli_data <- target_distractors %>% # 48 entries
       stimulus_label %in% novel_words ~ "novel",
       TRUE ~ "familiar"
     ), # this is novelty of the word
-    stimulus_image_path = str_c("images/", stimulus_label, ".png"),
+    stimulus_image_path = str_c("raw_data/images/", stimulus_label, ".png"),
     lab_stimulus_id = stimulus_label,
     dataset_id = 0,
     stimulus_id = row_number() - 1
@@ -250,7 +250,9 @@ trials_table <- timepoint_data %>%
   left_join(administration_data %>% select(subject_id, administration_id)) %>%
   filter(!is.na(administration_id)) %>% # some of the children in the timepoints data are not in the participants list and thus not in administration_id
   select(trial_order = original_order, excluded, exclusion_reason, trial_type_id, lab_subject_id) %>%
-  mutate(trial_id = row_number() - 1, trial_aux_data = NA)
+  mutate(trial_id = row_number() - 1, 
+         trial_aux_data = NA,
+         excluded = replace_na(excluded, 0)) # unexclude participants missing from demogs
 
 
 xy_data <- timepoint_data %>% # merge in administration_id and trial_id
