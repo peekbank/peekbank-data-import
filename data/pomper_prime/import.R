@@ -30,7 +30,7 @@ subjects <- demo %>%
   )) %>%
   select(lab_subject_id, sex) %>%
   mutate(
-    subject_id = 0:(n() - 1),
+    # delay subject id assignment so we only id the subjects that are acutally present in the tracking data
     subject_aux_data = NA,
     native_language = "eng" # according to Martin, all monoling
   )
@@ -76,11 +76,11 @@ data <- data_raw %>%
     )
   ) %>%
   select(-Accuracy) %>%
-  left_join(subjects %>% select(lab_subject_id, subject_id), by = join_by(lab_subject_id)) %>%
+  left_join(subjects %>% select(lab_subject_id), by = join_by(lab_subject_id)) %>%
   group_by(target, target_side, distractor, condition) %>%
   mutate(trial_type_id = cur_group_id() - 1) %>%
   ungroup() %>%
-  group_by(subject_id, trial_order) %>%
+  group_by(lab_subject_id, trial_order) %>%
   mutate(trial_id = cur_group_id() - 1) %>%
   ungroup() %>%
   left_join(
@@ -88,12 +88,17 @@ data <- data_raw %>%
     by = "lab_subject_id"
   )
 
+subjects <- subjects %>% 
+  filter(lab_subject_id %in% data$lab_subject_id) %>% 
+  mutate(subject_id = 0:(n() - 1))
+
+data <- data %>% 
+  left_join(subjects %>% select(subject_id, lab_subject_id), by=join_by(lab_subject_id))
+
 ### 3. Administrations Table
 
 administrations <- demo %>%
   mutate(
-    administration_id = 0:(n() - 1),
-    subject_id = 0:(n() - 1),
     dataset_id = 0,
     age = `Age (not adjusted)`,
     lab_age = `Age (not adjusted)`,
@@ -101,17 +106,18 @@ administrations <- demo %>%
     monitor_size_x = 1920,
     monitor_size_y = 1080,
     sample_rate = 30,
-    administration_aux_data = NA
+    administration_aux_data = NA,
+    lab_subject_id = `Sub Num`, # temp for joining
   ) %>%
   select(
-    administration_id, dataset_id, subject_id, age,
+    dataset_id, age,
     lab_age, lab_age_units, monitor_size_x, monitor_size_y,
-    sample_rate, administration_aux_data
+    sample_rate, administration_aux_data, lab_subject_id
   ) %>%
   # this is a defensive way of determining the used tracking method:
   # the fam trials are all coded with tobii, but if we decide that more trials
   # should be included, it should automatically get the correct eyetracker
-  inner_join(data %>% distinct(subject_id, tracker), by = join_by(subject_id)) %>%
+  inner_join(data %>% distinct(lab_subject_id, tracker), by = join_by(lab_subject_id)) %>%
   mutate(
     tracker = case_when(
       tracker == "tobii" ~ "Tobii X2-60",
@@ -123,7 +129,10 @@ administrations <- demo %>%
       tracker == "video_camera" ~ "manual gaze coding",
       TRUE ~ "ERROR"
     )
-  )
+  ) %>%
+  left_join(subjects %>% select(subject_id, lab_subject_id), by=join_by(lab_subject_id)) %>% 
+  mutate(administration_id = 0:(n() - 1)) %>% 
+  select(-lab_subject_id)
 
 # add administration id to the data
 data <- data %>% left_join(
