@@ -59,10 +59,10 @@ df_subjects_info <- read_excel(fs::path(exp_info_path, subject_info)) %>%
 # read inm the final 50 subjects that were used in the paper
 df_subjects_final <- read.csv(fs::path(exp_info_path, subject_final_list))
 
+# delay id assignment until we can cross check what participats are also found in the trial data
 df_subjects <- df_subjects_info %>%
   mutate(
     sex = case_when(Gender == "F" ~ "female", Gender == "M" ~ "male", T ~ "unspecified"),
-    subject_id = seq(0, length(.$lab_subject_id) - 1),
     native_language = "nor",
     subject_aux_data = NA
   ) %>%
@@ -265,6 +265,8 @@ read_trial_data <- function(file_name) {
 trial_data <- do.call(rbind, lapply(all_data_files, read_trial_data))
 
 trial_data <- trial_data %>%
+  # rename to fix a typo in the trial data that would have lead to exclusion
+  mutate(lab_subject_id = ifelse(lab_subject_id == "OS_45", "OS_045", lab_subject_id)) %>% 
   filter(lab_subject_id %in% df_subjects$lab_subject_id) %>%
   mutate(
     target_side = if_else(str_detect(stimulus, "right"), "right",
@@ -276,6 +278,11 @@ trial_data <- trial_data %>%
   ) %>%
   rename(target = stimulus)
 
+# do ids here, since one participant (OS_092) is missing from the trial data and we do
+# not want to assign ids to empty participants
+df_subjects <- df_subjects %>%
+  filter(lab_subject_id %in% trial_data$lab_subject_id) %>% 
+  mutate(subject_id = seq(0, length(.$lab_subject_id) - 1))
 
 #### (4) Administration table ####
 # monitor size and sampling rate were found from paper p9 section2.3 Procedure
