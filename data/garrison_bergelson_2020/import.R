@@ -65,25 +65,26 @@ subjects <- demographics %>%
   left_join(cdi_data) %>%
   mutate(subject_aux_data = as.character(subject_aux_data))
 
-
-
 ### 3. STIMULI TABLE
 stimuli <- d_low %>%
-  select(TargetImage, AudioTarget) %>%
+  select(TargetImage, DistractorImage) %>%
+  pivot_longer(cols = c(TargetImage, DistractorImage), names_to = "type", values_to = "image") %>% 
   distinct() %>%
   mutate(
+    # an earlier version used the audio name here,
+    # but since the audio and the image names match, we can simplify
     original_stimulus_label = str_replace(
       str_replace(
-        AudioTarget,
-        "[a-z]*_", ""
+        image,
+        "[^A-Za-z]+", ""
       ),
-      ".wav", ""
+      ".jpg", ""
     ),
     english_stimulus_label = original_stimulus_label,
     stimulus_novelty = "familiar",
-    lab_stimulus_id = TargetImage,
-    stimulus_image_path = TargetImage,
-    image_description = str_replace(str_replace(stimulus_image_path, ".jpg", ""), "[^A-Za-z]+", ""),
+    lab_stimulus_id = image,
+    stimulus_image_path = image,
+    image_description = original_stimulus_label,
     image_description_source = "image path",
     dataset_id = 0
   ) %>%
@@ -264,3 +265,13 @@ write_and_validate(
   xy_timepoints,
   aoi_timepoints
 )
+
+
+table_2 <- trial_types %>% pivot_longer(
+  cols = c(distractor_id, target_id),
+  names_to = "stimulus_type",
+  values_to = "stimulus_id"
+)
+
+one_not_in_two <- table_2 %>%
+  dplyr::anti_join(stimuli, by = "stimulus_id")
