@@ -24,12 +24,12 @@ d_tidy <- d_tidy %>%
   clean_names() %>%
   select(
     word, timestamp, trial_label, block, category, distractorimg, distractorside,
-    order, item_code, targetside, trial, age_in_months, part_id, track_loss, target,
+    item_code, targetside, trial, age_in_months, part_id, track_loss, target,
     distractor, center, trialtype, targetside
   ) %>%
   rename(
     lab_subject_id = part_id, age = age_in_months, target_label = word,
-    distractor_image = distractorimg, target_side = targetside, trial_order = order,
+    distractor_image = distractorimg, target_side = targetside,
     condition = trialtype
   ) %>%
   mutate(target_side = tolower(target_side)) %>%
@@ -130,7 +130,10 @@ d_tidy <- d_tidy %>% left_join(trial_types)
 #### (5) trials ##############
 ## get trial IDs for the trials table
 trials <- d_tidy %>%
-  distinct(trial_order, trial_type_id, lab_subject_id) %>% # only one administration per subject
+  group_by(lab_subject_id) %>% # only one administration per subject
+  mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
+  ungroup() %>% 
+  distinct(trial_type_id, lab_subject_id, trial_order) %>% # only one administration per subject
   mutate(
     excluded = FALSE,
     exclusion_reason = NA,
