@@ -28,6 +28,7 @@ d_tidy <- d_raw %>%
   clean_names() %>% # change column name into lower case
   mutate_all(~ str_replace_all(., "\\s", "")) %>% # remove spaces in the data
   filter(sr == "Response") %>% # we decided to remove the baseline, only keep the response phase
+  select(-trial_order) %>% # remove paper's incompatible definition of trial order from the data
   rename(sex = gender, lab_subject_id = participant_name, age = age_mos) %>%
   mutate(subphase = tolower(subphase)) %>%
   mutate(
@@ -56,7 +57,6 @@ d_tidy <- d_raw %>%
     image2 = word(trials, 2, sep = "-")
   ) %>%
   mutate(distractor_image = ifelse(target_image == image1, image2, image1)) %>% # add distractor column
-  mutate(trial_order = ifelse(trial_order == "Forward", 1, 2)) %>% # recode trial order to numbers
   mutate(aoi = case_when(target == 1 ~ "target", distractor == 1 ~ "distractor", track_loss == 1 ~ "track_loss", target == 0 & distractor == 0 & track_loss == 0 ~ "other")) # add aoi column.
 
 
@@ -182,6 +182,11 @@ subjects <- subjects %>% select(-age)
 # join to the big table
 d_tidy <- d_tidy %>% left_join(administrations, by = c("dataset_id", "subject_id"))
 
+# add trial order
+d_tidy <- d_tidy %>%
+  group_by(administration_id) %>%
+  mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
+  ungroup()
 
 #### (6) trials ##############
 ## get trial IDs for the trials table
