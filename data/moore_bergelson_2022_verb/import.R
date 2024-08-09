@@ -155,7 +155,7 @@ subject_info <- fixations_binned %>%
   mutate(subject_aux_data = as.character(pmap(
     list(comp, prod, age_cdi),
     function(comp, prod, age) {
-      if (is.na(prod) && is.na(prod)) {
+      if (is.na(prod) && is.na(comp)) {
         return(NA)
       }
       jsonlite::toJSON(list(cdi_responses = compact(list(
