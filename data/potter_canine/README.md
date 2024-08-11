@@ -20,34 +20,33 @@ Key condition (and field name in raw data):
 Sentence frame that the stimuli is presented in (common or uncommon) and frequency of the object label (high-frequency or low-frequency). The field name is "Condition" in the raw data, which includes Common-High, Common-Low, Uncommon-High, and Uncommon-Low conditions. 
 
 Image/Word pairs (high frequency/ low frequency) in Canine1:
-dog - puppy, 
-chicken - bird, 
-cow - animal, 
-baby - boy, 
-milk - drink, 
-shoe - boot, 
-cookie - food, 
-ball - toy 
+baby - boy
+ball - toy
+bird - chicken
+cookie - food
+cow - animal
+dog - puppy
+milk - drink
+shoe - boot
 
-Sentence Frames Manipulation:
-*Common*	
-Do you like…	
-Look at the	
-Where is…	
-Can you find…	
+Image/Word pairs (high frequency/ low frequency) in Canine2:
+bird - goose
+candy - lollipop
+chicken - rooster
+horse - pony
+light - lamp
+pants - jeans
+plate - dish
+sheep - lamb
 
-*Uncommon*
-Would you prefer…
-Examine the…
-Which side has
-Could you spot…
+For information about the sentence frame manipulation, see the trial orders in the "orders" folder under raw_data.
 
 
 4. **Importing decisions.** 
 - original_stimulus_label for distractor stimuli always the condition (in trial_types), so if the target was in the high-frequency condition, than the distractor chosen from the stimulus table was the high-frequency label-object pairing.
 - truncate columns at the timepoint 3600, since trials were rarely coded after this point
 - left/ right locations were reversed to reflect the participant's perspective, because iCoder files encode left/ right from the perspective of the coder (who has a frontal view of the infant)
--point of disambiguation set to zero: original data was set at point of disambiguation, so it was re-centered to zero here.
+- point of disambiguation set to zero: original data was set at point of disambiguation, so it was re-centered to zero here.
 - "offs" and "aways" ("." and "-" in the raw data) were coded as missing. Below is an overview of what each coded value represents in iCoder data:
         - “0” ~“distractor” (look to distractor)
         - “1” ~ “target” ( look to target )
