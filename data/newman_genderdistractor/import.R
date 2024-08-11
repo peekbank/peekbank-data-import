@@ -16,7 +16,11 @@ sample_rate_ms <- 1000 / 30
 start_frames <- 68 # TODO: start of phrase or start of word?
 point_of_disambiguation <- start_frames * sample_rate_ms
 
-
+# these files contain demographic data instead of the trial data for one participant
+skip_files <- c(
+  "16 month olds, with 10 dB SNR/16m_ToddlerBackgroundGender_10dB copy.xls",
+  "16 month olds, with 5 dB SNR/participants 16m_ToddlerTalkerGender.xls"
+)
 #----
 #### FUNCTIONS ###
 
@@ -25,6 +29,9 @@ read_looking_data_sheet <-
     # Given a data file, read the first sheet in the excel file,
     # select the looking data, and clean the column names.
     # Returns a tidy dataframe of look AOIs for a participant in a sheet.
+    if (data_file %in% skip_files) {
+      return(NULL)
+    }
     target_data_path <- here(read_path, "looking_data", data_file)
     sheet_names <- excel_sheets(target_data_path)
     part_group <- str_split(data_file, pattern = "/")[[1]][[1]]
@@ -50,9 +57,16 @@ read_looking_data_sheet <-
         "subject_file"
       )
     #
+
     data_sheet <-
       # sometimes researchers add notes under the first 4 columns, which add NAs. Drop these.
       data_sheet %>% filter(look %in% c("B", "S", "L", "R"))
+
+    if (class(data_sheet$start_frame) != "numeric") {
+      print(data_file)
+      stop()
+    }
+
     return(data_sheet)
   }
 
@@ -200,6 +214,9 @@ trials_tidy <- raw_trials_data %>%
   mutate(trial_order_num = seq(0, 19)) %>%
   ungroup() %>%
   rename(
+    # TODO: right now, we take full phrase straight from the raw data ("Look at the X"), saved in target_audio
+    # but the paper suggests that the phrase was longer: “Hey baby! Look at the ____! Do you see the ____? Where’s the ____?”
+    # which one do we put here?
     full_phrase = target_audio,
     target_side = correct_answer,
     genderdistractor = distractor
@@ -234,7 +251,30 @@ demo_data_tidy <- raw_demo_data %>%
     ),
     native_language = "eng"
   ) |>
-  rename(eng_lds_rawscore = lds)
+  mutate(subject_aux_data = as.character(pmap(
+    list(mcdi, lds, lab_age),
+    function(mcdi, lds, age) {
+      if (is.na(mcdi) && is.na(lds)) {
+        return(NA)
+      }
+      jsonlite::toJSON(list(
+        if (!is.na(mcdi)) {
+          list(
+            cdi_responses = compact(list(
+              list(rawscore = mcdi, age = age, measure = "prod", language = "English (American)", instrument_type = "wsshort")
+            ))
+          )
+        },
+        if (!is.na(lds)) {
+          list(
+            lang_measures = compact(list(
+              list(rawscore = lds, age = age, language = "English (American)", instrument_type = "LDS")
+            ))
+          )
+        }
+      ) %>% keep(~!is.null(.)), auto_unbox = TRUE)
+    }
+  )))
 
 looking_participant_column <- looking_data_tidy %>%
   rename(looking_part_group = part_group) %>%
@@ -323,6 +363,9 @@ stimuli_table <- rbind(
   trials_tidy %>%
     select(original_stimulus_label = distractor)
 ) %>%
+  # ambig is not a stimulus, but represents the baseline trials where no item
+  # was indicated by the voice
+  filter(original_stimulus_label != "ambig") %>% 
   distinct() %>%
   mutate(
     english_stimulus_label = original_stimulus_label,
@@ -357,17 +400,15 @@ d_tidy <- d_tidy %>%
   select(-stimulus_id, distractor_id = distractor)
 
 subjects_table <- d_tidy %>%
-  distinct(sex, native_language, lab_subject_id) %>%
+  distinct(sex, native_language, lab_subject_id, subject_aux_data) %>%
   replace_na(list(
     native_language = "eng",
     sex = "unspecified"
   )) %>%
   mutate(
     subject_id = row_number() - 1,
-    subject_aux_data = NA
   )
 
-d_tidy %>% distinct(mcdi)
 
 d_tidy <- d_tidy %>%
   left_join(subjects_table) %>%
@@ -412,6 +453,17 @@ trail_type_ids <- d_tidy %>%
 
 d_tidy <- d_tidy %>% left_join(trail_type_ids)
 
+# TODO: Document! This is an important decision.
+# The experiment features 4 trials (for each participant) that do not have a target
+# side. Currently, peekbank has no standard for representing these trials.
+# The current version of the import therefore removes these trials from the dataset,
+# and replaces the original trial ordering (trial_order_num) with a new one
+# (trial_order) that has no gaps in numbering, and only goes up to 15 instead of 19
+d_tidy <- d_tidy %>%
+  group_by(administration_id) %>%
+  mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
+  ungroup()
+
 trial_types_table <- trail_type_ids %>%
   separate(condition, c("voice_gender", "db_level"), sep = "_", remove = FALSE) |>
   mutate(
@@ -421,23 +473,23 @@ trial_types_table <- trail_type_ids %>%
     point_of_disambiguation = point_of_disambiguation,
     dataset_id = dataset_id,
     aoi_region_set_id = NA
-  )
+  ) %>%
+  select(-voice_gender, -db_level)
 
 trials_table <- d_tidy %>%
-  distinct(administration_id, trial_order_num, trial_type_id) %>%
+  distinct(administration_id, trial_type_id, trial_order) %>%
   mutate(
-    trial_id = row_number() - 1,
+    trial_id = 0:(n() - 1),
     excluded = FALSE,
     exclusion_reason = NA,
     trial_aux_data = NA
-  ) %>%
-  rename(trial_order = trial_order_num)
+  )
 
 d_tidy <- d_tidy %>%
-  select(-trial_order) %>%
-  rename(trial_order = trial_order_num) %>%
   left_join(trials_table)
 
+trials_table <- trials_table %>%
+  select(-administration_id)
 
 aoi_table <- d_tidy %>%
   mutate(
