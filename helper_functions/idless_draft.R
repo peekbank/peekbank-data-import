@@ -4,6 +4,13 @@
 # TODO: where to represent cdi requirement?
 # TODO: offer a helper to handle cdi data (take a dataframe as input)
 
+# TODO: trial order is not 100% determined by the trial type changing, as there could be 
+# 2 successive trials with the same trial type (though a very small portion of datasets should have this issue)
+# We should offer to optionally include "trial_order" in the big table to explicitly
+# separate trials in datasets where this could be the case.
+# I would not suggest to make this default behavior, since that would lead to code
+# duplication for every dataset where that cannot happen (most of them)
+
 digest.dataset <- function(
     dataset_name,
     lab_dataset_id = NA,
