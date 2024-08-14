@@ -1,16 +1,16 @@
 #### generic  ###
 
 max_lines_search <- 40 # maybe change this value?
-subid_name <- "Subject"
+#subid_name <- "Subject"
 monitor_size <- "Calibration Area"
 sample_rate <- "Sample Rate"
-possible_delims <- c("\t", ",")
-left_x_col_name <- "L POR X [px]"
-right_x_col_name <- "R POR X [px]"
-left_y_col_name <- "L POR Y [px]"
-right_y_col_name <- "R POR Y [px]"
-stims_to_remove_chars <- c(".avi")
-stims_to_keep_chars <- c("_")
+#possible_delims <- c("\t", ",")
+#left_x_col_name <- "L POR X [px]"
+#right_x_col_name <- "R POR X [px]"
+#left_y_col_name <- "L POR Y [px]"
+#right_y_col_name <- "R POR Y [px]"
+#stims_to_remove_chars <- c(".avi")
+#stims_to_keep_chars <- c("_")
 
 # function for extracting information from SMI header/ comments
 extract_smi_info <- function(file_path, parameter_name) {
@@ -35,6 +35,8 @@ process_subjects_info <- function(file_path) {
       "lab_subject_id" = "subid",
       "sex" = "gender"
     ) %>%
+    filter(!is.na(sex) & age != "#VALUE!") %>%
+    filter(age != "adult") %>% # remove adult data from the dataset
     mutate(
       sex = factor(sex,
         levels = c("male", "female", "NaN"),
@@ -42,7 +44,7 @@ process_subjects_info <- function(file_path) {
       ),
       lab_age = age,
       lab_age_units = "years",
-      age = 12 * (ifelse(age == "NaN", NA, age))
+      age = 12 * suppressWarnings(as.numeric(age))
     )
 
   return(data)
@@ -272,127 +274,4 @@ process_administration_info <- function(file_path_exp_info, file_path_exp) {
     )
 
   return(administration.data)
-}
-
-#### Table 1A: XY Data ####
-
-process_smi_eyetracking_file <- function(file_path, delim_options = possible_delims, stimulus_coding = "stim_column") {
-  # guess delimiter
-  sep <- get.delim(file_path, comment = "#", delims = delim_options, skip = max_lines_search)
-
-  # read in lines to extract smi info
-  lab_subject_id <- extract_smi_info(file_path, subid_name)
-  monitor_size <- extract_smi_info(file_path, monitor_size)
-  sample_rate <- extract_smi_info(file_path, sample_rate)
-
-  # get maximum x-y coordinates on screen
-  screen_xy <- str_split(monitor_size, "x") %>%
-    unlist()
-  x.max <- as.numeric(as.character(screen_xy[1]))
-  y.max <- as.numeric(as.character(screen_xy[2]))
-
-  # read in data
-  data <-
-    read_delim(
-      file_path,
-      comment = "##",
-      delim = sep,
-      guess_max = 50000 # important to set this to an appropriate value b/c otherwise older versions of readr (pre 1.2.0) may guess inappropriate column types
-    )
-
-  # select rows and column names for xy file
-  data <- data %>%
-    filter(
-      Type == "SMP", # remove anything that isn't actually collecting ET data
-      Stimulus != "-", # remove calibration
-      !grepl(paste(stims_to_remove_chars, collapse = "|"), Stimulus), # remove anything that isn't actually a trial; .avis are training or attention getters
-      grepl(paste(stims_to_keep_chars, collapse = "|"), Stimulus), # from here, keep only trials, which have format o_name1_name2_.jpg;
-      Stimulus != "elmo_slide.jpg"
-    ) %>% # get rid of elmo
-
-    dplyr::select(
-      raw_t = "Time",
-      lx = left_x_col_name,
-      rx = right_x_col_name,
-      ly = left_y_col_name,
-      ry = right_y_col_name,
-      trial_type_id = "Trial",
-      Stimulus = Stimulus
-    )
-
-  ## add lab_subject_id column (extracted from data file)
-  data <- data %>%
-    mutate(lab_subject_id = lab_subject_id)
-
-  # Remove out of range looks
-  data <-
-    data %>%
-    mutate(
-      rx = if_else(rx <= 0 | rx >= x.max, NA_real_, rx),
-      lx = if_else(lx <= 0 | lx >= x.max, NA_real_, lx),
-      ry = if_else(ry <= 0 | ry >= y.max, NA_real_, ry),
-      ly = if_else(ly <= 0 | ly >= y.max, NA_real_, ly)
-    )
-
-  ## Average left-right x-y coordinates
-  # Take one eye's measurements if we only have one; otherwise average them
-  data <-
-    data %>%
-    mutate(
-      x = case_when(
-        is.na(rx) & !is.na(lx) ~ lx,
-        !is.na(rx) & is.na(lx) ~ rx,
-        !is.na(rx) & !is.na(lx) ~ (rx + lx) / 2,
-        is.na(rx) & is.na(lx) ~ NA_real_
-      ),
-      y = case_when(
-        is.na(ry) & !is.na(ly) ~ ly,
-        !is.na(ry) & is.na(ly) ~ ry,
-        !is.na(ry) & !is.na(ly) ~ (ry + ly) / 2,
-        is.na(ry) & is.na(ly) ~ NA_real_
-      )
-    ) %>%
-    dplyr::select(
-      -rx, -ry, -lx, -ly
-    )
-
-  ## Convert time into ms starting from 0
-  data <- data %>%
-    mutate(
-      timestamp = round((data$raw_t - data$raw_t[1]) / 1000, 3)
-    )
-
-  # Redefine coordinate origin (0,0)
-  # SMI starts from top left
-  # Here we convert the origin of the x,y coordinate to be bottom left (by "reversing" y-coordinate origin)
-  data <- data %>%
-    mutate(
-      y = y.max - y
-    )
-
-  ## If trials are identified via a Stimulus column, determine trials and redefine time based on trial onsets
-  if (stimulus_coding == "stim_column") {
-    # Redefine trials based on stimuli rather than SMI output
-    # check if previous stimulus value is equal to current value; ifelse, trial test increases by 1
-    data <- data %>%
-      mutate(
-        stim_lag = lag(Stimulus),
-        temp = ifelse(Stimulus != stim_lag, 1, 0),
-        temp_id = cumsum(c(0, temp[!is.na(temp)])),
-        trial_type_id = temp_id
-      )
-
-    # set time to zero at the beginning of each trial
-    data <- data %>%
-      group_by(trial_type_id) %>%
-      mutate(t = round(timestamp - min(timestamp))) %>%
-      ungroup()
-  }
-
-  # extract final columns
-  xy.data <- data %>%
-    dplyr::select(lab_subject_id, x, y, t, trial_type_id)
-
-
-  return(xy.data)
 }

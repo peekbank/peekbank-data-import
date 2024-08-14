@@ -31,13 +31,11 @@ df_dataset <- tibble(
   lab_dataset_id = dataset_name,
   dataset_name = dataset_name,
   cite = "Nordmeyer, A. E., Frank, M. C. (2014). The role of context in young children's comprehension of negation. Journal of Memory and Language, 77, 25–39.",
-  shortcite = "Nordmeyer & Frank (2014)"
+  shortcite = "Nordmeyer & Frank (2014)",
+  dataset_aux_data = NA
 )
 
 # This is the code from `https://github.com/anordmey/Negtracker/blob/master/materials/analysis/negtracker_makeLongData.R`
-
-# Let's create df_administrations and df_subjects from participant info file.
-
 
 # Load in demographics
 demographics <- read_csv(participant_file_path) |>
@@ -49,16 +47,7 @@ demographics <- read_csv(participant_file_path) |>
   mutate(experiment = ifelse(`study version` %in% c("5_1", "5_2"), 1, 2))
 
 
-df_subjects <- demographics |>
-  mutate(native_language = "eng") |>
-  mutate(lab_subject_id = subid) |>
-  mutate(sex = gender) |>
-  mutate(subject_id = seq(0, length(subid) - 1)) |>
-  select(subject_id, sex, native_language, lab_subject_id)
-
-
 # This filtering gets us a list that reproduces the original numbers from the paper for each experiment. (Note this is kids included **before** trial-level exclusions).
-
 
 # this code modified from the negtracker repository
 # https://github.com/anordmey/Negtracker/tree/master/materials/analysis
@@ -100,7 +89,7 @@ for (f in 1:length(files)) {
   data$y.pos <- rowMeans(data[, c("L.POR.Y..px.", "R.POR.Y..px.")])
 
   # clean up data
-  data <- data[, c("Time", "x.pos")]
+  data <- data[, c("Time", "x.pos", "y.pos")]
 
   ### Now get messages:
   msgs <- subset(idf.data, idf.data$Type == "MSG")
@@ -123,7 +112,7 @@ for (f in 1:length(files)) {
   # Mark trial change
   data$stim.change <- c(diff(as.numeric(as.factor(data$trial))) != 0, 0)
   # count time from start of trial to end of experiment
-  data$t <- (data$Time - data$Time[1]) / (1000000)
+  data$t <- (data$Time - data$Time[1]) / (1000000) * 1000
 
   # count time from beginning to end of each trial
   data$dt <- c(diff(data$t), 0)
@@ -203,7 +192,7 @@ for (f in 1:length(files)) {
   data$on.target <- data$target.looks > (x.max / 2) + 200
 
   ## clean up data frame
-  data <- data[, c("subid", "condition", "item", "trial.num", "trial", "type", "t.stim", "t.target", "x.pos", "on.target", "target.side", "noun_onset")]
+  data <- data[, c("subid", "condition", "item", "trial.num", "trial", "type", "t.stim", "t.target", "x.pos", "y.pos", "on.target", "target.side", "noun_onset")]
 
   all.data <- bind_rows(all.data, data)
 }
@@ -241,7 +230,8 @@ stimuli_data <- data_frame(
   image_description = paste0("boy with ", unique(items)),
   image_description_source = "Peekbank discretion",
   lab_stimulus_id = NA,
-  datset_id = 0
+  dataset_id = 0,
+  stimulus_aux_data = NA,
 ) |>
   mutate(stimulus_id = 1:n() - 1)
 
@@ -262,7 +252,7 @@ trial_data <- all_data |>
     lab_trial_id = glue("{experiment} {study_version} {condition} {item}"),
   ) |>
   ungroup() %>%
-  mutate(trial_order = trial_num - 1) %>%
+  #mutate(trial_order = trial_num - 1) %>% # throw out the trial order given by raw data
   rename(point_of_disambiguation = noun_onset) %>%
   left_join(expt_2_distractors, by = join_by(trial)) %>%
   left_join(
@@ -279,6 +269,9 @@ trial_data <- all_data |>
     target_id = ifelse(type == "negative" & experiment == 1, negation_stimulus_id, target_id),
     distractor_id = ifelse(type == "positive" & experiment == 1, negation_stimulus_id, distractor_id)
   ) %>%
+  group_by(subid) %>% # only one admin per subject
+  mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
+  ungroup() %>% 
   group_by(subid, trial_order, trial_type_id) %>%
   mutate(trial_id = cur_group_id() - 1) %>%
   ungroup()
@@ -289,33 +282,22 @@ trials <- trial_data %>%
   mutate(trial_aux_data = NA, excluded = FALSE, exclusion_reason = NA)
 
 trial_types <- trial_data %>%
-  distinct(trial_type_id, full_phrase, full_phrase_language, lab_trial_id, point_of_disambiguation, distractor_id, target_id, condition) %>%
+  distinct(trial_type_id, full_phrase, full_phrase_language, lab_trial_id, point_of_disambiguation, distractor_id, target_id, target_side, condition) %>%
   mutate(
     vanilla_trial = FALSE,
     trial_type_aux_data = NA,
-    aoi_region_set_id = NA,
+    aoi_region_set_id = 0,
     dataset_id = dataset_id,
   )
 
-# get all file paths in the directory with raw eyetracking data
-all_files <- list.files(
-  path = full_dataset_path,
-  pattern = paste0("*", file_ext),
-  all.files = FALSE
-)
-# create file paths
-all_file_paths <- fs::path(full_dataset_path, all_files)
 
 # create eyetracking timepoint data
-timepoint_data <- lapply(all_file_paths, process_smi_eyetracking_file) %>%
-  bind_rows() %>%
-  mutate(xy_timepoint_id = seq(0, length(lab_subject_id) - 1)) %>%
-  mutate(subject_id = as.numeric(factor(lab_subject_id, levels = unique(lab_subject_id))) - 1) %>%
-  mutate(
-    trial_order = trial_type_id + 1,
-    trial_id = trial_type_id
-  )
 
+timepoint_data <- trial_data %>% 
+  mutate(xy_timepoint_id = 0:(n()-1)) %>%
+  rename(lab_subject_id = subid) %>% 
+  mutate(subject_id = dense_rank(lab_subject_id)-1)
+# TODO: trial_order and trial_id missing
 
 # Next, let's make the `subjects` table. In this dataset, we have subject information in a separate file that's linked to subject IDs in the timepoints table. We want to make sure to only include subjects we have data for in the `subjects` table, so we'll get distinct subject IDs from the timepoints data and then join in other subject information from the separate subjects info file.
 # We'll also create the `administrations` table. This is a table with information for each administration, or run of the experiment. It includes information about the eyetracker used and the size of the monitor. If your experiment is longitudinal, there may be multiple administrations per subject.
@@ -329,10 +311,24 @@ participant_id_table <- timepoint_data %>%
 subjects_data <- process_subjects_info(participant_file_path) %>%
   left_join(participant_id_table, by = "lab_subject_id") %>%
   filter(!is.na(subject_id)) %>%
-  mutate(native_language = "eng") %>%
-  dplyr::select(subject_id, sex, lab_subject_id, native_language)
+  mutate(
+    native_language = "eng",
+    sex = ifelse(is.na(sex), "unspecified", as.character(sex)),
+    subject_aux_data = NA
+    ) %>%
+  dplyr::select(subject_id, sex, lab_subject_id, native_language, subject_aux_data)
+
 
 # get monitor size and sample rate
+
+# get all file paths in the directory with raw eyetracking data
+all_files <- list.files(
+  path = full_dataset_path,
+  pattern = paste0("*", file_ext),
+  all.files = FALSE
+)
+# create file paths
+all_file_paths <- fs::path(full_dataset_path, all_files)
 monitor_xy <- extract_smi_info(all_file_paths[1], monitor_size)
 sample_rate <- extract_smi_info(all_file_paths[1], sample_rate)
 
@@ -354,7 +350,7 @@ administration.data <- process_subjects_info(participant_file_path) %>%
     monitor_size_x = x_max,
     monitor_size_y = y_max,
     sample_rate = sample_rate,
-    coding_method = "eyetracking"
+    coding_method = "eyetracking",
   )
 
 # use subjects table and join back in administration info to create final
@@ -365,8 +361,20 @@ administration_data <- participant_id_table %>%
     dataset_id, subject_id, age, lab_age, lab_age_units,
     monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method
   ) %>%
-  mutate(administration_id = seq(0, length(subject_id) - 1))
+  mutate(administration_id = seq(0, length(subject_id) - 1), administration_aux_data = NA)
 
+
+aoi_region_sets <- tibble(
+  aoi_region_set_id = 0,
+  l_x_max = x_max/2,
+  l_x_min = 0,
+  l_y_max = y_max, # bottom (origin is top left)
+  l_y_min = 0, # top
+  r_x_max = x_max,
+  r_x_min = x_max/2,
+  r_y_max = y_max,
+  r_y_min = 0
+)
 
 # The timepoint eyetracking data needs to go through some processing to become two tables: `xy_timepoints`, which encodes the x and y coordinates of the subject's eye movements at each time point, and `aoi_timepoints`, which encodes the AOI the subject is looking at (target, distractor, other, or missing) at each timepoint.
 
@@ -377,7 +385,7 @@ administration_data <- participant_id_table %>%
 xy_merged_data <- timepoint_data %>%
   mutate(dataset_id = dataset_id) %>%
   left_join(administration_data %>% select(subject_id, administration_id), by = "subject_id") %>%
-  left_join(trial_types_data %>% select(
+  left_join(trial_types %>% select(
     trial_type_id,
     aoi_region_set_id,
     target_side,
@@ -385,6 +393,12 @@ xy_merged_data <- timepoint_data %>%
   ), by = "trial_type_id") %>%
   left_join(aoi_region_sets, by = "aoi_region_set_id")
 
+xy_merged_data <- xy_merged_data %>%
+  rename(x = x_pos,
+         y = y_pos,
+         t = t_stim,
+         point_of_disambiguation = point_of_disambiguation.x,
+         target_side = target_side.x)
 # select relevant columns for xy_timepoints
 # rezero, normalize and resample times
 xy_data <- xy_merged_data %>%
@@ -406,17 +420,16 @@ aoi_timepoints_data <- xy_merged_data %>%
   select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
 
-
 write_and_validate(
   dataset_name = dataset_name,
   cdi_expected = FALSE,
-  dataset,
-  subjects,
-  stimuli,
-  administrations,
+  dataset = df_dataset,
+  subjects = subjects_data,
+  stimuli = stimuli_data,
+  administrations = administration_data,
   trial_types,
   trials,
   aoi_region_sets,
-  xy_timepoints,
-  aoi_timepoints
+  xy_timepoints = xy_data,
+  aoi_timepoints = aoi_timepoints_data
 )
