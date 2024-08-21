@@ -199,6 +199,9 @@ for (f in 1:length(files)) {
 
 all.data$condition <- as.factor(all.data$condition)
 
+# remove all of the negation trials for now, as we have no elegant way of representing them
+all.data <- all.data %>%
+  filter(condition == "something" & type == "positive")
 
 # Some cleanup for subsequent processing.
 
@@ -209,33 +212,73 @@ all_data <- all.data |>
   clean_names()
 
 
-expt_2_distractors <- read_csv(paste0(exp_info_path, "/experiment_2_distractors.csv")) |>
-  mutate(target = sapply(strsplit(trial, "_"), `[`, 1)) |>
-  mutate(side = substr(trial, regexpr("\\.", trial) - 1, regexpr("\\.", trial) - 1))
+# create stimuli data
 
-items <- c("negation", unique(all_data$item), unique(expt_2_distractors$distractor))
 singulars <- c(
-  "negation", "carrot", "cookie", "cake", "spoon", "bucket", "organge", "lollipop", "car",
-  "kite", "banana", "fish", "balloon", "apple", "ball", "ice cream", "flower",
-  "present", "flashlight", "leave", "shovel", "phone", "cereal", "basket", "block",
-  "pie", "backpack", "dog", "scissor", "butterfly", "key", "bottle", "donut"
+  "carrots" = "carrot",
+  "cakes" = "cake",
+  "buckets" = "bucket",
+  "kites" = "kite",
+  "balloons" = "balloon",
+  "balls" = "ball",
+  "icecream" = "icecream",
+  "flowers" = "flower",
+  "cars" = "car",
+  "bananas" = "banana",
+  "apples" = "apple",
+  "spoons" = "spoon",
+  "oranges" = "orange",
+  "lollipops" = "lollipop",
+  "fish" = "fish",
+  "cookies" = "cookie",
+  "presents" = "present",
+  "flashlights" = "flashlight",
+  "leaves" = "leaf",
+  "shovels" = "shovel",
+  "phones" = "phone",
+  "cereal" = "cereal",
+  "baskets" = "basket",
+  "blocks" = "block",
+  "pies" = "pie",
+  "backpacks" = "backpack",
+  "dogs" = "dog",
+  "scissors" = "scissors",
+  "butterflies" = "butterfly",
+  "keys" = "key",
+  "bottles" = "bottle",
+  "donuts" = "donut"
 )
 
-## create stimuli data
-stimuli_data <- data_frame(
-  original_stimulus_label = items,
-  english_stimulus_label = singulars,
-  stimulus_novelty = "familiar",
-  stimulus_image_path = NA,
-  image_description = paste0("boy with ", unique(items)),
-  image_description_source = "Peekbank discretion",
-  lab_stimulus_id = NA,
-  dataset_id = 0,
-  stimulus_aux_data = NA,
-) |>
-  mutate(stimulus_id = 1:n() - 1)
+expt_2_distractors <- read_csv(paste0(exp_info_path, "/experiment_2_distractors.csv")) |>
+  mutate(trial = str_trim(trial)) |>
+  mutate(target = sapply(strsplit(trial, "_"), `[`, 1)) |>
+  mutate(side = substr(trial, regexpr("\\.", trial) - 1, regexpr("\\.", trial) - 1)) 
 
-negation_stimulus_id <- (stimuli_data %>% filter(english_stimulus_label == "negation") %>% pull(stimulus_id))[[1]]
+stimuli_data <- all_data %>%
+  left_join(expt_2_distractors, by = join_by(trial)) %>%
+  select(target, distractor) %>% 
+  pivot_longer(cols = c(distractor, target), names_to = "_", values_to = "original_stimulus_label") %>% 
+  select(original_stimulus_label) %>%
+  distinct() %>% 
+  mutate(
+    english_stimulus_label = singulars[original_stimulus_label],
+    stimulus_novelty = "familiar",
+    stimulus_image_path = NA,
+    image_description = paste0("boy with ", original_stimulus_label),
+    image_description_source = "Peekbank discretion",
+    lab_stimulus_id = NA,
+    dataset_id = 0,
+    stimulus_aux_data = NA,
+  ) |>
+    mutate(stimulus_id = 1:n() - 1)
+
+
+# TODO exclude negations and find the timing issue
+# TODO document in readme:in case of future includion of negations: include all combinations of negation, instead of having a "no" target,
+# have every combination, with "no apple" - img: gift, "no glasses" - img: apple etc.
+
+
+
 
 trial_data <- all_data |>
   group_by(
@@ -248,11 +291,12 @@ trial_data <- all_data |>
       glue("Look at the boy who has {item}"),
       glue("Look at the boy who has no {item}")
     ),
+    noun_onset = noun_onset * 1000,
     full_phrase_language = "eng",
     lab_trial_id = glue("{experiment} {study_version} {condition} {item}"),
   ) |>
   ungroup() %>%
-  #mutate(trial_order = trial_num - 1) %>% # throw out the trial order given by raw data
+  # mutate(trial_order = trial_num - 1) %>% # throw out the trial order given by raw data
   rename(point_of_disambiguation = noun_onset) %>%
   left_join(expt_2_distractors, by = join_by(trial)) %>%
   left_join(
@@ -265,13 +309,9 @@ trial_data <- all_data |>
     by = c("target" = "original_stimulus_label")
   ) %>%
   rename(target_id = stimulus_id) %>%
-  mutate(
-    target_id = ifelse(type == "negative" & experiment == 1, negation_stimulus_id, target_id),
-    distractor_id = ifelse(type == "positive" & experiment == 1, negation_stimulus_id, distractor_id)
-  ) %>%
   group_by(subid) %>% # only one admin per subject
   mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
-  ungroup() %>% 
+  ungroup() %>%
   group_by(subid, trial_order, trial_type_id) %>%
   mutate(trial_id = cur_group_id() - 1) %>%
   ungroup()
@@ -293,10 +333,10 @@ trial_types <- trial_data %>%
 
 # create eyetracking timepoint data
 
-timepoint_data <- trial_data %>% 
-  mutate(xy_timepoint_id = 0:(n()-1)) %>%
-  rename(lab_subject_id = subid) %>% 
-  mutate(subject_id = dense_rank(lab_subject_id)-1)
+timepoint_data <- trial_data %>%
+  mutate(xy_timepoint_id = 0:(n() - 1)) %>%
+  rename(lab_subject_id = subid) %>%
+  mutate(subject_id = dense_rank(lab_subject_id) - 1)
 # TODO: trial_order and trial_id missing
 
 # Next, let's make the `subjects` table. In this dataset, we have subject information in a separate file that's linked to subject IDs in the timepoints table. We want to make sure to only include subjects we have data for in the `subjects` table, so we'll get distinct subject IDs from the timepoints data and then join in other subject information from the separate subjects info file.
@@ -315,7 +355,7 @@ subjects_data <- process_subjects_info(participant_file_path) %>%
     native_language = "eng",
     sex = ifelse(is.na(sex), "unspecified", as.character(sex)),
     subject_aux_data = NA
-    ) %>%
+  ) %>%
   dplyr::select(subject_id, sex, lab_subject_id, native_language, subject_aux_data)
 
 
@@ -366,12 +406,12 @@ administration_data <- participant_id_table %>%
 
 aoi_region_sets <- tibble(
   aoi_region_set_id = 0,
-  l_x_max = x_max/2,
+  l_x_max = x_max / 2,
   l_x_min = 0,
   l_y_max = y_max, # bottom (origin is top left)
   l_y_min = 0, # top
   r_x_max = x_max,
-  r_x_min = x_max/2,
+  r_x_min = x_max / 2,
   r_y_max = y_max,
   r_y_min = 0
 )
@@ -394,11 +434,13 @@ xy_merged_data <- timepoint_data %>%
   left_join(aoi_region_sets, by = "aoi_region_set_id")
 
 xy_merged_data <- xy_merged_data %>%
-  rename(x = x_pos,
-         y = y_pos,
-         t = t_stim,
-         point_of_disambiguation = point_of_disambiguation.x,
-         target_side = target_side.x)
+  rename(
+    x = x_pos,
+    y = y_pos,
+    t = t_stim,
+    point_of_disambiguation = point_of_disambiguation.x,
+    target_side = target_side.x
+  )
 # select relevant columns for xy_timepoints
 # rezero, normalize and resample times
 xy_data <- xy_merged_data %>%
