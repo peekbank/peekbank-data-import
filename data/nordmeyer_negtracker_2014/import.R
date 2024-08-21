@@ -6,6 +6,7 @@ library(feather)
 library(kableExtra)
 library(janitor)
 library(glue)
+library(parallel)
 
 # Note that 5_1 and 5_2 are designations for Experiment 1 (the two orders). 5_3 and 5_4 are Experiment 2.
 # This information will be saved as conditions in table trial_types table.
@@ -53,25 +54,19 @@ demographics <- read_csv(participant_file_path) |>
 # https://github.com/anordmey/Negtracker/tree/master/materials/analysis
 
 x.max <- 1680 # this is the resolution
-all.data <- data.frame()
 to.n <- function(x) {
   as.numeric(as.character(x))
 }
-
 # get list of files for data analysis
-files <- 0
-for (i in 1:length(demographics$subid)) {
-  files[i] <- paste("negtracker", demographics$`study version`[i], "_", demographics$subid[i], "-eye_data Samples.txt", sep = "")
-}
+files <- sapply(1:length(demographics$subid), \(i){paste("negtracker", demographics$`study version`[i], "_", demographics$subid[i], "-eye_data Samples.txt", sep = "")})
 
 # Make longform dataframe
 # this should definitely be refactored, but it works now, so I am not touching it
-for (f in 1:length(files)) {
-  print(files[f])
+all.data <- bind_rows(mclapply(files, function(f){
 
   ############ DATA CLEANING ###########
   # Load in data file (skip removes header rows)
-  idf.data <- read.table(paste0(full_dataset_path, "/", files[f]),
+  idf.data <- read.table(paste0(full_dataset_path, "/", f),
     sep = "\t", header = TRUE, fill = TRUE, comment.char = "", skip = 40
   )
   names(idf.data) <- c("Time", "Type", "Trial", "L.POR.X..px.", "L.POR.Y..px.", "R.POR.X..px.", "R.POR.Y..px.", "Frame", "Aux1")
@@ -112,13 +107,13 @@ for (f in 1:length(files)) {
   # Mark trial change
   data$stim.change <- c(diff(as.numeric(as.factor(data$trial))) != 0, 0)
   # count time from start of trial to end of experiment
-  data$t <- (data$Time - data$Time[1]) / (1000000) * 1000
+  data$t <- (data$Time - data$Time[1]) / (1000)
 
   # count time from beginning to end of each trial
   data$dt <- c(diff(data$t), 0)
   t <- 0
   data$t.stim <- mapply(function(x, y) {
-    if (x == T) {
+    if (x) {
       t <<- 0
       return(t)
     } else {
@@ -137,7 +132,7 @@ for (f in 1:length(files)) {
   data$trial.num <- cumsum(data$stim.change) + 1
 
   # Get info out of file name
-  splits <- strsplit(files[f], "_")[[1]]
+  splits <- strsplit(f, "_")[[1]]
   data$subid <- paste(splits[3], str_sub(splits[4], start = 1, end = 2), sep = "_")
 
   # get condition.  "nothing" is Exp 1 and "something" is Exp 2
@@ -160,7 +155,8 @@ for (f in 1:length(files)) {
     onsets <- read.csv(paste0(exp_info_path, "/timing_exp2.csv"))
   }
 
-  data <- merge(data, onsets, sort = FALSE, all.x = T)
+  data <- merge(data, onsets, sort = FALSE, all.x = T) %>% 
+    mutate(noun_onset = noun_onset * 1000)
 
   # t.target centers timing around onset of the target noun
   data$t.target <- data$t.stim - data$noun_onset
@@ -168,34 +164,24 @@ for (f in 1:length(files)) {
   # Use sentence type and item side to determine what side the target character was on
   data$left.side <- grepl("itemL", data$trial) # what side of the screen was the character with target items on?
   data$target.side <- mapply(function(x, y) {
-    if (x == "positive" & y == T) {
-      t <<- "left"
-      return(t)
-    } else if (x == "positive" & y == F) {
-      t <<- "right"
-      return(t)
-    } else if (x == "negative" & y == T) {
-      t <<- "right"
-      return(t)
-    } else if (x == "negative" & y == F) {
-      t <<- "left"
-      return(t)
+    if (x == "positive" & y) {
+      "left"
+    } else if (x == "positive" & !y) {
+      "right"
+    } else if (x == "negative" & y) {
+      "right"
+    } else if (x == "negative" & !y) {
+      "left"
     }
   }, data$type, data$left.side)
-
-  ## clean up x position data
-  data$x.pos[data$x.pos < 1 | data$x.pos > x.max] <- NA
-
-  # Identify whether gaze was on target side
-  data$target.looks <- data$x.pos
-  data$target.looks[data$target.side == "left"] <- x.max - data$target.looks[data$target.side == "left"]
-  data$on.target <- data$target.looks > (x.max / 2) + 200
-
-  ## clean up data frame
-  data <- data[, c("subid", "condition", "item", "trial.num", "trial", "type", "t.stim", "t.target", "x.pos", "y.pos", "on.target", "target.side", "noun_onset")]
-
-  all.data <- bind_rows(all.data, data)
-}
+  
+  #data %>% 
+  #  mutate(x.pos = ifelse(x.pos < 1 | x.pos > x.max, NA, x.pos),
+  #         target.looks = ifelse(target.side == "right", x.max - x.pos - 200, x.pos + 200),
+  #         on.target = target.looks < (x.max / 2)) %>% 
+  data %>% select(c("subid", "condition", "item", "trial.num", "trial", "type", "t.stim", "t.target", "x.pos", "y.pos", "target.side", "noun_onset")) # "on.target"
+  
+}, mc.cores = detectCores()))
 
 all.data$condition <- as.factor(all.data$condition)
 
@@ -252,14 +238,14 @@ singulars <- c(
 expt_2_distractors <- read_csv(paste0(exp_info_path, "/experiment_2_distractors.csv")) |>
   mutate(trial = str_trim(trial)) |>
   mutate(target = sapply(strsplit(trial, "_"), `[`, 1)) |>
-  mutate(side = substr(trial, regexpr("\\.", trial) - 1, regexpr("\\.", trial) - 1)) 
+  mutate(side = substr(trial, regexpr("\\.", trial) - 1, regexpr("\\.", trial) - 1))
 
 stimuli_data <- all_data %>%
   left_join(expt_2_distractors, by = join_by(trial)) %>%
-  select(target, distractor) %>% 
-  pivot_longer(cols = c(distractor, target), names_to = "_", values_to = "original_stimulus_label") %>% 
+  select(target, distractor) %>%
+  pivot_longer(cols = c(distractor, target), names_to = "_", values_to = "original_stimulus_label") %>%
   select(original_stimulus_label) %>%
-  distinct() %>% 
+  distinct() %>%
   mutate(
     english_stimulus_label = singulars[original_stimulus_label],
     stimulus_novelty = "familiar",
@@ -270,11 +256,11 @@ stimuli_data <- all_data %>%
     dataset_id = 0,
     stimulus_aux_data = NA,
   ) |>
-    mutate(stimulus_id = 1:n() - 1)
+  mutate(stimulus_id = 1:n() - 1)
 
 
-# TODO exclude negations and find the timing issue
-# TODO document in readme:in case of future includion of negations: include all combinations of negation, instead of having a "no" target,
+# TODO find the xposition/timing issue
+# TODO document in readme:in case of future inclusion of negations: include all combinations of negation, instead of having a "no" target,
 # have every combination, with "no apple" - img: gift, "no glasses" - img: apple etc.
 
 
@@ -291,7 +277,7 @@ trial_data <- all_data |>
       glue("Look at the boy who has {item}"),
       glue("Look at the boy who has no {item}")
     ),
-    noun_onset = noun_onset * 1000,
+    noun_onset = noun_onset,
     full_phrase_language = "eng",
     lab_trial_id = glue("{experiment} {study_version} {condition} {item}"),
   ) |>
@@ -337,7 +323,6 @@ timepoint_data <- trial_data %>%
   mutate(xy_timepoint_id = 0:(n() - 1)) %>%
   rename(lab_subject_id = subid) %>%
   mutate(subject_id = dense_rank(lab_subject_id) - 1)
-# TODO: trial_order and trial_id missing
 
 # Next, let's make the `subjects` table. In this dataset, we have subject information in a separate file that's linked to subject IDs in the timepoints table. We want to make sure to only include subjects we have data for in the `subjects` table, so we'll get distinct subject IDs from the timepoints data and then join in other subject information from the separate subjects info file.
 # We'll also create the `administrations` table. This is a table with information for each administration, or run of the experiment. It includes information about the eyetracker used and the size of the monitor. If your experiment is longitudinal, there may be multiple administrations per subject.
@@ -406,12 +391,12 @@ administration_data <- participant_id_table %>%
 
 aoi_region_sets <- tibble(
   aoi_region_set_id = 0,
-  l_x_max = x_max / 2,
+  l_x_max = x_max / 2 + 200, # according to old code - this is most likely an error 
   l_x_min = 0,
   l_y_max = y_max, # bottom (origin is top left)
   l_y_min = 0, # top
   r_x_max = x_max,
-  r_x_min = x_max / 2,
+  r_x_min = x_max / 2 + 200, # according to old code - this is most likely an error
   r_y_max = y_max,
   r_y_min = 0
 )
@@ -441,6 +426,7 @@ xy_merged_data <- xy_merged_data %>%
     point_of_disambiguation = point_of_disambiguation.x,
     target_side = target_side.x
   )
+
 # select relevant columns for xy_timepoints
 # rezero, normalize and resample times
 xy_data <- xy_merged_data %>%
