@@ -10,7 +10,6 @@ data_folder <- file.path(data_path,"data","processed_data")
 data <- read.csv(file.path(data_folder, "CATegories_exp2_processed_data_with_exclusion_info.csv"))
 stimulus_info <- read.csv(file.path(data_folder,"animal_ratings_stimuli_full.csv")) %>% 
   mutate(image = gsub(".jpg", "", image_experiment_name))
-audio_information <- read.csv(file.path(data_folder, "CATegories_exp2_processed_frame_data.csv"))
 
 wide.table <- data %>%
   mutate(target_side = (c(
