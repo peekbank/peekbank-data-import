@@ -89,7 +89,7 @@ dataset_list <- digest.dataset(
     dataset_name = dataset_name,
     lab_dataset_id = NA,
     cite = "Weaver, H., Zettersten, M., & Saffran, J. (2024). Becoming word meaning experts: Infants’ processing of familiar words in the context of typical and atypical exemplars. Child Development.",
-    shortcite = "Weaver et al. 2014",
+    shortcite = "Weaver et al. 2024",
     wide.table = wide.table
 )
 
