@@ -1,7 +1,5 @@
 library(here)
 
-# decision: infants recognized the atypical words robustly according to paper, so they get "vanilla trial" and "familiar" ratings
-
 source(here("helper_functions", "idless_draft.R"))
 source(here("helper_functions", "common.R"))
 dataset_name <- "weaver_zettersten"
@@ -9,21 +7,34 @@ data_path <- init(dataset_name)
 
 data_folder <- file.path(data_path,"data","processed_data")
 
-data <- read.csv(file.path(data_folder, "CATegories_exp2_processed_data.csv"))
+data <- read.csv(file.path(data_folder, "CATegories_exp2_processed_data_with_exclusion_info.csv"))
 stimulus_info <- read.csv(file.path(data_folder,"animal_ratings_stimuli_full.csv")) %>% 
   mutate(image = gsub(".jpg", "", image_experiment_name))
 audio_information <- read.csv(file.path(data_folder, "CATegories_exp2_processed_frame_data.csv"))
 
 wide.table <- data %>%
-  # join in for the description
+  mutate(target_side = (c(
+    "left" = "left",
+    "L" = "left",
+    "right" = "right",
+    "R" = "right"
+    ))[target_side]) %>% 
+  # join in for the description of the specific animal
   left_join(stimulus_info %>% rename_with(~ paste0("t_", .x)), by=join_by(target_image == t_image)) %>% 
   left_join(stimulus_info %>% rename_with(~ paste0("d_", .x)), by=join_by(distractor_image == d_image)) %>% 
   mutate(
     subject_id = sub_num,
-    sex = child_gender,
+    sex = case_when(
+      child_gender == "f" ~ "female",
+      child_gender == "m" ~ "male",
+      is.na(child_gender) ~ "unspecified",
+      .default = "other"
+    ),
     age = age_mo,
     age_units = "months",
     native_language = str_extract(child_language_list, "^[^ ]+"),
+    # every child has eng as their native language, this line would make the validator complain if not
+    native_language = ifelse(native_language == "en", "eng", "ERROR"),
     t = corrected_time,
     aoi = case_when(
       accuracy == "1" ~ "target",
@@ -31,12 +42,16 @@ wide.table <- data %>%
       accuracy == "." ~ "other",
       .default = NA),
     condition = condition,
-    trial_name = trial,
+    trial_name = "",
     trial_index = trial,
-    target_side = target_side,
+    # decision: infants recognized the atypical words robustly according to paper, so they get "vanilla trial" and "familiar" ratings
     vanilla_trial = TRUE,
-    excluded = FALSE, # TODO check the paper/data for this one
-    exclusion_reason = NA, # TODO check the paper/data for this one
+    excluded = trial_exclusion == 1 | exclude_participant == 1,
+    exclusion_reason = case_when(
+      trial_exclusion == 0 & exclude_participant == 1 ~ "entire participant excluded",
+      trial_exclusion == 1 ~ trial_exclusion_reason,
+      .default = NA
+    ), 
     session_num = session,
     sample_rate = 30,
     tracker = "webcam",
@@ -49,7 +64,7 @@ wide.table <- data %>%
       TEMP_audio == "where" ~ paste0("Where's the ", target_category),
       .default = NA
     ),
-    full_phrase_language = "English (American)",
+    full_phrase_language = "eng",
     point_of_disambiguation = 2650, # according to paper
     target_stimulus_label_original = target_category,
     target_stimulus_label_english = target_category,
@@ -59,7 +74,7 @@ wide.table <- data %>%
       target_image,
       ".jpg"),
     target_image_description = t_animal_name,
-    target_image_description_source = "Provided stimulus info file",
+    target_image_description_source = "experiment documentation",
     distractor_stimulus_label_original = distractor_category,
     distractor_stimulus_label_english = distractor_category,
     distractor_stimulus_novelty = "familiar",
@@ -68,7 +83,7 @@ wide.table <- data %>%
       distractor_image,
       ".jpg"),
     distractor_image_description = d_animal_name,
-    distractor_image_description_source = "Provided stimulus info file"
+    distractor_image_description_source = "experiment documentation"
     )
 
 dataset_list <- digest.dataset(
@@ -79,4 +94,4 @@ dataset_list <- digest.dataset(
     wide.table = wide.table
 )
 
-# TODO: we need a modified writing and verification function that works using the dataset list
+write_and_validate_list(dataset_list, cdi_expected = FALSE)

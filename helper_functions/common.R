@@ -24,6 +24,22 @@ init <- function(dataset_name) {
   return(data_path)
 }
 
+write_and_validate_list <- function(dataset_list, cdi_expected){
+  write_and_validate(
+    dataset_name = dataset_list[["datasets"]]$dataset_name,
+    cdi_expected = cdi_expected,
+    dataset = dataset_list[["datasets"]],
+    subjects = dataset_list[["subjects"]],
+    stimuli = dataset_list[["stimuli"]],
+    administrations = dataset_list[["administrations"]],
+    trial_types = dataset_list[["trial_types"]],
+    trials = dataset_list[["trials"]],
+    aoi_region_sets = dataset_list[["aoi_region_sets"]],
+    xy_timepoints = dataset_list[["xy_timepoints"]],
+    aoi_timepoints = dataset_list[["aoi_timepoints"]]
+  )
+}
+
 write_and_validate <- function(
     dataset_name,
     cdi_expected,
