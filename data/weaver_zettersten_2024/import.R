@@ -2,10 +2,10 @@ library(here)
 
 source(here("helper_functions", "idless_draft.R"))
 source(here("helper_functions", "common.R"))
-dataset_name <- "weaver_zettersten"
+dataset_name <- "weaver_zettersten_2024"
 data_path <- init(dataset_name)
 
-data_folder <- file.path(data_path,"data","processed_data")
+data_folder <- file.path(data_path,"data")
 
 data <- read.csv(file.path(data_folder, "CATegories_exp2_processed_data_with_exclusion_info.csv"))
 stimulus_info <- read.csv(file.path(data_folder,"animal_ratings_stimuli_full.csv")) %>% 
