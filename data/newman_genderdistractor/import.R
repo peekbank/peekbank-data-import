@@ -262,25 +262,29 @@ demo_data_tidy <- raw_demo_data %>%
       if (is.na(mcdi) && is.na(lds) && is.na(lang_exposure)) {
         return(NA)
       }
-      jsonlite::toJSON(list(
-        if (!is.na(lang_exposure)){
-          lang_exposure = jsonlite::fromJSON(lang_exposure)
-        },
-        if (!is.na(mcdi)) {
-          list(
-            cdi_responses = compact(list(
-              list(rawscore = mcdi, age = age, measure = "prod", language = "English (American)", instrument_type = "wsshort")
-            ))
-          )
-        },
-        if (!is.na(lds)) {
-          list(
-            lang_measures = compact(list(
-              list(rawscore = lds, age = age, language = "English (American)", instrument_type = "LDS")
-            ))
-          )
-        }
-      ) %>% keep(~!is.null(.)), auto_unbox = TRUE)
+      
+      jsonlist <- list()
+      if (!is.na(lang_exposure)){
+        jsonlist <- jsonlist %>%  append(list(lang_exposure = jsonlite::fromJSON(lang_exposure)))
+      }
+      if (!is.na(mcdi)) {
+        jsonlist <- jsonlist %>% append(
+        list(
+          cdi_responses = compact(list(
+            list(rawscore = mcdi, age = age, measure = "prod", language = "English (American)", instrument_type = "wsshort")
+          ))
+        ))
+      } 
+      if (!is.na(lds)) {
+        jsonlist <- jsonlist %>% append(
+        list(
+          lang_measures = compact(list(
+            list(rawscore = lds, age = age, language = "English (American)", instrument_type = "LDS")
+          ))
+        ))
+      } 
+
+      jsonlite::toJSON(jsonlist, auto_unbox = TRUE)
     }
   )))
 
