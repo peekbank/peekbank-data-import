@@ -141,7 +141,7 @@ all_subjects_data <- read_csv(participant_file_path) %>%
     "sex" = "gender"
   ) %>%
   # two subjects did not have eyetracking data
-  filter(!(lab_subject_id %in% c("2014_09_10_97", "2014_07_29_06"))) %>% 
+  filter(!(lab_subject_id %in% c("2014_09_10_97", "2014_07_29_06"))) %>%
   mutate(
     sex = factor(sex,
       levels = c("Male", "Female", "NaN"),
@@ -153,7 +153,7 @@ all_subjects_data <- read_csv(participant_file_path) %>%
   ) %>% # converting age from years to months # 1659 entries
   distinct() %>%
   mutate(subject_id = row_number() - 1) %>% # 110 distinct subjects
-  left_join(select(original_subinfo, SID, exclude) %>%
+  left_join(select(original_subinfo, SID, exclude, english) %>%
     mutate(lab_subject_id = SID))
 
 monitor_size <- full_dataset_path %>% # add in administration info
@@ -181,7 +181,7 @@ administration_data <- all_subjects_data %>% # create a data frame by adding abo
     sample_rate = sample_rate,
     coding_method = "eyetracking",
     administration_aux_data = NA,
-    administration_id = 0:(n()-1)
+    administration_id = 0:(n() - 1)
   ) %>%
   select(
     administration_id, dataset_id, subject_id, age, lab_age,
@@ -192,8 +192,17 @@ administration_data <- all_subjects_data %>% # create a data frame by adding abo
 #### (5) subjects ####
 subjects_data <- all_subjects_data %>%
   mutate(native_language = "eng") %>%
-  select(subject_id, sex, lab_subject_id, native_language) %>%
-  mutate(subject_aux_data = NA)
+  select(subject_id, sex, lab_subject_id, native_language, english) %>%
+  mutate(
+    subject_aux_data =
+      as.character(pmap(list(english), function(english) {
+        ifelse(is.na(english),
+          NA,
+          jsonlite::toJSON(list(list(lang_exposures = list(list(language = "English (American)", exposure = english)))), auto_unbox = TRUE)
+        )
+      }))
+  ) %>%
+  select(-english)
 
 
 #### (6) aoi_region_sets ####
@@ -250,9 +259,11 @@ trials_table <- timepoint_data %>%
   left_join(administration_data %>% select(subject_id, administration_id)) %>%
   filter(!is.na(administration_id)) %>% # some of the children in the timepoints data are not in the participants list and thus not in administration_id
   select(trial_order = original_order, excluded, exclusion_reason, trial_type_id, lab_subject_id) %>%
-  mutate(trial_id = row_number() - 1, 
-         trial_aux_data = NA,
-         excluded = replace_na(excluded, 0)) # unexclude participants missing from demogs
+  mutate(
+    trial_id = row_number() - 1,
+    trial_aux_data = NA,
+    excluded = replace_na(excluded, 0)
+  ) # unexclude participants missing from demogs
 
 
 xy_data <- timepoint_data %>% # merge in administration_id and trial_id

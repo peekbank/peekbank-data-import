@@ -58,12 +58,13 @@ to.n <- function(x) {
   as.numeric(as.character(x))
 }
 # get list of files for data analysis
-files <- sapply(1:length(demographics$subid), \(i){paste("negtracker", demographics$`study version`[i], "_", demographics$subid[i], "-eye_data Samples.txt", sep = "")})
+files <- sapply(1:length(demographics$subid), \(i){
+  paste("negtracker", demographics$`study version`[i], "_", demographics$subid[i], "-eye_data Samples.txt", sep = "")
+})
 
 # Make longform dataframe
 # this should definitely be refactored, but it works now, so I am not touching it
-all.data <- bind_rows(mclapply(files, function(f){
-
+all.data <- bind_rows(mclapply(files, function(f) {
   ############ DATA CLEANING ###########
   # Load in data file (skip removes header rows)
   idf.data <- read.table(paste0(full_dataset_path, "/", f),
@@ -155,7 +156,7 @@ all.data <- bind_rows(mclapply(files, function(f){
     onsets <- read.csv(paste0(exp_info_path, "/timing_exp2.csv"))
   }
 
-  data <- merge(data, onsets, sort = FALSE, all.x = T) %>% 
+  data <- merge(data, onsets, sort = FALSE, all.x = T) %>%
     mutate(noun_onset = noun_onset * 1000)
 
   # t.target centers timing around onset of the target noun
@@ -174,13 +175,12 @@ all.data <- bind_rows(mclapply(files, function(f){
       "left"
     }
   }, data$type, data$left.side)
-  
-  #data %>% 
+
+  # data %>%
   #  mutate(x.pos = ifelse(x.pos < 1 | x.pos > x.max, NA, x.pos),
   #         target.looks = ifelse(target.side == "right", x.max - x.pos - 200, x.pos + 200),
-  #         on.target = target.looks < (x.max / 2)) %>% 
+  #         on.target = target.looks < (x.max / 2)) %>%
   data %>% select(c("subid", "condition", "item", "trial.num", "trial", "type", "t.stim", "t.target", "x.pos", "y.pos", "target.side", "noun_onset")) # "on.target"
-  
 }, mc.cores = detectCores()))
 
 all.data$condition <- as.factor(all.data$condition)
@@ -339,9 +339,16 @@ subjects_data <- process_subjects_info(participant_file_path) %>%
   mutate(
     native_language = "eng",
     sex = ifelse(is.na(sex), "unspecified", as.character(sex)),
-    subject_aux_data = NA
+    subject_aux_data =
+      as.character(pmap(list(english), function(english) {
+        ifelse(english == "NaN",
+          NA,
+          jsonlite::toJSON(list(list(lang_exposures = list(list(language = "English (American)", exposure = english)))), auto_unbox = TRUE)
+        )
+      }))
   ) %>%
   dplyr::select(subject_id, sex, lab_subject_id, native_language, subject_aux_data)
+
 
 
 # get monitor size and sample rate
@@ -391,7 +398,7 @@ administration_data <- participant_id_table %>%
 
 aoi_region_sets <- tibble(
   aoi_region_set_id = 0,
-  l_x_max = x_max / 2 + 200, # according to old code - this is most likely an error 
+  l_x_max = x_max / 2 + 200, # according to old code - this is most likely an error
   l_x_min = 0,
   l_y_max = y_max, # bottom (origin is top left)
   l_y_min = 0, # top

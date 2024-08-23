@@ -16,7 +16,7 @@ extract_smi_info <- function(file_path, parameter_name) {
 
 process_subjects_info <- function(file_path) {
   data <- read.csv(file_path) %>%
-    dplyr::select(subid, age, gender) %>%
+    dplyr::select(subid, age, gender, english) %>%
     dplyr::rename(
       "lab_subject_id" = "subid",
       "sex" = "gender"

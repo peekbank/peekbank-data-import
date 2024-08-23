@@ -292,27 +292,41 @@ cdi_raw <- read.csv(here(read_path, "osf_summarized_data_cdi", "SpanishMix.n20.M
 
 cdi_data <- cdi_raw %>%
   mutate(
-    SpanishCDI = ifelse(Dominant == "Spanish", CDI_Dominant, CDI_NonDominant),
-    EnglishCDI = ifelse(Dominant == "English", CDI_Dominant, CDI_NonDominant)
+    SpanishCDI = suppressWarnings(as.numeric(ifelse(Dominant == "Spanish", CDI_Dominant, CDI_NonDominant))),
+    EnglishCDI = suppressWarnings(as.numeric(ifelse(Dominant == "English", CDI_Dominant, CDI_NonDominant))),
+    English_Percent = suppressWarnings(as.numeric(English_Percent))
   ) %>%
-  select(subNum, ageMonths, SpanishCDI, EnglishCDI) %>%
-  mutate(
-    SpanishCDI = suppressWarnings(as.numeric(SpanishCDI)),
-    EnglishCDI = suppressWarnings(as.numeric(EnglishCDI))
-  ) %>%
-  filter(!is.na(EnglishCDI) | !is.na(SpanishCDI)) %>%
+  select(subNum, ageMonths, SpanishCDI, EnglishCDI, English_Percent) %>%
+  filter(!is.na(EnglishCDI) | !is.na(SpanishCDI) | !is.na(English_Percent)) %>%
   mutate(subject_aux_data = pmap(
-    list(SpanishCDI, EnglishCDI, ageMonths),
-    function(SpanishCDI, EnglishCDI, age) {
-      toJSON(list(cdi_responses = compact(list(
-        if (!is.na(EnglishCDI)) {
-          list(rawscore = unbox(EnglishCDI), age = unbox(age), measure = unbox("prod"), language = unbox("English (American)"), instrument_type = unbox("wsshort"))
-        },
-        if (!is.na(SpanishCDI)) {
-          # TODO: this was the us, so Spanish (Mexican) makes more sense, put that choice into the readme ("Spanish" on its own is not valid according to wordbank)
-          list(rawscore = unbox(SpanishCDI), age = unbox(age), measure = unbox("prod"), language = unbox("Spanish (Mexican)"), instrument_type = unbox("wsshort"))
-        }
-      ))))
+    list(SpanishCDI, EnglishCDI, English_Percent, ageMonths),
+    function(SpanishCDI, EnglishCDI, English_Percent, age) {
+      jsonlite::toJSON(
+        list(
+          lang_exposures = compact(
+            list(
+              list(language = "English (American)", exposure = English_Percent * 100),
+              list(language = "Spanish (Mexican)", exposure = 100 - English_Percent * 100)
+            )
+          )
+        ) %>% append(
+          if (!is.na(EnglishCDI) | !is.na(SpanishCDI)) {
+            list(
+              cdi_responses = compact(list(
+                if (!is.na(EnglishCDI)) {
+                  list(rawscore = EnglishCDI,age = age, measure = "prod", language = "English (American)", instrument_type = "wsshort")
+                },
+                if (!is.na(SpanishCDI)) {
+                  list(rawscore = SpanishCDI, age = age, measure = "prod", language = "Spanish (Mexican)", instrument_type = "wsshort")
+                }
+              ))
+            )
+          } else {
+            NULL
+          }
+        ),
+        auto_unbox = TRUE
+      )
     }
   ), subNum = as.character(subNum)) %>%
   select(lab_subject_id = subNum, subject_aux_data) %>%

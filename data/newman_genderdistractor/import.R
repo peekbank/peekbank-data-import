@@ -113,6 +113,8 @@ raw_looking_data <- bind_rows(lapply(looking_data_list, read_looking_data_sheet)
 trial_filepath <- here(read_path, "Orders.xls")
 raw_trials_data <- join_trial_sheets(trial_filepath)
 
+lang_exposure <- read.csv(here(read_path, "lang_exposure_manually_curated.csv"))
+
 ## subjects_data
 subj_data_list <- list.files(here(read_path, "participant_data"), recursive = T)
 raw_demo_data <- bind_rows(lapply(subj_data_list, read_subject_demographic_data))
@@ -241,6 +243,8 @@ trials_tidy <- raw_trials_data %>%
   ) %>%
   rename(lab_trial_id = x7)
 
+
+
 demo_data_tidy <- raw_demo_data %>%
   mutate(
     sex = case_when(
@@ -251,13 +255,17 @@ demo_data_tidy <- raw_demo_data %>%
     ),
     native_language = "eng"
   ) |>
+  left_join(lang_exposure, by=join_by(lab_subject_id)) |>
   mutate(subject_aux_data = as.character(pmap(
-    list(mcdi, lds, lab_age),
-    function(mcdi, lds, age) {
-      if (is.na(mcdi) && is.na(lds)) {
+    list(mcdi, lds, lab_age, lang_exposure),
+    function(mcdi, lds, age, lang_exposure) {
+      if (is.na(mcdi) && is.na(lds) && is.na(lang_exposure)) {
         return(NA)
       }
       jsonlite::toJSON(list(
+        if (!is.na(lang_exposure)){
+          lang_exposure = jsonlite::fromJSON(lang_exposure)
+        },
         if (!is.na(mcdi)) {
           list(
             cdi_responses = compact(list(

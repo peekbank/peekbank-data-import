@@ -4,6 +4,7 @@ library(XML)
 library(reader)
 library(fs)
 library(feather)
+library(jsonlite)
 
 source(here("helper_functions", "common.R"))
 dataset_name <- "reflook_socword"
@@ -115,8 +116,17 @@ subjects.data <- process_subjects_info(participant_file_path) %>%
   left_join(participant_id_table, by = "lab_subject_id") %>%
   filter(!is.na(subject_id)) %>%
   mutate(native_language = "eng") %>%
-  dplyr::select(subject_id, sex, lab_subject_id, native_language) %>%
-  mutate(subject_aux_data = NA)
+  dplyr::select(subject_id, sex, lab_subject_id, native_language, english) %>%
+  mutate(
+    subject_aux_data =
+      as.character(pmap(list(english), function(english) {
+        ifelse(english == "NaN",
+          NA,
+          jsonlite::toJSON(list(list(lang_exposures = list(list(language = "English (American)", exposure = english)))), auto_unbox = TRUE)
+        )
+      }))
+  ) %>%
+  select(-english)
 
 
 # create administration data
