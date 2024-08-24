@@ -265,7 +265,7 @@ demo_data_tidy <- raw_demo_data %>%
       
       jsonlist <- list()
       if (!is.na(lang_exposure)){
-        jsonlist <- jsonlist %>%  append(list(lang_exposures = jsonlite::fromJSON(lang_exposure)))
+        jsonlist <- jsonlist %>%  append(jsonlite::fromJSON(lang_exposure))
       }
       if (!is.na(mcdi)) {
         jsonlist <- jsonlist %>% append(
