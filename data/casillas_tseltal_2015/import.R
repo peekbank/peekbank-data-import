@@ -69,7 +69,7 @@ subjects_table <- raw_subjects_table %>%
   ) %>%
   mutate(
     subject_aux_data = as.character(jsonlite::toJSON(
-      list(native_language_non_iso = "Teseltal"),
+      list(native_language_non_iso = "Tseltal"),
       pretty = TRUE,
       auto_unbox = TRUE
     ))
