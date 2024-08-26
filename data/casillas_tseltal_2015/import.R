@@ -70,7 +70,6 @@ subjects_table <- raw_subjects_table %>%
   mutate(
     subject_aux_data = as.character(jsonlite::toJSON(
       list(native_language_non_iso = "Tseltal"),
-      pretty = TRUE,
       auto_unbox = TRUE
     ))
   )
@@ -191,8 +190,7 @@ trials_types_table <- stim_data_raw %>%
   mutate(
     vanilla_trial = TRUE,
     trial_type_aux_data = as.character(jsonlite::toJSON(
-      list(full_phrase_language_non_iso = "Teseltal"),
-      pretty = TRUE,
+      list(full_phrase_language_non_iso = "Tseltal"),
       auto_unbox = TRUE
     ))
   )
