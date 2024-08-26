@@ -198,7 +198,7 @@ subjects_data <- all_subjects_data %>%
       as.character(pmap(list(english), function(english) {
         ifelse(is.na(english),
           NA,
-          jsonlite::toJSON(list(list(lang_exposures = list(list(language = "English (American)", exposure = english)))), auto_unbox = TRUE)
+          jsonlite::toJSON(list(lang_exposures = list(list(language = "English (American)", exposure = english))), auto_unbox = TRUE)
         )
       }))
   ) %>%

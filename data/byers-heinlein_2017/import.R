@@ -190,7 +190,8 @@ subj_aux_data <- lang_exposures |>
   nest(subject_aux_data = -lab_subject_id) |>
   mutate(subject_aux_data = sapply(subject_aux_data, function(x) {
     json_str <- jsonlite::toJSON(x)
-    substr(json_str, 2, nchar(json_str) - 1)
+    json_str <- substr(json_str, 2, nchar(json_str) - 1) # hacky, but works
+    gsub(',"cdi_responses":{}', "", json_str, fixed = TRUE) # even hackier, but worksier
   }))
 
 

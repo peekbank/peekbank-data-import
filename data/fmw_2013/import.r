@@ -514,7 +514,10 @@ cdi_processed <- cdi_data |>
 cdi_to_json <- cdi_processed |>
   nest(cdi_responses = -lab_subject_id) |>
   nest(subject_aux_data = -lab_subject_id) |>
-  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
+  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON)) |>
+  # hacky way to transform the top level list with one object into a top level object - but simplest way to integrate into the existing code
+  mutate(subject_aux_data = gsub('^.|.$', '', as.character(subject_aux_data)))
+
 
 ##### AOI TABLE ####
 aoi_table <- d_tidy_final %>%

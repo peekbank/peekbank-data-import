@@ -62,7 +62,9 @@ subjects_table <- subjects %>%
   ) |>
   nest(cdi_responses = c(instrument_type, measure, rawscore, age, language)) |>
   nest(subject_aux_data = cdi_responses) |>
-  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
+  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON)) |> 
+  # hacky way to transform the top level list with one object into a top level object - but simplest way to integrate into the existing code
+  mutate(subject_aux_data = gsub('^.|.$', '', as.character(subject_aux_data)))
 
 # build administrations table
 administrations_table <- subjects_table %>%
