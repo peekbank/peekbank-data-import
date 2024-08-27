@@ -37,5 +37,5 @@ Further information about the database schema is also linked in [Peekbank - STAR
 
 ## Troubleshooting
 
-### gfortran
+### gfortran on MacOS
 If the package installation fails due to a missing `gfortran` library, make sure to update you R to >4.4.0 and visit [this page](https://cran.r-project.org/bin/macosx/tools/) to download and install `gfortran-XX.X-universal.pkg`
