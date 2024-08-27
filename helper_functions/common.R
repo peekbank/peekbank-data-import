@@ -312,6 +312,7 @@ write_and_validate <- function(
 
     # mutate aoi
     full_data <- full_data %>%
+      filter(!excluded) %>% 
       mutate(aoi_new = case_when(
         aoi == "target" ~ 1,
         aoi == "distractor" ~ 0,
