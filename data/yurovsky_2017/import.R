@@ -126,15 +126,14 @@ data.full <- data.tidy %>%
   left_join(design.tidy) %>%
   mutate(
     target_side = ifelse(target_side == 1, "left", "right"),
-    # replace the novel items with their correct label
-    left_label = ifelse(left_image == "skwish" | left_image == "balls", target_label, left_image),
-    right_label = ifelse(right_image == "skwish" | right_image == "balls", target_label, right_image),
     target_image = ifelse(target_side == "right", right_image, left_image),
     distractor_image = ifelse(target_side == "right", left_image, right_image),
-    target_label = ifelse(target_side == "right", right_label, left_label),
-    distractor_label = ifelse(target_side == "right", left_label, right_label)
-  ) %>%
-  select(-c(exp, right_label, left_label, left_image, right_image))
+    distractor_label = case_when(
+      target_label == "modi" ~ "dax",
+      target_label == "dax" ~ "modi",
+      .default = ifelse(target_side == "right", left_image, right_image)
+  )) %>%
+  select(-c(exp, left_image, right_image))
 
 
 # DATASETS
