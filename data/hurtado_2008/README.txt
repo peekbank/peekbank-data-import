@@ -21,3 +21,4 @@ Longitudinal (LWL at 18 and 24 months), all "vanilla" trials of familiar object/
 - left/right locations were reversed to reflect the participant's perspective, because iCoder files encode left/ right from the perspective of the coder (who has a frontal view of the infant)
 
 5. **Importing ambiguity**
+- There are more subjects in the data (n=76) than reported in the paper (n=27)
