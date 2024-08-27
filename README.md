@@ -34,3 +34,8 @@ Here's [an in-progress google doc guide](https://docs.google.com/document/d/1hQr
 Further information about the database schema is also linked in [Peekbank - START HERE](https://docs.google.com/document/d/1PrIrLg_A9VTITIp--ucf_wMN-C0VPODtirz8jowUL1Y/edit).
 
 ## TODO: Usage: pipeline, new section on creating import scripts
+
+## Troubleshooting
+
+### gfortran
+If the package installation fails due to a missing `gfortran` library, make sure to update you R to >4.4.0 and visit [this page](https://cran.r-project.org/bin/macosx/tools/) to download and install `gfortran-XX.X-universal.pkg`
