@@ -88,7 +88,7 @@ d_tidy <- proc_data %>%
   mutate(
     condition = "familiar",
     lab_trial_id = NA, # GK: maybe same as original_stimulus_label
-    aoi_region_set_id = NA,
+    aoi_region_set_id = 0,
     aoi = case_when(
       aoi_old == "Inanimate" ~ "distractor",
       aoi_old == "Animate" ~ "target",
