@@ -51,7 +51,8 @@ write_and_validate <- function(
     trials,
     aoi_region_sets = NA,
     xy_timepoints = NA,
-    aoi_timepoints) {
+    aoi_timepoints,
+    upload = FALSE) {
   if (missing(cdi_expected)) {
     stop("Need to specifiy cdi_expected boolean argument to validator")
   }
@@ -101,8 +102,6 @@ write_and_validate <- function(
     print("Dataset did NOT pass the validation!")
     print(errors)
   }
-
-
 
   # a way to stop the prints/plotting when running the scripts centralized
   # a bit hacky, but good enough for now
@@ -393,5 +392,17 @@ write_and_validate <- function(
       xlab("Target Label") +
       ylab("Proportion Target Looking")))
     print("Plotted proportional target looking information on a per-item-level.")
+  }
+  
+  if(upload){
+    # a way to stop the prints/plotting when running the scripts centralized
+    # a bit hacky, but good enough for now
+    if (!exists("external_block_peekbank_separate_upload")) {
+      if(is.null(errors)){
+        upload_osf(dataset_name)
+      }else{
+        print("Not uploading dataset as the validation failed")
+      }
+    }
   }
 }

@@ -35,6 +35,10 @@ download_all <- function(overwrite = FALSE, activeonly = FALSE) {
 }
 
 validate_all <- function() {
+  # validates all datasets and prints the validation messages
+  # returns a list of the validation errors in the following format:
+  # "dataset_name: error message"
+  
   datasets <- list_all(activeonly = TRUE)
 
   failed_validations <- datasets %>%
@@ -74,11 +78,13 @@ validate_all <- function() {
 
   print("These datasets failed validation:")
   print(failed_validations[failed_validations != ""])
+  
+  return(failed_validations[failed_validations != ""])
 }
 
 # nocache: download all data again, even if it already exists
 # clean: remove all previous process_data, even if the current import script does not execute
-run_all <- function(nocache = FALSE, clean = TRUE) {
+run_all <- function(nocache = FALSE, clean = TRUE, upload = FALSE) {
   datasets <- list_all(activeonly = TRUE)
   download_all(overwrite = nocache, activeonly = TRUE)
 
@@ -96,7 +102,7 @@ run_all <- function(nocache = FALSE, clean = TRUE) {
       })
   }
 
-  failed_datasets <- datasets %>%
+  error_datasets <- datasets %>%
     lapply(\(dataset){
       print(glue("Running {dataset}"))
       import_script <- here("data", dataset, "import.R")
@@ -104,7 +110,9 @@ run_all <- function(nocache = FALSE, clean = TRUE) {
         {
           # Loaded packages might bleed through, but for these validation-runs this
           # should be fine, as we aren't using highly specified package versions
-          source(import_script, local = new.env())
+          env <- new.env()
+          env$external_block_peekbank_separate_upload <- TRUE
+          source(import_script, local = env)
           return("")
         },
         error = \(e) {
@@ -114,12 +122,34 @@ run_all <- function(nocache = FALSE, clean = TRUE) {
     }) %>%
     unlist()
 
-  validate_all()
+  invalid_datasets <- validate_all()
 
   print("These import scripts threw errors:")
-  print(failed_datasets[failed_datasets != ""])
+  print(error_datasets[error_datasets != ""])
+  
+  do_not_upload <- c(error_datasets, invalid_datasets) %>% 
+    .[. != ""] %>%
+    map_chr(~ strsplit(.x, ":", fixed = TRUE)[[1]][1]) %>% 
+    unique()
+  
+  if(upload){
+    print("Uploading datasets, skipping failed imports...")
+    for(dataset in datasets){
+      if(!(dataset %in% do_not_upload)){
+        upload_osf(dataset)
+      }
+    }
+  }
 }
 
-# global_block_peekbank_summary <- TRUE
-run_all()
-# validate_all()
+# currently only used as a standalone function
+upload_all <- function(activeonly = FALSE) {
+  list_all(activeonly) %>% purrr::walk(\(dataset){
+    print(dataset)
+    #upload_osf(dataset)
+  })
+}
+
+global_block_peekbank_summary <- TRUE
+run_all(clean=FALSE, upload=TRUE)
+# x <- validate_all()

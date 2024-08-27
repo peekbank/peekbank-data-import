@@ -2,6 +2,14 @@
 
 This repo contains `import.R` scripts for various datasets, allowing them to be preprocessed into the `peekds` format. 
 
+## Prerequisites
+
+If you want to upload data directly to osf using this pipeline, you need to authenticate with osf.
+
+1. go to the [OSF token settings page](https://accounts.osf.io/login?service=https%3A%2F%2Fosf.io%2Fsettings%2Ftokens%2F)
+2. Generate a token, name it anything you like, and make sure to give it `osf.full_write` and `osf.full_read`
+3. create a file called `osf_token.txt` in the root of the repository and paste you token into it
+
 ## import process documentation
 
 The `data/generic_import_template` folder contains some starting points.
