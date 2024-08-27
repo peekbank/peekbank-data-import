@@ -269,15 +269,6 @@ write_and_validate(
   trials,
   aoi_region_sets,
   xy_timepoints,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = TRUE
 )
-
-
-table_2 <- trial_types %>% pivot_longer(
-  cols = c(distractor_id, target_id),
-  names_to = "stimulus_type",
-  values_to = "stimulus_id"
-)
-
-one_not_in_two <- table_2 %>%
-  dplyr::anti_join(stimuli, by = "stimulus_id")
