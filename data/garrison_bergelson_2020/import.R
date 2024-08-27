@@ -65,7 +65,7 @@ subjects <- demographics %>%
   mutate(subject_aux_data = as.character(subject_aux_data))
 
 ### 3. STIMULI TABLE
-stimuli <- d_low %>%
+stimuli_prep <- d_low %>%
   select(TargetImage, DistractorImage) %>%
   pivot_longer(cols = c(TargetImage, DistractorImage), names_to = "type", values_to = "image") %>%
   distinct() |> 
@@ -79,16 +79,49 @@ stimuli <- d_low %>%
     image_description_source = "image path",
     dataset_id = 0
   ) %>%
-  ungroup() %>%
+  ungroup()  
+
+#stimuli_unique <- stimuli_prep |> select(english_stimulus_label) |> unique()
+
+# kids were given their-name-for-it names, here we attempt to partially group same-objects
+relabel_generic <- function(stimuli){
+  case_when(
+    stimuli=="baba" ~ "bottle", 
+    stimuli=="bath" ~ "bathtub",
+    stimuli=="doggy" ~ "dog",
+    stimuli=="kittycat" ~ "cat",
+    stimuli=="bed" ~ "crib",
+    stimuli=="diapey" ~ "diaper",
+    stimuli=="dolly" ~ "doll",
+    stimuli=="ducky" ~ "duck",
+    stimuli=="kitty" ~ "cat",
+    stimuli=="paci" ~ "pacifier",
+    stimuli=="puppy" ~ "dog",
+    stimuli=="block" ~ "blocks",
+    stimuli=="sippy" ~ "sippycup",
+    stimuli=="sunglasses"~ "glasses",
+    stimuli=="shoe" ~ "shoes",
+    stimuli=="sock" ~ "socks",
+    stimuli=="teddy" ~ "teddybear",
+    stimuli=="waterbottle" ~ "water",
+    stimuli=="wubby" ~ "pacifier",
+    T ~ stimuli)
+}
+
+stimuli <- stimuli_prep |> 
   select(
     original_stimulus_label, english_stimulus_label, stimulus_novelty,
     stimulus_image_path, lab_stimulus_id, dataset_id, image_description, image_description_source
   ) %>%
   distinct() %>%
+  rowwise() |> 
+  mutate(image_description=relabel_generic(english_stimulus_label)) |> 
   mutate(
     stimulus_id = 0:(n() - 1),
     stimulus_aux_data = NA
   )
+
+#stimuli |> select(image_description) |> unique() |> View()
 
 ### 4. ADMINISTRATIONS TABLE
 

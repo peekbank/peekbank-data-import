@@ -17,5 +17,6 @@ Parents were given a list of 26 options, and provided 12, this was then selected
 4. Importing decisions
 aoi regions were not recalculated; trial-level exclusions and looking regions taken from processed  data (post garrison's processing script)
 
+image_description in stimuli collapses some labels, but collapsing with ad-hoc
 5. Importing ambiguity
 none?
