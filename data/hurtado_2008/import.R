@@ -154,8 +154,8 @@ d_tidy <- d_tidy %>%
   mutate(english_stimulus_label = case_when(
     target_label == "caballo" ~ "horse",
     target_label == "cuchara" ~ "spoon",
-    target_label == "galleta" ~ "cookie", # or cracker?
-    target_label == "globo" ~ "balloon", # or ball? but pelota..
+    target_label == "galleta" ~ "cookie", 
+    target_label == "globo" ~ "balloon", 
     target_label == "jugo" ~ "juice",
     target_label == "libro" ~ "book",
     target_label == "manzana" ~ "apple",
@@ -390,5 +390,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = TRUE
 )
