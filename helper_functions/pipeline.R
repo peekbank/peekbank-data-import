@@ -145,8 +145,7 @@ run_all <- function(nocache = FALSE, clean = TRUE, upload = FALSE) {
 # currently only used as a standalone function
 upload_all <- function(activeonly = FALSE) {
   list_all(activeonly) %>% purrr::walk(\(dataset){
-    print(dataset)
-    #upload_osf(dataset)
+    upload_osf(dataset)
   })
 }
 
