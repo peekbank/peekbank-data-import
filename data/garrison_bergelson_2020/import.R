@@ -10,8 +10,7 @@ source(here("helper_functions", "common.R"))
 dataset_name <- "garrison_bergelson_2020"
 data_path <- init(dataset_name)
 
-# yoursmy_test.Rds: binned data with subject excludes implemented, output at end of dataprep/yoursmy_dataprep_eyetracking.Rmd
-
+# this is their end of processing with excluded trials tagged but present
 d_low <- readRDS(here(data_path, "eyetracking/yoursmy_test_taglowdata.Rds"))
 
 ################## TABLE SETUP ##################
@@ -68,22 +67,14 @@ subjects <- demographics %>%
 ### 3. STIMULI TABLE
 stimuli <- d_low %>%
   select(TargetImage, DistractorImage) %>%
-  pivot_longer(cols = c(TargetImage, DistractorImage), names_to = "type", values_to = "image") %>% 
-  distinct() %>%
+  pivot_longer(cols = c(TargetImage, DistractorImage), names_to = "type", values_to = "image") %>%
+  distinct() |> 
   mutate(
-    # an earlier version used the audio name here,
-    # but since the audio and the image names match, we can simplify
-    original_stimulus_label = str_replace(
-      str_replace(
-        image,
-        "[^A-Za-z]+", ""
-      ),
-      ".jpg", ""
-    ),
+    original_stimulus_label = str_replace(image,".jpg","") |> str_replace_all("[^a-zA-z]",""),
     english_stimulus_label = original_stimulus_label,
     stimulus_novelty = "familiar",
     lab_stimulus_id = image,
-    stimulus_image_path = image,
+    stimulus_image_path = str_c("raw_data/images/",image),
     image_description = original_stimulus_label,
     image_description_source = "image path",
     dataset_id = 0
@@ -131,7 +122,8 @@ trial_table <- d_low %>%
     distractor_image_full = DistractorImage,
     point_of_disambiguation = TargetOnset,
     trial_order = Trial,
-    lab_subject_id = SubjectNumber
+    lab_subject_id = SubjectNumber,
+    lowdata_short
   ) %>%
   distinct() %>%
   ungroup() %>%
@@ -178,15 +170,29 @@ trial_types <- trial_table %>%
   )
 
 ### 6. TRIALS TABLE
-trials <- trial_table %>%
-  distinct(trial_order, trial_type_id, lab_subject_id) %>%
+trials_pre_exclude <- trial_table %>%
+  distinct(trial_order, trial_type_id, lab_subject_id, lowdata_short) %>%
   mutate(
     trial_id = 0:(n() - 1),
     trial_aux_data = NA,
-    excluded = FALSE,
-    exclusion_reason = NA
-  ) %>%
-  select(-lab_subject_id)
+    exclusion_reason = ifelse(lowdata_short | is.na(lowdata_short), 
+                              "trial level low data", NA)
+  )
+
+child_level_exclude <- trials_pre_exclude |>
+  filter(!is.na(exclusion_reason)) |>
+  group_by(lab_subject_id) |>
+  tally() |>
+  filter(n>15) |> pull(lab_subject_id)
+
+trials <- trials_pre_exclude |> 
+  mutate(exclusion_reason=case_when(
+    !is.na(exclusion_reason)~exclusion_reason,
+    lab_subject_id %in% child_level_exclude ~ "too few trials for child",
+    T ~ NA
+  ),
+  excluded=!is.na(exclusion_reason)) |> 
+  select(-lab_subject_id, -lowdata_short)
 
 ### 7. AOI REGION SETS TABLE
 # recall screen is 1280 x 1024
