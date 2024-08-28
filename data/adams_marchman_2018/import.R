@@ -5,6 +5,7 @@ library(janitor)
 library(readxl)
 
 source(here("helper_functions", "common.R"))
+source(here("helper_functions", "idless_draft.R"))
 dataset_name <- "adams_marchman_2018"
 read_path <- init(dataset_name)
 
@@ -15,7 +16,6 @@ sampling_rate_ms <- 1000 / 30
 remove_repeat_headers <- function(d, idx_var) {
   d[d[, idx_var] != idx_var, ]
 }
-
 
 # read raw icoder files
 # 16-month-olds
@@ -308,9 +308,42 @@ dataset <- tibble(
   dataset_aux_data = NA
 )
 
+
+cdi_data <- read_excel(here(read_path, "Adams_2019_CDIs.xlsx")) %>%
+  rename(subject_id = `Subject #`) %>%
+  select(-Sex, -InLENACDPaper2016) %>% 
+  pivot_longer(
+    cols = -c(subject_id),
+    names_to = c("instrument_type", "timepoint", "score_type"),
+    names_pattern = "(WG|WS)(\\d+)(.+)",
+    values_to = "value"
+  ) %>%
+  pivot_wider(
+    names_from = score_type,
+    values_from = value
+  ) %>%
+  mutate(
+    subject_id = as.character(subject_id),
+    timepoint = as.numeric(timepoint),
+    instrument_type = tolower(instrument_type),
+    measure = case_when(
+      !is.na(Comp) ~ "comp",
+      !is.na(Prod) ~ "prod",
+      TRUE ~ NA_character_
+    ),
+    rawscore = coalesce(Comp, Prod),
+    percentile = coalesce(Compptile, Prodptile, ProdPtile)
+  ) %>%
+  select(subject_id, measure,age = Age, instrument_type, measure, rawscore, percentile) %>% 
+  mutate(language = "English (American)") %>% 
+  na.omit()
+
+subjects <- subjects %>% digest.subject_cdi_data(cdi_data)
+
+
 write_and_validate(
   dataset_name = dataset_name,
-  cdi_expected = FALSE,
+  cdi_expected = TRUE,
   dataset,
   subjects,
   stimuli,
