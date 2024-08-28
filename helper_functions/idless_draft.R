@@ -9,7 +9,10 @@ digest.dataset <- function(
     lab_dataset_id = NA,
     cite,
     shortcite,
-    wide.table
+    wide.table,
+    rezero = TRUE,
+    normalize = TRUE,
+    resample = TRUE
     ){
   
   required_cols <- c(
@@ -114,6 +117,7 @@ digest.dataset <- function(
            distractor_image_description,
            distractor_image_description_source) %>%
     distinct() %>% 
+    mutate(across(everything(), as.character)) %>% 
     mutate(id = row_number()) %>% 
     pivot_longer(
       cols = contains("target_") | contains("distractor_"),
@@ -163,7 +167,7 @@ digest.dataset <- function(
     group_by(administration_id, trial_type_id, trial_order) %>%
     mutate(trial_id = cur_group_id() - 1) %>%
     ungroup()
-    
+  
   datasets <- tibble(
       dataset_id = 0,
       dataset_name = dataset_name,
@@ -175,8 +179,20 @@ digest.dataset <- function(
   
   subjects <- data %>% 
     distinct(subject_id, sex, native_language, lab_subject_id) %>%
+    mutate(sex =  tolower(sex),
+           sex = case_when(
+             sex == "male" ~ "male",
+             sex == "m" ~ "male",
+             sex == "boy" ~ "male",
+             sex == "female" ~ "female",
+             sex == "f" ~ "female",
+             sex == "girl" ~ "female",
+             sex == "other" ~ "other",
+             sex == "o" ~ "other",
+             .default="unspecified"
+           )) %>% 
     mutate(subject_aux_data = NA)
-  
+    
   administrations <- data %>% 
     distinct(
       administration_id,
@@ -193,7 +209,7 @@ digest.dataset <- function(
     mutate(
       age = case_when(
         lab_age_units == "months" ~ lab_age,
-        lab_age_units == "days" ~ lab_age/30.5,
+        lab_age_units == "days" ~ lab_age/(365.25/12),
         lab_age_units == "year" ~ 12*lab_age + ifelse(lab_age-floor(lab_age) == 0, 6, 0),
         .default = NA
       ),
@@ -215,9 +231,18 @@ digest.dataset <- function(
       target_id
     ) %>% 
     mutate(
+      target_side = tolower(target_side),
+      target_side = case_when(
+        target_side == "left" ~ "left",
+        target_side == "l" ~ "left",
+        target_side == "right" ~ "right",
+        target_side == "r" ~ "right",
+        .default="ERROR"),
       trial_type_aux_data = NA,
       aoi_region_set_id = NA # set for now, set to 0 further down below if we actually have that table
       )
+  
+  
   
   trials <- data %>% 
     distinct(
@@ -232,9 +257,9 @@ digest.dataset <- function(
     )
   
   aoi_timepoints <- data %>%
-    peekds::rezero_times(.) %>%
-    peekds::normalize_times(.) %>%
-    peekds::resample_times(., table_type = "aoi_timepoints") %>%
+    {if (rezero) peekds::rezero_times(.) else rename(., t_zeroed = t)} %>%
+    {if (normalize) peekds::normalize_times(.) else rename(., t_norm = t)} %>%
+    {if (resample)  peekds::resample_times(., table_type = "aoi_timepoints") else .} %>%
     select(
       aoi_timepoint_id,
       aoi,
@@ -246,10 +271,10 @@ digest.dataset <- function(
   xy_timepoints <- NA 
   aoi_region_sets <- NA
   
-  # TODO test this part
+
   if(!is.na(data$l_x_max[[1]])){
     
-    trial_types$aoi_regionset_id <- 0
+    trial_types$aoi_region_set_id <- 0
     
     aoi_region_sets <- data %>% 
       distinct(
@@ -265,9 +290,9 @@ digest.dataset <- function(
       mutate(aoi_region_set_id = 0)
     
     xy_timepoints <- data %>%
-      peekds::rezero_times(.) %>%
-      peekds::normalize_times(.) %>%
-      peekds::resample_times(., table_type = "xy_timepoints") %>%
+      {if (rezero) peekds::rezero_times(.) else rename(., t_zeroed = t)} %>%
+      {if (normalize) peekds::normalize_times(.) else rename(., t_norm = t)} %>%
+      {if (resample)  peekds::resample_times(., table_type = "xy_timepoints") else .} %>%
       select(
         xy_timepoint_id,
         x,
@@ -302,7 +327,7 @@ digest.subject_cdi_data <- function(subjects, cdi_table){
     "age"
   )
   
-  missing_cols <- setdiff(required_cols, colnames(cdi_table))
+  missing_cols <- setdiff(required_cols_cdi_table, colnames(cdi_table))
   if(length(missing_cols) > 0){
     print("Some columns are missing from the cdi input table:")
     print(missing_cols)

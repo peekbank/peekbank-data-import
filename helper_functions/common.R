@@ -24,7 +24,7 @@ init <- function(dataset_name) {
   return(data_path)
 }
 
-write_and_validate_list <- function(dataset_list, cdi_expected){
+write_and_validate_list <- function(dataset_list, cdi_expected, upload=FALSE){
   write_and_validate(
     dataset_name = dataset_list[["datasets"]]$dataset_name,
     cdi_expected = cdi_expected,
@@ -36,7 +36,8 @@ write_and_validate_list <- function(dataset_list, cdi_expected){
     trials = dataset_list[["trials"]],
     aoi_region_sets = dataset_list[["aoi_region_sets"]],
     xy_timepoints = dataset_list[["xy_timepoints"]],
-    aoi_timepoints = dataset_list[["aoi_timepoints"]]
+    aoi_timepoints = dataset_list[["aoi_timepoints"]],
+    upload=upload
   )
 }
 
