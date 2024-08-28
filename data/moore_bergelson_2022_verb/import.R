@@ -1,12 +1,3 @@
-# Import script for peekbank
-# CITATION raw data
-# DOI
-# USER
-# DATE
-
-# Note: this script was based on the generic import.R and the import.R in
-# garrison_bergelson_2020
-
 library(here)
 library(tools) # for file_path_sans_ext
 library(glue)
@@ -97,9 +88,6 @@ excluded_participants <- read_csv(
 
 ################## TABLE SETUP ##################
 
-# it's very helpful to have the schema open as you do this
-# https://docs.google.com/spreadsheets/d/1Z24n9vfrAmEk6_HpoTSh58LnkmSGmNJagguRpI1jwdo/edit#gid=0
-
 ### 1. DATASET TABLE
 datasets <- tibble(
   dataset_id = DATASET_ID,
@@ -159,11 +147,13 @@ subject_info <- fixations_binned %>%
         return(NA)
       }
       jsonlite::toJSON(list(cdi_responses = compact(list(
-        if (!is.na(prod)) {
-          list(rawscore = prod, age = age, measure = "prod", language = "English (American)", instrument_type = "wg")
-        },
         if (!is.na(comp)) {
           list(rawscore = comp, age = age, measure = "comp", language = "English (American)", instrument_type = "wg")
+        }, # awkward doubling of condition, but R syntax says it has to be this way
+        if (!is.na(comp)) {
+          list(rawscore = prod, age = age, measure = "prod", language = "English (American)", instrument_type = "wg")
+        } else {
+          list(rawscore = prod, age = age, measure = "prod", language = "English (American)", instrument_type = "ws")
         }
       ))), auto_unbox = TRUE)
     }
@@ -442,5 +432,6 @@ write_and_validate(
   trials,
   aoi_region_sets,
   xy_timepoints,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = TRUE
 )

@@ -356,7 +356,12 @@ cdi_to_json <- cdi_data_cleaned |>
   nest(cdi_responses = -c(lab_subject_id)) |>
   nest(subject_aux_data = -c(lab_subject_id)) |>
   group_by(lab_subject_id) |>
-  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON))
+  mutate(subject_aux_data = sapply(subject_aux_data, function(x) {
+    json_str <- jsonlite::toJSON(x)
+    json_str <- substr(json_str, 2, nchar(json_str) - 1) # hacky, but works
+    json_str <- gsub(',"cdi_responses":{}', "", json_str, fixed = TRUE) # even hackier, but worksier
+    ifelse(json_str == '{"cdi_responses":[{}]}', NA, json_str)
+  }))
 
 ##### AOI TABLE ####
 # this just takes a while to run!
@@ -458,5 +463,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = TRUE
 )
