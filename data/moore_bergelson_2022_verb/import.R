@@ -116,10 +116,8 @@ wide.table <-
     r_y_min = 0,
     full_phrase_language = "eng",
     session_num = 0,
-    #point_of_disambiguation = 0 #data already zeroed
   )
 
-source(here("helper_functions", "idless_draft.R"))
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
   lab_dataset_id = "VNA",
