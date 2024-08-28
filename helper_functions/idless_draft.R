@@ -2,8 +2,6 @@ library(peekds)
 library(tidyverse)
 library(stringr)
 
-# TODO: offer a helper to handle cdi data (take a dataframe as input)
-
 # important note: the digest function will not take aux data as input.
 # Rather, it will output empty aux data columns that can be populated manually
 digest.dataset <- function(
@@ -292,3 +290,41 @@ digest.dataset <- function(
     aoi_region_sets = aoi_region_sets
   ))
 }
+
+digest.subject_cdi_data <- function(subjects, cdi_table){
+  
+  required_cols_cdi_table <- c(
+    "subject_id", # this is referring to the lab subject id
+    "instrument_type",
+    "language",
+    "rawscore",
+    "percentile",
+    "age"
+  )
+  
+  missing_cols <- setdiff(required_cols, colnames(cdi_table))
+  if(length(missing_cols) > 0){
+    print("Some columns are missing from the cdi input table:")
+    print(missing_cols)
+    stop()
+  }
+  
+  subjects %>% 
+    select(-subject_aux_data) %>% 
+    left_join(cdi_table %>%
+                rename(lab_subject_id = subject_id),
+              by="lab_subject_id"
+              ) %>%
+    nest(.by=c(subject_id, sex, native_language, lab_subject_id), .key="cdi_responses") %>%
+    nest(.by=c(subject_id, sex, native_language, lab_subject_id), .key="subject_aux_data") %>% 
+    mutate(subject_aux_data = sapply(subject_aux_data, function(x) {
+      json_str <- jsonlite::toJSON(x)
+      json_str <- substr(json_str, 2, nchar(json_str) - 1) # hacky, but works
+      json_str <- gsub(',"cdi_responses":{}', "", json_str, fixed = TRUE) # even hackier, but worksier
+      ifelse(json_str == '{"cdi_responses":[{}]}', NA, json_str)
+    }))
+}
+
+
+
+
