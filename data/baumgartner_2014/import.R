@@ -59,8 +59,7 @@ colnames(orders)[6] <- "distractor_image" # rename distractor var to match data
 
 # read raw icoder file
 d_raw <- read_csv(fs::path(read_path, "Baumgartner2014_trialData.csv")) %>%
-  mutate(row_number = as.numeric(row.names(.))) %>% # not sure if this is needed... might remove
-  relocate(row_number, .after = `Subject`) # not sure if this is needed... might remove
+  mutate(row_number = as.numeric(row.names(.)))
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
@@ -89,13 +88,6 @@ pre_dis_names_clean <- round(seq(
 post_dis_names_clean <- post_dis_names %>% str_remove("f")
 
 colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
-
-# ### truncate columns at timepoint, if needed
-# ## NOTE: not truncating to start, but including this code (copied from Adams Marchman 2018) if decision changes
-# post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
-# #remove
-# d_processed <- d_processed %>%
-#   select(-all_of(post_dis_names_clean_cols_to_remove))
 
 
 # Merge icoder and order file data --------------------------------------------------
@@ -163,7 +155,7 @@ d_tidy <- d_tidy %>%
       stimulus_novelty == "novel" ~ FALSE,
       TRUE ~ TRUE
     ),
-    condition = paste(study_condition, stimulus_novelty, sep = "_")
+    condition = ifelse(stimulus_novelty=="familiar", "familiar", paste(study_condition, stimulus_novelty, sep = "_"))
   )
 
 # CREATE STIMULUS TABLE ----------------------------------------
@@ -174,7 +166,9 @@ stimulus_table <- d_tidy %>%
     dataset_id = 0,
     original_stimulus_label = target_label,
     english_stimulus_label = target_label,
-    stimulus_image_path = "tbd", # stimulus name depends on target, distractor, and side of target, will need to generate. For now, all stimuli are in zipped file in OSF project directory; # paste0(target_image, ".mov"), # TO DO - update once images are shared/ image file path known
+    stimulus_image_path = ifelse(original_stimulus_label %in% c("lif","neem"), 
+                                 str_c("stimuli/", target_image, ".png"), 
+                                 str_c("stimuli/", target_label, ".jpg")), # stimulus name depends on target, distractor, and side of target, will need to generate. For now, all stimuli are in zipped file in OSF project directory; # paste0(target_image, ".mov"), # TO DO - update once images are shared/ image file path known
     image_description = target_label,
     image_description_source = "image path",
     lab_stimulus_id = target_image
@@ -213,7 +207,7 @@ d_administration_ids <- d_tidy %>%
   arrange(subject_id, subject, months) %>%
   mutate(administration_id = seq(0, length(.$subject_id) - 1))
 
-# create zero-indexed ids for trial_types (QUESTION: DOES FRAME MATTER? Martin says yes)
+# create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
   # order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
   # potentially make distinct based on condition if that is relevant to the study design
@@ -281,7 +275,7 @@ cdi_data <- demo %>%
     values_to = "rawscore",
   ) %>%
   mutate(
-    instrument_type = "wsshort", # according to Baumgartner
+    instrument_type = "wgshort", # according to Baumgartner
     language = "English (American)",
     rawscore = as.numeric(rawscore) # "NA introduced by coercion" is wanted here
   )

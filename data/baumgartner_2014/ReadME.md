@@ -12,9 +12,10 @@ There were 3 habituation conditions:
   1) Labels (single exemplar of novel object and single token of novel label)
   2) Colors (7 exemplars of novel object - varying in color - and single token of novel label)
   3) Speakers (single exemplar of novel object and 7 tokens of novel label - varying in speaker).
-Infants then tested in looking while listening paradigm on novel words and familiar words (e.g., baby, doggy, ball). Audio on test trials was presented as "[Target_label]! [Frame][Target_label]? (e.g., Baby! Where's the baby?). NOTE: due to how the study was presented, visual stimuli during test trials were .mov files with target and distractor images on each side of screen, which makes it a little tricky to include paths to target images. I'm still figuring out the best way to handle this. Currently, all .mov and auditory stimuli are available in zipped file on OSF.
+Infants then tested in looking while listening paradigm on novel words and familiar words (e.g., baby, doggy, ball). Audio on test trials was presented as "[Target_label]! [Frame][Target_label]? (e.g., Baby! Where's the baby?). 
 
 4. Importing decisions
 (tried to make comments in code)
 
 5. Importing ambiguity
+no known ambiguities
