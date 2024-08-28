@@ -320,3 +320,15 @@ write_and_validate(
   xy_timepoints = NA,
   aoi_timepoints
 )
+
+# trials |>
+#   left_join(trial_types) |>
+#   left_join(stimuli, by = c("target_id" = "stimulus_id")) |> 
+#   left_join(aoi_timepoints) |> 
+#   #filter(stimulus_novelty=="familiar") |> 
+#   filter(condition!="filler") |>
+#   filter(aoi %in% c("target", "distractor")) |> 
+#   filter(t_norm>0) |> 
+#   group_by(administration_id, target_id) |> 
+#   summarize(prop_target=sum(aoi=="target")/n()) |> ggplot(aes(x=prop_target))+geom_histogram()
+
