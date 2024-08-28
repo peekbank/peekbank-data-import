@@ -314,10 +314,10 @@ cdi_data <- cdi_raw %>%
             list(
               cdi_responses = compact(list(
                 if (!is.na(EnglishCDI)) {
-                  list(rawscore = EnglishCDI,age = age, measure = "prod", language = "English (American)", instrument_type = "wsshort")
+                  list(rawscore = EnglishCDI,age = age, measure = "prod", language = "English (American)", instrument_type = "ws")
                 },
                 if (!is.na(SpanishCDI)) {
-                  list(rawscore = SpanishCDI, age = age, measure = "prod", language = "Spanish (Mexican)", instrument_type = "wsshort")
+                  list(rawscore = SpanishCDI, age = age, measure = "prod", language = "Spanish (Mexican)", instrument_type = "ws")
                 }
               ))
             )
@@ -421,5 +421,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload=TRUE
 )
