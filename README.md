@@ -4,13 +4,20 @@ This repo contains `import.R` scripts for various datasets, allowing them to be 
 
 ## Prerequisites
 
+Two of the packages needed to work with this repo are not on CRAN, so you need to get them via GitHub:
+
+```
+remotes::install_github("peekbank/peekbankr")
+remotes::install_github("peekbank/peekds")
+```
+
 If you want to upload data directly to osf using this pipeline, you need to authenticate with osf.
 
 1. go to the [OSF token settings page](https://accounts.osf.io/login?service=https%3A%2F%2Fosf.io%2Fsettings%2Ftokens%2F)
 2. Generate a token, name it anything you like, and make sure to give it `osf.full_write` and `osf.full_read`
 3. create a file called `osf_token.txt` in the root of the repository and paste you token into it
 
-## import process documentation
+## import process documentation legacy
 
 Here's [an in-progress google doc guide](https://docs.google.com/document/d/1hQrbV33Zdl3SmbJAdTuzyfwCNF9nYpouQ7lQ8U0dQSw/edit) for importing.
 
