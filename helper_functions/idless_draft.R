@@ -15,6 +15,8 @@ digest.dataset <- function(
     resample = TRUE
     ){
   
+  wide.table <- wide.table() %>% ungroup()
+  
   required_cols <- c(
     "subject_id",
     "sex",
@@ -84,9 +86,9 @@ digest.dataset <- function(
   used_cols <- c(required_cols, optional_cols[optional_cols %in% names(wide.table)])
   unused_cols <- optional_cols[!(optional_cols %in% names(wide.table))]
   
-  data <- wide.table %>% 
+  data <- wide.table %>%
     select(all_of(used_cols)) %>%
-    mutate(!!!setNames(rep(list(NA), length(unused_cols)), unused_cols)) %>% 
+    mutate(!!!setNames(rep(list(NA), length(unused_cols)), unused_cols)) %>%
     rename(
       lab_subject_id = subject_id,
       lab_age = age,
@@ -210,7 +212,7 @@ digest.dataset <- function(
       age = case_when(
         lab_age_units == "months" ~ lab_age,
         lab_age_units == "days" ~ lab_age/(365.25/12),
-        lab_age_units == "year" ~ 12*lab_age + ifelse(lab_age-floor(lab_age) == 0, 6, 0),
+        lab_age_units == "years" ~ 12*lab_age + ifelse(lab_age-floor(lab_age) == 0, 6, 0),
         .default = NA
       ),
       administration_aux_data = NA
