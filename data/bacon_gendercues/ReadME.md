@@ -25,4 +25,4 @@ Stimulus images were available on the original study's OSF. These files have bee
 Monitor Size was added.
 
 ## Importing ambiguity
-
+Many of the reported CDIs are well above the 90th percentile (on WordBank) for production on the WS Short Form. 
