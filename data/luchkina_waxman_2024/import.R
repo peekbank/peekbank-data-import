@@ -49,7 +49,7 @@ dataset_list <- digest.dataset(
   shortcite = "Luchkina, E., & Waxman, S. (2024)",
   wide.table = wide.table,
   # TODO: check if they already normalized while following import instructions
-  normalize = FALSE
+  normalize = TRUE
 )
 
 cdi <- read.csv(here(data_path, "Peekbank_LuchkinaWaxman_MCDI_data.csv")) %>%
