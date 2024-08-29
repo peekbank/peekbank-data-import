@@ -15,7 +15,7 @@ digest.dataset <- function(
     resample = TRUE
     ){
   
-  wide.table <- wide.table() %>% ungroup()
+  wide.table <- wide.table %>% ungroup()
   
   required_cols <- c(
     "subject_id",
