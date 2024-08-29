@@ -191,7 +191,7 @@ wide.table <- et_data_joined_import |>
   mutate(
     subject_id = glue("{StudioProjectName}_{study_id}"),
     sex = gender,
-    native_language = "eng, fra",
+    native_language = "eng, fre",
     age = age_days,
     age_units = "days",
     t = RecordingTimestamp,
@@ -272,4 +272,4 @@ dataset_list[["subjects"]] <- dataset_list[["subjects"]] |>
     ifelse(json_str == '{"cdi_responses":[{}]}', NA, json_str)
   }))
 
-write_and_validate_list(dataset_list, cdi_expected = FALSE)
+write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = TRUE)
