@@ -31,5 +31,6 @@ In bilingual language environments, infants and toddlers listen to two separate 
 5. **Importing ambiguity**
     - unknown whether the other components of the order column in the initial import had significance, so they were disregarded (ex. "Mix_e1_wc" vs. "Mix_e2_wc" vs. "Mix_e1" etc.)
     - how to handle distractor_id is unclear (i.e., what label to implicitly assign to distractor)
-    - Data included 44 administrations across 44 unique subject IDs, but study makes reference to two separate administrations with 20 total subjects. Matching for demographics, it appears the first integer of the ID tracks the admin #, and the rest of the subject ID is unique to each subject. 
+    - Data included 44 administrations across 44 unique subject IDs, but study makes reference to two separate administrations with 20 total subjects. Matching for demographics, it appears the first integer of the ID tracks the admin #, and the rest of the subject ID is unique to each subject.
+    - Raw data includes list of 20 included subject IDs (as reported in paper). 3 Additional subject IDs have administrations, none of which have language exposure data, all of which completed only one administration (2 did not start, one only completed a single trial). We assume that these additional subjects were excluded from the data.
 
