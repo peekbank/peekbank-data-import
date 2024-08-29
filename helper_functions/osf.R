@@ -1,9 +1,10 @@
-library(httr)
-library(jsonlite)
-library(glue)
-library(utils)
-library(here)
-library(dplyr)
+for (package in c("httr", "jsonlite", "glue", "utils", "here", "dplyr")) {
+  suppressWarnings(
+    suppressPackageStartupMessages(
+      library(package, character.only = TRUE)
+      )
+    )
+}
 
 get_raw_data_fixed <- function(lab_dataset_id, osf_address = "pr6wu") {
   # drop in replacement for the get_raw_data function of peekds (renamed for now)

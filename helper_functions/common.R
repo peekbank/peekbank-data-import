@@ -1,9 +1,12 @@
 # a draft of some framework code possibly shared by all future imports
 
-library(tidyverse)
-library(here)
-library(stringr)
-library(peekds)
+for (package in c("tidyverse", "here", "stringr", "peekds")) {
+  suppressWarnings(
+    suppressPackageStartupMessages(
+      library(package, character.only = TRUE)
+    )
+  )
+}
 
 options(dplyr.summarise.inform = FALSE)
 
