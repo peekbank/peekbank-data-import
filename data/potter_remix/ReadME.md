@@ -27,6 +27,7 @@ In bilingual language environments, infants and toddlers listen to two separate 
     - the data was initially imported with only the english labels, so the spanish labels were hard-coded and matched to the english labels in a dictionary-like style, with reference to the published data.
     - "full_phrase_language" was set to the language of the carrier phrase (excluding the target word)
     - distractor_id was matched based on the target label's language (so if the distractor object was a balloon and the target label was in Spanish, the implicit distractor label was determined to be globo)
+    - full_phrase_language is set to "multiple" in mixed-language conditions.
 
 5. **Importing ambiguity**
     - unknown whether the other components of the order column in the initial import had significance, so they were disregarded (ex. "Mix_e1_wc" vs. "Mix_e2_wc" vs. "Mix_e1" etc.)
