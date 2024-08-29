@@ -258,7 +258,7 @@ digest.dataset <- function(
   
   aoi_timepoints <- data %>%
     {if (rezero) peekds::rezero_times(.) else rename(., t_zeroed = t)} %>%
-    {if (normalize) peekds::normalize_times(.) else rename(., t_norm = t)} %>%
+    {if (normalize) peekds::normalize_times(.) else rename(., t_norm = t_zeroed)} %>%
     {if (resample)  peekds::resample_times(., table_type = "aoi_timepoints") else .} %>%
     select(
       aoi_timepoint_id,
@@ -266,7 +266,8 @@ digest.dataset <- function(
       t_norm,
       trial_id,
       administration_id
-    )
+    ) %>% 
+    mutate(aoi = ifelse(!is.na(aoi), aoi, "missing"))
   
   xy_timepoints <- NA 
   aoi_region_sets <- NA
@@ -291,7 +292,7 @@ digest.dataset <- function(
     
     xy_timepoints <- data %>%
       {if (rezero) peekds::rezero_times(.) else rename(., t_zeroed = t)} %>%
-      {if (normalize) peekds::normalize_times(.) else rename(., t_norm = t)} %>%
+      {if (normalize) peekds::normalize_times(.) else rename(., t_norm = t_zeroed)} %>%
       {if (resample)  peekds::resample_times(., table_type = "xy_timepoints") else .} %>%
       select(
         xy_timepoint_id,
@@ -322,6 +323,7 @@ digest.subject_cdi_data <- function(subjects, cdi_table){
     "subject_id", # this is referring to the lab subject id
     "instrument_type",
     "language",
+    "measure",
     "rawscore",
     "percentile",
     "age"
