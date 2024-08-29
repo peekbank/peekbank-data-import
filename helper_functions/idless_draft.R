@@ -212,7 +212,7 @@ digest.dataset <- function(
       age = case_when(
         lab_age_units == "months" ~ lab_age,
         lab_age_units == "days" ~ lab_age/(365.25/12),
-        lab_age_units == "years" ~ 12*lab_age + ifelse(lab_age-floor(lab_age) == 0, 6, 0),
+        lab_age_units == "years" ~ 12*lab_age + ifelse(all(lab_age-floor(lab_age) == 0), 6, 0),
         .default = NA
       ),
       administration_aux_data = NA
