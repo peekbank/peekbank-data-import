@@ -18,11 +18,11 @@ Trials were excluded when child was looking at the screen for less than 50% of t
 The trials included consistent (gender-matched speaker) and inconsistent (gender-mismatched speaker) trial types.
 
 ## Importing decisions
-
-
-## Importing ambiguity
 According to paper there were Trial level exclusions, Import code was adjusted to account for these exclusions.
 
 Stimulus images were available on the original study's OSF. These files have been added to OSF and file_path was adjusted in the stimulus table.
 
 Monitor Size was added.
+
+## Importing ambiguity
+
