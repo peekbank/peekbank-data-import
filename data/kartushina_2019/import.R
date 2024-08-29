@@ -1,3 +1,5 @@
+# Kartushina & Mayor (2019). Word knowledge in six-to nine-month-old Norwegian infants? Not without additional frequency cues
+
 #### Load packages ####
 library(here)
 library(XML)
@@ -54,12 +56,12 @@ df_subjects_info <- read_excel(fs::path(exp_info_path, subject_info)) %>%
   select(lab_subject_id = ID, lab_age = age, Gender) %>%
   filter(!is.na(lab_subject_id)) %>%
   filter(lab_subject_id != "Average") # has 70 -- not sure which of the various exclusions this applies
-# there's a final sample of 50 in paper after various exclusions
+# there's a final sample of 50 in paper after various exclusions (paper reports 84 total were tested)
 
-# read inm the final 50 subjects that were used in the paper
+# read in the final 50 subjects that were used in the paper
 df_subjects_final <- read.csv(fs::path(exp_info_path, subject_final_list))
 
-# delay id assignment until we can cross check what participats are also found in the trial data
+# delay id assignment until we can cross check what participants are also found in the trial data
 df_subjects <- df_subjects_info %>%
   mutate(
     sex = case_when(Gender == "F" ~ "female", Gender == "M" ~ "male", T ~ "unspecified"),
@@ -382,7 +384,7 @@ df_trial_types <- df_trial_info %>%
 excluded_participants <- tibble(
   lab_subject_id = setdiff(df_subjects_info$lab_subject_id, df_subjects_final$final_subjects),
   excluded = TRUE,
-  exclusion_reason = NA
+  exclusion_reason = "excluded participant"
 )
 
 # confirmed that to one participate only see one type of trial once
