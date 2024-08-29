@@ -61,7 +61,7 @@ d_tidy <- d_tidy %>%
 d_tidy <- d_tidy %>%
   # remove unneeded columns
   select(
-    -max_n, -lost_n, -percent_missing_frames,
+    -max_n, -lost_n,
     -has_sibs, -num_sibs, -num_male_sibs, -num_fem_sibs,
     -childcare, -sib_dif_sex
   ) %>%
@@ -99,7 +99,7 @@ stimulus_table <- d_tidy %>%
     stimulus_novelty = "familiar",
     original_stimulus_label = target_label,
     english_stimulus_label = target_label,
-    stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
+    stimulus_image_path = paste("raw_data/images/",target_image,".png", sep=""),
     image_description = target_label,
     image_description_source = "image path",
     lab_stimulus_id = target_image,
@@ -156,8 +156,8 @@ d_tidy_final <- d_tidy_semifinal %>%
     dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
     lab_trial_id = paste(order, tr_num, sep = "-"),
     aoi_region_set_id = NA, # not applicable
-    monitor_size_x = NA, # unknown TO DO
-    monitor_size_y = NA, # unknown TO DO
+    monitor_size_x = 1920,
+    monitor_size_y = 1080, 
     lab_age_units = "months",
     age = as.numeric(age_months), # months
     point_of_disambiguation = 0, # data is re-centered to zero based on critonset in datawiz
@@ -235,13 +235,14 @@ trials <- d_tidy_final %>%
   distinct(
     trial_id,
     trial_order,
-    trial_type_id
+    trial_type_id,
+    percent_missing_frames,
   ) %>%
   mutate(
-    excluded = FALSE, # no indication in the data, so we assume we only got included participants
-    exclusion_reason = NA,
+    excluded = ifelse(percent_missing_frames < 50,FALSE,TRUE), # no indication in the data, so we assume we only got included participants
+    exclusion_reason = ifelse(percent_missing_frames < 50,NA,"majority looking off-screen"),
     trial_aux_data = NA
-  )
+  ) %>% select(-percent_missing_frames)
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
