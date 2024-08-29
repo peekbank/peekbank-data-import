@@ -15,7 +15,7 @@ dataset <- tibble(
   lab_dataset_id = 0,
   dataset_name = dataset_name,
   shortcite = "Egger et al. (2020)",
-  cite = "Egger, J., Rowland, C. F., & Bergmann, C. (2020). Improving the robustness of infant lexical processing speed measures. Behavior research methods, 52(5), 2188–2201. https://doi.org/10.3758/s13428-020-01385-5",
+  cite = "Egger, J., Rowland, C. F., & Bergmann, C. (2020). Improving the robustness of infant lexical processing speed measures. Behavior research methods, 52, 2188–2201. https://doi.org/10.3758/s13428-020-01385-5",
   dataset_aux_data = NA
 )
 
@@ -25,7 +25,10 @@ questionnaire_data <-
 
 cdi_data <- questionnaire_data %>%
   select(ID, age = `CDI-agedays`, comp = comprehension, prod = produce) %>%
-  mutate(age = age / (365.25 / 12)) %>%
+  mutate(
+    ID = as.numeric(ID),
+    age = age / (365.25 / 12)
+  ) %>%
   pivot_longer(
     cols = c(comp, prod),
     names_to = "measure",
@@ -42,15 +45,19 @@ cdi_data <- questionnaire_data %>%
 subjects <- questionnaire_data %>%
   mutate(
     subject_id = 0:(n() - 1),
-    lab_subject_id = as.numeric(ID)
+    lab_subject_id = as.numeric(ID),
+    sex = recode(Q215,
+                 Meisje = "female",
+                 Jongen = "male"
+    )
   ) %>%
-  select(lab_subject_id, subject_id) %>%
+  select(lab_subject_id, subject_id, sex) %>%
+  rowwise() %>%
   mutate(
-    sex = "unspecified",
     native_language = "dut", # according to the paper, this was the same for everyone
     subject_aux_data = jsonlite::toJSON(
       list(cdi_responses = cdi_data[cdi_data$ID == lab_subject_id, ] %>%
-        select(-ID)),
+             select(-ID)),
       na = "null"
     )
   )
@@ -166,7 +173,7 @@ administrations <- questionnaire_data %>%
 
 # These exclusions mirror the reporting in the analysis script of the paper
 exclusion_data <- tibble(
-  subject_id = c(3, 24, 40, 4, 27, 53, 21, 42, 51, 5, 6, 9, 10, 28, 1, 2, 33),
+  lab_subject_id = c(3, 24, 40, 4, 27, 53, 21, 42, 51, 5, 6, 9, 10, 28, 1, 2, 33),
   exclusion_reason = c(
     rep("Not accepting the sticker on their forehead", 3),
     rep("Technical failure/issues with the eye-tracking equipment", 3),
@@ -178,12 +185,13 @@ exclusion_data <- tibble(
     "No original paradigm trial with RT Data"
   ),
   excluded = TRUE
-)
+) |>
+  mutate(subject_id = lab_subject_id - 1)
 
 # nrow(fixations %>% filter(!is.na(audio2_onset)) %>% distinct(Participant))
 # nrow(d %>% distinct(subject_id)
 
-d <- fixations %>%
+d_pre <- fixations %>%
   filter(!is.na(audio2_onset)) %>% # point of disambiguation missing
   arrange(Participant, Timestamp) %>%
   group_by(Participant, trial) %>%
@@ -218,7 +226,7 @@ d <- fixations %>%
   # the authors do not provide explanations for this in their original analysis,
   # so we prune this data, as it is likely an artefact of some experiment mishap
   filter(t_norm > -4000) %>%
-  select(subject_id, lab_trial_id, aoi_timepoint_id, xy_timepoint_id, target, target_image, target_side, distractor_image, condition, point_of_disambiguation, x, y, t_norm, aoi, full_phrase) %>%
+  select(subject_id, lab_trial_id, aoi_timepoint_id, xy_timepoint_id, target, target_image, target_side, distractor_image, condition, point_of_disambiguation, x, y, t_norm, aoi, full_phrase, time_audio2, OnScreen, Reliable) %>%
   group_by(target, target_image, target_side, distractor_image, condition, point_of_disambiguation, full_phrase) %>%
   mutate(trial_type_id = cur_group_id() - 1) %>%
   ungroup() %>%
@@ -231,7 +239,16 @@ d <- fixations %>%
   select(-trial_change) %>%
   group_by(subject_id, trial_order) %>%
   mutate(trial_id = cur_group_id() - 1) %>%
-  ungroup() %>%
+  ungroup()
+
+usable_data <- d_pre %>%
+  filter(time_audio2 > 0 & time_audio2 < 2001) %>%
+  group_by(trial_id) %>%
+  summarise(SumLooks = sum(Reliable & OnScreen, na.rm = TRUE)) %>%
+  #Mark trials with at least 100ms of reliable looking time
+  mutate(is_usable = SumLooks>49)
+
+d <- d_pre %>%
   left_join(
     administrations %>%
       select(subject_id, administration_id),
@@ -241,7 +258,12 @@ d <- fixations %>%
     exclusion_data,
     by = "subject_id"
   ) %>%
-  mutate(excluded = replace_na(excluded, FALSE))
+  mutate(excluded = replace_na(excluded, FALSE)) %>%
+  left_join(usable_data, by="trial_id") %>%
+  mutate(
+    excluded = (excluded) | (!is_usable),
+    exclusion_reason = ifelse(!is_usable & is.na(exclusion_reason), "Looked at the screen for less than 100ms", exclusion_reason)
+  )
 
 ### 5. Trial Types Table
 
