@@ -1,3 +1,4 @@
+## 1. Initial Setup
 library(here)
 
 source(here("helper_functions", "idless_draft.R"))
@@ -5,7 +6,7 @@ source(here("helper_functions", "common.R"))
 dataset_name <- "DATASET_NAME"
 data_path <- init(dataset_name)
 
-###--
+## 2. Creating the wide.table
 # Populate your wide table from the raw data here
 
 wide.table <- tibble(
@@ -66,8 +67,7 @@ wide.table <- tibble(
     distractor_stimulus_name = NA
   )
 
-###--
-
+## 3. Digest the wide.table
 
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
@@ -80,12 +80,13 @@ dataset_list <- digest.dataset(
   resample=TRUE
 )
 
-###--
+## 4. Aux Data
 # Add any aux data here - mind that fields like "subject_id" now refer to peekbank internal ids
 # (the external id is now lab_subject_id)
 
+# if you don't have cdi data in your dataset, you can delete this section
 cdi_data <- tibble(
-  subject_id = NA, # this is referring to the lab subject id
+  subject_id = NA, # this is still referring to the lab subject id
   instrument_type = NA,
   language = NA,
   measure = NA,
@@ -97,6 +98,6 @@ cdi_data <- tibble(
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>% 
   digest.subject_cdi_data(cdi_data)
 
-###--
+## 5. Write and Validate the Data
 
 write_and_validate_list(dataset_list, cdi_expected = FALSE, upload = FALSE)
