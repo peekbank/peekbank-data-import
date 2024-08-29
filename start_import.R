@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript --vanilla
 
 ## Start this from the command line using "Rscript ./start_import.R"
+## add the argument "--legacy" to get the legacy template
 
 suppressMessages(library(here))
 suppressMessages(library(fs))
@@ -25,8 +26,13 @@ tryCatch(
 )
 
 import_script_path <- here("data", dataset_name, "import.R")
+import_template <- ifelse(
+  length(args > 0) && args[[1]] == "--legacy",
+  "legacy_template.R",
+  "idless_template.R")
+
 fs::file_copy(
-  here("helper_functions", "idless_template.R"),
+  here("helper_functions", import_template),
   import_script_path
   )
 
