@@ -179,6 +179,7 @@ d_tidy <- d_tidy %>%
 # add exclusion information
 d_tidy <- d_tidy %>%
   mutate(excluded = case_when(
+    sub_num %in% c("114","115","121","215") ~ TRUE, #Subjects excluded for not completing both
     is.na(prescreen_notes) ~ FALSE,
     prescreen_notes == "Video" ~ FALSE, # not sure what this note means, assuming no exclusion
     prescreen_notes == "All Good" ~ FALSE,
@@ -186,6 +187,7 @@ d_tidy <- d_tidy %>%
   )) %>%
   mutate(exclusion_reason = case_when(
     prescreen_notes == "Equipment Malfunction" ~ tolower(prescreen_notes),
+    sub_num %in% c("114","115","121","215") ~ "Only completed one administration",
     TRUE ~ NA_character_
   )) # %>%
 # select(-prescreen_notes)
@@ -197,7 +199,8 @@ stimulus_table <- d_tidy %>%
     dataset_id = 0,
     stimulus_novelty = "familiar",
     lab_stimulus_id = paste0(target_image, "_", target_spoken_label, sep = ""),
-    stimulus_id = seq(0, nrow(.) - 1)
+    stimulus_id = seq(0, nrow(.) - 1),
+    target_image = paste("raw_data/stimuli/visual/images/",target_image,"1.png",sep="")
   ) %>%
   mutate(
     image_description = target_image,
@@ -206,7 +209,7 @@ stimulus_table <- d_tidy %>%
   rename(
     original_stimulus_label = target_spoken_label,
     english_stimulus_label = target_label,
-    stimulus_image_path = target_image # TO DO - update once images are shared/ image file path known
+    stimulus_image_path = target_image
   )
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on the "spoken labels"
@@ -217,6 +220,10 @@ d_tidy <- d_tidy %>%
   left_join(stimulus_table %>% select(stimulus_id, original_stimulus_label), by = c("distractor_spoken_label" = "original_stimulus_label")) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
+
+## identify unique subject-id, study appears to provide multiple ids for each subject (to distinguish between admin 1 and admin 2)
+
+d_tidy <- d_tidy %>% mutate(sub_num = substr(sub_num,2,nchar(sub_num)))
 
 # get zero-indexed subject ids
 d_subject_ids <- d_tidy %>%
@@ -229,7 +236,7 @@ d_tidy <- d_tidy %>%
 
 # get zero-indexed administration ids
 d_administration_ids <- d_tidy %>%
-  distinct(sub_num, administration_num, subject_id, months) %>%
+  distinct(sub_num, administration_num, subject_id, months, order) %>%
   mutate(administration_id = seq(0, length(.$administration_num) - 1))
 # join in administration_id
 d_tidy <- d_tidy %>%
@@ -294,7 +301,8 @@ cdi_data <- cdi_raw %>%
   mutate(
     SpanishCDI = suppressWarnings(as.numeric(ifelse(Dominant == "Spanish", CDI_Dominant, CDI_NonDominant))),
     EnglishCDI = suppressWarnings(as.numeric(ifelse(Dominant == "English", CDI_Dominant, CDI_NonDominant))),
-    English_Percent = suppressWarnings(as.numeric(English_Percent))
+    English_Percent = suppressWarnings(as.numeric(English_Percent)),
+    subNum = substr(subNum,2,nchar(subNum))
   ) %>%
   select(subNum, ageMonths, SpanishCDI, EnglishCDI, English_Percent) %>%
   filter(!is.na(EnglishCDI) | !is.na(SpanishCDI) | !is.na(English_Percent)) %>%
@@ -380,8 +388,9 @@ trial_types <- d_tidy_final %>%
   ) %>%
   mutate(
     full_phrase_language = case_when(
-      str_detect(condition, "english_to") ~ "eng",
-      str_detect(condition, "spanish_to") ~ "spa",
+      str_detect(condition, "same_english") ~ "eng",
+      str_detect(condition, "same_spanish") ~ "spa",
+      str_detect(condition, "mix") ~ "multiple",
       TRUE ~ NA_character_
     ),
     trial_type_aux_data = NA
