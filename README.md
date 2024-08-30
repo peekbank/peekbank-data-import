@@ -112,6 +112,9 @@ This table should have one row per recorded gazepoint, with all of the associate
 
 Refer to the generated template for an overview of the columns that need to be present in this table. This [specification of the wide.table fields](https://docs.google.com/spreadsheets/d/1Z24n9vfrAmEk6_HpoTSh58LnkmSGmNJagguRpI1jwdo/edit?gid=516411759#gid=516411759) explains the contents of each column. Some columns are optional, so depending on your dataset, you might not have to specify all of them.
 
+This is the part where you have to wrangle the original data, which might not always be obvious. 
+Create a `README.md` in the datasets folder and fill it with any oddiies/ambiguities that you encounter during import and document the decisions you make.
+
 
 ### 3. Digest the wide.table
 
