@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          install.packages(c('remotes','purrr','dplyr','here','tidyr','httr'))
+          install.packages(c('remotes','purrr','dplyr','here','tidyr','httr'), dependencies=TRUE)
           remotes::install_github("langcog/peekbankr",  force=T)          
         shell: Rscript {0}
           
