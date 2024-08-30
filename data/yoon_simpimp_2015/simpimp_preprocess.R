@@ -8,7 +8,7 @@ library(janitor)
 source("useful.R")
 
 select_msg <- function(df){
-  if (raw.data.path=="../raw_data/new_data/")
+  if (raw.data.path=="raw_data/eyetracking/new_data/")
   {df |>   select(time, message=l_raw_x_px)}
   else {df |>  select(time, message=l_por_x_px)}
   
@@ -31,9 +31,10 @@ preprocess.data <- function(file.name, x.max = 1680, y.max = 1050,
       lx = to.n(l_por_x_px),
       rx = to.n(r_por_x_px),
       ly = to.n(l_por_y_px),
-      ry = to.n(r_por_y_px)
+      ry = to.n(r_por_y_px),
+      t=time/1000 #convert ms
     ) |>
-    select(t = time, lx, ly, rx, ry)
+    select(t = t, lx, ly, rx, ry)
   
   print(file.name)
   
@@ -42,7 +43,8 @@ preprocess.data <- function(file.name, x.max = 1680, y.max = 1050,
   msgs <- all.d |>
     filter(str_detect(type,"MSG")) |> 
     select_msg() |> 
-    mutate(stimulus = as.character(message) |> 
+    mutate(time=time/1000, #to ms
+           stimulus = as.character(message) |> 
              str_replace("# Message: ", "") |> 
              str_replace(".jpg","")) |> 
     select(-message)
@@ -61,22 +63,21 @@ preprocess.data <- function(file.name, x.max = 1680, y.max = 1050,
            x=ifelse(0<x & x < x.max, x, NA),
            y=ifelse(0<y & y < y.max, y, NA),
            y=y.max-y, # move to cartesian origin
-           t=t/1000, #into milliseconds
            subid=file.name)
   
   return(d)
 }
 
-raw.data.path = "../raw_data/new_data/"
+raw.data.path = "raw_data/eyetracking/new_data/"
 
 stuff <- list.files(raw.data.path) |>  # big issues
-  map(preprocess.data) |>  bind_rows() |> mutate(expt="expt2") |> write_csv("eyetrack_expt2.csv")
+  map(preprocess.data) |>  bind_rows() |> mutate(expt="expt2") |> write_csv("raw_data/eyetracking/eyetrack_expt2.csv")
 
-raw.data.path = "../raw_data/old_data/"
+raw.data.path = "raw_data/eyetracking/old_data/"
 
 #foo <- preprocess.data("140217-02-L1.txt")
 stuff2 <- list.files(raw.data.path) |> 
-  map(preprocess.data) |>  bind_rows() |> mutate(expt="expt1") |> write_csv("eyetrack_expt1.csv")
+  map(preprocess.data) |>  bind_rows() |> mutate(expt="expt1") |> write_csv("raw_data/eyetracking/eyetrack_expt1.csv")
 
 
 
