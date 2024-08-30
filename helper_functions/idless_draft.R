@@ -168,6 +168,10 @@ digest.dataset <- function(
     ungroup() %>% 
     group_by(administration_id, trial_type_id, trial_order) %>%
     mutate(trial_id = cur_group_id() - 1) %>%
+    ungroup() %>%
+    group_by(l_x_max, l_x_min, l_y_max, l_y_min,
+             r_x_max, r_x_min, r_y_max, r_y_min) %>%
+    mutate(aoi_region_set_id = cur_group_id() - 1) %>%
     ungroup()
   
   datasets <- tibble(
@@ -212,7 +216,7 @@ digest.dataset <- function(
       age = case_when(
         lab_age_units == "months" ~ lab_age,
         lab_age_units == "days" ~ lab_age/(365.25/12),
-        lab_age_units == "years" ~ 12*lab_age + ifelse(lab_age-floor(lab_age) == 0, 6, 0),
+        lab_age_units == "years" ~ 12*lab_age + ifelse(all(lab_age-floor(lab_age) == 0), 6, 0),
         .default = NA
       ),
       administration_aux_data = NA
@@ -230,7 +234,8 @@ digest.dataset <- function(
       vanilla_trial,
       dataset_id,
       distractor_id,
-      target_id
+      target_id,
+      aoi_region_set_id
     ) %>% 
     mutate(
       target_side = tolower(target_side),
@@ -241,7 +246,6 @@ digest.dataset <- function(
         target_side == "r" ~ "right",
         .default="ERROR"),
       trial_type_aux_data = NA,
-      aoi_region_set_id = NA # set for now, set to 0 further down below if we actually have that table
       )
   
   
@@ -289,8 +293,8 @@ digest.dataset <- function(
         r_x_min,
         r_y_max,
         r_y_min,
-      ) %>% 
-      mutate(aoi_region_set_id = 0)
+        aoi_region_set_id
+      )
     
     xy_timepoints <- data %>%
       {if (rezero) peekds::rezero_times(.) else rename(., t_zeroed = t)} %>%
@@ -304,6 +308,8 @@ digest.dataset <- function(
         trial_id,
         administration_id
       )
+  } else {
+    trial_types$aoi_region_set_id <- NA
   }
   
   return(list(

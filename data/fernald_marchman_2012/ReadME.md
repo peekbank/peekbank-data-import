@@ -27,10 +27,15 @@ Note: for images, some images were shown in slightly different versions or mirro
 
 For the manju and tempo trials, some were exposure where the object was on a background and some were tests where they were not on the background.
 
+Some images were mirrored depending on left/right positioning - image labels L and R are from the participants' perspective.
+
+IMPORTANT: for related/unrelated prime noun/verb trials, the trials are represented in the raw data TWICE - once centered on the onset of the verb and once centered on the onset of the noun. We only keep the trial representation centered on the onset of the noun.
+
 5. Importing ambiguity
 
+Point of disambiguation is tricky for verb and adjective trials - should this be the first informative moment (e.g. when an informative verb was mentioned) or at the onset of the noun?
 
-
-ToDos:
-* check with Martin and/or Virginia about whether slightly different images (mirroring) matter
-
+In the raw data, point of disambiguation:
+- exposure novel trials: F0 is the onset of the verb
+- 24mos: adjective: word onset is the adjective
+- 30mos: hard adjective trials: onset of the color/ size

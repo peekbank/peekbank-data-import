@@ -45,6 +45,12 @@ d_processed_24 <- d_raw_24 %>%
 d_raw_30 <- read_delim(fs::path(read_path, "TL230ABoriginalichartsn1-121toMF.txt"),
   delim = "\t"
 )
+# remove duplicated trials (recentered on verb instead of noun)
+d_raw_30 <- d_raw_30 |>
+  filter(
+    !(OriginalCondition %in% c("R-primeVerb","UR-primeVerb"))
+  )
+
 # d_raw_30 has two slightly different types of rows mixed together
 d_processed_30_part_1 <- d_raw_30 |>
   filter(is.na(Shifts)) |>
@@ -60,15 +66,17 @@ d_processed_30_part_1 <- d_raw_30 |>
 
 d_processed_30_part_2 <- d_raw_30 |>
   filter(!is.na(Shifts)) |>
-  # these *do* have looking data in non-looking cols
-  rename(
-    f01 = `Frames - word starts at frame 45 `,
-    f02 = `First Shift Gap`,
-    f03 = `RT`,
-    f04 = `CritOnSet`,
-    f05 = `CritOffSet`
-  ) |>
+  # # these *do* have looking data in non-looking cols
+  # rename(
+  #   f01 = `Frames - word starts at frame 45 `,
+  #   f02 = `First Shift Gap`,
+  #   f03 = `RT`,
+  #   f04 = `CritOnSet`,
+  #   f05 = `CritOffSet`
+  # ) |>
   preprocess_raw_data() %>%
+  #drop final x column
+  select(-x270) %>%
   relabel_time_cols(
     metadata_names = extract_col_types(.)[["metadata_names"]],
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
@@ -142,9 +150,6 @@ d_tidy <- d_tidy %>%
     target_side == "right" ~ left_image,
     TRUE ~ right_image
   ))
-
-
-## TODO See Readme for some questions about stimulus table
 
 # create stimulus table
 stimulus_table_link <- d_tidy %>%
@@ -230,7 +235,7 @@ d_tidy <- d_tidy %>%
   )
 
 # create zero-indexed ids for trial_types
-d_trial_type_ids <- d_tidy %>% 
+d_trial_type_ids <- d_tidy %>%
   distinct(
     target_id, distractor_id, target_side,
     condition
@@ -252,7 +257,7 @@ d_tidy_semifinal <- d_tidy %>%
   left_join(d_administration_ids) %>%
   left_join(d_trial_type_ids) |>
   select(-condition2, -original_condition, -cond_orig)
-  
+
 
 # get zero-indexed trial ids for the trials table
 d_trial_ids <- d_tidy_semifinal %>%
@@ -262,13 +267,13 @@ d_trial_ids <- d_tidy_semifinal %>%
   ) %>%
   # the prescreen notes are not attached to all rows of a trial (sub_num x session x months x trial_type_id), so we fix this
   group_by(sub_num, session, months, trial_type_id) %>%
-  summarize(prescreen_notes = first(na.omit(prescreen_notes)), .groups = 'drop') %>% 
+  summarize(prescreen_notes = first(na.omit(prescreen_notes)), .groups = 'drop') %>%
   mutate(excluded = !is.na(prescreen_notes)) |>
   rename(exclusion_reason = prescreen_notes) |>
   group_by(sub_num, session, months) %>%
   mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
-  ungroup() %>% 
-  mutate(trial_id = 0:(n()-1)) %>% 
+  ungroup() %>%
+  mutate(trial_id = 0:(n()-1)) %>%
   distinct()
 
 # join
@@ -464,5 +469,5 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload = TRUE
+  upload = FALSE
 )

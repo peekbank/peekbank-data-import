@@ -1,3 +1,4 @@
+library(tidyverse)
 library(here)
 
 source(here("helper_functions", "idless_draft.R"))
@@ -5,17 +6,152 @@ source(here("helper_functions", "common.R"))
 dataset_name <- "yoon_simpimp_2015"
 data_path <- init(dataset_name)
 
-# TODO: figure out what part of the data we actually need here
 
-wide.table <- tibble()
+generate_aois <- function(x, y, target_side, 
+                          l_x_max, l_x_min, l_y_max, l_y_min,
+                          r_x_max, r_x_min, r_y_max, r_y_min,
+                          monitor_size_x = 1e6,
+                          monitor_size_y = 1e6) {
+  ifelse(target_side == "left",
+         case_when( # left target
+           x <= l_x_max & x >= l_x_min & y <= l_y_max & y >= l_y_min ~ "target",
+           x <= r_x_max & x >= r_x_min & y <= r_y_max & y >= r_y_min ~ "distractor",
+           is.na(x) | is.na(y) | x > monitor_size_x | x < 0 | y > monitor_size_y | y < 0 ~ "missing",
+           .default = "other"
+         ),
+         case_when( # right target
+           x <= l_x_max & x >= l_x_min & y <= l_y_max & y >= l_y_min ~ "distractor",
+           x <= r_x_max & x >= r_x_min & y <= r_y_max & y >= r_y_min ~ "target",
+           is.na(x) | is.na(y) | x > monitor_size_x | x < 0 | y > monitor_size_y | y < 0 ~ "missing",
+           .default = "other"
+         ))
+}
+# 
 eyetracking_path <- here(data_path, "eyetracking")
-# TODO t.crit is seconds right now
-data_ex_1B <- read.csv(here(eyetracking_path, "simpimp_processed_3v1.csv"))
-data_ex_1A <- read.csv(here(eyetracking_path, "simpimp_processed_2v1.csv"))
+data_ex_1<- read_csv(here(eyetracking_path, "eyetrack_expt1.csv")) |> 
+  mutate(expt="0")
 
-exclusion_data <- read.csv(here(eyetracking_path, "simpimp_et_log.csv"))
-order_data <- read.csv(here(eyetracking_path, "simpimp_et_order.csv"))
+data_ex_2 <- read_csv(here(eyetracking_path, "eyetrack_expt2.csv")) |> 
+  mutate(expt="scale") 
 
+exclusion_data <- read_csv(here(eyetracking_path, "simpimp_et_log.csv")) |> 
+  filter(age!="adult")
+order_data <- read_csv(here(eyetracking_path, "simpimp_et_order.csv"))
+
+draft_data <- data_ex_1 |> bind_rows(data_ex_2) |> inner_join(order_data) |> 
+  #mutate(time=ifelse(is.na(order), NA, time), #this is janky - VB
+  #       stimulus=ifelse(is.na(order), NA, stimulus)) |> 
+  #group_by(subid) |> 
+  #     fill(order:targetOnset) |> 
+  #     fill(time:stimulus) |> 
+  ungroup() |> 
+  filter(!is.na(time)) |> 
+  mutate(t=t-time,
+         point_of_disambiguation=1000*targetOnset) |> 
+  select(-lx, -ly, -rx, -ry) |> inner_join(exclusion_data) |> 
+  mutate(target_side=ifelse(targetPos=="R","right", "left"),
+         condition=case_when(
+           trial_type=="cs" ~ "control-single",
+           trial_type=="cd" ~ "control-double",
+           trial_type=="inf" ~ "inference"
+         ),
+         vanilla_trial = FALSE, # there are decisions to be made about whether
+         # the cs trials are vanilla, we're leaning not, but shrug
+         excluded = keep_drop=="drop", # note there should also be trial level exclusions, but we haven't tracked those down
+         exclusion_reason = ifelse(keep_drop=="drop", "participant level some reason", NA),
+         target_stimulus_label_original = str_c("target_",condition, "_",item),
+         distractor_stimulus_label_original=str_c("distractor_", condition,"_", item)
+         # will need to fix this
+  )
+
+
+
+wide.table <- draft_data |> 
+  mutate(age_units="years",
+         age=as.numeric(age),
+         full_phrase=NA,
+         native_language="eng",
+         full_phrase_language="eng",
+         session_num=0, 
+         sample_rate=NA,
+         tracker = NA,
+         coding_method = "eyetracking",
+         # note we will need to figure this out off of item at some point
+         target_stimulus_label_english = target_stimulus_label_original,
+         target_stimulus_novelty = "familiar",
+         target_stimulus_image_path = "stimulus_image_path",
+         target_image_description = "image",
+         target_image_description_source = "Peekbank discretion",
+         distractor_stimulus_label_english = distractor_stimulus_label_original,
+         distractor_stimulus_novelty = "familiar",
+         distractor_stimulus_image_path = "distrator_image_path",
+         distractor_image_description = "tbd",
+         distractor_image_description_source = "Peekbank discretion"
+  ) |> 
+  select(
+  subject_id = subid,
+  sex = sex,
+  native_language,
+  age = age,
+  age_units,
+  t,
+  #aoi = NA,
+  full_phrase,
+  full_phrase_language,
+  point_of_disambiguation,
+  target_side,
+  condition,
+  vanilla_trial,
+  excluded,
+  exclusion_reason,
+  session_num,
+  sample_rate,
+  tracker,
+  coding_method,
+  target_stimulus_label_original,
+  target_stimulus_label_english,
+  target_stimulus_novelty,
+  target_stimulus_image_path,
+  target_image_description,
+  target_image_description_source,
+  distractor_stimulus_label_original,
+  distractor_stimulus_label_english,
+  distractor_stimulus_novelty,
+  distractor_stimulus_image_path,
+  distractor_image_description,
+  distractor_image_description_source,
+  x,
+  y
+) %>%
+  # optional 
+  mutate(
+    # fill out all of these if you have xy data
+    l_x_max = 840,
+    l_x_min = 0,
+    l_y_max = 1000,
+    l_y_min = 250,
+    r_x_max = 1680,
+    r_x_min = 840,
+    r_y_max = 1000,
+    r_y_min = 250,
+    x = x,
+    y = y,
+    monitor_size_x = NA,
+    monitor_size_y = NA,
+    # if two subsequent trials can have the same stimuli combination,
+    # use this to indicate the trial order within an administration
+    trial_index = NA,
+    # lab specific name for trials
+    trial_name = NA,
+    # lab specific names for stimuli
+    target_stimulus_name = NA, 
+    distractor_stimulus_name = NA
+  ) |> mutate(aoi=generate_aois(x, y, target_side, 
+                                l_x_max, l_x_min, l_y_max, l_y_min,
+                                r_x_max, r_x_min, r_y_max, r_y_min))
+
+    
+  
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
   lab_dataset_id = NA,
