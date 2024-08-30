@@ -28,24 +28,26 @@ generate_aois <- function(x, y, target_side,
 }
 # 
 eyetracking_path <- here(data_path, "eyetracking")
-data_ex_1<- read_csv(here(eyetracking_path, "eyetrack_expt1.csv")) |> mutate(expt="0")
-data_ex_2 <- read_csv(here(eyetracking_path, "eyetrack_expt2.csv")) |> mutate(expt="scale")
+data_ex_1<- read_csv(here(eyetracking_path, "eyetrack_expt1.csv")) |> 
+  mutate(expt="0")
+
+data_ex_2 <- read_csv(here(eyetracking_path, "eyetrack_expt2.csv")) |> 
+  mutate(expt="scale") 
 
 exclusion_data <- read_csv(here(eyetracking_path, "simpimp_et_log.csv")) |> 
   filter(age!="adult")
 order_data <- read_csv(here(eyetracking_path, "simpimp_et_order.csv"))
 
-draft_data <- data_ex_1 |> bind_rows(data_ex_2) |> left_join(order_data) |> 
-  mutate(time=ifelse(is.na(order), NA, time), #this is janky - VB
-         stimulus=ifelse(is.na(order), NA, stimulus)) |> 
-  group_by(subid) |> 
-       fill(order:targetOnset) |> 
-       fill(time:stimulus) |> 
+draft_data <- data_ex_1 |> bind_rows(data_ex_2) |> inner_join(order_data) |> 
+  #mutate(time=ifelse(is.na(order), NA, time), #this is janky - VB
+  #       stimulus=ifelse(is.na(order), NA, stimulus)) |> 
+  #group_by(subid) |> 
+  #     fill(order:targetOnset) |> 
+  #     fill(time:stimulus) |> 
   ungroup() |> 
   filter(!is.na(time)) |> 
-  mutate(time=time/1000,
-         t=t-time-1000*targetOnset,
-         point_of_disambiguation=time+1000*targetOnset) |> 
+  mutate(t=t-time,
+         point_of_disambiguation=1000*targetOnset) |> 
   select(-lx, -ly, -rx, -ry) |> inner_join(exclusion_data) |> 
   mutate(target_side=ifelse(targetPos=="R","right", "left"),
          condition=case_when(
