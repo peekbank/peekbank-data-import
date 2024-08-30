@@ -17,6 +17,7 @@ Note that the data only include "single" and "mixed" conditions; there are also 
 ## Importing decisions
 Stimuli are available although these are in video files so will need to be extracted.
 Language exposure data are also available in Perez et al. ([2024](https://osf.io/mxksz/)) and could be imported (although they have not yet been).
+There are no CDI data, but there are vocabulary data from DVAP; these could be imported in the lang_measures field for subject_aux_data.
 
 We included importing decisions from the [processing script](https://osf.io/ug7t3/files/github/01_load.R), including the rectification of AOIs and the removal of duplicated header rows.
 Age was calculated from years, months, and days using the formula: years * 365.2425 + months * (365.2425/12) + days.
