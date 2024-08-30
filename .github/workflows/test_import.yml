@@ -30,8 +30,7 @@ jobs:
         run: |
           install.packages('remotes')
           remotes::install_github("langcog/peekbankr",  force=T)          
-
+        shell: Rscript {0}
+          
       - name: Run pipeline 
-        run: R helper_functions/pipeline.R
-
-      
+        run: Rscript helper_functions/pipeline.R
