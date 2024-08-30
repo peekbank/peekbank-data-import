@@ -13,6 +13,14 @@ select_msg <- function(df){
   else {df |>  select(time, message=l_por_x_px)}
   
 }
+
+mean_na <- function(a,b){
+  if(length(a)==0){return(NA)}
+  if(is.na(a)){b}
+  else if(is.na(b)){a}
+  else{(a+b)/2}
+}
+
 preprocess.data <- function(file.name, x.max = 1680, y.max = 1050,
                             samp.rate = 120,
                             avg.eyes = TRUE) {
@@ -57,11 +65,8 @@ preprocess.data <- function(file.name, x.max = 1680, y.max = 1050,
     filter(!str_detect(stimulus,".avi")) |> 
     filter(!stimulus=="blank") |> 
     filter(!is.na(stimulus)) |> 
-    rowwise() |> 
-    mutate(x=mean(c(lx,rx), na.rm=T), #average eyes
-           y=mean(c(ly,ry), na.rm=T),
-           x=ifelse(0<x & x < x.max, x, NA),
-           y=ifelse(0<y & y < y.max, y, NA),
+    mutate(x=mean_na(lx,rx), #average eyes
+           y=mean_na(ly,ry),
            y=y.max-y, # move to cartesian origin
            subid=file.name)
   
