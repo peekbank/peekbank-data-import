@@ -185,14 +185,49 @@ stimulus_table <- stimulus_table_link |>
       TRUE ~ "familiar"
     ),
     original_stimulus_label = target_label,
-    english_stimulus_label = target_label,
+    #english_stimulus_label = target_label,
     stimulus_image_path = str_c("images/", clean_target_image, ".png"),
-    image_description = target_label,
+    #image_description = target_label,
     image_description_source = "image path",
     lab_stimulus_id = clean_target_image,
     stimulus_aux_data = NA
   ) |>
   mutate(stimulus_id = seq(0, length(lab_stimulus_id) - 1))
+
+#rename target image
+stimulus_table <- stimulus_table |> 
+  mutate(
+    original_stimulus_label = case_when(
+      original_stimulus_label == "shoeblue" ~ "shoe",
+      original_stimulus_label == "ballblue" ~ "ball",
+      original_stimulus_label == "houseblue" ~ "house",
+      original_stimulus_label == "carblue" ~ "car",
+      original_stimulus_label == "shoered" ~ "shoe",
+      original_stimulus_label == "ballred" ~ "ball",
+      original_stimulus_label == "housered" ~ "house",
+      original_stimulus_label == "carred" ~ "car",
+      original_stimulus_label == "tempo gr" ~ "tempo",
+      original_stimulus_label == "tempo yl" ~ "tempo",
+      original_stimulus_label == "manju gr" ~ "manju",
+      original_stimulus_label == "manju wh" ~ "manju",
+      original_stimulus_label == "massager or" ~ "massager",
+      original_stimulus_label == "massager yl" ~ "massager",
+      original_stimulus_label == "fan bl" ~ "fan",
+      original_stimulus_label == "fan pr" ~ "fan",
+      original_stimulus_label == "spoonlittle" ~ "spoon",
+      original_stimulus_label == "socklittle" ~ "sock",
+      original_stimulus_label == "flowerlittle" ~ "flower",
+      original_stimulus_label == "cookielittle" ~ "cookie",
+      original_stimulus_label == "spoonbig" ~ "spoon",
+      original_stimulus_label == "sockbig" ~ "sock",
+      original_stimulus_label == "flowerbig" ~ "flower",
+      original_stimulus_label == "cookiebig" ~ "cookie",
+      TRUE ~ original_stimulus_label
+    )
+  ) |> 
+  mutate(
+    english_stimulus_label=original_stimulus_label
+  )
 
 link_stimulus <- stimulus_table |>
   select(clean_target_image, stimulus_id) |>
