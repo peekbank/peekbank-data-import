@@ -51,17 +51,17 @@ preprocess.data <- function(file.name, x.max = 1680, y.max = 1050,
   msgs <- all.d |>
     filter(str_detect(type,"MSG")) |> 
     select_msg() |> 
-    mutate(time=time/1000, #to ms
+    mutate(stimulus_onset=time/1000, #to ms
            stimulus = as.character(message) |> 
              str_replace("# Message: ", "") |> 
              str_replace(".jpg","")) |> 
-    select(-message)
+    select(-message, -time)
   
   msgs |> select(stimulus) |> unique() |> head() |> print()
 
   #print(head(msgs))
   # attach the most recently started stimulus
-  d <- dat |> left_join(msgs, by = join_by(closest(t > time))) |> 
+  d <- dat |> left_join(msgs, by = join_by(closest(t > stimulus_onset))) |> 
     filter(!str_detect(stimulus,".avi")) |> 
     filter(!stimulus=="blank") |> 
     filter(!is.na(stimulus)) |> 
