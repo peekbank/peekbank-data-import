@@ -13,7 +13,7 @@ dataset_id <- 0
 # these are 30 fps
 sampling_rate_hz <- 30
 sample_rate_ms <- 1000 / 30
-start_frames <- 68 # TODO: start of phrase or start of word?
+start_frames <- 68 
 point_of_disambiguation <- start_frames * sample_rate_ms
 
 # these files contain demographic data instead of the trial data for one participant
@@ -137,7 +137,6 @@ looking_data <- raw_looking_data %>%
 
 # Check that there are the correct number of trials per participant
 # 3 participants have <20 trials 26VS, 20J, 4HS
-# TODO: for now, remove these participants because we're not sure of their trial order...
 looking_data <- looking_data %>%
   group_by(subject_file) %>%
   mutate(num_trials = max(trial_order_num)) %>%
@@ -286,7 +285,9 @@ demo_data_tidy <- raw_demo_data %>%
 
       jsonlite::toJSON(jsonlist, auto_unbox = TRUE)
     }
-  )))
+  ))) |> 
+  mutate(subject_aux_data=ifelse(subject_aux_data=="NA", NA, subject_aux_data)) 
+  
 
 looking_participant_column <- looking_data_tidy %>%
   rename(looking_part_group = part_group) %>%
@@ -325,7 +326,13 @@ demo_data_tidy <- demo_data_tidy %>%
       looking_part_group == "30 month olds, 5 dB SNR" ~ 30.5,
       TRUE ~ lab_age
     ), lab_age
-  ))
+  )) |> 
+  mutate(excluded=case_when(
+     is.na(drop_yes_or_leave_blank_if_no) ~ FALSE,
+      drop_yes_or_leave_blank_if_no=="YES"~ TRUE, 
+       T ~ FALSE),
+         exclusion_reason=ifelse(excluded, reason_for_drop_or_general_results, NA))
+  
 
 d_tidy <- looking_data_tidy %>%
   left_join(demo_data_tidy) %>%
@@ -489,11 +496,9 @@ trial_types_table <- trail_type_ids %>%
   select(-voice_gender, -db_level)
 
 trials_table <- d_tidy %>%
-  distinct(administration_id, trial_type_id, trial_order) %>%
+  distinct(administration_id, trial_type_id, trial_order, excluded, exclusion_reason) %>%
   mutate(
     trial_id = 0:(n() - 1),
-    excluded = FALSE,
-    exclusion_reason = NA,
     trial_aux_data = NA
   )
 
