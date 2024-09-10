@@ -73,4 +73,4 @@ Study 2:
 
 5. Importing ambiguity
 
-It is unclear if the control-single trials count as "vanilla" -- the carrier phrases are atypical, but they are otherwise normal. (Currently not marked as vanilla.) 
+It is unclear if the control-single trials count as "vanilla" -- the carrier phrases are atypical, but they are otherwise normal. Decision has been made to label them as vanilla. 

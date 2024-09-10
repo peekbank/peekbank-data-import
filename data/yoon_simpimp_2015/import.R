@@ -95,8 +95,7 @@ draft_data <- combined_data_index |> left_join(stimulus) |>
       trial_type == "cd" ~ "control-double",
       trial_type == "inf" ~ "inference"
     ),
-    vanilla_trial = FALSE, # there are decisions to be made about whether
-    # the cs trials are vanilla, we're leaning not, but shrug
+    vanilla_trial = trial_type=="cs", # cs trials are vanilla, others are not
     excluded = keep_drop == "drop", # note there are also trial level exclusions which are applied later
     exclusion_reason = ifelse(keep_drop == "drop", "participant level some reason", NA)
   ) |>
