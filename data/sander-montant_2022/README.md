@@ -17,7 +17,7 @@ These studies are listed as follows (with updated citations), along with importi
 - Byers-Heinlein et al. ([2022](https://osf.io/preprints/psyarxiv/298cz), **NOT** imported): On 36-month-olds. Key manipulation is code-mixing in familiar + novel noun. Excluded because original paper has Eng-Fra and Eng-Spa data, and only the former were included in this paper.
 
 Thus, we only imported two of the component five datasets. 
-BH17 was already import, and we will import K+21 and BH22 separately.
+BH17 was already import, and we will import Kremlin23 and BH22 separately.
 
 The data were collected with a Tobii T60-XL eyetracker using a 60Hz sampling rate.
 All studies were conducted in a mix of English and French on English-French bilinguals.
@@ -33,6 +33,8 @@ Some trials also had a media name--trial order pairing that was not in the trial
 We excluded these as potential errors.
 
 Monitor size was set as 1920x1080 (based on the studies), although note that the Tobii export has 1920x1200.
+
+Stimuli and trial properties in trial_info were coded off of the image/trial naming system. 
 
 ## Importing ambiguity
 None other than those reported above.

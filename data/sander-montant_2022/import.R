@@ -7,9 +7,41 @@ source(here("helper_functions", "common.R"))
 dataset_name <- "sander-montant_2022"
 read_path <- init(dataset_name)
 
+# decision was to only include the Schott and unpub datasets 
+# (excluding BH 2017, Kremin 2021, BH 2022)
+# the remaining datasets will be imported independently
+
 ###### loading files ######
-et_files <- list.files(here(read_path, "anonymous_eye_data")) |> 
-  sapply(\(f) load(here(read_path, "anonymous_eye_data", f), .GlobalEnv))
+load(here(read_path, "anonymous_eye_data", "eye_data_cogmisp.Rda"))
+load(here(read_path, "anonymous_eye_data", "mix1.Rda"))
+load(here(read_path, "anonymous_eye_data", "mix2.Rda"))
+load(here(read_path, "anonymous_eye_data", "mix3.Rda"))
+load(here(read_path, "anonymous_eye_data", "mix4.Rda"))
+load(here(read_path, "anonymous_eye_data", "mix5.Rda"))
+load(here(read_path, "anonymous_eye_data", "mix6.Rda"))
+load(here(read_path, "anonymous_eye_data", "mix7.Rda"))
+
+only_relevant <- function(df){
+  df |> filter(str_detect(RecordingName, "Mix[-_]14") == TRUE) |> 
+    mutate(
+      ExportDate = as.character(ExportDate),
+      StudioTestName = as.character(StudioTestName)
+    )
+}
+
+mix1 <- mix1 |> only_relevant()
+mix2 <- mix2 |> only_relevant()
+mix3 <- mix3 |> only_relevant()
+mix4 <- mix4 |> only_relevant()
+mix5 <- mix5 |> only_relevant()
+mix6 <- mix6 |> only_relevant()
+mix7 <- mix7 |> only_relevant()
+eye_data_cogmisp <- eye_data_cogmisp |>    
+  mutate(
+  ExportDate = as.character(ExportDate),
+  StudioTestName = as.character(StudioTestName)
+)
+
 
 demog_files <- list.files(here(read_path, "anonymous_demographic_data")) |> 
   sapply(\(f) load(here(read_path, "anonymous_demographic_data", f), .GlobalEnv))
@@ -17,13 +49,7 @@ demog_files <- list.files(here(read_path, "anonymous_demographic_data")) |>
 cdi_files <- load(here(read_path, "anon_cdi.Rda"))
 
 ###### merging data ######
-et_data <- bind_rows(lapply(et_files, \(f) {
-  eval(sym(f)) |> 
-    mutate(
-      ExportDate = as.character(ExportDate),
-      StudioTestName = as.character(StudioTestName)
-    )
-}))
+et_data <- bind_rows(mix1, mix2, mix3, mix4, mix5, mix6, mix7, eye_data_cogmisp)
 
 demog_data <- bind_rows(lapply(demog_files, \(f) {
   eval(sym(f)) |> 
@@ -127,14 +153,8 @@ et_data_joined <- et_data_fixed |>
   select(-starts_with("AOI["),
          -starts_with("X"))
 
-# decision was to only include the Schott and unpub datasets 
-# (excluding BH 2017, Kremin 2021, BH 2022)
-# the remaining datasets will be imported independently
+trial_info <- read_csv(here(read_path, "trial_info.csv")) 
 
-et_data_joined_import <- et_data_joined |> 
-  filter(StudioProjectName %in% c("Mix-14", "CogMisp-24"))
-
-trial_info <- read_csv(here(read_path, "trial_info.csv"))
 
 exclusions <- demog_data |> 
   select(recording_name, starts_with("exclusion")) |> 
@@ -185,7 +205,7 @@ subject_aux_data <- lang_exposures |>
 
 ###### merge data ######
 
-wide.table <- et_data_joined_import |> 
+wide.table <- et_data_joined |> 
   left_join(trial_info, by = join_by(MediaName == media_name)) |> 
   left_join(exclusions, by = join_by(RecordingName == recording_name)) |> 
   mutate(
