@@ -142,11 +142,10 @@ looking_data %>%
 
 # missing 2 trials for 20NC_StoryBookReading_Order2_Averages.xls and 1 trial for 6MM_StoryBookReading_Order6_Averages.xls
 
+# 20NC notes say <-- MO said RESTART E-PRIME. FIRST TWO PRACTICE TRIALS NOT CODED. CODING STARTS WITH "SNIRK".
+
 # Dataset note says the first trial was cut out for participant 27AS, so we need to increment that participants trial #s...
-# looking_data <- looking_data %>%
-#   mutate(trial_order_num = ifelse(subject_file == "27AS_SineWaveSpeechv2_Order2.xls",
-#                                   trial_order_num+1,
-#                                   trial_order_num))
+# 27 AS seems to be an excluded participant, we don't have data for them
 
 # we want spread the dataframe so that there is a look per frame row
 # but the B (Begin) and S (Stop) timepoints only have a start_frame, so we impute the end frame
