@@ -65,6 +65,8 @@ aoi_fixed <- aois |>
 mtl_data_cleaned <- mtl_raw_data_anon |> 
   rename(x = gaze_point_x_adc_spx, 
          y = gaze_point_y_adc_spx) |> 
+  #fix one recording that isn't named the same way...
+  mutate(recording_name=ifelse(recording_name=="CompMix_S04_F1", "CompMix36_S04_F1", recording_name)) |> 
   separate_wider_delim(recording_name, delim = "_",
                        names = c("study_name", "study_id", "study_order"),
                        cols_remove = FALSE) |> 
@@ -78,7 +80,7 @@ mtl_data_cleaned <- mtl_raw_data_anon |>
   separate_wider_delim(media_name, delim = "_",
                        names = c("object", "trial_type", "location"),
                        cols_remove = FALSE) |> 
-  select(-starts_with("aoi_"))
+  select(-starts_with("aoi_"))  
 
 ## merging data ####
 mtl_wide.table <- mtl_data_cleaned |> 
