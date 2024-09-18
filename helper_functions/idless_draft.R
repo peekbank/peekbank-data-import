@@ -281,8 +281,6 @@ digest.dataset <- function(
 
   if(!is.na(data$l_x_max[[1]])){
     
-    trial_types$aoi_region_set_id <- 0
-    
     aoi_region_sets <- data %>% 
       distinct(
         l_x_max,
