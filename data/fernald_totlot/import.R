@@ -12,10 +12,12 @@ data_folder <- here(data_path)
 sampling_rate_ms <- 1000 / 30
 
 #### process 15-mo-old data into long format ####
-d_raw_15 <- read_csv(here(data_path, "originalTL15vmclean.csv")) %>%
+d_raw_15 <- read_csv(here(data_path, "originalTL15vmclean.csv")) 
+
+d_processed_15 <- d_raw_15 %>%
   mutate(age_group="15 months") %>%
   rename(F0 = word_onset) %>%
-  relocate("filter_$","tacc1800","rtmsec", .after="targetper") %>%
+  relocate("filter_$","tacc1800","rtmsec","age_group", .after="targetper") %>%
   # filter columns with all NAs
   select_if(~ sum(!is.na(.)) > 0) 
 
@@ -30,34 +32,63 @@ d_processed_15 <- d_processed_15 %>%
 
 #relabel time bins
 old_names_15 <- colnames(d_processed_15)
-metadata_names <- old_names_15[!str_detect(old_names_15, "f\\d")]
-post_dis_names <- old_names_15[str_detect(old_names_15, "f\\d")]
-post_dis_names_clean <- post_dis_names %>% str_remove("f")
+metadata_names_15 <- old_names_15[!str_detect(old_names_15, "f\\d")]
+post_dis_names_15 <- old_names_15[str_detect(old_names_15, "f\\d")]
+post_dis_names_clean_15 <- post_dis_names_15 %>% str_remove("f")
 
-colnames(d_processed_15) <- c(metadata_names, post_dis_names_clean)
+colnames(d_processed_15) <- c(metadata_names_15, post_dis_names_clean_15)
 
 ### truncate columns at F3833, since trials are almost never coded later than this timepoint
 ## TO DO: note decision in ReadMe
-post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
+post_dis_names_clean_cols_to_remove_15 <- post_dis_names_clean_15[117:length(post_dis_names_clean_15)]
 # remove
 d_processed_15 <- d_processed_15 %>%
-  select(-all_of(post_dis_names_clean_cols_to_remove))
+  select(-all_of(post_dis_names_clean_cols_to_remove_15))
 
 # Convert to long format
 d_tidy_15 <- d_processed_15 %>%
   pivot_longer(names_to = "t", cols = `0`:`3833`, values_to = "aoi")
 
-
 #### process 18-mo-old data into long format ####
-d_raw_18 <- read_csv(here(data_path,"originalTL18vm.csv")) %>%
+d_raw_18 <- read_csv(here(data_path,"originalTL18vm.csv"))
+
+d_processed_18 <- d_raw_18 %>%
   mutate(age_group="18 months") %>%
   rename(F0 = word_onset) %>%
-  relocate("filter_$","tacc1800","rtmsec", .after="targetper") %>%
+  relocate("filter_$","tacc1800","rtmsec","age_group", .after="targetper") %>%
   # filter columns with all NAs
   select_if(~ sum(!is.na(.)) > 0)
 
+#rename the last columns
+colnames(d_processed_18)[str_detect(colnames(d_processed_18), "V\\d")] <- c(
+  "F3167","F3200","F3233")
+
+#clean names
+d_processed_18 <- d_processed_18 %>%
+  clean_names()
+
+#relabel time bins
+old_names_18 <- colnames(d_processed_18)
+metadata_names_18 <- old_names_18[!str_detect(old_names_18, "f\\d")]
+post_dis_names_18 <- old_names_18[str_detect(old_names_18, "f\\d")]
+post_dis_names_clean_18 <- post_dis_names_18 %>% str_remove("f")
+
+colnames(d_processed_18) <- c(metadata_names_18, post_dis_names_clean_18)
+
+### truncate columns at F3133, since trials are almost never coded later than this timepoint
+## TO DO: note decision in ReadMe
+post_dis_names_clean_cols_to_remove_18 <- post_dis_names_clean_18[121:length(post_dis_names_clean_18)]
+# remove
+d_processed_18 <- d_processed_18 %>%
+  select(-all_of(post_dis_names_clean_cols_to_remove_15))
+
+# Convert to long format
+d_tidy_18 <- d_processed_18 %>%
+  pivot_longer(names_to = "t", cols = `0`:`3133`, values_to = "aoi")
+
+
 #combine
-d_tidy <- bind_rows(d_processed_15,d_processed_18)
+d_tidy <- bind_rows(d_tidy_15,d_tidy_18)
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -74,14 +105,14 @@ rename(aoi_old = aoi) %>%
   mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
 
 #quick summary
-subj <- d_tidy_15 %>%
-  group_by(subj,t) %>%
+subj <- d_tidy %>%
+  group_by(age_group,subj,t) %>%
   summarize(
     mean_looking=mean(as.numeric(aoi_old),na.rm=T)
   )
 
 overall <- subj %>%
-  group_by(t) %>%
+  group_by(age_group,t) %>%
   summarize(
     avg = mean(mean_looking)
   )
@@ -90,7 +121,7 @@ ggplot(overall, aes(t,avg)) +
   geom_hline(yintercept=0.5,linetype="dashed")+
   geom_line(data=subj,aes(y=mean_looking,group=as.factor(subj)),alpha=0.05)+
   theme(legend.position="none")+
-  geom_line()
+  geom_line()+facet_wrap(~age_group)
   
 
 
