@@ -1,17 +1,15 @@
-# process Adams et al. (2018) data
-## libraries
 library(here)
 library(janitor)
 library(readxl)
 
-source(here("helper_functions", "common.R"))
 source(here("helper_functions", "idless_draft.R"))
+source(here("helper_functions", "common.R"))
 dataset_name <- "adams_marchman_2018"
-read_path <- init(dataset_name)
+data_path <- init(dataset_name)
 
 ## constants
 sampling_rate_hz <- 30
-sampling_rate_ms <- 1000 / 30
+sampling_rate_ms <- 1000 / sampling_rate_hz
 
 remove_repeat_headers <- function(d, idx_var) {
   d[d[, idx_var] != idx_var, ]
@@ -19,7 +17,7 @@ remove_repeat_headers <- function(d, idx_var) {
 
 # read raw icoder files
 # 16-month-olds
-d_raw_16 <- read_delim(fs::path(read_path, "TL316AB.ichart.n69.txt"),
+d_raw_16 <- read_delim(fs::path(data_path, "TL316AB.ichart.n69.txt"),
   delim = "\t"
 ) %>%
   mutate(order_uniquified = Order) %>%
@@ -31,7 +29,7 @@ d_raw_16 <- read_delim(fs::path(read_path, "TL316AB.ichart.n69.txt"),
 # in the 18-month-old group below
 
 # 18-month-olds
-d_raw_18 <- read_delim(fs::path(read_path, "TL318AB.ichart.n67.txt"),
+d_raw_18 <- read_delim(fs::path(data_path, "TL318AB.ichart.n67.txt"),
   delim = "\t"
 ) %>%
   # one participant (Sub Num 12959) was administered the same order twice
@@ -54,17 +52,14 @@ d_raw_18 <- read_delim(fs::path(read_path, "TL318AB.ichart.n67.txt"),
 # combine
 d_raw <- bind_rows(d_raw_16, d_raw_18)
 
-
-# remove any column with all NAs (these are columns
-# where there were variable names but no eye tracking data)
-d_filtered <- d_raw %>%
+d_processed <- d_raw %>%
+  # remove any column with all NAs (these are columns
+  # where there were variable names but no eye tracking data)
   select_if(~ sum(!is.na(.)) > 0) %>%
-  filter(!is.na(`Sub Num`)) # remove some residual NA rows
-
-# Create clean column headers --------------------------------------------------
-d_processed <- d_filtered %>%
+  filter(!is.na(`Sub Num`)) %>% # remove some residual NA rows
+  # Create clean column headers
   remove_repeat_headers(idx_var = "Months") %>%
-  clean_names()
+  janitor::clean_names()
 
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
@@ -85,26 +80,19 @@ colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_c
 ### truncate columns at F3833, since trials are almost never coded later than this timepoint
 ## TO DO: check in about this decision
 post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
-# remove
-d_processed <- d_processed %>%
-  select(-all_of(post_dis_names_clean_cols_to_remove))
 
-# create trial_order variable as tr_num variable
-d_processed <- d_processed %>%
-  mutate(trial_order = as.numeric(as.character(tr_num)))
-
-# add overall row number (collapsing across 16- and 18-month-old data) to track unique instances
-d_processed <- d_processed %>%
+wide.table <- d_processed %>%
+  # remove
+  select(-all_of(post_dis_names_clean_cols_to_remove)) %>%
+  # create trial_order variable as tr_num variable
+  mutate(trial_order = as.numeric(as.character(tr_num))) %>%
+  # add overall row number (collapsing across 16- and 18-month-old data) to track unique instances
   mutate(overall_row_number = as.numeric(row.names(.))) %>%
-  relocate(overall_row_number, .after = `sub_num`)
-
-# Convert to long format --------------------------------------------------
-d_tidy <- d_processed %>%
-  pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi")
-
-# recode 0, 1, ., - as distracter, target, other, NA [check in about this]
-# this leaves NA as NA
-d_tidy <- d_tidy %>%
+  relocate(overall_row_number, .after = `sub_num`) %>%
+  # Convert to long format --------------------------------------------------
+  pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi") %>%
+  # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
+  # this leaves NA as NA
   rename(aoi_old = aoi) %>%
   mutate(aoi = case_when(
     aoi_old == "0" ~ "distractor",
@@ -114,11 +102,8 @@ d_tidy <- d_tidy %>%
     aoi_old == "-" ~ "missing",
     is.na(aoi_old) ~ "missing"
   )) %>%
-  mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
-
-# Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
-
-d_tidy <- d_tidy %>%
+  mutate(t = as.numeric(t)) %>% # ensure time is an integer/ numeric
+  # Clean up column names and add stimulus information based on existing columnns
   filter(!is.na(sub_num)) %>%
   select(-c_image, -response, -condition, -first_shift_gap, -rt) %>%
   # left-right is from the coder's perspective - flip to participant's perspective
@@ -133,185 +118,77 @@ d_tidy <- d_tidy %>%
   mutate(distractor_image = case_when(
     target_side == "right" ~ left_image,
     TRUE ~ right_image
-  ))
-
-# add exclusion information
-d_tidy <- d_tidy %>%
+  )) %>%
+  # add exclusion information
   mutate(excluded = case_when(
     is.na(prescreen_notes) ~ FALSE,
     TRUE ~ TRUE
   )) %>%
-  rename(exclusion_reason = prescreen_notes)
-
-# create stimulus table
-stimulus_table <- d_tidy %>%
-  distinct(target_image, target_label) %>%
-  filter(!is.na(target_image)) %>%
+  rename(exclusion_reason = prescreen_notes) %>%
+  rename(subject_id = sub_num) %>%
+  group_by(subject_id) %>%
   mutate(
-    dataset_id = 0,
-    stimulus_novelty = "familiar",
-    original_stimulus_label = target_label,
-    english_stimulus_label = target_label,
-    stimulus_image_path = paste0(target_image, ".pct"), # TO DO - update once images are shared/ image file path known
-    image_description = target_label,
-    image_description_source = "image path",
-    lab_stimulus_id = target_image
+    session_num = as.numeric(factor(
+      paste(months, order_uniquified, sep = "_"),
+      levels = unique(paste(months, order_uniquified, sep = "_"))
+    ))
   ) %>%
-  mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
-
-## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
-d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by = c("target_image" = "lab_stimulus_id")) %>%
-  mutate(target_id = stimulus_id) %>%
-  select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id), by = c("distractor_image" = "lab_stimulus_id")) %>%
-  mutate(distractor_id = stimulus_id) %>%
-  select(-stimulus_id)
-
-# get zero-indexed subject ids
-d_subject_ids <- d_tidy %>%
-  distinct(sub_num) %>%
-  mutate(subject_id = seq(0, length(.$sub_num) - 1))
-# join
-d_tidy <- d_tidy %>%
-  left_join(d_subject_ids, by = "sub_num")
-
-# get zero-indexed administration ids
-d_administration_ids <- d_tidy %>%
-  distinct(subject_id, sub_num, months, order_uniquified) %>%
-  arrange(subject_id, sub_num, months, order_uniquified) %>%
-  mutate(administration_id = seq(0, length(.$order_uniquified) - 1))
-
-# create zero-indexed ids for trial_types
-d_trial_type_ids <- d_tidy %>%
-  # order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
-  # potentially make distinct based on condition if that is relevant to the study design (no condition manipulation here)
-  distinct(trial_order, target_id, distractor_id, target_side) %>%
-  mutate(full_phrase = NA) %>% # unknown
-  mutate(trial_type_id = seq(0, length(trial_order) - 1))
-
-# joins
-d_tidy_semifinal <- d_tidy %>%
-  left_join(d_administration_ids) %>%
-  left_join(d_trial_type_ids)
-
-# get zero-indexed trial ids for the trials table
-d_trial_ids <- d_tidy_semifinal %>%
-  distinct(overall_row_number, sub_num, order_uniquified, trial_order, trial_type_id) %>%
-  mutate(trial_id = seq(0, length(.$trial_type_id) - 1))
-
-# join
-d_tidy_semifinal <- d_tidy_semifinal %>%
-  left_join(d_trial_ids)
-
-# add some more variables to match schema
-d_tidy_final <- d_tidy_semifinal %>%
+  ungroup() %>%
   mutate(
-    dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
+    distractor_label = gsub("[0-9]+", "", distractor_image),
+    trial_name = paste(order, tr_num, sep = "-"),
+    native_language = "eng",
+    age_units = "months",
+    full_phrase_language = "eng",
+    full_phrase = NA,
+    condition = "", # no condition manipulation based on current documentation
+    vanilla_trial = TRUE, # all trials are vanilla
     lab_trial_id = paste(order, tr_num, sep = "-"),
-    aoi_region_set_id = NA, # not applicable
     monitor_size_x = NA, # unknown TO DO
     monitor_size_y = NA, # unknown TO DO
     lab_age_units = "months",
     age = as.numeric(months), # months
     point_of_disambiguation = 0, # data is re-centered to zero based on critonset in datawiz
     tracker = "video_camera",
-    sample_rate = sampling_rate_hz
-  ) %>%
-  rename(
-    lab_subject_id = sub_num,
-    lab_age = months
-  )
-
-##### AOI TABLE ####
-aoi_timepoints <- d_tidy_final %>%
-  rename(t_norm = t) %>% # original data centered at point of disambiguation
-  select(t_norm, aoi, trial_id, administration_id, lab_subject_id) %>%
-  # resample timepoints
-  resample_times(table_type = "aoi_timepoints") %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
-
-##### SUBJECTS TABLE ####
-subjects <- d_tidy_final %>%
-  distinct(subject_id, lab_subject_id, sex) %>%
-  filter(!(lab_subject_id == "12608" & sex == "M")) %>% # one participant has different entries for sex - 12608 is female via V Marchman
-  mutate(
-    sex = factor(sex, levels = c("M", "F"), labels = c("male", "female")),
-    native_language = "eng",
-    subject_aux_data = NA
-  )
-
-##### ADMINISTRATIONS TABLE ####
-administrations <- d_tidy_final %>%
-  distinct(
-    administration_id,
-    dataset_id,
-    subject_id,
-    age,
-    lab_age,
-    lab_age_units,
-    monitor_size_x,
-    monitor_size_y,
-    sample_rate,
-    tracker
-  ) %>%
-  mutate(
     coding_method = "manual gaze coding",
-    administration_aux_data = NA
-  )
-
-##### STIMULUS TABLE ####
-stimuli <- stimulus_table %>%
-  select(-target_label, -target_image) %>%
-  mutate(stimulus_aux_data = NA)
-
-#### TRIALS TABLE ####
-trials <- d_tidy_final %>%
-  distinct(
-    trial_id,
-    trial_order,
-    trial_type_id,
-    excluded,
-    exclusion_reason
+    sample_rate = sampling_rate_hz,
+    target_stimulus_label_original = target_label,
+    target_stimulus_label_english = target_label,
+    target_stimulus_novelty = "familiar",
+    target_stimulus_image_path = paste0(distractor_image, ".pct"), # TO DO - update once images are shared/ image file path known
+    target_image_description = target_label,
+    target_image_description_source = "image path",
+    distractor_stimulus_label_original = distractor_label,
+    distractor_stimulus_label_english = distractor_label,
+    distractor_stimulus_novelty = "familiar",
+    distractor_stimulus_image_path = paste0(target_image, ".pct"), # TO DO - update once images are shared/ image file path known
+    distractor_image_description = distractor_label,
+    distractor_image_description_source = "image path",
+    target_stimulus_name = target_image,
+    distractor_stimulus_name = distractor_image
   ) %>%
-  mutate(trial_aux_data = NA)
-
-##### TRIAL TYPES TABLE ####
-trial_types <- d_tidy_final %>%
-  distinct(
-    trial_type_id,
-    full_phrase,
-    point_of_disambiguation,
-    target_side,
-    lab_trial_id,
-    aoi_region_set_id,
-    dataset_id,
-    target_id,
-    distractor_id
-  ) %>%
-  mutate(
-    full_phrase_language = "eng",
-    condition = "", # no condition manipulation based on current documentation
-    vanilla_trial = TRUE, # all trials are vanilla
-    trial_type_aux_data = NA
-  )
+  mutate(sex = case_when(
+    subject_id == "12608" ~ "F", # one participant has different entries for sex - 12608 is female via V Marchman
+    TRUE ~ sex
+  ))
 
 
-##### DATASETS TABLE ####
-# write Dataset table
-dataset <- tibble(
-  dataset_id = 0, # make zero 0 for all
+dataset_list <- digest.dataset(
   dataset_name = dataset_name,
-  lab_dataset_id = dataset_name, # internal name from the lab (if known)
+  lab_dataset_id = dataset_name,
   cite = "Adams, K. A., Marchman, V. A., Loi, E. C., Ashland, M. D., Fernald, A., & Feldman, H. M. (2018). Caregiver talk and medical risk as predictors of language outcomes in full term and preterm toddlers. Child Development, 89(5), 1674-1690. https://doi.org/10.1111/cdev.12818",
   shortcite = "Adams et al. (2018)",
-  dataset_aux_data = NA
+  wide.table = wide.table,
+  rezero = TRUE,
+  normalize = TRUE,
+  resample = TRUE
 )
 
+## 4. Aux Data
 
-cdi_data <- read_excel(here(read_path, "Adams_2019_CDIs.xlsx")) %>%
+cdi_data <- read_excel(here(data_path, "Adams_2019_CDIs.xlsx")) %>%
   rename(subject_id = `Subject #`) %>%
-  select(-Sex, -InLENACDPaper2016) %>% 
+  select(-Sex, -InLENACDPaper2016) %>%
   pivot_longer(
     cols = -c(subject_id),
     names_to = c("instrument_type", "timepoint", "score_type"),
@@ -334,24 +211,13 @@ cdi_data <- read_excel(here(read_path, "Adams_2019_CDIs.xlsx")) %>%
     rawscore = coalesce(Comp, Prod),
     percentile = coalesce(Compptile, Prodptile, ProdPtile)
   ) %>%
-  select(subject_id, measure,age = Age, instrument_type, measure, rawscore, percentile) %>% 
-  mutate(language = "English (American)") %>% 
+  select(subject_id, measure, age = Age, instrument_type, measure, rawscore, percentile) %>%
+  mutate(language = "English (American)") %>%
   na.omit()
 
-subjects <- subjects %>% digest.subject_cdi_data(cdi_data)
+dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
+  digest.subject_cdi_data(cdi_data)
 
+## 5. Write and Validate the Data
 
-write_and_validate(
-  dataset_name = dataset_name,
-  cdi_expected = TRUE,
-  dataset,
-  subjects,
-  stimuli,
-  administrations,
-  trial_types,
-  trials,
-  aoi_region_sets = NA,
-  xy_timepoints = NA,
-  aoi_timepoints,
-  upload = TRUE
-)
+write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = FALSE)
