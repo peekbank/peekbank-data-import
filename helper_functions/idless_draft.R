@@ -12,11 +12,9 @@ digest.dataset <- function(
     wide.table,
     rezero = TRUE,
     normalize = TRUE,
-    resample = TRUE
-    ){
-  
+    resample = TRUE) {
   wide.table <- wide.table %>% ungroup()
-  
+
   required_cols <- c(
     "subject_id",
     "sex",
@@ -50,9 +48,9 @@ digest.dataset <- function(
     "distractor_image_description",
     "distractor_image_description_source"
   )
-  
+
   optional_cols <- c(
-    # trial order is not 100% determined by the trial type changing, as there could be 
+    # trial order is not 100% determined by the trial type changing, as there could be
     # 2 successive trials with the same trial type (though a very small portion of datasets should have this issue)
     # We should offer to optionally include "trial_index" in the big table to explicitly
     # separate trials in datasets where this could be the case.
@@ -75,17 +73,17 @@ digest.dataset <- function(
     "monitor_size_x",
     "monitor_size_y"
   )
-  
+
   missing_cols <- setdiff(required_cols, colnames(wide.table))
-  if(length(missing_cols) > 0){
+  if (length(missing_cols) > 0) {
     print("Some columns are missing from the input table:")
     print(missing_cols)
     stop()
   }
-  
+
   used_cols <- c(required_cols, optional_cols[optional_cols %in% names(wide.table)])
   unused_cols <- optional_cols[!(optional_cols %in% names(wide.table))]
-  
+
   data <- wide.table %>%
     select(all_of(used_cols)) %>%
     mutate(!!!setNames(rep(list(NA), length(unused_cols)), unused_cols)) %>%
@@ -99,107 +97,133 @@ digest.dataset <- function(
       distractor_original_stimulus_label = distractor_stimulus_label_original,
       distractor_english_stimulus_label = distractor_stimulus_label_english,
       target_original_stimulus_label = target_stimulus_label_original,
-      target_english_stimulus_label = target_stimulus_label_english)
-  
+      target_english_stimulus_label = target_stimulus_label_english
+    )
+
   # TODO Validate the values (how much validation do we want to put in here?)
-  
-  stimuli <- data %>% 
-    select(target_original_stimulus_label,
-           target_english_stimulus_label,
-           target_stimulus_novelty,
-           target_stimulus_image_path,
-           target_lab_stimulus_id,
-           target_image_description,
-           target_image_description_source,
-           distractor_original_stimulus_label,
-           distractor_english_stimulus_label,
-           distractor_stimulus_novelty,
-           distractor_stimulus_image_path,
-           distractor_lab_stimulus_id,
-           distractor_image_description,
-           distractor_image_description_source) %>%
-    distinct() %>% 
-    mutate(across(everything(), as.character)) %>% 
-    mutate(id = row_number()) %>% 
+
+  stimuli <- data %>%
+    select(
+      target_original_stimulus_label,
+      target_english_stimulus_label,
+      target_stimulus_novelty,
+      target_stimulus_image_path,
+      target_lab_stimulus_id,
+      target_image_description,
+      target_image_description_source,
+      distractor_original_stimulus_label,
+      distractor_english_stimulus_label,
+      distractor_stimulus_novelty,
+      distractor_stimulus_image_path,
+      distractor_lab_stimulus_id,
+      distractor_image_description,
+      distractor_image_description_source
+    ) %>%
+    distinct() %>%
+    mutate(across(everything(), as.character)) %>%
+    mutate(id = row_number()) %>%
     pivot_longer(
       cols = contains("target_") | contains("distractor_"),
       names_to = c("type", "variable"),
       names_pattern = "([^_]+)_(.+)",
       values_to = "value"
     ) %>%
-    pivot_wider(id_cols = c(id, type), names_from = variable, values_from = value) %>% 
+    pivot_wider(id_cols = c(id, type), names_from = variable, values_from = value) %>%
     select(-type, -id) %>%
     distinct() %>%
     mutate(
       stimulus_id = row_number() - 1,
       dataset_id = 0,
-      stimulus_aux_data = NA)
-    
-  
+      stimulus_aux_data = NA
+    )
+
+
   data <- data %>%
-    mutate(dataset_id = 0,
-           xy_timepoint_id = row_number() - 1,
-           aoi_timepoint_id = row_number() - 1) %>%
+    mutate(
+      dataset_id = 0,
+      xy_timepoint_id = row_number() - 1,
+      aoi_timepoint_id = row_number() - 1
+    ) %>%
     group_by(lab_subject_id) %>%
     mutate(subject_id = cur_group_id() - 1) %>%
     ungroup() %>%
     group_by(lab_subject_id, session_num) %>%
     mutate(administration_id = cur_group_id() - 1) %>%
-    ungroup() %>% 
+    ungroup() %>%
     left_join(stimuli %>%
-                rename_with(~ paste0("target_", .x))) %>%
+      rename_with(~ paste0("target_", .x))) %>%
     left_join(stimuli %>%
-                rename_with(~ paste0("distractor_", .x))) %>% 
-    rename(target_id = target_stimulus_id,
-           distractor_id = distractor_stimulus_id) %>% 
-    group_by(full_phrase,
-             full_phrase_language,
-             point_of_disambiguation,
-             target_side,
-             lab_trial_id,
-             condition,
-             vanilla_trial,
-             target_id,
-             distractor_id) %>%
+      rename_with(~ paste0("distractor_", .x))) %>%
+    rename(
+      target_id = target_stimulus_id,
+      distractor_id = distractor_stimulus_id
+    ) %>%
+    group_by(
+      full_phrase,
+      full_phrase_language,
+      point_of_disambiguation,
+      target_side,
+      lab_trial_id,
+      condition,
+      vanilla_trial,
+      target_id,
+      distractor_id
+    ) %>%
     mutate(trial_type_id = cur_group_id() - 1) %>%
     ungroup() %>%
     group_by(administration_id) %>%
-    mutate(trial_order = consecutive_id(trial_type_id, trial_index)) %>% 
-    ungroup() %>% 
+    mutate(trial_order = consecutive_id(trial_type_id, trial_index)) %>%
+    ungroup() %>%
     group_by(administration_id, trial_type_id, trial_order) %>%
     mutate(trial_id = cur_group_id() - 1) %>%
     ungroup() %>%
-    group_by(l_x_max, l_x_min, l_y_max, l_y_min,
-             r_x_max, r_x_min, r_y_max, r_y_min) %>%
+    group_by(
+      l_x_max, l_x_min, l_y_max, l_y_min,
+      r_x_max, r_x_min, r_y_max, r_y_min
+    ) %>%
     mutate(aoi_region_set_id = cur_group_id() - 1) %>%
     ungroup()
-  
+
   datasets <- tibble(
-      dataset_id = 0,
-      dataset_name = dataset_name,
-      lab_dataset_id = dataset_name,
-      cite = cite,
-      shortcite = shortcite,
-      dataset_aux_data = NA
-    )
-  
-  subjects <- data %>% 
+    dataset_id = 0,
+    dataset_name = dataset_name,
+    lab_dataset_id = dataset_name,
+    cite = cite,
+    shortcite = shortcite,
+    dataset_aux_data = NA
+  )
+
+  subjects <- data %>%
     distinct(subject_id, sex, native_language, lab_subject_id) %>%
-    mutate(sex =  tolower(sex),
-           sex = case_when(
-             sex == "male" ~ "male",
-             sex == "m" ~ "male",
-             sex == "boy" ~ "male",
-             sex == "female" ~ "female",
-             sex == "f" ~ "female",
-             sex == "girl" ~ "female",
-             sex == "other" ~ "other",
-             sex == "o" ~ "other",
-             .default="unspecified"
-           )) %>% 
+    mutate(
+      sex = tolower(sex),
+      sex = case_when(
+        sex == "male" ~ "male",
+        sex == "m" ~ "male",
+        sex == "boy" ~ "male",
+        sex == "female" ~ "female",
+        sex == "f" ~ "female",
+        sex == "girl" ~ "female",
+        sex == "other" ~ "other",
+        sex == "o" ~ "other",
+        .default = "unspecified"
+      )
+    ) %>%
     mutate(subject_aux_data = NA)
-    
-  administrations <- data %>% 
+
+  # Check if one subject has multiple sexes
+  problematic_ids <- subjects %>%
+    group_by(subject_id) %>%
+    filter(n_distinct(sex) > 1)
+
+  if (nrow(problematic_ids) > 0) {
+    stop(
+      "Inconsistent sex values for subject_ids: ",
+      paste(unique(problematic_ids$lab_subject_id), collapse = ", ")
+    )
+  }
+
+  administrations <- data %>%
     distinct(
       administration_id,
       dataset_id,
@@ -211,18 +235,18 @@ digest.dataset <- function(
       sample_rate,
       tracker,
       coding_method
-    ) %>% 
+    ) %>%
     mutate(
       age = case_when(
         lab_age_units == "months" ~ lab_age,
-        lab_age_units == "days" ~ lab_age/(365.25/12),
-        lab_age_units == "years" ~ 12*lab_age + ifelse(all(lab_age-floor(lab_age) == 0), 6, 0),
+        lab_age_units == "days" ~ lab_age / (365.25 / 12),
+        lab_age_units == "years" ~ 12 * lab_age + ifelse(all(lab_age - floor(lab_age) == 0), 6, 0),
         .default = NA
       ),
       administration_aux_data = NA
-      )
-  
-  trial_types <- data %>% 
+    )
+
+  trial_types <- data %>%
     distinct(
       trial_type_id,
       full_phrase,
@@ -236,7 +260,7 @@ digest.dataset <- function(
       distractor_id,
       target_id,
       aoi_region_set_id
-    ) %>% 
+    ) %>%
     mutate(
       target_side = tolower(target_side),
       target_side = case_when(
@@ -244,44 +268,50 @@ digest.dataset <- function(
         target_side == "l" ~ "left",
         target_side == "right" ~ "right",
         target_side == "r" ~ "right",
-        .default="ERROR"),
+        .default = "ERROR"
+      ),
       trial_type_aux_data = NA,
-      )
-  
-  
-  
-  trials <- data %>% 
+    )
+
+
+
+  trials <- data %>%
     distinct(
       trial_id,
       trial_order,
       excluded,
       exclusion_reason,
       trial_type_id
-    ) %>% 
+    ) %>%
     mutate(
       trial_aux_data = NA
     )
-  
+
   aoi_timepoints <- data %>%
-    {if (rezero) peekds::rezero_times(.) else rename(., t_zeroed = t)} %>%
-    {if (normalize) peekds::normalize_times(.) else rename(., t_norm = t_zeroed)} %>%
-    {if (resample)  peekds::resample_times(., table_type = "aoi_timepoints") else .} %>%
+    {
+      if (rezero) peekds::rezero_times(.) else rename(., t_zeroed = t)
+    } %>%
+    {
+      if (normalize) peekds::normalize_times(.) else rename(., t_norm = t_zeroed)
+    } %>%
+    {
+      if (resample) peekds::resample_times(., table_type = "aoi_timepoints") else .
+    } %>%
     select(
       aoi_timepoint_id,
       aoi,
       t_norm,
       trial_id,
       administration_id
-    ) %>% 
+    ) %>%
     mutate(aoi = ifelse(!is.na(aoi), aoi, "missing"))
-  
-  xy_timepoints <- NA 
-  aoi_region_sets <- NA
-  
 
-  if(!is.na(data$l_x_max[[1]])){
-    
-    aoi_region_sets <- data %>% 
+  xy_timepoints <- NA
+  aoi_region_sets <- NA
+
+
+  if (!is.na(data$l_x_max[[1]])) {
+    aoi_region_sets <- data %>%
       distinct(
         l_x_max,
         l_x_min,
@@ -293,11 +323,17 @@ digest.dataset <- function(
         r_y_min,
         aoi_region_set_id
       )
-    
+
     xy_timepoints <- data %>%
-      {if (rezero) peekds::rezero_times(.) else rename(., t_zeroed = t)} %>%
-      {if (normalize) peekds::normalize_times(.) else rename(., t_norm = t_zeroed)} %>%
-      {if (resample)  peekds::resample_times(., table_type = "xy_timepoints") else .} %>%
+      {
+        if (rezero) peekds::rezero_times(.) else rename(., t_zeroed = t)
+      } %>%
+      {
+        if (normalize) peekds::normalize_times(.) else rename(., t_norm = t_zeroed)
+      } %>%
+      {
+        if (resample) peekds::resample_times(., table_type = "xy_timepoints") else .
+      } %>%
       select(
         xy_timepoint_id,
         x,
@@ -309,7 +345,7 @@ digest.dataset <- function(
   } else {
     trial_types$aoi_region_set_id <- NA
   }
-  
+
   return(list(
     datasets = datasets,
     subjects = subjects,
@@ -323,8 +359,7 @@ digest.dataset <- function(
   ))
 }
 
-digest.subject_cdi_data <- function(subjects, cdi_table){
-  
+digest.subject_cdi_data <- function(subjects, cdi_table) {
   required_cols_cdi_table <- c(
     "subject_id", # this is referring to the lab subject id
     "instrument_type",
@@ -334,22 +369,23 @@ digest.subject_cdi_data <- function(subjects, cdi_table){
     "percentile",
     "age"
   )
-  
+
   missing_cols <- setdiff(required_cols_cdi_table, colnames(cdi_table))
-  if(length(missing_cols) > 0){
+  if (length(missing_cols) > 0) {
     print("Some columns are missing from the cdi input table:")
     print(missing_cols)
     stop()
   }
-  
-  subjects %>% 
-    select(-subject_aux_data) %>% 
-    left_join(cdi_table %>%
-                rename(lab_subject_id = subject_id),
-              by="lab_subject_id"
-              ) %>%
-    nest(.by=c(subject_id, sex, native_language, lab_subject_id), .key="cdi_responses") %>%
-    nest(.by=c(subject_id, sex, native_language, lab_subject_id), .key="subject_aux_data") %>% 
+
+  subjects %>%
+    select(-subject_aux_data) %>%
+    left_join(
+      cdi_table %>%
+        rename(lab_subject_id = subject_id),
+      by = "lab_subject_id"
+    ) %>%
+    nest(.by = c(subject_id, sex, native_language, lab_subject_id), .key = "cdi_responses") %>%
+    nest(.by = c(subject_id, sex, native_language, lab_subject_id), .key = "subject_aux_data") %>%
     mutate(subject_aux_data = sapply(subject_aux_data, function(x) {
       json_str <- jsonlite::toJSON(x)
       json_str <- substr(json_str, 2, nchar(json_str) - 1) # hacky, but works
@@ -357,7 +393,3 @@ digest.subject_cdi_data <- function(subjects, cdi_table){
       ifelse(json_str == '{"cdi_responses":[{}]}', NA, json_str)
     }))
 }
-
-
-
-
