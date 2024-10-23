@@ -15,30 +15,31 @@ remove_repeat_headers <- function(d, idx_var) {
   d[d[, idx_var] != idx_var, ]
 }
 
+read_icoder_base <- function(filename) {
+  read_delim(fs::path(data_path, filename),
+    delim = "\t"
+  ) %>%
+    # the order column is needed to disambiguate administrations for one subject who received the same order twice
+    # in the 18-month-old group below
+    mutate(order_uniquified = Order) %>%
+    relocate(order_uniquified, .after = `Order`) %>%
+    mutate(row_number = as.numeric(row.names(.))) %>%
+    relocate(row_number, .after = `Sub Num`)
+}
+
+
 # read raw icoder files
 # 16-month-olds
-d_raw_16 <- read_delim(fs::path(data_path, "TL316AB.ichart.n69.txt"),
-  delim = "\t"
-) %>%
-  mutate(order_uniquified = Order) %>%
-  relocate(order_uniquified, .after = `Order`) %>%
-  mutate(row_number = as.numeric(row.names(.))) %>%
-  relocate(row_number, .after = `Sub Num`)
-# no modifications to Order needed in this dataset, because all participants received two distinct orders
-# this column is needed to disambiguate administrations for one subject who received the same order twice
-# in the 18-month-old group below
+d_raw_16 <- read_icoder_base("TL316AB.ichart.n69.txt")
+
 
 # 18-month-olds
-d_raw_18 <- read_delim(fs::path(data_path, "TL318AB.ichart.n67.txt"),
-  delim = "\t"
-) %>%
-  # one participant (Sub Num 12959) was administered the same order twice
-  # this leads to problems down the road with determining administration id and resampling times
-  # to avoid this, we need to handle the second presentation of the same order as a separate "order"
-  # (in order to capture that it is a distinct administration)
-  # strategy: add row numbers as a new column to disambiguate otherwise identical trial information
-  mutate(row_number = as.numeric(row.names(.))) %>%
-  relocate(row_number, .after = `Sub Num`) %>%
+# one participant (Sub Num 12959) was administered the same order twice
+# this leads to problems down the road with determining administration id and resampling times
+# to avoid this, we need to handle the second presentation of the same order as a separate "order"
+# (in order to capture that it is a distinct administration)
+# strategy: add row numbers as a new column to disambiguate otherwise identical trial information
+d_raw_18 <- read_icoder_base("TL318AB.ichart.n67.txt") %>%
   group_by(`Sub Num`, Order, `Tr Num`) %>%
   mutate(
     order_uniquified = case_when(
@@ -49,8 +50,24 @@ d_raw_18 <- read_delim(fs::path(data_path, "TL318AB.ichart.n67.txt"),
   relocate(order_uniquified, .after = `Order`) %>%
   ungroup()
 
+
+# 22-month-olds
+d_raw_22 <- read_icoder_base("TL322AB.ichart.alltrials.n63.txt")
+
+# 24-month-olds
+d_raw_24 <- read_icoder_base("TL324AB.ichart.alltrials.n62.txt")
+
+# 30-month-olds
+d_raw_30A <- read_icoder_base("TL330A.PT3036.iChart.n44.txt")
+d_raw_30B <- read_icoder_base("TL330B.LOC2A-1.iChart.n44.txt")
+
+# 36-month-olds
+d_raw_36A <- read_icoder_base("TL336A.iChart.PT3036.n.55.txt")
+d_raw_36B <- read_icoder_base("TL336B.iChart.LOC2A.n51.txt")
+
+
 # combine
-d_raw <- bind_rows(d_raw_16, d_raw_18)
+d_raw <- bind_rows(d_raw_16, d_raw_18, d_raw_22, d_raw_24, d_raw_30A, d_raw_30B, d_raw_36A, d_raw_36B)
 
 d_processed <- d_raw %>%
   # remove any column with all NAs (these are columns
@@ -169,6 +186,11 @@ wide.table <- d_processed %>%
   ) %>%
   mutate(sex = case_when(
     subject_id == "12608" ~ "F", # one participant has different entries for sex - 12608 is female via V Marchman
+    subject_id == "11036" ~ "F", # TODO another subject that has two sexes, which one is the correct one??
+    subject_id == "13069" ~ "F", # TODO Same
+    subject_id == "13191" ~ "F", # TODO Same
+    subject_id == "13326" ~ "F", # TODO Same
+    subject_id == "13628" ~ "F", # TODO Same
     TRUE ~ sex
   ))
 
