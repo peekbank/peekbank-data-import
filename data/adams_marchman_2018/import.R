@@ -172,13 +172,13 @@ wide.table <- d_processed %>%
     target_stimulus_label_original = target_label,
     target_stimulus_label_english = target_label,
     target_stimulus_novelty = "familiar",
-    target_stimulus_image_path = paste0(distractor_image, ".pct"), # TO DO - update once images are shared/ image file path known
+    target_stimulus_image_path = paste0("images/", ifelse(target_side == "right", "right/", "left/"), target_image),
     target_image_description = target_label,
     target_image_description_source = "image path",
     distractor_stimulus_label_original = distractor_label,
     distractor_stimulus_label_english = distractor_label,
     distractor_stimulus_novelty = "familiar",
-    distractor_stimulus_image_path = paste0(target_image, ".pct"), # TO DO - update once images are shared/ image file path known
+    distractor_stimulus_image_path = paste0("images/", ifelse(target_side == "left", "right/", "left/"), distractor_image),
     distractor_image_description = distractor_label,
     distractor_image_description_source = "image path",
     target_stimulus_name = target_image,
