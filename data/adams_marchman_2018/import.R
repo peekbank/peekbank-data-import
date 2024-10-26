@@ -15,7 +15,7 @@ remove_repeat_headers <- function(d, idx_var) {
   d[d[, idx_var] != idx_var, ]
 }
 
-read_icoder_base <- function(filename) {
+read_icoder_base <- function(filename, age_group) {
   read_delim(fs::path(data_path, filename),
     delim = "\t"
   ) %>%
@@ -24,13 +24,10 @@ read_icoder_base <- function(filename) {
     mutate(order_uniquified = Order) %>%
     relocate(order_uniquified, .after = `Order`) %>%
     mutate(row_number = as.numeric(row.names(.))) %>%
-    relocate(row_number, .after = `Sub Num`)
+    relocate(row_number, .after = `Sub Num`) %>% 
+    mutate(age_group = age_group) %>% 
+    relocate(age_group, .after = `Sub Num`)
 }
-
-
-# read raw icoder files
-# 16-month-olds
-d_raw_16 <- read_icoder_base("TL316AB.ichart.n69.txt")
 
 
 # 18-month-olds
@@ -39,7 +36,7 @@ d_raw_16 <- read_icoder_base("TL316AB.ichart.n69.txt")
 # to avoid this, we need to handle the second presentation of the same order as a separate "order"
 # (in order to capture that it is a distinct administration)
 # strategy: add row numbers as a new column to disambiguate otherwise identical trial information
-d_raw_18 <- read_icoder_base("TL318AB.ichart.n67.txt") %>%
+d_raw_18 <- read_icoder_base("TL318AB.ichart.n67.txt", "18") %>%
   group_by(`Sub Num`, Order, `Tr Num`) %>%
   mutate(
     order_uniquified = case_when(
@@ -51,23 +48,24 @@ d_raw_18 <- read_icoder_base("TL318AB.ichart.n67.txt") %>%
   ungroup()
 
 
-# 22-month-olds
-d_raw_22 <- read_icoder_base("TL322AB.ichart.alltrials.n63.txt")
-
-# 24-month-olds
-d_raw_24 <- read_icoder_base("TL324AB.ichart.alltrials.n62.txt")
-
-# 30-month-olds
-d_raw_30A <- read_icoder_base("TL330A.PT3036.iChart.n44.txt")
-d_raw_30B <- read_icoder_base("TL330B.LOC2A-1.iChart.n44.txt")
-
-# 36-month-olds
-d_raw_36A <- read_icoder_base("TL336A.iChart.PT3036.n.55.txt")
-d_raw_36B <- read_icoder_base("TL336B.iChart.LOC2A.n51.txt")
 
 
 # combine
-d_raw <- bind_rows(d_raw_16, d_raw_18, d_raw_22, d_raw_24, d_raw_30A, d_raw_30B, d_raw_36A, d_raw_36B)
+d_raw <- bind_rows(
+  read_icoder_base("TL316AB.ichart.n69.txt", "16"),
+  d_raw_18,
+  read_icoder_base("TL322AB.ichart.alltrials.n63.txt", "22"),
+  read_icoder_base("TL324AB.ichart.alltrials.n62.txt", "24"),
+  read_icoder_base("TL330A.PT3036.iChart.n44.txt", "30"),
+  read_icoder_base("TL330B.LOC2A-1.iChart.n44.txt", "30"),
+  read_icoder_base("TL336A.iChart.PT3036.n.55.txt", "36"),
+  read_icoder_base("TL336B.iChart.LOC2A.n51.txt", "36")
+)
+
+# Some participants have 2 rows for the same trial, these almost certainly belong to non vanilla trials, so let's filter them out until we figure out what is going on
+d_raw <- d_raw %>%
+  arrange(`Sub Num`, age_group) %>% 
+  filter(`Tr Num` != lag(`Tr Num`) & `Tr Num` != lead(`Tr Num`))
 
 d_processed <- d_raw %>%
   # remove any column with all NAs (these are columns
@@ -84,11 +82,15 @@ metadata_names <- old_names[!str_detect(old_names, "x\\d|f\\d")]
 pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
 post_dis_names <- old_names[str_detect(old_names, "f\\d")]
 
-pre_dis_names_clean <- round(seq(
-  from = length(pre_dis_names) * sampling_rate_ms,
-  to = sampling_rate_ms,
-  by = -sampling_rate_ms
-) * -1, 0)
+pre_dis_names_clean <- if (length(pre_dis_names) == 0) {
+  pre_dis_names
+} else {
+  round(seq(
+    from = length(pre_dis_names) * sampling_rate_ms,
+    to = sampling_rate_ms,
+    by = -sampling_rate_ms
+  ) * -1, 0)
+}
 
 post_dis_names_clean <- post_dis_names %>% str_remove("f")
 
@@ -122,7 +124,7 @@ wide.table <- d_processed %>%
   mutate(t = as.numeric(t)) %>% # ensure time is an integer/ numeric
   # Clean up column names and add stimulus information based on existing columnns
   filter(!is.na(sub_num)) %>%
-  select(-c_image, -response, -condition, -first_shift_gap, -rt) %>%
+  select(-response, -condition, -first_shift_gap, -rt) %>%
   # left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c("l", "r"), labels = c("right", "left"))) %>%
   rename(left_image = r_image, right_image = l_image) %>%
@@ -172,13 +174,21 @@ wide.table <- d_processed %>%
     target_stimulus_label_original = target_label,
     target_stimulus_label_english = target_label,
     target_stimulus_novelty = "familiar",
-    target_stimulus_image_path = paste0("images/", ifelse(target_side == "right", "right/", "left/"), target_image),
+    target_stimulus_image_path = ifelse(
+      age_group %in% c("16", "18"),
+      paste0("images/", ifelse(target_side == "right", "right/", "left/"), gsub("\\.pct$", "", target_image), ".png"),
+      NA
+    ),
     target_image_description = target_label,
     target_image_description_source = "image path",
     distractor_stimulus_label_original = distractor_label,
     distractor_stimulus_label_english = distractor_label,
     distractor_stimulus_novelty = "familiar",
-    distractor_stimulus_image_path = paste0("images/", ifelse(target_side == "left", "right/", "left/"), distractor_image),
+    distractor_stimulus_image_path = ifelse(
+      age_group %in% c("16", "18"),
+      paste0("images/", ifelse(target_side == "left", "right/", "left/"), gsub("\\.pct$", "", distractor_image), ".png"),
+      NA
+    ),
     distractor_image_description = distractor_label,
     distractor_image_description_source = "image path",
     target_stimulus_name = target_image,
@@ -186,11 +196,11 @@ wide.table <- d_processed %>%
   ) %>%
   mutate(sex = case_when(
     subject_id == "12608" ~ "F", # one participant has different entries for sex - 12608 is female via V Marchman
-    subject_id == "11036" ~ "F", # TODO another subject that has two sexes, which one is the correct one??
-    subject_id == "13069" ~ "F", # TODO Same
-    subject_id == "13191" ~ "F", # TODO Same
-    subject_id == "13326" ~ "F", # TODO Same
-    subject_id == "13628" ~ "F", # TODO Same
+    subject_id == "11036" ~ "M", # another subject that has two sexes, we trust the demographic data from the CDIs here
+    subject_id == "13069" ~ "M", # Same
+    subject_id == "13191" ~ "F", # Same
+    subject_id == "13326" ~ "M", # Same
+    subject_id == "13628" ~ "M", # Same
     TRUE ~ sex
   ))
 
