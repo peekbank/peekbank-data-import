@@ -24,8 +24,8 @@ read_icoder_base <- function(filename, age_group) {
     mutate(order_uniquified = Order) %>%
     relocate(order_uniquified, .after = `Order`) %>%
     mutate(row_number = as.numeric(row.names(.))) %>%
-    relocate(row_number, .after = `Sub Num`) %>% 
-    mutate(age_group = age_group) %>% 
+    relocate(row_number, .after = `Sub Num`) %>%
+    mutate(age_group = age_group) %>%
     relocate(age_group, .after = `Sub Num`)
 }
 
@@ -62,10 +62,17 @@ d_raw <- bind_rows(
   read_icoder_base("TL336B.iChart.LOC2A.n51.txt", "36")
 )
 
+
+# TODO: decide what to do with double trial rows
+d_check_todo <- d_raw %>%
+  arrange(`Sub Num`, age_group) %>%
+  filter(`Tr Num` == lag(`Tr Num`) | `Tr Num` == lead(`Tr Num`))
+
 # Some participants have 2 rows for the same trial, these almost certainly belong to non vanilla trials, so let's filter them out until we figure out what is going on
 d_raw <- d_raw %>%
-  arrange(`Sub Num`, age_group) %>% 
+  arrange(`Sub Num`, age_group) %>%
   filter(`Tr Num` != lag(`Tr Num`) & `Tr Num` != lead(`Tr Num`))
+
 
 d_processed <- d_raw %>%
   # remove any column with all NAs (these are columns
@@ -204,6 +211,42 @@ wide.table <- d_processed %>%
     TRUE ~ sex
   ))
 
+# cutoff timepoints after which there is very little data - indicating accidental clicks
+THRESHOLD <- 0.05
+wide.table <- wide.table %>%
+  left_join(
+    wide.table %>%
+      group_by(age_group, t) %>%
+      summarize(existing_data = sum(aoi != "missing") / n()) %>%
+      filter(existing_data >= THRESHOLD) %>%
+      summarize(cutoff = max(t)),
+  by=join_by(age_group)) %>%
+  filter(t <= cutoff)
+
+
+# TODO what is happening during resampling??
+# quick summary to check the data
+subj_before <- wide.table %>%
+  group_by(age_group, subject_id, t) %>%
+  summarize(
+    mean_looking = mean(as.numeric(aoi_old), na.rm = T)
+  )
+
+overall_before <- subj_before %>%
+  group_by(age_group, t) %>%
+  summarize(
+    avg = mean(mean_looking)
+  )
+
+ggplot(overall_before, aes(t, avg)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed") +
+  geom_line(data = subj_before, aes(y = mean_looking, group = subject_id), alpha = 0.05) +
+  theme(legend.position = "none") +
+  geom_line() +
+  facet_wrap(~age_group) +
+  ggtitle("Before rezero, norm, resample")
+
+
 
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
@@ -253,3 +296,31 @@ dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
 ## 5. Write and Validate the Data
 
 write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = FALSE)
+
+
+# TODO discuss the difference with the viz up top
+# This is not perfect, since 2 subjects did not age between 2 timepoints, but for a quick viz this should be fine
+subj_after <- wide.table %>%
+  distinct(age_group, subject_id, age) %>%
+  rename(lab_subject_id = subject_id) %>%
+  left_join(dataset_list[["subjects"]], by = join_by(lab_subject_id)) %>%
+  left_join(dataset_list[["administrations"]], by = join_by(subject_id, age)) %>%
+  left_join(dataset_list[["aoi_timepoints"]], by = join_by(administration_id)) %>%
+  group_by(age_group, t_norm, subject_id) %>%
+  summarize(
+    mean_looking = mean(case_when(aoi == "target" ~ 1, aoi == "distractor" ~ 0, aoi == "other" ~ 0.5, T ~ NA), na.rm = T)
+  )
+
+overall_after <- subj_after %>%
+  group_by(age_group, t_norm) %>%
+  summarize(
+    avg = mean(mean_looking)
+  )
+
+ggplot(overall_after, aes(t_norm, avg)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed") +
+  geom_line(data = subj_after, aes(y = mean_looking, group = subject_id), alpha = 0.05) +
+  theme(legend.position = "none") +
+  geom_line() +
+  facet_wrap(~age_group) +
+  ggtitle("After rezero, norm, resample")
