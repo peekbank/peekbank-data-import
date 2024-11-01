@@ -131,7 +131,7 @@ wide.table <- d_processed %>%
   mutate(t = as.numeric(t)) %>% # ensure time is an integer/ numeric
   # Clean up column names and add stimulus information based on existing columnns
   filter(!is.na(sub_num)) %>%
-  select(-response, -condition, -first_shift_gap, -rt) %>%
+  select(-response, -first_shift_gap, -rt) %>%
   # left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c("l", "r"), labels = c("right", "left"))) %>%
   rename(left_image = r_image, right_image = l_image) %>%
@@ -167,8 +167,8 @@ wide.table <- d_processed %>%
     age_units = "months",
     full_phrase_language = "eng",
     full_phrase = NA,
-    condition = "", # no condition manipulation based on current documentation
-    vanilla_trial = TRUE, # all trials are vanilla
+    condition = condition,
+    vanilla_trial = condition %in% c("all trials", "familiar", "name", "medial", "location", "adjective"),
     lab_trial_id = paste(order, tr_num, sep = "-"),
     monitor_size_x = NA, # unknown TO DO
     monitor_size_y = NA, # unknown TO DO
@@ -180,7 +180,8 @@ wide.table <- d_processed %>%
     sample_rate = sampling_rate_hz,
     target_stimulus_label_original = target_label,
     target_stimulus_label_english = target_label,
-    target_stimulus_novelty = "familiar",
+    # drive and eat seem to be panju and modi
+    target_stimulus_novelty = ifelse(grepl("(^drive..$)|(^eat..$)|(^novel$)", target_label), "novel", "familiar"),
     target_stimulus_image_path = ifelse(
       age_group %in% c("16", "18"),
       paste0("images/", ifelse(target_side == "right", "right/", "left/"), gsub("\\.pct$", "", target_image), ".png"),
@@ -190,7 +191,8 @@ wide.table <- d_processed %>%
     target_image_description_source = "image path",
     distractor_stimulus_label_original = distractor_label,
     distractor_stimulus_label_english = distractor_label,
-    distractor_stimulus_novelty = "familiar",
+    # drive and eat seem to be panju and modi
+    distractor_stimulus_novelty = ifelse(grepl("(^drive..$)|(^eat..$)|(^novel$)", distractor_label), "novel", "familiar"),
     distractor_stimulus_image_path = ifelse(
       age_group %in% c("16", "18"),
       paste0("images/", ifelse(target_side == "left", "right/", "left/"), gsub("\\.pct$", "", distractor_image), ".png"),
