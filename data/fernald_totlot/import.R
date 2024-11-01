@@ -33,31 +33,6 @@ rename_frame_columns <- function(df) {
   return(df)
 }
 
-# temp: code to check if there are duplicate rows for the same trial
-# duplicate_row_age_group <- function(age_group, filename) {
-#   df <- here(data_path, filename) %>%
-#     read_csv() %>%
-#     mutate(age_group = age_group) %>%
-#     rename(F0 = word_onset) %>%
-#     relocate("filter_$", "tacc1800", "rtmsec", "age_group", .after = "targetper") %>%
-#     # filter columns with all NAs
-#     select_if(~ sum(!is.na(.)) > 0) %>%
-#     rename_frame_columns() %>%
-#     clean_names() %>%
-#     relocate(matches("^f\\d+"), .after = last_col())
-#   # relabel frame bins
-#   colnames(df) <- sub("^f(\\d+)", "\\1", colnames(df))
-#   df %>%
-#     filter(!is.na(tr_number)) %>% 
-#     arrange(subj, age_group) %>%
-#     mutate(is_match = (subj == lag(subj) & tr_number == lag(tr_number)) |
-#              (subj == lead(subj) & tr_number == lead(tr_number))) %>%
-#     filter(is_match)
-# }
-# 
-# b <- duplicate_row_age_group(25, "originalTL21vm.csv")
-
-
 read_age_group <- function(age_group, filename) {
   df <- here(data_path, filename) %>%
     read_csv() %>%
