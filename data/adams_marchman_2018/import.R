@@ -65,8 +65,11 @@ d_raw <- bind_rows(
 
 # TODO: decide what to do with double trial rows
 d_check_todo <- d_raw %>%
-  arrange(`Sub Num`, age_group) %>%
-  filter(`Tr Num` == lag(`Tr Num`) | `Tr Num` == lead(`Tr Num`))
+arrange(`Sub Num`, age_group) %>%
+  mutate(is_match = (`Sub Num` == lag(`Sub Num`) & `Tr Num` == lag(`Tr Num`)) |
+           (`Sub Num` == lead(`Sub Num`) & `Tr Num` == lead(`Tr Num`))) %>%
+  filter(is_match)
+
 
 # Some participants have 2 rows for the same trial, these almost certainly belong to non vanilla trials, so let's filter them out until we figure out what is going on
 d_raw <- d_raw %>%
