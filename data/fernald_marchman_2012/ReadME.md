@@ -31,6 +31,34 @@ Some images were mirrored depending on left/right positioning - image labels L a
 
 IMPORTANT: for related/unrelated prime noun/verb trials, the trials are represented in the raw data TWICE - once centered on the onset of the verb and once centered on the onset of the noun. We only keep the trial representation centered on the onset of the noun.
 
+
+Decisions on what conditions constitute vanilla trials:
+
+vanilla:
+* familiar
+* Vanilla
+
+non-vanilla:
+* Familiar-Medial (discuss)
+* medial (discuss)
+* AdjSize (discuss)
+* Adjective (discuss)
+* AdjColor (discuss)
+* AdjAbsSize (discuss)
+* AbsSize (discuss)
+* UnrelPrime-Noun      
+* RelPrime-Verb
+* Relprime-Verb
+* Novel-Test       
+* FerretExposure (discuss: what are the ferret trials?)
+* FerretImmTest
+* FerretTest
+* FerretRetention
+* FerretVerbComp 
+* UR-primeNoun
+* R-primeNoun                    
+                 
+
 5. Importing ambiguity
 
 Point of disambiguation is tricky for verb and adjective trials - should this be the first informative moment (e.g. when an informative verb was mentioned) or at the onset of the noun?

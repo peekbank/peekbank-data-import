@@ -98,6 +98,13 @@ d_processed <- d_processed_18 |>
   bind_rows(d_processed_30 |> mutate(across(everything(), as.character))) |>
   select(!matches("^\\d|^-"), everything()) # get all the metadata up front
 
+# Check for duplicate rows that differ only in pod - none found here as long as we assume that "order" refers to different runs of the trial within an administration
+d_duplicate_ <- d_processed %>%
+  arrange(sub_num, months, session, order) %>%
+  mutate(is_match = (sub_num == lag(sub_num) & tr_num == lag(tr_num)) |
+           (sub_num == lead(sub_num) & tr_num == lead(tr_num))) %>%
+  filter(is_match)
+
 
 # Convert to long format --------------------------------------------------
 d_tidy <- d_processed %>%
@@ -176,6 +183,7 @@ stimulus_table <- stimulus_table_link |>
   distinct(clean_target_image, target_label) |>
   mutate(
     dataset_id = 0,
+    image_description = target_label,
     stimulus_novelty = case_when(
       target_label == "novel" ~ "novel",
       str_detect(target_label, "tempo") ~ "novel",
@@ -187,7 +195,6 @@ stimulus_table <- stimulus_table_link |>
     original_stimulus_label = target_label,
     #english_stimulus_label = target_label,
     stimulus_image_path = str_c("images/", clean_target_image, ".png"),
-    #image_description = target_label,
     image_description_source = "image path",
     lab_stimulus_id = clean_target_image,
     stimulus_aux_data = NA
@@ -277,11 +284,7 @@ d_trial_type_ids <- d_tidy %>%
   ) |>
   mutate(
     full_phrase = NA,
-    vanilla_trial = case_when(
-      condition == "familiar" ~ T,
-      condition == "Vanilla" ~ T,
-      T ~ F
-    ),
+    vanilla_trial = condition %in% c("familiar", "Vanilla"),
     trial_type_aux_data = NA,
     lab_trial_id = NA
   ) %>%
