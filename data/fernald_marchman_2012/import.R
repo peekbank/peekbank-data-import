@@ -183,7 +183,6 @@ stimulus_table <- stimulus_table_link |>
   distinct(clean_target_image, target_label) |>
   mutate(
     dataset_id = 0,
-    image_description = target_label,
     stimulus_novelty = case_when(
       target_label == "novel" ~ "novel",
       str_detect(target_label, "tempo") ~ "novel",
@@ -193,7 +192,6 @@ stimulus_table <- stimulus_table_link |>
       TRUE ~ "familiar"
     ),
     original_stimulus_label = target_label,
-    #english_stimulus_label = target_label,
     stimulus_image_path = str_c("images/", clean_target_image, ".png"),
     image_description_source = "image path",
     lab_stimulus_id = clean_target_image,
@@ -233,7 +231,8 @@ stimulus_table <- stimulus_table |>
     )
   ) |> 
   mutate(
-    english_stimulus_label=original_stimulus_label
+    english_stimulus_label=original_stimulus_label,
+    image_description = original_stimulus_label,
   )
 
 link_stimulus <- stimulus_table |>
