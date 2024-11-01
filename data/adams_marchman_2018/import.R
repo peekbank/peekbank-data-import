@@ -138,7 +138,14 @@ wide.table <- d_processed %>%
   # left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c("l", "r"), labels = c("right", "left"))) %>%
   rename(left_image = r_image, right_image = l_image) %>%
-  mutate(target_label = target_image) %>%
+  mutate(target_image = gsub("\\.pct$", "", target_image)) %>% 
+  mutate(target_label =
+           case_when(
+             grepl("modi", condition) ~ "modi",
+             grepl("panju", condition) ~ "panju",
+             T ~ gsub("[0-9]+", "", target_image)
+           )
+         ) %>%
   rename(target_image_old = target_image) %>% # since target image doesn't seem to be the specific image identifier
   mutate(target_image = case_when(
     target_side == "right" ~ right_image,
@@ -164,6 +171,7 @@ wide.table <- d_processed %>%
   ) %>%
   ungroup() %>%
   mutate(
+    distractor_image = gsub("\\.pct$", "", distractor_image),
     distractor_label = gsub("[0-9]+", "", distractor_image),
     trial_name = paste(order, tr_num, sep = "-"),
     native_language = "eng",
@@ -184,10 +192,10 @@ wide.table <- d_processed %>%
     target_stimulus_label_original = target_label,
     target_stimulus_label_english = target_label,
     # drive and eat seem to be panju and modi
-    target_stimulus_novelty = ifelse(grepl("(^drive..$)|(^eat..$)|(^novel$)", target_label), "novel", "familiar"),
+    target_stimulus_novelty = ifelse(grepl("(^drive)|(^eat)|(^novel$)", target_label), "novel", "familiar"),
     target_stimulus_image_path = ifelse(
       age_group %in% c("16", "18"),
-      paste0("images/", ifelse(target_side == "right", "right/", "left/"), gsub("\\.pct$", "", target_image), ".png"),
+      paste0("images/", ifelse(target_side == "right", "right/", "left/"), target_image, ".png"),
       NA
     ),
     target_image_description = target_label,
@@ -195,10 +203,10 @@ wide.table <- d_processed %>%
     distractor_stimulus_label_original = distractor_label,
     distractor_stimulus_label_english = distractor_label,
     # drive and eat seem to be panju and modi
-    distractor_stimulus_novelty = ifelse(grepl("(^drive..$)|(^eat..$)|(^novel$)", distractor_label), "novel", "familiar"),
+    distractor_stimulus_novelty = ifelse(grepl("(^drive)|(^eat)|(^novel$)", distractor_label), "novel", "familiar"),
     distractor_stimulus_image_path = ifelse(
       age_group %in% c("16", "18"),
-      paste0("images/", ifelse(target_side == "left", "right/", "left/"), gsub("\\.pct$", "", distractor_image), ".png"),
+      paste0("images/", ifelse(target_side == "left", "right/", "left/"), distractor_image, ".png"),
       NA
     ),
     distractor_image_description = distractor_label,
