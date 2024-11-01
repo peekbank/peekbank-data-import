@@ -11,28 +11,27 @@ To explore how online speech processing efficiency relates to vocabulary growth 
 
 3. **Original study info.**
 
-TODO
+Condition info:
 
-Relevant excerpt regarding stimulus novelty / trial vanillaness:
+18 months:
+* whole: vanilla (just regular trials)
+* yfill: also vanilla
+* gated: these are the "cut off" words, non-vanilla
+* zteach: this is a teaching trial in which a novel object is mapped to a novel label (nonce or kreeb) - non-vanilla
+* (a)learn: this is a test trial for the novel labels - non-vanilla
 
-The speech stimuli at all ages consisted of prerecorded sentences containing target words in
-a familiar carrier phrase such as “Where’s the [target]? Do you see it?” At 15 months, the
-four target words (doggie, baby, ball, shoe) used by Fernald et al. (1998) were each
-presented six times. In addition to these 24 trials, 6 filler trials were included to increase the
-variability of the stimulus set. At 18 months, the target words were doggie, baby, ball, and
-car, each presented twice as whole words and twice as truncated words (daw, bei, baw, ka).
-This manipulation was motivated by the finding that the ability to recognize familiar words
-using partial phonetic information develops between 18 and 21 months of age and is related
-to level of lexical development (Fernald et al., 2001). In addition to these 16 trials, 13 filler
-trials were included.2 At 21 months, doggie, baby, birdie, and kitty, were presented both as
-whole words and as truncated words (daw, bei, ber, ki) for a total of 16 trials. On 8
-additional trials, the 21-month-olds also heard juice and cookie as target words, preceded by
-frames in which the verb was either semantically related (drink, eat) or semantically neutral
-(take, look at), with four filler trials. At 25 months, the standard set of target words (doggie,
-baby, ball, car) was augmented by target words typically learned later in the 2nd year
-(monkey, cow, flower, tree, animal), presented as whole words. To diversify the sentence
-frames, we included adjectives (nice, pretty) before target words on 8 trials. Four filler trials
-were included.
+21 months:
+* xfacil: these are trials in which the verb facilitates the recognition of the label ("eat the cookie") - non-vanilla
+* whole: regular vanilla trials
+* look: these are matched to the xfacil trials, e.g. "Look at the cookie" instead of the xfacil trial "eat the cookie". These are vanilla, with the caveat that I'm not entirely sure where F0 is set within the trial (beginning of the trial or onset of cookie?). We should look carefully at these specific trials to clear this up.
+gated: as before, non-vanilla (truncated words)
+* new: these are mutual exclusivity-style trials, non-vanilla
+* ylearn: novel word trials, non-vanilla
+
+25 months:
+losse: this is like "gated", non-vanilla
+hard: vanilla - this just means that the specific words were "harder"
+nice/super/pretty/none - all vanilla; these just mean that an additional adjective was shown (except for the none trials, these are just paired with the pretty trials e.g.), but I think it is safe to consider these all vanilla for our purposes. Let's also have a close eye on the timing of the curve inflection for these, just to make sure the points of disambiguation are right
 
 
 4. **Importing decisions.**
