@@ -58,9 +58,7 @@ d_tidy <- bind_rows(
   read_age_group(21, "originalTL21vm.csv"),
   read_age_group(25, "originalTL25vmclean.csv")
 ) %>%
-  # TODO
-  # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
-  # this leaves NA as NA
+  # recode 0, 1, ., - as distracter, target, other, missing [check in about this]
   rename(aoi_old = aoi) %>%
   mutate(aoi = case_when(
     aoi_old == "0" ~ "distractor",
@@ -140,6 +138,9 @@ wide.table <- wide.table %>%
     by=join_by(age_group)) %>%
   filter(t <= cutoff)
 
+# Filter out super as the data seems to be an anomaly (looking score constantly above 60%)
+# wait with inclusion until we have figured out what causes this
+wide.table <- wide.table %>% filter(!condition %in% c("super"))
 
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
@@ -147,8 +148,8 @@ dataset_list <- digest.dataset(
   cite = "Fernald, A., Perfors, A., & Marchman, V. A. (2006). Picking up speed in understanding: Speech processing efficiency and vocabulary growth across the 2nd year.Developmental Psychology, 42(1), 98–116.",
   shortcite = "Fernald et al. (2006)",
   wide.table = wide.table,
-  rezero = TRUE,
-  normalize = TRUE,
+  rezero = FALSE,
+  normalize = FALSE,
   resample = TRUE
 )
 

@@ -62,8 +62,11 @@ d_raw <- bind_rows(
   read_icoder_base("TL336B.iChart.LOC2A.n51.txt", "36")
 )
 
+# filter out duplicate rows for trials focusing on the verbs pod
+d_raw <- d_raw %>% 
+  filter(!(Condition %in% c("R-primeVerb", "UR-primeVerb")))
 
-# TODO: decide what to do with double trial rows
+
 d_check_todo <- d_raw %>%
 arrange(`Sub Num`, age_group) %>%
   mutate(is_match = (`Sub Num` == lag(`Sub Num`) & `Tr Num` == lag(`Tr Num`)) |
@@ -72,9 +75,9 @@ arrange(`Sub Num`, age_group) %>%
 
 
 # Some participants have 2 rows for the same trial, these almost certainly belong to non vanilla trials, so let's filter them out until we figure out what is going on
-d_raw <- d_raw %>%
-  arrange(`Sub Num`, age_group) %>%
-  filter(`Tr Num` != lag(`Tr Num`) & `Tr Num` != lead(`Tr Num`))
+#d_raw <- d_raw %>%
+#  arrange(`Sub Num`, age_group) %>%
+#  filter(`Tr Num` != lag(`Tr Num`) & `Tr Num` != lead(`Tr Num`))
 
 
 d_processed <- d_raw %>%
@@ -179,7 +182,7 @@ wide.table <- d_processed %>%
     full_phrase_language = "eng",
     full_phrase = NA,
     condition = condition,
-    vanilla_trial = condition %in% c("all trials", "familiar", "name", "medial", "location", "adjective"),
+    vanilla_trial = condition %in% c("all trials", "familiar", "name", "VanURP", "UR-primeNoun"),
     lab_trial_id = paste(order, tr_num, sep = "-"),
     monitor_size_x = NA, # unknown TO DO
     monitor_size_y = NA, # unknown TO DO
@@ -267,8 +270,8 @@ dataset_list <- digest.dataset(
   cite = "Adams, K. A., Marchman, V. A., Loi, E. C., Ashland, M. D., Fernald, A., & Feldman, H. M. (2018). Caregiver talk and medical risk as predictors of language outcomes in full term and preterm toddlers. Child Development, 89(5), 1674-1690. https://doi.org/10.1111/cdev.12818",
   shortcite = "Adams et al. (2018)",
   wide.table = wide.table,
-  rezero = TRUE,
-  normalize = TRUE,
+  rezero = FALSE,
+  normalize = FALSE,
   resample = TRUE
 )
 
@@ -311,8 +314,6 @@ dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
 write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = FALSE)
 
 
-# TODO discuss the difference with the viz up top
-# This is not perfect, since 2 subjects did not age between 2 timepoints, but for a quick viz this should be fine
 subj_after <- wide.table %>%
   distinct(age_group, subject_id, age) %>%
   rename(lab_subject_id = subject_id) %>%

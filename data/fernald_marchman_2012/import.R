@@ -45,11 +45,6 @@ d_processed_24 <- d_raw_24 %>%
 d_raw_30 <- read_delim(fs::path(read_path, "TL230ABoriginalichartsn1-121toMF.txt"),
   delim = "\t"
 )
-# remove duplicated trials (recentered on verb instead of noun)
-d_raw_30 <- d_raw_30 |>
-  filter(
-    !(OriginalCondition %in% c("R-primeVerb","UR-primeVerb"))
-  )
 
 # d_raw_30 has two slightly different types of rows mixed together
 d_processed_30_part_1 <- d_raw_30 |>
@@ -75,7 +70,7 @@ d_processed_30_part_2 <- d_raw_30 |>
   #   f05 = `CritOffSet`
   # ) |>
   preprocess_raw_data() %>%
-  #drop final x column
+  # drop final x column
   select(-x270) %>%
   relabel_time_cols(
     metadata_names = extract_col_types(.)[["metadata_names"]],
@@ -98,12 +93,90 @@ d_processed <- d_processed_18 |>
   bind_rows(d_processed_30 |> mutate(across(everything(), as.character))) |>
   select(!matches("^\\d|^-"), everything()) # get all the metadata up front
 
-# Check for duplicate rows that differ only in pod - none found here as long as we assume that "order" refers to different runs of the trial within an administration
-d_duplicate_ <- d_processed %>%
-  arrange(sub_num, months, session, order) %>%
-  mutate(is_match = (sub_num == lag(sub_num) & tr_num == lag(tr_num)) |
-           (sub_num == lead(sub_num) & tr_num == lead(tr_num))) %>%
-  filter(is_match)
+
+d_processed <- d_processed %>%
+  mutate(
+    condition = case_when(
+      !is.na(cond_orig) ~ cond_orig,
+      !is.na(original_condition) ~ condition2,
+      !is.na(condition) ~ condition,
+    ),
+    months = as.numeric(months)
+  ) 
+
+# some row pairs in the raw data refer to the same trial, coded with 2 different
+# word onsets to target either the verb or the noun of the phrase
+# we want to filter these out to focus only on the word where possible
+d_processed <- d_processed %>%
+  # the doubling was only used for the 30mo sample, so these
+  # fixes only apply to months >= 28
+  mutate(
+    # For UR-primeVerb, participants 10002, 10003, and 10007 have double UR-primeVerb instead
+    # of UR-primeVerb + UR-primeNoun. However, one of the two has a later onset and
+    # is therefore likely referring to R-primeNoun (data entry typo)
+    condition = case_when(
+      months >= 28 & 
+        sub_num %in% c("10002", "10003", "10007") &
+        session == "A" &
+        condition == "UR-primeVerb" &
+        word_onset != 0 ~ "UR-primeNoun",
+      TRUE ~ condition
+    )
+  ) %>%
+  filter(
+    # 10002, 10003, and 10007 have pairs of fully identical rows for session A, R-primeVerb
+    # The offset is 0, so it is unlikely these are acutally primeNoun - we remove them for consistency
+    !(months >= 28 &
+        sub_num %in% c("10002", "10003", "10007") &
+        session == "A" &
+        (condition == "R-primeVerb" |
+           (condition == "UR-primeVerb" & word_onset == 0))
+    ) &
+      # 10038 has no doubling at all across both session A and B,
+      # only using (U)R-primeVerb. No offset. We also assume that this is only
+      # verb data and remove it
+      !(months >= 28 &
+          sub_num == "10038" &
+          grepl("([Vv]erb)", condition))
+  ) %>%
+  # the remaining pairings have a valid primeNoun, so we can filter out the verb rows
+  filter(!(months >= 28 & grepl("([Vv]erb)", condition)))
+
+
+# # temporary code to check if duplicate rows are really duplicate
+# grouping_cols <- c("sub_num", "session", "months", "tr_num", "target_side")
+
+
+# prep <- d_processedA %>%
+#   filter(grepl(("(R-|Rel|rel)"), condition)) %>% 
+#   mutate(tr_num = as.numeric(tr_num)) %>% 
+#   arrange(sub_num, months, session, tr_num) %>%
+#   filter(months > 27)
+# 
+# paired_check <- prep %>%
+#   group_by(across(all_of(grouping_cols))) %>%
+#   summarise(
+#     n_conditions = n_distinct(condition),
+#     n_rows = n(),
+#     .groups = "drop"
+#   ) %>%
+#   filter(n_conditions != 2 | n_rows != 2)
+# 
+# unpaired <- prep %>%
+#   semi_join(paired_check, by = grouping_cols) %>%
+#   arrange(sub_num, months, session, tr_num)
+
+#print(unpaired)
+
+# temp <- unpaired %>%
+#   group_by(sub_num, months, session) %>%
+#   summarise(
+#     n_problematic_trials = n_distinct(tr_num),
+#     trials = paste(unique(tr_num), collapse = ", "),
+#     .groups = "drop"
+#   ) 
+
+#write.csv(prep,"supposedtobepaired.csv")
 
 
 # Convert to long format --------------------------------------------------
@@ -199,8 +272,8 @@ stimulus_table <- stimulus_table_link |>
   ) |>
   mutate(stimulus_id = seq(0, length(lab_stimulus_id) - 1))
 
-#rename target image
-stimulus_table <- stimulus_table |> 
+# rename target image
+stimulus_table <- stimulus_table |>
   mutate(
     original_stimulus_label = case_when(
       original_stimulus_label == "shoeblue" ~ "shoe",
@@ -229,9 +302,9 @@ stimulus_table <- stimulus_table |>
       original_stimulus_label == "cookiebig" ~ "cookie",
       TRUE ~ original_stimulus_label
     )
-  ) |> 
+  ) |>
   mutate(
-    english_stimulus_label=original_stimulus_label,
+    english_stimulus_label = original_stimulus_label,
     image_description = original_stimulus_label,
   )
 
@@ -265,15 +338,8 @@ d_administration_ids <- d_tidy %>%
   arrange(subject_id, sub_num, months, session) %>%
   mutate(administration_id = seq(0, length(.$session) - 1))
 
-# TODO for code review: check if this is the correct condition choice
-d_tidy <- d_tidy %>%
-  mutate(
-    condition = case_when(
-      !is.na(cond_orig) ~ cond_orig,
-      !is.na(original_condition) ~ condition2,
-      !is.na(condition) ~ condition,
-    )
-  )
+
+
 
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
@@ -283,11 +349,11 @@ d_trial_type_ids <- d_tidy %>%
   ) |>
   mutate(
     full_phrase = NA,
-    vanilla_trial = condition %in% c("familiar", "Vanilla"),
+    vanilla_trial = condition %in% c("familiar", "Vanilla", "UnrelPrime-Noun", "UR-primeNoun", "Familiar-Medial"),
     trial_type_aux_data = NA,
     lab_trial_id = NA
   ) %>%
-  mutate(trial_type_id = 0:(n()-1))
+  mutate(trial_type_id = 0:(n() - 1))
 
 # joins
 d_tidy_semifinal <- d_tidy %>%
@@ -304,13 +370,13 @@ d_trial_ids <- d_tidy_semifinal %>%
   ) %>%
   # the prescreen notes are not attached to all rows of a trial (sub_num x session x months x trial_type_id), so we fix this
   group_by(sub_num, session, months, trial_type_id) %>%
-  summarize(prescreen_notes = first(na.omit(prescreen_notes)), .groups = 'drop') %>%
+  summarize(prescreen_notes = first(na.omit(prescreen_notes)), .groups = "drop") %>%
   mutate(excluded = !is.na(prescreen_notes)) |>
   rename(exclusion_reason = prescreen_notes) |>
   group_by(sub_num, session, months) %>%
   mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
   ungroup() %>%
-  mutate(trial_id = 0:(n()-1)) %>%
+  mutate(trial_id = 0:(n() - 1)) %>%
   distinct()
 
 # join

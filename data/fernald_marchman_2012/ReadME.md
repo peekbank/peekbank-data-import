@@ -37,27 +37,29 @@ Decisions on what conditions constitute vanilla trials:
 vanilla:
 * familiar
 * Vanilla
+* UnrelPrime-Noun
+* UR-primeNoun
+* Familiar-Medial
 
 non-vanilla:
-* Familiar-Medial (discuss)
-* medial (discuss)
-* AdjSize (discuss)
-* Adjective (discuss)
-* AdjColor (discuss)
-* AdjAbsSize (discuss)
-* AbsSize (discuss)
-* UnrelPrime-Noun      
+* medial
+* AdjSize
+* Adjective 
+* AdjColor
+* AdjAbsSize
+* AbsSize
 * RelPrime-Verb
 * Relprime-Verb
+* R-primeNoun
 * Novel-Test       
-* FerretExposure (discuss: what are the ferret trials?)
+* FerretExposure
 * FerretImmTest
 * FerretTest
 * FerretRetention
 * FerretVerbComp 
-* UR-primeNoun
-* R-primeNoun                    
-                 
+                  
+
+Right now, the Points of Disambiguation for non-vanilla trials have not been fully checked - so the timings of these trials could be inconsistent. TODO, if we ever find a use for these non vanilla trials  
 
 5. Importing ambiguity
 

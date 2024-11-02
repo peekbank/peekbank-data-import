@@ -6,12 +6,17 @@ vanilla:
 * all trials
 * familiar
 * name
-* medial (?)
-* location (?)
-* adjective (need to talk about this)
+* VanURP
+* UR-primeNoun
+
 
 non-vanilla:
-* VanURP (need to talk about it - these rows appear twice)
+* medial
+* R-primeVerb (filtered out)
+* UR-primeVerb (filtered out)
+* R-primeNoun
+* location - gives hint
+* adjective - gives hint
 * noveltest
 * vcompEat
 * vcompDrive

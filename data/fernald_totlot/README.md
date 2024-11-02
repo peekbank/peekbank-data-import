@@ -33,6 +33,8 @@ losse: this is like "gated", non-vanilla
 hard: vanilla - this just means that the specific words were "harder"
 nice/super/pretty/none - all vanilla; these just mean that an additional adjective was shown (except for the none trials, these are just paired with the pretty trials e.g.), but I think it is safe to consider these all vanilla for our purposes. Let's also have a close eye on the timing of the curve inflection for these, just to make sure the points of disambiguation are right
 
+Important note: the script currently filters out the "super" trial as the looking score for that trial is constantly above 60%, which is odd. Wait for an explanation to emerge (hopefully)
+
 
 4. **Importing decisions.**
 
