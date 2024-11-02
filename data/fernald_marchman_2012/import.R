@@ -143,42 +143,6 @@ d_processed <- d_processed %>%
   filter(!(months >= 28 & grepl("([Vv]erb)", condition)))
 
 
-# # temporary code to check if duplicate rows are really duplicate
-# grouping_cols <- c("sub_num", "session", "months", "tr_num", "target_side")
-
-
-# prep <- d_processedA %>%
-#   filter(grepl(("(R-|Rel|rel)"), condition)) %>% 
-#   mutate(tr_num = as.numeric(tr_num)) %>% 
-#   arrange(sub_num, months, session, tr_num) %>%
-#   filter(months > 27)
-# 
-# paired_check <- prep %>%
-#   group_by(across(all_of(grouping_cols))) %>%
-#   summarise(
-#     n_conditions = n_distinct(condition),
-#     n_rows = n(),
-#     .groups = "drop"
-#   ) %>%
-#   filter(n_conditions != 2 | n_rows != 2)
-# 
-# unpaired <- prep %>%
-#   semi_join(paired_check, by = grouping_cols) %>%
-#   arrange(sub_num, months, session, tr_num)
-
-#print(unpaired)
-
-# temp <- unpaired %>%
-#   group_by(sub_num, months, session) %>%
-#   summarise(
-#     n_problematic_trials = n_distinct(tr_num),
-#     trials = paste(unique(tr_num), collapse = ", "),
-#     .groups = "drop"
-#   ) 
-
-#write.csv(prep,"supposedtobepaired.csv")
-
-
 # Convert to long format --------------------------------------------------
 d_tidy <- d_processed %>%
   pivot_longer(names_to = "t", cols = matches("^\\d|^-"), values_to = "aoi")
