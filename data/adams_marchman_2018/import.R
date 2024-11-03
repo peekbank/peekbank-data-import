@@ -211,7 +211,14 @@ wide.table <- d_processed %>%
     subject_id == "13326" ~ "M", # Same
     subject_id == "13628" ~ "M", # Same
     TRUE ~ sex
-  ))
+  )) %>%
+  #fix one age that seems way off (one session at 22 is specified as being age 12 months)
+  mutate(
+    age = case_when(
+      subject_id == "13094" & age == 12 ~ 22,
+      TRUE ~ age
+    )
+  )
 
 # cutoff timepoints after which there is very little data - indicating accidental clicks
 THRESHOLD <- 0.05
@@ -276,27 +283,25 @@ dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
 
 write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = TRUE)
 
-
+  
 subj_after <- wide.table %>%
-  distinct(age_group, subject_id, age) %>%
-  rename(lab_subject_id = subject_id) %>%
-  left_join(dataset_list[["subjects"]], by = join_by(lab_subject_id)) %>%
-  left_join(dataset_list[["administrations"]], by = join_by(subject_id, age)) %>%
-  left_join(dataset_list[["aoi_timepoints"]], by = join_by(administration_id)) %>%
-  group_by(age_group, t_norm, subject_id) %>%
+  group_by(age_group, t, subject_id) %>%
   summarize(
-    mean_looking = mean(case_when(aoi == "target" ~ 1, aoi == "distractor" ~ 0, aoi == "other" ~ 0.5, T ~ NA), na.rm = T)
+    mean_looking = mean(case_when(aoi == "target" ~ 1, aoi == "distractor" ~ 0, T ~ NA), na.rm = T)
   )
 
 overall_after <- subj_after %>%
-  group_by(age_group, t_norm) %>%
+  group_by(age_group, t) %>%
   summarize(
-    avg = mean(mean_looking)
+    N=n(),
+    avg = mean(mean_looking,na.rm=T),
+    sum_na = sum(is.na(mean_looking))
   )
 
-ggplot(overall_after, aes(t_norm, avg)) +
+ggplot(overall_after, aes(t, avg)) +
   geom_hline(yintercept = 0.5, linetype = "dashed") +
-  geom_line(data = subj_after, aes(y = mean_looking, group = subject_id), alpha = 0.05) +
+  geom_line(data = subj_after, aes(y = mean_looking, group = subject_id),color="green",
+alpha = 0.05) +
   theme(legend.position = "none") +
   geom_line() +
   facet_wrap(~age_group)
