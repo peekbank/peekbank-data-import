@@ -12,21 +12,63 @@ sampling_rate_hz <- 30
 sampling_rate_ms <- 1000 / sampling_rate_hz
 
 remove_repeat_headers <- function(d, idx_var) {
-  d[d[, idx_var] != idx_var, ]
+
 }
 
 read_icoder_base <- function(filename, age_group) {
-  read_delim(fs::path(data_path, filename),
+  df <- read_delim(fs::path(data_path, filename),
     delim = "\t"
   ) %>%
     # the order column is needed to disambiguate administrations for one subject who received the same order twice
     # in the 18-month-old group below
-    mutate(order_uniquified = Order) %>%
-    relocate(order_uniquified, .after = `Order`) %>%
+    janitor::clean_names() %>%
+    mutate(order_uniquified = order) %>%
+    relocate(order_uniquified, .after = order) %>%
     mutate(row_number = as.numeric(row.names(.))) %>%
-    relocate(row_number, .after = `Sub Num`) %>%
+    relocate(row_number, .after = sub_num) %>%
     mutate(age_group = age_group) %>%
-    relocate(age_group, .after = `Sub Num`)
+    relocate(age_group, .after = sub_num) %>%
+    # filter out duplicate rows for trials focusing on the verbs pod
+    filter(!(condition %in% c("R-primeVerb", "UR-primeVerb"))) %>%
+    # remove any column with all NAs (these are columns
+    # where there were variable names but no eye tracking data)
+    select_if(~ sum(!is.na(.)) > 0) %>%
+    filter(!is.na(sub_num)) %>% # remove some residual NA rows
+    # Create clean column headers, remove_repeat_headers
+    filter(months != "Months")
+
+
+  
+  #df[df[, "months"] != "Months", ]
+
+  # Relabel time bins --------------------------------------------------
+  old_names <- colnames(df)
+  metadata_names <- old_names[!str_detect(old_names, "x\\d|f\\d")]
+  pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
+  post_dis_names <- old_names[str_detect(old_names, "f\\d")]
+
+  pre_dis_names_clean <- if (length(pre_dis_names) == 0) {
+    pre_dis_names
+  } else {
+    round(seq(
+      from = length(pre_dis_names) * sampling_rate_ms,
+      to = sampling_rate_ms,
+      by = -sampling_rate_ms
+    ) * -1, 0)
+  }
+
+  post_dis_names_clean <- post_dis_names %>% str_remove("f")
+
+  colnames(df) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
+
+  df %>%
+    # create trial_order variable as tr_num variable
+    mutate(trial_order = as.numeric(as.character(tr_num))) %>%
+    # add overall row number (collapsing across ages) to track unique instances
+    mutate(overall_row_number = as.numeric(row.names(.))) %>%
+    relocate(overall_row_number, .after = `sub_num`) %>%
+    # Convert to long format
+    pivot_longer(names_to = "t", cols = all_of(c(pre_dis_names_clean, post_dis_names_clean)), values_to = "aoi")
 }
 
 
@@ -37,21 +79,21 @@ read_icoder_base <- function(filename, age_group) {
 # (in order to capture that it is a distinct administration)
 # strategy: add row numbers as a new column to disambiguate otherwise identical trial information
 d_raw_18 <- read_icoder_base("TL318AB.ichart.n67.txt", "18") %>%
-  group_by(`Sub Num`, Order, `Tr Num`) %>%
+  group_by(sub_num, order, tr_num) %>%
   mutate(
     order_uniquified = case_when(
-      `Sub Num` == "12959" ~ ifelse(row_number < max(row_number), "TL2-2-1", "TL2-2-2"),
-      TRUE ~ Order
+      sub_num == "12959" ~ ifelse(row_number < max(row_number), "TL2-2-1", "TL2-2-2"),
+      TRUE ~ order
     )
   ) %>%
-  relocate(order_uniquified, .after = `Order`) %>%
+  relocate(order_uniquified, .after = order) %>%
   ungroup()
 
 
 
 
 # combine
-d_raw <- bind_rows(
+d_processed <- bind_rows(
   read_icoder_base("TL316AB.ichart.n69.txt", "16"),
   d_raw_18,
   read_icoder_base("TL322AB.ichart.alltrials.n63.txt", "22"),
@@ -62,67 +104,8 @@ d_raw <- bind_rows(
   read_icoder_base("TL336B.iChart.LOC2A.n51.txt", "36")
 )
 
-# filter out duplicate rows for trials focusing on the verbs pod
-d_raw <- d_raw %>% 
-  filter(!(Condition %in% c("R-primeVerb", "UR-primeVerb")))
-
-
-d_check_todo <- d_raw %>%
-arrange(`Sub Num`, age_group) %>%
-  mutate(is_match = (`Sub Num` == lag(`Sub Num`) & `Tr Num` == lag(`Tr Num`)) |
-           (`Sub Num` == lead(`Sub Num`) & `Tr Num` == lead(`Tr Num`))) %>%
-  filter(is_match)
-
-
-# Some participants have 2 rows for the same trial, these almost certainly belong to non vanilla trials, so let's filter them out until we figure out what is going on
-#d_raw <- d_raw %>%
-#  arrange(`Sub Num`, age_group) %>%
-#  filter(`Tr Num` != lag(`Tr Num`) & `Tr Num` != lead(`Tr Num`))
-
-
-d_processed <- d_raw %>%
-  # remove any column with all NAs (these are columns
-  # where there were variable names but no eye tracking data)
-  select_if(~ sum(!is.na(.)) > 0) %>%
-  filter(!is.na(`Sub Num`)) %>% # remove some residual NA rows
-  # Create clean column headers
-  remove_repeat_headers(idx_var = "Months") %>%
-  janitor::clean_names()
-
-# Relabel time bins --------------------------------------------------
-old_names <- colnames(d_processed)
-metadata_names <- old_names[!str_detect(old_names, "x\\d|f\\d")]
-pre_dis_names <- old_names[str_detect(old_names, "x\\d")]
-post_dis_names <- old_names[str_detect(old_names, "f\\d")]
-
-pre_dis_names_clean <- if (length(pre_dis_names) == 0) {
-  pre_dis_names
-} else {
-  round(seq(
-    from = length(pre_dis_names) * sampling_rate_ms,
-    to = sampling_rate_ms,
-    by = -sampling_rate_ms
-  ) * -1, 0)
-}
-
-post_dis_names_clean <- post_dis_names %>% str_remove("f")
-
-colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
-
-### truncate columns at F3833, since trials are almost never coded later than this timepoint
-## TO DO: check in about this decision
-post_dis_names_clean_cols_to_remove <- post_dis_names_clean[117:length(post_dis_names_clean)]
 
 wide.table <- d_processed %>%
-  # remove
-  select(-all_of(post_dis_names_clean_cols_to_remove)) %>%
-  # create trial_order variable as tr_num variable
-  mutate(trial_order = as.numeric(as.character(tr_num))) %>%
-  # add overall row number (collapsing across 16- and 18-month-old data) to track unique instances
-  mutate(overall_row_number = as.numeric(row.names(.))) %>%
-  relocate(overall_row_number, .after = `sub_num`) %>%
-  # Convert to long format --------------------------------------------------
-  pivot_longer(names_to = "t", cols = `-600`:`3833`, values_to = "aoi") %>%
   # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
   # this leaves NA as NA
   rename(aoi_old = aoi) %>%
@@ -130,9 +113,11 @@ wide.table <- d_processed %>%
     aoi_old == "0" ~ "distractor",
     aoi_old == "1" ~ "target",
     aoi_old == "0.5" ~ "other",
+    aoi_old == ".5" ~ "other",
     aoi_old == "." ~ "missing",
     aoi_old == "-" ~ "missing",
-    is.na(aoi_old) ~ "missing"
+    aoi_old == " " ~ "missing",
+    is.na(aoi_old) ~ "missing",
   )) %>%
   mutate(t = as.numeric(t)) %>% # ensure time is an integer/ numeric
   # Clean up column names and add stimulus information based on existing columnns
@@ -141,14 +126,15 @@ wide.table <- d_processed %>%
   # left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c("l", "r"), labels = c("right", "left"))) %>%
   rename(left_image = r_image, right_image = l_image) %>%
-  mutate(target_image = gsub("\\.pct$", "", target_image)) %>% 
-  mutate(target_label =
-           case_when(
-             grepl("modi", condition) ~ "modi",
-             grepl("panju", condition) ~ "panju",
-             T ~ gsub("[0-9]+", "", target_image)
-           )
-         ) %>%
+  mutate(target_image = gsub("\\.pct$", "", target_image)) %>%
+  mutate(
+    target_label =
+      case_when(
+        grepl("modi", condition) ~ "modi",
+        grepl("panju", condition) ~ "panju",
+        T ~ gsub("[0-9]+", "", target_image)
+      )
+  ) %>%
   rename(target_image_old = target_image) %>% # since target image doesn't seem to be the specific image identifier
   mutate(target_image = case_when(
     target_side == "right" ~ right_image,
@@ -235,33 +221,10 @@ wide.table <- wide.table %>%
       group_by(age_group, t) %>%
       summarize(existing_data = sum(aoi != "missing") / n()) %>%
       filter(existing_data >= THRESHOLD) %>%
-      summarize(cutoff = max(t)),
-  by=join_by(age_group)) %>%
-  filter(t <= cutoff)
-
-
-# TODO what is happening during resampling??
-# quick summary to check the data
-subj_before <- wide.table %>%
-  group_by(age_group, subject_id, t) %>%
-  summarize(
-    mean_looking = mean(as.numeric(aoi_old), na.rm = T)
-  )
-
-overall_before <- subj_before %>%
-  group_by(age_group, t) %>%
-  summarize(
-    avg = mean(mean_looking)
-  )
-
-ggplot(overall_before, aes(t, avg)) +
-  geom_hline(yintercept = 0.5, linetype = "dashed") +
-  geom_line(data = subj_before, aes(y = mean_looking, group = subject_id), alpha = 0.05) +
-  theme(legend.position = "none") +
-  geom_line() +
-  facet_wrap(~age_group) +
-  ggtitle("Before rezero, norm, resample")
-
+      summarize(cutoffmax = max(t), cutoffmin = min(t)),
+    by = join_by(age_group)
+  ) %>%
+  filter(t <= cutoffmax & t >= cutoffmin)
 
 
 dataset_list <- digest.dataset(
@@ -336,5 +299,4 @@ ggplot(overall_after, aes(t_norm, avg)) +
   geom_line(data = subj_after, aes(y = mean_looking, group = subject_id), alpha = 0.05) +
   theme(legend.position = "none") +
   geom_line() +
-  facet_wrap(~age_group) +
-  ggtitle("After rezero, norm, resample")
+  facet_wrap(~age_group)
