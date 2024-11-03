@@ -183,4 +183,4 @@ dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
   digest.subject_cdi_data(cdi_data)
 
 
-write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = FALSE)
+write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = TRUE)

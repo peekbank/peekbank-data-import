@@ -274,7 +274,7 @@ dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
 
 ## 5. Write and Validate the Data
 
-write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = FALSE)
+write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = TRUE)
 
 
 subj_after <- wide.table %>%
