@@ -390,6 +390,5 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints,
-  upload = TRUE
+  aoi_timepoints
 )
