@@ -177,7 +177,8 @@ cdi_data <- read_excel(here(data_path, "TLOriginal_CDIScores.xlsx")) %>%
   select(-category) %>% 
   pivot_wider(
     names_from = valuetype,
-    values_from = value)
+    values_from = value) %>%
+  filter(!is.na(rawscore) & !is.na(instrument_type) & !is.na(age) & !is.na(language))
 
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
   digest.subject_cdi_data(cdi_data)
