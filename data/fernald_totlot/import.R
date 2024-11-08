@@ -113,13 +113,13 @@ wide.table <- d_tidy %>%
     coding_method = "manual gaze coding",
     target_stimulus_label_original = ifelse(target_side == "left", limage, rimage),
     target_stimulus_label_english = target_stimulus_label_original,
-    target_stimulus_novelty = ifelse(grepl("(^toma)$|(^nonce$)|(^kreeb$)", target_stimulus_label_original), "familiar", "novel"),
+    target_stimulus_novelty = ifelse(grepl("(^toma)$|(^nonce$)|(^kreeb$)", target_stimulus_label_original), "novel", "familiar"),
     target_stimulus_image_path = NA,
     target_image_description = target_stimulus_label_original,
     target_image_description_source = "image path",
     distractor_stimulus_label_original = ifelse(target_side == "left", rimage, limage),
     distractor_stimulus_label_english = distractor_stimulus_label_original,
-    distractor_stimulus_novelty = ifelse(grepl("(^toma)$|(^nonce$)|(^kreeb$)", target_stimulus_label_original), "familiar", "novel"),
+    distractor_stimulus_novelty = ifelse(grepl("(^toma)$|(^nonce$)|(^kreeb$)", target_stimulus_label_original), "novel", "familiar"),
     distractor_stimulus_image_path = NA,
     distractor_image_description = distractor_stimulus_label_original,
     distractor_image_description_source = "image path",
@@ -177,7 +177,7 @@ cdi_data <- read_excel(here(data_path, "TLOriginal_CDIScores.xlsx")) %>%
   select(-category) %>% 
   pivot_wider(
     names_from = valuetype,
-    values_from = value) %>%
+    values_from = value) %>% 
   filter(!is.na(rawscore) & !is.na(instrument_type) & !is.na(age) & !is.na(language))
 
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
