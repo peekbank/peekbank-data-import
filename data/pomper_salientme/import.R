@@ -380,8 +380,11 @@ stimuli <- stimulus_table %>%
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
+  # join in the distractors so that stimulus novelty also
+  left_join(stimuli %>% select(-dataset_id), by=join_by(distractor_id == stimulus_id)) %>% 
   # according to the specification, novel words make for non-vanilla trials
-  mutate(vanilla_trial = stimulus_novelty.y == "familiar") %>%
+  mutate(vanilla_trial = stimulus_novelty.y == "familiar" & stimulus_novelty == "familiar") %>%
+  #mutate(vanilla_trial = stimulus_novelty.y == "familiar") %>% 
   distinct(
     trial_type_id,
     full_phrase,
@@ -432,5 +435,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = TRUE
 )
