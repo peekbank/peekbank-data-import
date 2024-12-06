@@ -99,7 +99,7 @@ write_and_validate <- function(
 
   # run validator
   cat("\n\n------ Validating... ------\n\n")
-  errors <- peekbankr::ds_validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected)
+  errors <- peekbankr::ds.validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected)
   if (is.null(errors)) {
     print("Dataset fully passed the validation!")
   } else {
@@ -186,7 +186,7 @@ write_and_validate <- function(
       sad <- subjects_ %>%
         filter(!is.na(subject_aux_data)) %>%
         dplyr::select(lab_subject_id, subject_aux_data) %>%
-        peekbankr::ds_:unpack_aux_data() %>%
+        peekbankr::ds.:unpack_aux_data() %>%
         tidyr::unnest(subject_aux_data)
 
       if (("cdi_responses" %in% colnames(sad))) {

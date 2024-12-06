@@ -61,7 +61,7 @@ validate_all <- function() {
 
       tryCatch(
         {
-          errors <- peekbankr::ds_validate_for_db_import(
+          errors <- peekbankr::ds.validate_for_db_import(
             dir_csv = output_path,
             cdi_expected = cdi_expected
           )

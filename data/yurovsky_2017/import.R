@@ -247,9 +247,9 @@ trials.df <- trials.df %>% select(-administration_id)
 # AOI Timepoints
 aoi_timepoints.df <- data.full %>%
   rename(t = t_ms) %>%
-  peekbankr::ds_rezero_times() %>%
-  peekbankr::ds_normalize_times() %>%
-  peekbankr::ds_resample_times(table_type = "aoi_timepoints")
+  peekbankr::ds.rezero_times() %>%
+  peekbankr::ds.normalize_times() %>%
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 
 
 

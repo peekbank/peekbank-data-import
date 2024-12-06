@@ -289,13 +289,13 @@ digest.dataset <- function(
 
   aoi_timepoints <- data %>%
     {
-      if (rezero) peekbankr::ds_rezero_times(.) else rename(., t_zeroed = t)
+      if (rezero) peekbankr::ds.rezero_times(.) else rename(., t_zeroed = t)
     } %>%
     {
-      if (normalize) peekbankr::ds_normalize_times(.) else rename(., t_norm = t_zeroed)
+      if (normalize) peekbankr::ds.normalize_times(.) else rename(., t_norm = t_zeroed)
     } %>%
     {
-      if (resample) peekbankr::ds_resample_times(., table_type = "aoi_timepoints") else .
+      if (resample) peekbankr::ds.resample_times(., table_type = "aoi_timepoints") else .
     } %>%
     select(
       aoi_timepoint_id,
@@ -326,13 +326,13 @@ digest.dataset <- function(
 
     xy_timepoints <- data %>%
       {
-        if (rezero) peekbankr::ds_rezero_times(.) else rename(., t_zeroed = t)
+        if (rezero) peekbankr::ds.rezero_times(.) else rename(., t_zeroed = t)
       } %>%
       {
-        if (normalize) peekbankr::ds_normalize_times(.) else rename(., t_norm = t_zeroed)
+        if (normalize) peekbankr::ds.normalize_times(.) else rename(., t_norm = t_zeroed)
       } %>%
       {
-        if (resample) peekbankr::ds_resample_times(., table_type = "xy_timepoints") else .
+        if (resample) peekbankr::ds.resample_times(., table_type = "xy_timepoints") else .
       } %>%
       select(
         xy_timepoint_id,

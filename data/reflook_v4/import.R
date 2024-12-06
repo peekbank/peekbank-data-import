@@ -205,18 +205,18 @@ xy_merged.data <- timepoint.data %>%
 # create actual xy data
 xy.data <- xy_merged.data %>%
   dplyr::select(xy_timepoint_id, x, y, t, administration_id, trial_id, point_of_disambiguation) %>%
-  peekbankr::ds_rezero_times(.) %>%
-  peekbankr::ds_normalize_times(.) %>%
-  peekbankr::ds_resample_times(., table_type = "xy_timepoints")
+  peekbankr::ds.rezero_times(.) %>%
+  peekbankr::ds.normalize_times(.) %>%
+  peekbankr::ds.resample_times(., table_type = "xy_timepoints")
 
 # assign aoa based on aoa_coordinates
 # find correct aoi based on trials
 aoi_timepoints <- xy_merged.data %>%
-  peekbankr::ds_add_aois() %>%
+  peekbankr::ds.add_aois() %>%
   select(administration_id, trial_id, t, aoi, point_of_disambiguation) %>%
-  peekbankr::ds_rezero_times(.) %>%
-  peekbankr::ds_normalize_times(.) %>%
-  peekbankr::ds_resample_times(., table_type = "aoi_timepoints")
+  peekbankr::ds.rezero_times(.) %>%
+  peekbankr::ds.normalize_times(.) %>%
+  peekbankr::ds.resample_times(., table_type = "aoi_timepoints")
 
 # extract trials.data
 # this step comes later because we first needed to integrate the trial_type_id

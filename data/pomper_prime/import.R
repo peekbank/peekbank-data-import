@@ -210,7 +210,7 @@ trials <- data %>%
 
 aoi_timepoints <- data %>%
   select(aoi, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
-  peekbankr::ds_resample_times(table_type = "aoi_timepoints")
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 
 
 lookingscores <- aoi_timepoints %>%

@@ -418,9 +418,9 @@ aoi_timepoints <- d_tidy_final %>%
   ) %>%
   relocate(aoi, .after = look_any) %>%
   select(administration_id, t, aoi, trial_id, point_of_disambiguation) %>%
-  peekbankr::ds_rezero_times(.) %>%
-  peekbankr::ds_normalize_times(.) %>%
-  peekbankr::ds_resample_times(., table_type = "aoi_timepoints") %>%
+  peekbankr::ds.rezero_times(.) %>%
+  peekbankr::ds.normalize_times(.) %>%
+  peekbankr::ds.resample_times(., table_type = "aoi_timepoints") %>%
   mutate(aoi_timepoint_id = 0:(n() - 1))
 
 
@@ -432,9 +432,9 @@ xy_timepoints <- d_tidy_final %>%
     y = gaze_point_y,
     t = trial_timestamp
   ) %>%
-  peekbankr::ds_rezero_times(.) %>%
-  peekbankr::ds_normalize_times(.) %>%
-  peekbankr::ds_resample_times(., table_type = "xy_timepoints") %>%
+  peekbankr::ds.rezero_times(.) %>%
+  peekbankr::ds.normalize_times(.) %>%
+  peekbankr::ds.resample_times(., table_type = "xy_timepoints") %>%
   mutate(xy_timepoint_id = 0:(n() - 1))
 
 write_and_validate(

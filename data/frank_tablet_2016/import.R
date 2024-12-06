@@ -283,15 +283,15 @@ xy_joined <- xy_data %>%
 
 xy_joined_resampled <- xy_joined %>%
   rename(t_zeroed = t) %>%
-  peekbankr::ds_normalize_times() %>%
-  peekbankr::ds_resample_times(table_type = "xy_timepoints") %>%
+  peekbankr::ds.normalize_times() %>%
+  peekbankr::ds.resample_times(table_type = "xy_timepoints") %>%
   select(xy_timepoint_id, x, y, t_norm, administration_id, trial_id)
 
 #### (8) aoi_timepoints ####
-aoi_timepoints_data <- peekbankr::ds_add_aois(xy_joined) %>%
+aoi_timepoints_data <- peekbankr::ds.add_aois(xy_joined) %>%
   rename(t_zeroed = t) %>%
-  peekbankr::ds_normalize_times() %>%
-  peekbankr::ds_resample_times(table_type = "aoi_timepoints") %>%
+  peekbankr::ds.normalize_times() %>%
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints") %>%
   select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
 aoi_data_joined <- aoi_data_joined <- aoi_timepoints_data %>%
