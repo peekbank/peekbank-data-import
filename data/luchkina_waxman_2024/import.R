@@ -49,7 +49,8 @@ dataset_list <- digest.dataset(
   shortcite = "Luchkina, E., & Waxman, S. (2024)",
   wide.table = wide.table,
   # TODO: check if they already normalized while following import instructions
-  normalize = TRUE
+  normalize = FALSE,
+  rezero = FALSE
 )
 
 cdi <- read.csv(here(data_path, "Peekbank_LuchkinaWaxman_MCDI_data.csv")) %>%
@@ -73,4 +74,4 @@ cdi <- read.csv(here(data_path, "Peekbank_LuchkinaWaxman_MCDI_data.csv")) %>%
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>% 
   digest.subject_cdi_data(cdi)
 
-write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = TRUE)
+write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = FALSE)
