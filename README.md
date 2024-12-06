@@ -1,6 +1,6 @@
 # Peekbank Data Import
 
-This repo contains the first part of the peekbank pipeline: A collection of `import.R` scripts for various looking-while-listening datasets, allowing them to be preprocessed into the `peekds` format.
+This repo contains the first part of the peekbank pipeline: A collection of `import.R` scripts for various looking-while-listening datasets, allowing them to be preprocessed into the `peekbankr` format.
 
 ## Repo structure reference
 
@@ -29,13 +29,10 @@ peekbank-data-import
 
 ## Prerequisites for running/creating imports
 
-Two of the packages needed to work with this repo are not on CRAN, so you need to get them via GitHub:
+The `peekbankr` package needed to work with this repo are not on CRAN, so you need to it via GitHub:
 
 ```
 remotes::install_github("peekbank/peekbankr")
-```
-```
-remotes::install_github("peekbank/peekds")
 ```
 
 You can install other packages that are needed as you go using `install.packages()` (renv has issues installing some of our dependecies, so this process is manual for now).
@@ -91,7 +88,7 @@ Rscript start_import.R --legacy
 
 ## Import Guide
 
-The underlying `peekds` data format stores the eyetracking gazepoints and metadata in a set of tables where relationships are expressed through linked IDs. As it can be unwieldy to directly turn your data into this format, we have created a set of templates and functions to streamline the data importing process. The next few paragraphs will go over how to prepare your data for import using these helpers.
+The underlying `peekbankr` data format stores the eyetracking gazepoints and metadata in a set of tables where relationships are expressed through linked IDs. As it can be unwieldy to directly turn your data into this format, we have created a set of templates and functions to streamline the data importing process. The next few paragraphs will go over how to prepare your data for import using these helpers.
 
 If you run into issues with the provided methods (e.g. memory limitations, edge cases not sufficiently mapped in our helper functions), you can also manually generate the tables and IDs in a "legacy" import script. Sparser instructions and help for this can be found [here](#import-guide-legacy-method).
 
@@ -135,12 +132,12 @@ Our final data format expects every trial to have t values centered around the p
 
 Normally you should leave all of these flags as `TRUE`, but they give you control over the time manipulation process in edge cases (e.g. your data is centered around the target onset already).
 
-The function returns a list of 7 or 9 datasets containing the tables in `peekds` format. The specific tables can be accessed using
+The function returns a list of 7 or 9 datasets containing the tables in `peekbankr` format. The specific tables can be accessed using
 `dataset_list[["TABLE_NAME"]]`.
 
 ### 4. Aux Data
 
-To attach arbitrarily shaped data to the peekds data tables, tables have special "*_aux_data" columns that house json strings. The output of the digestion function has `NA` values for all *_aux_data columns of the tables. If you have any aux data to add (CDI Data, Language Exposures, Other Language Measures) - this is the place to do it. 
+To attach arbitrarily shaped data to the peekbankr data tables, tables have special "*_aux_data" columns that house json strings. The output of the digestion function has `NA` values for all *_aux_data columns of the tables. If you have any aux data to add (CDI Data, Language Exposures, Other Language Measures) - this is the place to do it. 
 
 As CDI is the most commonly imported aux data, there is a specific helper to ingest this type of data, which expects a long format table with one cdi rawscore per row. The template contains code that specifies the usage of the helper function and the exact shape of the input table. If you have more data or data other than cdi, refer to the next section.
 
@@ -150,7 +147,7 @@ A more generalized helper function to turn nested data into the correct json out
 
 The required shape for the aux data json objects can be found [here](https://docs.google.com/spreadsheets/d/1Z24n9vfrAmEk6_HpoTSh58LnkmSGmNJagguRpI1jwdo/edit?gid=556307379#gid=556307379). For reference, you can check other `import.R` scripts that imported aux data or the `idless_draft.R` cdi helper function at the bottom.
 
-When joining data together, be mindful that the meanings of some fields have changed in the output, e.g. what you entered as `subject_id` is now called `lab_subject_id`, while the new `subject_id` refers to the internal IDs of the `peekds` format (the renamings were done for clarity on the digestion side).
+When joining data together, be mindful that the meanings of some fields have changed in the output, e.g. what you entered as `subject_id` is now called `lab_subject_id`, while the new `subject_id` refers to the internal IDs of the `peekbankr` format (the renamings were done for clarity on the digestion side).
 
 ### 5. Write and Validate the Data (+ Upload)
 

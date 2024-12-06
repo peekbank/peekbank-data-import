@@ -329,12 +329,12 @@ aoi_region_sets <- tibble(
 ### 8. XY TABLE
 xy_timepoints <- d %>%
   select(x, y, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
-  peekds::resample_times(table_type = "xy_timepoints")
+  peekbankr::ds_resample_times(table_type = "xy_timepoints")
 
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- d %>%
   select(aoi, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
-  peekds::resample_times(table_type = "aoi_timepoints")
+  peekbankr::ds_resample_times(table_type = "aoi_timepoints")
 
 
 lookingscores <- aoi_timepoints %>%

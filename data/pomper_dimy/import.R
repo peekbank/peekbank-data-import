@@ -245,9 +245,9 @@ AOI_timepoints$aoi[AOI_timepoints$LookAOI == AOI_timepoints$TargetObjectPos] <- 
 AOI_timepoints$aoi[AOI_timepoints$LookAOI == "missing"] <- "missing"
 
 # Resampling, and Normalizing
-AOI_timepoints <- peekds::normalize_times(AOI_timepoints)
+AOI_timepoints <- peekbankr::ds_normalize_times(AOI_timepoints)
 AOI_timepoints <- resample_times(AOI_timepoints, "aoi_timepoints")
-xy_timepoints <- peekds::normalize_times(xy_timepoints)
+xy_timepoints <- peekbankr::ds_normalize_times(xy_timepoints)
 xy_timepoints <- resample_times(xy_timepoints, "xy_timepoints")
 
 

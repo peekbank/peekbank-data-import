@@ -214,9 +214,9 @@ all_timepoints_table <- gaze %>%
 xy_timepoints_table <- all_timepoints_table %>%
   mutate(xy_timepoint_id = seq(0, nrow(.) - 1)) %>%
   select(xy_timepoint_id, x, y, t, point_of_disambiguation, administration_id, trial_id) %>%
-  peekds::rezero_times() %>%
-  peekds::normalize_times() %>%
-  peekds::resample_times("xy_timepoints")
+  peekbankr::ds_rezero_times() %>%
+  peekbankr::ds_normalize_times() %>%
+  peekbankr::ds_resample_times("xy_timepoints")
 
 aoi_timepoints <- all_timepoints_table %>%
   select(GazeByImageAOI, t, point_of_disambiguation, administration_id, trial_id) %>%
@@ -231,9 +231,9 @@ aoi_timepoints <- all_timepoints_table %>%
     )
   ) %>%
   select(-GazeByImageAOI) %>%
-  peekds::rezero_times() %>%
-  peekds::normalize_times() %>%
-  peekds::resample_times("aoi_timepoints")
+  peekbankr::ds_rezero_times() %>%
+  peekbankr::ds_normalize_times() %>%
+  peekbankr::ds_resample_times("aoi_timepoints")
 
 ### Clean up tables and prepare for import! ------------------------------------
 trials <- mega_trials %>%

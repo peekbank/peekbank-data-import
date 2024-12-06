@@ -418,17 +418,17 @@ timepoints <- fixations_binned %>%
 timepoints_normalized <- timepoints %>%
   # following the import script in garrison_bergelson_2020, skipping rezeroing because times are already relative to trial onset.
   rename(t_zeroed = t) %>%
-  peekds::normalize_times()
+  peekbankr::ds_normalize_times()
 
 xy_timepoints <- timepoints_normalized %>%
   select(x, y, t_norm, administration_id, trial_id) %>%
-  peekds::resample_times(table_type = "xy_timepoints")
+  peekbankr::ds_resample_times(table_type = "xy_timepoints")
 
 
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- timepoints_normalized %>%
   select(aoi, t_norm, administration_id, trial_id) %>%
-  peekds::resample_times(table_type = "aoi_timepoints")
+  peekbankr::ds_resample_times(table_type = "aoi_timepoints")
 
 
 write_and_validate(

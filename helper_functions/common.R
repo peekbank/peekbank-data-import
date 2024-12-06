@@ -1,6 +1,6 @@
 # a draft of some framework code possibly shared by all future imports
 
-for (package in c("tidyverse", "here", "stringr", "peekds")) {
+for (package in c("tidyverse", "here", "stringr", "peekbankr")) {
   suppressWarnings(
     suppressPackageStartupMessages(
       library(package, character.only = TRUE)
@@ -10,7 +10,7 @@ for (package in c("tidyverse", "here", "stringr", "peekds")) {
 
 options(dplyr.summarise.inform = FALSE)
 
-# override of peekds get_raw_data that relies on broken osfr
+# override of peekbankr get_raw_data that relies on broken osfr
 source(here("helper_functions", "osf.R"))
 
 init <- function(dataset_name) {
@@ -99,7 +99,7 @@ write_and_validate <- function(
 
   # run validator
   cat("\n\n------ Validating... ------\n\n")
-  errors <- peekds::validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected)
+  errors <- peekbankr::ds_validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected)
   if (is.null(errors)) {
     print("Dataset fully passed the validation!")
   } else {
@@ -186,7 +186,7 @@ write_and_validate <- function(
       sad <- subjects_ %>%
         filter(!is.na(subject_aux_data)) %>%
         dplyr::select(lab_subject_id, subject_aux_data) %>%
-        peekbankr:::unpack_aux_data() %>%
+        peekbankr::ds_:unpack_aux_data() %>%
         tidyr::unnest(subject_aux_data)
 
       if (("cdi_responses" %in% colnames(sad))) {

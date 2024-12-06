@@ -157,7 +157,7 @@ trials <- data %>%
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- data %>%
   select(aoi, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
-  peekds::resample_times(table_type = "aoi_timepoints")
+  peekbankr::ds_resample_times(table_type = "aoi_timepoints")
 
 
 write_and_validate(

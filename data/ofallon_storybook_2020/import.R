@@ -1,7 +1,7 @@
 # load packages
 library(here)
 library(tidyverse)
-library(peekds)
+library(peekbankr)
 library(osfr)
 library(janitor)
 library(stringr)

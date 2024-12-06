@@ -377,8 +377,8 @@ aoi_timepoints_table <- do.call(
   select(trial_id, aoi, t, administration_id) %>%
   # no rezeroing needed
   mutate(t_zeroed = t, point_of_disambiguation = point_of_disambiguation) %>%
-  peekds::normalize_times() %>%
-  peekds::resample_times(table_type = "aoi_timepoints") %>%
+  peekbankr::ds_normalize_times() %>%
+  peekbankr::ds_resample_times(table_type = "aoi_timepoints") %>%
   mutate(aoi_timepoint_id = 0:(n() - 1))
 
 

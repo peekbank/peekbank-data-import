@@ -410,7 +410,7 @@ aoi_region_sets <- tibble(
 
 # The timepoint eyetracking data needs to go through some processing to become two tables: `xy_timepoints`, which encodes the x and y coordinates of the subject's eye movements at each time point, and `aoi_timepoints`, which encodes the AOI the subject is looking at (target, distractor, other, or missing) at each timepoint.
 
-# Right now, our data has time (in milliseconds) recorded starting at zero at the beginning of the experiment and counting upward for the entire length of the experiment. We'll use some `peekds` functions to make this time consistent with the Peekbank schema. First, we'll need to `rezero_times()`: make `t` restart at zero at the beginning of each trial. Next, we `normalize_times()`: within each trial, center time at the `point_of_disambiguation` (the onset of the target word). After this step, each trial will start at a negative timepoint and will iterate up to the `point_of_disambiguation`, which will be at `t` = 0; looking timepoints after the `point_of_disambiguation` will be positive. Finally, we will `resample_times()` so that the looking data are sampled at a consistent rate across all of Peekbank. If your data are already zeroed, you can skip that step; if they are already centered at the target onset, you only need to resample.
+# Right now, our data has time (in milliseconds) recorded starting at zero at the beginning of the experiment and counting upward for the entire length of the experiment. We'll use some `peekbankr` functions to make this time consistent with the Peekbank schema. First, we'll need to `rezero_times()`: make `t` restart at zero at the beginning of each trial. Next, we `normalize_times()`: within each trial, center time at the `point_of_disambiguation` (the onset of the target word). After this step, each trial will start at a negative timepoint and will iterate up to the `point_of_disambiguation`, which will be at `t` = 0; looking timepoints after the `point_of_disambiguation` will be positive. Finally, we will `resample_times()` so that the looking data are sampled at a consistent rate across all of Peekbank. If your data are already zeroed, you can skip that step; if they are already centered at the target onset, you only need to resample.
 
 
 # create xy data by merging in administration info and trial type info
@@ -438,20 +438,20 @@ xy_merged_data <- xy_merged_data %>%
 # rezero, normalize and resample times
 xy_data <- xy_merged_data %>%
   dplyr::select(xy_timepoint_id, x, y, t, administration_id, trial_id, point_of_disambiguation) %>%
-  peekds::rezero_times(.) %>%
-  peekds::normalize_times(.) %>%
-  peekds::resample_times(., table_type = "xy_timepoints") %>%
+  peekbankr::ds_rezero_times(.) %>%
+  peekbankr::ds_normalize_times(.) %>%
+  peekbankr::ds_resample_times(., table_type = "xy_timepoints") %>%
   select(xy_timepoint_id, x, y, t_norm, administration_id, trial_id)
 
 
-# create aoi data using peekds function add_aois()
+# create aoi data using peekbankr function add_aois()
 # rezero, normalize and resample times
 aoi_timepoints_data <- xy_merged_data %>%
-  peekds::add_aois(.) %>%
+  peekbankr::ds_add_aois(.) %>%
   select(trial_id, administration_id, aoi, t, point_of_disambiguation) %>%
-  peekds::rezero_times(.) %>%
-  peekds::normalize_times(.) %>%
-  peekds::resample_times(., table_type = "aoi_timepoints") %>%
+  peekbankr::ds_rezero_times(.) %>%
+  peekbankr::ds_normalize_times(.) %>%
+  peekbankr::ds_resample_times(., table_type = "aoi_timepoints") %>%
   select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
 

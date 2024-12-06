@@ -427,9 +427,9 @@ df_aoi_timepoints <- trial_data %>%
     gaze_type == "Fixation" ~ "other"
   )) %>%
   select(administration_id, t = timestamp, aoi, trial_id, point_of_disambiguation) %>%
-  peekds::rezero_times(.) %>%
-  peekds::normalize_times(.) %>%
-  peekds::resample_times(., table_type = "aoi_timepoints") %>%
+  peekbankr::ds_rezero_times(.) %>%
+  peekbankr::ds_normalize_times(.) %>%
+  peekbankr::ds_resample_times(., table_type = "aoi_timepoints") %>%
   select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
 df_trials <- df_trials %>%

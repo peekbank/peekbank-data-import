@@ -7,7 +7,7 @@ for (package in c("httr", "jsonlite", "glue", "utils", "here", "dplyr")) {
 }
 
 get_raw_data_fixed <- function(lab_dataset_id, osf_address = "pr6wu") {
-  # drop in replacement for the get_raw_data function of peekds (renamed for now)
+  # drop in replacement for the get_raw_data function of peekbankr (renamed for now)
 
   page <- jsonlite::fromJSON(
     rawToChar(

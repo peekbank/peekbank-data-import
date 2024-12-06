@@ -8,7 +8,7 @@
 
 library(tidyverse)
 library(here)
-library(peekds)
+library(peekbankr)
 library(osfr)
 
 # MacArthur Short Form Vocabulary Checklist: Level II (Form A)  - WSshort, right?

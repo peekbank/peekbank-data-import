@@ -79,16 +79,16 @@ aoi_region_sets <- tibble(
 ### 8. XY TABLE (optional)
 xy_timepoints <- tibble() %>%
   select(x, y, t, point_of_disambiguation, administration_id, trial_id) %>%
-  peekds::rezero_times() %>% 
-  peekds::normalize_times() %>% 
-  peekds::resample_times(table_type = "xy_timepoints")
+  peekbankr::ds_rezero_times() %>% 
+  peekbankr::ds_normalize_times() %>% 
+  peekbankr::ds_resample_times(table_type = "xy_timepoints")
 
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- tibble() %>%
   select(aoi, t, point_of_disambiguation, administration_id, trial_id) %>%
-  peekds::rezero_times() %>% 
-  peekds::normalize_times() %>% 
-  peekds::resample_times(table_type = "aoi_timepoints")
+  peekbankr::ds_rezero_times() %>% 
+  peekbankr::ds_normalize_times() %>% 
+  peekbankr::ds_resample_times(table_type = "aoi_timepoints")
 
 
 write_and_validate(

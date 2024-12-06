@@ -4,7 +4,7 @@ library(here)
 library(janitor)
 library(tidyverse)
 library(readxl)
-library(peekds)
+library(peekbankr)
 library(osfr)
 
 

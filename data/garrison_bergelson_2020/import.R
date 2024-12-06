@@ -263,8 +263,8 @@ xy_timepoints <- timepoints %>%
   select(x, y, t, point_of_disambiguation, administration_id, trial_id) %>%
   # not using the rezeroing function because times are already relative to trial onset
   rename(t_zeroed = t) %>%
-  peekds::normalize_times() %>%
-  peekds::resample_times(table_type = "xy_timepoints")
+  peekbankr::ds_normalize_times() %>%
+  peekbankr::ds_resample_times(table_type = "xy_timepoints")
 
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- timepoints %>%
@@ -272,8 +272,8 @@ aoi_timepoints <- timepoints %>%
   mutate(aoi = str_to_lower(ifelse(is.na(aoi), "missing", as.character(aoi)))) %>%
   # not using the rezeroing function because times are already relative to trial onset
   rename(t_zeroed = t) %>%
-  peekds::normalize_times() %>%
-  peekds::resample_times(table_type = "aoi_timepoints")
+  peekbankr::ds_normalize_times() %>%
+  peekbankr::ds_resample_times(table_type = "aoi_timepoints")
 
 
 
