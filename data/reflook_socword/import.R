@@ -25,11 +25,9 @@ stims_to_remove_chars <- c(".avi")
 stims_to_keep_chars <- c("_")
 trial_file_name <- "reflook_v3_tests.csv"
 participant_file_name <- "reflook_v3_demographics.csv"
-# osf_token <- read_lines(here("osf_token.txt"))
 
 # load
 source(here("data/reflook_socword/import_helpers.R"))
-
 
 # Specify file
 file_name <- "2011_0426_042412_01_1105_Samples.txt"
@@ -47,7 +45,6 @@ output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
 dir.create(output_path, showWarnings = FALSE)
 
 file_ext <- ".txt"
-
 
 #### generate all file paths ####
 
