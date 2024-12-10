@@ -6,6 +6,7 @@ library(readxl)
 library(vctrs)
 
 source(here("helper_functions", "common.R"))
+source(here("helper_functions", "idless_draft.R")) # for digest.subject_cdi_data
 dataset_name <- "perry_cowpig"
 read_path <- init(dataset_name)
 
@@ -114,7 +115,6 @@ stimulus_table <- d_tidy %>%
     stimulus_novelty = "familiar",
     original_stimulus_label = target_label,
     english_stimulus_label = target_label,
-    stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
     lab_stimulus_id = target_image_old # retain encoding of condition as "familiar" (== typical color) and "test" (==atypical color) from original study
   ) %>%
   # for image description, add picture-by-picture description based on stimulus information
@@ -134,7 +134,34 @@ stimulus_table <- d_tidy %>%
       condition == "test" & target_label == "banana" ~ "purple banana",
       condition == "test" & target_label == "pig" ~ "holstein pig"
     ),
-    image_description_source = "experiment documentation"
+    image_description_source = "experiment documentation",
+    # ugly way to do this, but since this does not need to change, might as well just put this into code
+    stimulus_image_path = paste0("stimuli/images/", case_when(
+      condition == "familiar" & target_label == "cow" ~ "holsteinCow",
+      condition == "familiar" & target_label == "strawberry" ~ "redStrawberry",
+      condition == "familiar" & target_label == "duck" ~ "yellowDuck",
+      condition == "familiar" & target_label == "frog" ~ "greenFrog",
+      condition == "familiar" & target_label == "zebra" ~ "stripedZebra",
+      condition == "familiar" & target_label == "peas" ~ "greenPeas",
+      condition == "familiar" & target_label == "monkey" ~ "brownMonkey",
+      condition == "familiar" & target_label == "grapes" ~ "purpleGrapes",
+      condition == "familiar" & target_label == "elephant" ~ "grayElephant2",
+      condition == "familiar" & target_label == "lion" ~ "brown lion",
+      condition == "familiar" & target_label == "banana" ~ "yellowBanana",
+      condition == "familiar" & target_label == "pig" ~ "pinkPig",
+      condition == "test" & target_label == "cow" ~ "pinkCow",
+      condition == "test" & target_label == "strawberry" ~ "greenStrawberry",
+      condition == "test" & target_label == "duck" ~ "brownDuck",
+      condition == "test" & target_label == "frog" ~ "stripedFrog",
+      condition == "test" & target_label == "zebra" ~ "green zebra",
+      condition == "test" & target_label == "peas" ~ "redPeas",
+      condition == "test" & target_label == "monkey" ~ "yellowMonkey",
+      condition == "test" & target_label == "grapes" ~ "yellowGrapes",
+      condition == "test" & target_label == "elephant" ~ "brownElephant2",
+      condition == "test" & target_label == "lion" ~ "grayLion2",
+      condition == "test" & target_label == "banana" ~ "purpleBanana",
+      condition == "test" & target_label == "pig" ~ "holsteinPig"
+    ), ".jpg"),
   ) %>%
   rename(original_image_name = target_image_old) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
@@ -194,7 +221,7 @@ d_tidy_final <- d_tidy_semifinal %>%
     point_of_disambiguation = 0, # data is re-centered to zero based on critonset in datawiz
     tracker = "video_camera",
     sample_rate = sampling_rate_hz
-  ) %>% 
+  ) %>%
   rename(
     lab_subject_id = sub_num,
     lab_age = months
@@ -308,9 +335,38 @@ dataset <- tibble(
   dataset_aux_data = NA
 )
 
+
+cdi_data <- list.files(here(read_path, "cdi"), full.names = TRUE, pattern = ".xls") %>%
+  purrr::map(\(f){
+    sum((readxl::read_excel(f, sheet = 2) %>%
+      select(Word, score = `...3`))$score, na.rm = T) %>% list(id = gsub("(.*/)|(.xls)", "", f), score = .)
+  }) %>%
+  transpose() %>%
+  as_tibble() %>% 
+  mutate(
+    id = as.character(id),
+    score = as.numeric(score),
+    language="English (American)",
+    percentile = NA,
+    measure = "prod",
+    instrument_type = "ws"
+  ) %>% 
+  left_join(subjects %>% select(subject_id, lab_subject_id), by=c("id"="lab_subject_id")) %>%
+  left_join(administrations %>% select(subject_id, age), by=c("subject_id")) %>% 
+  select(-subject_id) %>% 
+  rename(subject_id = id, # the digest function expects this to be equal to the lab subject id
+         rawscore = score
+  ) %>% 
+  filter(!is.na(age))
+
+
+subjects <- subjects %>%
+  digest.subject_cdi_data(cdi_data)
+
+
 write_and_validate(
   dataset_name = dataset_name,
-  cdi_expected = FALSE,
+  cdi_expected = TRUE,
   dataset,
   subjects,
   stimuli,
