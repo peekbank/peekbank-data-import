@@ -173,7 +173,7 @@ d_tidy <- d_tidy %>% left_join(administrations, by = c("dataset_id", "subject_id
 aoi_timepoints <- d_tidy %>%
   select(timestamp, administration_id, trial_id, aoi) %>%
   rename(t_norm = timestamp) %>%
-  resample_times(table_type = "aoi_timepoints")
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 
 
 subjects <- subjects %>% select(-age)

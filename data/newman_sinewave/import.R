@@ -418,8 +418,8 @@ trials_table <- trials_table %>% select(-administration_id)
 aoi_table <- d_tidy %>%
   left_join(trial_types_table) %>%
   select(trial_id, aoi, t_zeroed = t, administration_id, point_of_disambiguation) %>%
-  normalize_times() %>%
-  resample_times(table_type = "aoi_timepoints")
+ peekbankr::ds.normalize_times() %>%
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 
 write_and_validate(
   dataset_name = dataset_name,

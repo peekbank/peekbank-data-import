@@ -274,13 +274,13 @@ aoi_region_sets <- tibble(
 xy_timepoints <- d_tidy_final %>%
   mutate(x = NA, y = NA) %>%
   select(x, y, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
-  resample_times(table_type = "xy_timepoints")
+  peekbankr::ds.resample_times(table_type = "xy_timepoints")
 
 
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- d_tidy_final %>%
   select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>%
-  resample_times(table_type = "aoi_timepoints") %>%
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
 
 

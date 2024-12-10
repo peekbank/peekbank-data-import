@@ -205,7 +205,7 @@ aoi_timepoints <- d_tidy_final %>%
   rename(t_norm = t) %>% # original data centered at point of disambiguation
   select(t_norm, aoi, trial_id, administration_id) %>%
   # resample timepoints
-  resample_times(table_type = "aoi_timepoints") %>%
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
 
 ##### SUBJECTS TABLE ####

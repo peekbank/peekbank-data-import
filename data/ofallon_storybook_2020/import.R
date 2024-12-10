@@ -441,8 +441,8 @@ d_tidy <- d_tidy %>%
 aoi_table <- d_tidy %>%
   left_join(trial_types_table) %>%
   select(trial_id, aoi, t_zeroed = t, administration_id, point_of_disambiguation) %>%
-  normalize_times() %>%
-  resample_times(table_type = "aoi_timepoints")
+ peekbankr::ds.normalize_times() %>%
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 
 
 write_and_validate(

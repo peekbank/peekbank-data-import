@@ -288,7 +288,7 @@ d_tidy_final <- d_tidy_semifinal %>%
 aoi_timepoints <- d_tidy_final %>%
   select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>%
   # resample timepoints
-  resample_times(table_type = "aoi_timepoints") %>%
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
 
 

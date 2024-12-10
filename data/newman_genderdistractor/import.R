@@ -514,9 +514,9 @@ aoi_table <- d_tidy %>%
     t = running_frame * sample_rate_ms
   ) %>%
   select(trial_id, aoi, t, administration_id, point_of_disambiguation) %>%
-  rezero_times() %>%
-  normalize_times() %>%
-  resample_times(table_type = "aoi_timepoints")
+ peekbankr::ds.rezero_times() %>%
+ peekbankr::ds.normalize_times() %>%
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 
 
 write_and_validate(

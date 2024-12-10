@@ -246,9 +246,9 @@ AOI_timepoints$aoi[AOI_timepoints$LookAOI == "missing"] <- "missing"
 
 # Resampling, and Normalizing
 AOI_timepoints <- peekbankr::ds.normalize_times(AOI_timepoints)
-AOI_timepoints <- resample_times(AOI_timepoints, "aoi_timepoints")
+AOI_timepoints <- peekbankr::ds.resample_times(AOI_timepoints, "aoi_timepoints")
 xy_timepoints <- peekbankr::ds.normalize_times(xy_timepoints)
-xy_timepoints <- resample_times(xy_timepoints, "xy_timepoints")
+xy_timepoints <- peekbankr::ds.resample_times(xy_timepoints, "xy_timepoints")
 
 
 # writing out administrations table

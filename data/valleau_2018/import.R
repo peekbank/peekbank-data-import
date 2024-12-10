@@ -207,7 +207,7 @@ aoi_timepoints <- d_tidy %>%
   select(time_from_subphase_onset, administration_id, trial_id, aoi) %>%
   rename(t_norm = time_from_subphase_onset) %>%
   mutate(t_norm = as.numeric(t_norm)) %>%
-  resample_times(table_type = "aoi_timepoints")
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 
 # merge together for d_tidy
 d_tidy <- aoi_timepoints %>%
