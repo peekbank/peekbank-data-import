@@ -186,7 +186,7 @@ write_and_validate <- function(
       sad <- subjects_ %>%
         filter(!is.na(subject_aux_data)) %>%
         dplyr::select(lab_subject_id, subject_aux_data) %>%
-        peekbankr::ds.:unpack_aux_data() %>%
+        peekbankr::ds.unpack_aux_data() %>%
         tidyr::unnest(subject_aux_data)
 
       if (("cdi_responses" %in% colnames(sad))) {
