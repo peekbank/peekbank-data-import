@@ -10,6 +10,7 @@ library(readxl)
 library(janitor)
 
 source(here("helper_functions", "common.R"))
+source(here("helper_functions", "idless_draft.R")) # for digest.subject_cdi_data
 dataset_name <- "kartushina_2019"
 data_path <- init(dataset_name)
 
@@ -392,7 +393,6 @@ excluded_participants <- tibble(
 # Some subjects, such as OS_007 has only 17 trials, OS_050 has only 14 trials,
 # two subjects, saw twice of some words either on the left or on the right,
 # e.g. OS_091 have 46 trials
-# tmp1 <- df_trials %>% count(lab_subject_id)
 
 df_trials <- trial_data %>%
   arrange(lab_subject_id, timestamp) %>% # arrange by timestamp within each subject to get the order
@@ -407,8 +407,6 @@ df_trials <- trial_data %>%
     trial_order = seq(0, length(.$lab_subject_id) - 1),
     trial_aux_data = NA
   )
-
-
 
 
 # because target and target_side are still needed later for aoi_timepoints df, so we will select out
@@ -432,14 +430,52 @@ df_aoi_timepoints <- trial_data %>%
   peekbankr::ds.resample_times(., table_type = "aoi_timepoints") %>%
   select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
+
+#v <- (trial_data %>% arrange(lab_subject_id, timestamp) %>% filter(lab_subject_id == "OS_003") %>% select(target, timestamp))[1:10000,]
+#c <- trial_data %>% arrange(lab_subject_id, timestamp) %>% filter(lab_subject_id %in% c("OS_091")) %>% select(lab_subject_id, timestamp) %>% mutate(diff = timestamp-lag(timestamp)) %>% filter(diff <0)
+#test2 <- trial_data %>%
+#  arrange(lab_subject_id, timestamp) %>% 
+#  filter(lab_subject_id %in% c("OS_034")) %>%
+#  #filter(lab_subject_id %in% c("OS_091")) %>%
+#  #filter(lab_subject_id %in% c("OS_091")) %>%
+#  mutate(original_row = row_number()) %>%
+#  group_by(lab_subject_id, target, target_side) %>%
+#  slice(1) %>%
+#  ungroup() %>% 
+#  arrange(lab_subject_id, timestamp) %>%
+#  slice(7:39) %>% 
+#  select(lab_subject_id, original_row, target, target_side) %>% group_by(target) %>%
+#  mutate(occurrence_number = row_number()) %>%
+#  ungroup()
+#test <- df_trials %>% filter(lab_subject_id %in% c("OS_034", "OS_091"))
+#y <- test %>% group_by(lab_subject_id,target, target_side) %>% summarise(count = n())
+
 df_trials <- df_trials %>%
   select(-target, -target_side, -lab_subject_id)
 
 df_administrations <- df_administrations %>% select(-lab_subject_id)
 
+
+cdi_data <- read_excel(fs::path(exp_info_path, subject_info), sheet=2) %>%
+  rename(subject_id = Subject_ID, # the digest function expects this to be equal to the lab subject id
+         prod = `produces_total_CDI_score(0-396)`,
+         comp = `Understands_total_CDI_score(0-396)`) %>% 
+  select(subject_id, prod, comp, age) %>% 
+  pivot_longer(cols=c("prod", "comp"), names_to="measure", values_to="rawscore") %>% 
+  mutate(percentile = NA,
+         rawscore = as.numeric(rawscore),
+         age = age / (365.25 / 12),
+         instrument_type = "wg",
+         language="Norwegian") %>% 
+  filter(!is.na(rawscore))
+
+
+df_subjects <- df_subjects %>%
+  digest.subject_cdi_data(cdi_data)
+
 write_and_validate(
   dataset_name = dataset_name,
-  cdi_expected = FALSE,
+  cdi_expected = TRUE,
   dataset = df_dataset,
   subjects = df_subjects,
   stimuli = df_stimuli,
