@@ -23,5 +23,7 @@
         - “-” ~ “missing” (This entry means “away” in the language of iCoder. In practice, this can also correspond to multiple looking situations; e.g., child is turned away from the screen; very long blinks. All of these situations should correspond to the situation “missing”)
     - left/right locations were reversed to reflect the participant's perspective, because iCoder files encode left/ right from the perspective of the coder (who has a frontal view of the infant)
 
+156, 149, and 136 are participants that are included in the eyetracking data abut have no age in their cdi scores. As we require ages for cdi scores to be valid, we use the age median age of the other cdi entries as imputed scores (20 months in this case)
+
 5. **Importing ambiguity**
     - Stimulus information was used to add picture-by-picture `image_description`.

@@ -356,8 +356,9 @@ cdi_data <- list.files(here(read_path, "cdi"), full.names = TRUE, pattern = ".xl
   select(-subject_id) %>% 
   rename(subject_id = id, # the digest function expects this to be equal to the lab subject id
          rawscore = score
-  ) %>% 
-  filter(!is.na(age))
+  ) %>%
+  # 156, 149, and 136 are participants that are included in the eyetracking data abut have no age in their cdi scores - so we use the age median as imputed scores / 20 in this case
+  mutate(age = replace_na(age, median(age, na.rm = TRUE)))
 
 
 subjects <- subjects %>%
