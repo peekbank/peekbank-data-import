@@ -15,9 +15,6 @@ Data from Montreal was collected with a Tobii T60-XL eyetracker, and data from P
 Note that the data only include "single" and "mixed" conditions; there are also other "filler" trials that were not in the data (although the filler data for the Eng-Fra subset can be found in Sander-Montant et al. ([2022](osf.io/2m345/))).
 
 ## Importing decisions
-Stimuli are available although these are in video files so will need to be extracted.
-CDI and Language exposure data for the Montreal subset are also available in Perez et al. ([2024](https://osf.io/mxksz/)) and could be imported (although they have not yet been).
-There are also vocabulary data from DVAP; these could be imported in the lang_measures field for subject_aux_data.
 
 We included importing decisions from the [processing script](https://osf.io/ug7t3/files/github/01_load.R), including the rectification of AOIs and the removal of duplicated header rows.
 Age was calculated from years, months, and days using the formula: years * 365.2425 + months * (365.2425/12) + days.
