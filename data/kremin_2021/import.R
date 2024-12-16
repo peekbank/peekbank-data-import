@@ -114,13 +114,13 @@ mtl_wide.table <- mtl_data_cleaned |>
     target_stimulus_label_original = target_label,
     target_stimulus_label_english = target_image,
     target_stimulus_novelty = "familiar",
-    target_stimulus_image_path = NA,
+    target_stimulus_image_path = paste0("stimuli/", target_image,".png"),
     target_image_description = target_image,
     target_image_description_source = "experiment documentation",
     distractor_stimulus_label_original = distractor_label,
     distractor_stimulus_label_english = distractor_image,
     distractor_stimulus_novelty = "familiar",
-    distractor_stimulus_image_path = NA,
+    distractor_stimulus_image_path = paste0("stimuli/", distractor_image,".png"),
     distractor_image_description = distractor_image,
     distractor_image_description_source = "experiment documentation",
     l_x_max = ifelse(location == "L", x_max_t, x_max_d),
@@ -254,4 +254,4 @@ dataset_list <- digest.dataset(
   wide.table = wide.table
 )
 
-write_and_validate_list(dataset_list, cdi_expected = FALSE, upload = TRUE)
+write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = F)
