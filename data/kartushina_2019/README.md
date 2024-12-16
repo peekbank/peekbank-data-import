@@ -30,11 +30,16 @@ For the purposes of peekbank, the repeat trials do not present a problem, so we 
 
 There is also a subset of participants that saw less trials, but we also include these.
 
+
+The original stimuli provided by the authors include the full image pairs presented to the participants. We have used a shell script using imagemagick to split them up into their separate parts.
+If the split needs to be changed (crop, filetype, etc.), edit the script in this directory and run
+
+```
+./split_original_images.sh ./raw_data/stimulus_images/
+```
+to generate new splits.
+
 5. **Importing ambiguity**
 
-
-6. **Outstanding issues**
-
-- Stimulus path currently lists two possible images that could have been seen on a given trial (e.g., cookie_belly.png; belly_cookie.png when "cookie" is target word). Eventually, someone should go through and split into two trial types (cookie+left; cookie+right), but skipping that for now.
 
 

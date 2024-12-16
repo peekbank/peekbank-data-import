@@ -116,22 +116,16 @@ df_words_switch <- tibble(
   condition_partial = df_words_origin$condition_partial
 )
 
-# what to do when two stimulus images are used for one target?
-# for example, apple label was used for apple_foot.png and foot_apple.png
-# currently, only apple_foot.png was entered as the image path
-df_words <- rbind(df_words_origin, df_words_switch) %>%
-  mutate(
-    stimulus_image_path = paste0(match_target, "_", match_distractor, ".png; ", match_distractor, "_", match_target, ".png"),
-    image_description = paste0("Twos image with a visual representation of ", match_target, " on one side and of ", match_distractor, " on the other side.")
-  )
+
+df_words <- rbind(df_words_origin, df_words_switch)
 
 df_words_match <- df_words %>%
   mutate(target = match_target, distractor = match_distractor, condition = paste0(condition_partial, "_match")) %>%
-  select(target, distractor, stimulus_image_path, condition, image_description)
+  select(target, distractor, condition)
 
 df_words_related <- df_words %>%
   mutate(target = related_target, distractor = related_distractor, condition = paste0(condition_partial, "_related")) %>%
-  select(target, distractor, stimulus_image_path, condition, image_description)
+  select(target, distractor, condition)
 
 is_list_match <- setdiff(stimuli_words, c(df_words$match_target, df_words$related_target))
 if (length(is_list_match) > 0) {
@@ -142,7 +136,7 @@ df_stimuli <- rbind(df_words_match, df_words_related)
 target_distractor <- select(df_stimuli, target, distractor, condition)
 
 df_stimuli <- df_stimuli %>%
-  select(target, stimulus_image_path, image_description) %>%
+  select(target) %>%
   rename(english_stimulus_label = target) %>%
   mutate(
     stimulus_id = seq(0, length(.$english_stimulus_label) - 1),
@@ -151,6 +145,8 @@ df_stimuli <- df_stimuli %>%
     stimulus_novelty = "familiar",
     image_description_source = "image path",
     stimulus_aux_data = NA,
+    image_description = english_stimulus_label,
+    stimulus_image_path=paste0("stimulus_images/", english_stimulus_label, ".png"),
     # the original norwegian labels below were pasted from the paper table 1
     original_stimulus_label = case_when(
       english_stimulus_label == "cookie" ~ "kjeks",
