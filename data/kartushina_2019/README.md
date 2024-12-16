@@ -19,23 +19,22 @@ The past 5 years have witnessed claims that infants as young as six months of ag
 
 4. **Importing decisions**
 
+Two participants saw more trials than intended:
+
+OS_034
+OS_091
+
+Due to the position of the repeated stimuli, these could not have been caused by restarting the experiment halfway through. Furthermore the paper + the timestamps indicates that only one session took place, making it unlikely that the duplicated trials originate from multiple sessions or aggregate data for the participant.
+Each participant saw each of the 32 targets once on a random side - meaning there were a total of 64 possible trial types across participants. All of the duplicate trials for these two participant have flipped sides. Our current hunch is that the 32 list of trials for these participatns accidentally was doubled to all 64 possible combinations of target & side - and the experiment was stopped manually once the experimenters figured out that too many items were shown. It is also noteworthy that both participants were included in the original study.
+For the purposes of peekbank, the repeat trials do not present a problem, so we decided to include these two participants anyway.
+
+There is also a subset of participants that saw less trials, but we also include these.
 
 5. **Importing ambiguity**
 
 
 6. **Outstanding issues**
 
-- We do not currenlty exclude any trials, although in the paper they report the following exclusion criteria:
-    following criteria were used to exclude single trials: 
-    (i) no looking at either image for at least 0.5 s in the post-naming period, and 
-    (ii) no looking was recorded in the pre-naming period (as in [1]). 
-    Also, we excluded trials in which the experimenter had reported that 
-    (iii) the parent interfered (e.g. pointed to the screen, shifted his/her body or moved his/her chair), or
-    (iv) the trial was interfered by a third person or due to a technical error. 
-    Finally, individual picture-pair trials were removed from individual child data if the parents reported that they did not use one (or both) of the produced words with the child (or in his presence), since the child was born. For example, if a parent did not use the word ‘apple’, then all ‘apple–foot’ picture trials were removed from his/her child analyses.
-
 - Stimulus path currently lists two possible images that could have been seen on a given trial (e.g., cookie_belly.png; belly_cookie.png when "cookie" is target word). Eventually, someone should go through and split into two trial types (cookie+left; cookie+right), but skipping that for now.
-
-- Needs CDI data imported (data is in CDI tab in exp_info_path)
 
 

@@ -408,7 +408,6 @@ df_trials <- trial_data %>%
     trial_aux_data = NA
   )
 
-
 # because target and target_side are still needed later for aoi_timepoints df, so we will select out
 # these two columns later
 
@@ -430,25 +429,6 @@ df_aoi_timepoints <- trial_data %>%
   peekbankr::ds.resample_times(., table_type = "aoi_timepoints") %>%
   select(aoi_timepoint_id, trial_id, aoi, t_norm, administration_id)
 
-
-#v <- (trial_data %>% arrange(lab_subject_id, timestamp) %>% filter(lab_subject_id == "OS_003") %>% select(target, timestamp))[1:10000,]
-#c <- trial_data %>% arrange(lab_subject_id, timestamp) %>% filter(lab_subject_id %in% c("OS_091")) %>% select(lab_subject_id, timestamp) %>% mutate(diff = timestamp-lag(timestamp)) %>% filter(diff <0)
-#test2 <- trial_data %>%
-#  arrange(lab_subject_id, timestamp) %>% 
-#  filter(lab_subject_id %in% c("OS_034")) %>%
-#  #filter(lab_subject_id %in% c("OS_091")) %>%
-#  #filter(lab_subject_id %in% c("OS_091")) %>%
-#  mutate(original_row = row_number()) %>%
-#  group_by(lab_subject_id, target, target_side) %>%
-#  slice(1) %>%
-#  ungroup() %>% 
-#  arrange(lab_subject_id, timestamp) %>%
-#  slice(7:39) %>% 
-#  select(lab_subject_id, original_row, target, target_side) %>% group_by(target) %>%
-#  mutate(occurrence_number = row_number()) %>%
-#  ungroup()
-#test <- df_trials %>% filter(lab_subject_id %in% c("OS_034", "OS_091"))
-#y <- test %>% group_by(lab_subject_id,target, target_side) %>% summarise(count = n())
 
 df_trials <- df_trials %>%
   select(-target, -target_side, -lab_subject_id)
