@@ -360,6 +360,9 @@ digest.dataset <- function(
 }
 
 digest.subject_cdi_data <- function(subjects, cdi_table) {
+  # TODO: replace all occurences of this function with the new general function and delete this one
+  print("digest.subject_cdi_data is deprecated, please use the more general digest.subject_aux_data instead")
+
   required_cols_cdi_table <- c(
     "subject_id", # this is referring to the lab subject id
     "instrument_type",
@@ -392,4 +395,108 @@ digest.subject_cdi_data <- function(subjects, cdi_table) {
       json_str <- gsub(',"cdi_responses":{}', "", json_str, fixed = TRUE) # even hackier, but worksier
       ifelse(json_str == '{"cdi_responses":[{}]}', NA, json_str)
     }))
+}
+
+
+# There should probably be some deduplication in the future, but I haven't yet found a nice way to do the checking AND have non duplicate code
+# There also is a lot of room for improvement here - why is json in R so terrible?
+digest.subject_aux_data <- function(
+    subjects,
+    cdi = NA,
+    lang_exposures = NA,
+    lang_measures = NA) {
+  required_columns <- list(
+    cdi = c(
+      "subject_id", # this is referring to the lab subject id
+      "instrument_type",
+      "language",
+      "measure",
+      "rawscore",
+      "percentile",
+      "age"
+    ),
+    language_measures = c(
+      "subject_id", # this is referring to the lab subject id
+      "instrument_type",
+      "language",
+      "rawscore"
+    ),
+    language_exposures = c(
+      "subject_id", # this is referring to the lab subject id
+      "language",
+      "exposure"
+    )
+  )
+
+  check_required_columns <- function(table, required_cols, table_name) {
+    missing_cols <- setdiff(required_cols, colnames(table))
+    if (length(missing_cols) > 0) {
+      stop(sprintf(
+        "Missing columns in %s: %s",
+        table_name,
+        paste(missing_cols, collapse = ", ")
+      ))
+    }
+  }
+
+  exists <- function(arg) {
+    return(length(arg) >= 2 || !is.na(arg))
+  }
+
+
+  subject_aux_data <- subjects %>% select(subject_id = lab_subject_id)
+  if (exists(cdi)) {
+    check_required_columns(cdi, required_columns$cdi, "cdi")
+
+    subject_aux_data <- subject_aux_data |>
+      full_join(
+        cdi %>% nest(cdi_responses = -subject_id),
+        by = join_by(subject_id)
+      )
+  }
+
+  if (exists(language_exposures)) {
+    check_required_columns(language_exposures, required_columns$language_exposures, "language_exposures")
+
+    subject_aux_data <- subject_aux_data |>
+      full_join(
+        lang_exposures %>% nest(lang_exposures = -subject_id),
+        by = join_by(subject_id)
+      )
+  }
+
+  if (exists(language_measures)) {
+    check_required_columns(language_measures, required_columns$language_measures, "language_measures")
+    subject_aux_data <- subject_aux_data |>
+      full_join(
+        lang_measures %>% nest(lang_measures = -subject_id),
+        by = join_by(subject_id)
+      )
+  }
+
+  if (ncol(subject_aux_data) == 0) {
+    print("No aux data added, check your input data or the digest function")
+    return(subjects)
+  }
+
+  return(
+    subjects %>%
+      select(-subject_aux_data) %>%
+      left_join(
+        subject_aux_data %>%
+          nest(subject_aux_data = -subject_id) %>%
+          rename(lab_subject_id = subject_id),
+        by = "lab_subject_id"
+      ) %>%
+      # This gets really hacky here, so if someone knows how on earth you deal with edge cases when handling json in R, please bring us salvation
+      mutate(subject_aux_data = sapply(subject_aux_data, function(x) {
+        json_str <- jsonlite::toJSON(x)
+        json_str <- substr(json_str, 2, nchar(json_str) - 1) # hacky, but works
+        json_str <- gsub(',?\\"cdi_responses\\":\\{\\}', "", json_str) # even hackier, but worksier
+        json_str <- gsub(',?\\"lang_exposures\\":\\{\\}', "", json_str) # even hackier, but worksier
+        json_str <- gsub(',?\\"lang_measures\\":\\{\\}', "", json_str) # even hackier, but worksier
+        json_str <- gsub("{,", "{", json_str, fixed = T)
+        ifelse(json_str == '{"cdi_responses":[{}]}' | json_str == '{}', NA, json_str)
+      }))
+  )
 }
