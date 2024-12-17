@@ -35,8 +35,6 @@ start frames is marked as 68 which is what is reported in the paper. (There was 
 
 5. Importing ambiguity
 
-some notes to double check left-right flipping
-
 unclear how to apply exclusions -- paper talks about some fussiness exclusions and one child excluded for a later autism diagnosis. Demographic data has a keep-drop column (with one YES for the autism diagnosis, and a handful of maybes and one notes about side bias) and session notes and fussiness scores, but it's unclear what happened with the maybes for fussiness. 
 
 There are 156 kids listed in the demographic sheets, 97 kids that we have looking data for (not all of whom do we have demographic data for it seems). There's only a couple of the 97 who have anything about exclusions -- some maybe's and one who was excluded later for an autism diagnosis. So, my guess is that kids who were excluded for fussiness or language input don't have coded data at all. The one child excluded for autism diagnosis was marked as excluded, but we did not mark the kids who were labelled as "maybe" for exclude. 

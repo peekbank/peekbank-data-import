@@ -196,7 +196,6 @@ looking_data_tidy <- looking_data %>%
 # add "missing" for the missing frames between looks
 looking_data_tidy <- trial_intervals %>%
   left_join(looking_data_tidy) %>%
-  # TODO: Double check flipping left and right!
   # fill in NAs with missing
   mutate(look = case_when(
     look == "L" ~ "L",
