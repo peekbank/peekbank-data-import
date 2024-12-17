@@ -236,13 +236,13 @@ wide.table <- et_data_joined |>
     target_stimulus_label_original = target_label,
     target_stimulus_label_english = target_image,
     target_stimulus_novelty = "familiar",
-    target_stimulus_image_path = NA,
+    target_stimulus_image_path = ifelse(StudioProjectName == "Mix-14" & target_image %in% c("dog", "mouth" ,"book", "door", "cookie", "foot"), paste0("stimuli/",target_image,".png"), NA),
     target_image_description = target_image,
     target_image_description_source = "experiment documentation",
     distractor_stimulus_label_original = distractor_image,
     distractor_stimulus_label_english = distractor_image,
     distractor_stimulus_novelty = "familiar",
-    distractor_stimulus_image_path = NA,
+    distractor_stimulus_image_path = ifelse(StudioProjectName == "Mix-14" & target_image %in% c("dog", "mouth" ,"book", "door", "cookie", "foot"), paste0("stimuli/",distractor_image,".png"), NA),
     distractor_image_description = distractor_image,
     distractor_image_description_source = "experiment documentation",
     l_x_max = 960,
@@ -292,4 +292,4 @@ dataset_list[["subjects"]] <- dataset_list[["subjects"]] |>
     ifelse(json_str == '{"cdi_responses":[{}]}', NA, json_str)
   }))
 
-write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = TRUE)
+write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = F)

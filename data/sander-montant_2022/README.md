@@ -23,7 +23,7 @@ The data were collected with a Tobii T60-XL eyetracker using a 60Hz sampling rat
 All studies were conducted in a mix of English and French on English-French bilinguals.
 
 ## Importing decisions
-Stimuli are available for the unpub dataset (as with BH17), although these are in video files so will need to be extracted.
+Stimuli images are imported only for the for the unpub dataset (as with BH17).
 Stimuli are in principle available for S+22, but the OSF is still private.
 
 We included importing decisions from the [processing script](https://osf.io/2ysab), including the renaming of projects and media names, as well as one participant relabelling.

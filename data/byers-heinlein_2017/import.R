@@ -280,7 +280,8 @@ stimuli <- unique_targets %>%
     image_description = stimulus_image_path,
     image_description_source = "experiment documentation"
   ) %>%
-  mutate(stimulus_aux_data = NA)
+  mutate(stimulus_aux_data = NA) %>% 
+  mutate(stimulus_image_path = paste0("stimuli/",stimulus_image_path,".png")) 
 
 
 # rejoin stimulus and distractor ids for creating trials tables
