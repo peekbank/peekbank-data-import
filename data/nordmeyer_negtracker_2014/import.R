@@ -343,7 +343,7 @@ subjects_data <- process_subjects_info(participant_file_path) %>%
       as.character(pmap(list(english), function(english) {
         ifelse(english == "NaN",
           NA,
-          jsonlite::toJSON(list(list(lang_exposures = list(list(language = "English (American)", exposure = english)))), auto_unbox = TRUE)
+          jsonlite::toJSON(list(lang_exposures = list(list(language = "English (American)", exposure = english))), auto_unbox = TRUE)
         )
       }))
   ) %>%
