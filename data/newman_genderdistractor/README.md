@@ -28,9 +28,11 @@ The raw data makes it look like there's 5db and 0db for 30months and 10db and 5d
 
 full phrase is taken from raw audio, but this mismatches what is reported in the paper
 
-The ambiguous baseline trials, where no object is named are removed because they are not of interest to peekbank (and don't fit the schema)
+The 4 ambiguous baseline trials, where no object is named are removed because they are not of interest to peekbank (and don't fit the schema). The import therefore replaces the original trial ordering (trial_order_num) with a new one
+(trial_order) that has no gaps in numbering, and only goes up to 15 instead of 19
 
-start frames is marked as 68 which is what is reported in the paper. (There was a note about potential ambiguity for whether this is onset of phrase or word, but the paper says target word.)
+
+start frames is marked as 68 which is what is reported in the paper for target word start.
 
 
 5. Importing ambiguity

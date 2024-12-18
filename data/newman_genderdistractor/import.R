@@ -144,6 +144,7 @@ looking_data <- looking_data %>%
 
 
 first_last_look <- looking_data %>%
+  # TODO What are B and S, Begin and Stop?
   filter(look != "B" & look != "S") %>%
   group_by(subject_file, trial_order_num) %>%
   summarise(
@@ -303,7 +304,7 @@ looking_participant_column <- looking_data_tidy %>%
     ),
     sep = "_", remove = F
   ) %>%
-  # TODO: this can be found in the participant demo info, not needed here
+  # potential code cleanup: this can be found in the participant demo info, not needed here
   mutate(file_trial_group = case_when(
     str_detect(study, "(?i)order") ~ study,
     str_detect(other_stuff, "(?i)order") ~ other_stuff,
@@ -471,7 +472,7 @@ trail_type_ids <- d_tidy %>%
 
 d_tidy <- d_tidy %>% left_join(trail_type_ids)
 
-# TODO: Document! This is an important decision.
+# Also documented in readme:
 # The experiment features 4 trials (for each participant) that do not have a target
 # side. Currently, peekbank has no standard for representing these trials.
 # The current version of the import therefore removes these trials from the dataset,
