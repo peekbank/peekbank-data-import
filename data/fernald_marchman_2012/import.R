@@ -26,7 +26,7 @@ d_processed_18 <- d_raw_18 %>%
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
     truncation_point = truncation_point_calc(.)
-  ) |> mutate(age_group = "18")
+  ) |> mutate(age_group = 18)
 
 # 24-month-olds
 d_raw_24 <- read_delim(fs::path(read_path, "TL2-24ABAlltrialstoMF.txt"),
@@ -39,7 +39,7 @@ d_processed_24 <- d_raw_24 %>%
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
     truncation_point = truncation_point_calc(.)
-  ) |> mutate(age_group = "24")
+  ) |> mutate(age_group = 24)
 
 # 30-month-olds
 d_raw_30 <- read_delim(fs::path(read_path, "TL230ABoriginalichartsn1-121toMF.txt"),
@@ -81,7 +81,7 @@ d_processed_30_part_2 <- d_raw_30 |>
   mutate(across(everything(), as.character))
 
 d_processed_30 <- d_processed_30_part_1 |>
-  bind_rows(d_processed_30_part_2) |> mutate(age_group = "30")
+  bind_rows(d_processed_30_part_2) |> mutate(age_group = 30)
 
 # agglomerate
 
@@ -143,6 +143,24 @@ d_processed <- d_processed %>%
   # the remaining pairings have a valid primeNoun, so we can filter out the verb rows
   filter(!(months >= 28 & grepl("([Vv]erb)", condition)))
 
+phrasedata_24_30 <- read_csv(here(read_path, "manually_compiled_trial_info_2430.csv")) %>% 
+  mutate(across(everything(), as.character))
+
+# add carrier phrases
+d_processed <- d_processed %>%
+  left_join(phrasedata_24_30, by = join_by(session, age_group, tr_num == trialnum)) %>% 
+  # according to TL2-18mEnglish.sound measure.xls
+  mutate(phrase = case_when(
+    age_group == "18" & target_image == "baby" ~ "Where's the baby? Can you see it?",
+    age_group == "18" & target_image == "car" ~ "Where's the car? Can you see it?",
+    age_group == "18" & target_image == "doggy" ~ "Where's the doggy? Can you see it?",
+    age_group == "18" & target_image == "book" ~ "Where's the book? Can you see it?",
+    age_group == "18" & target_image == "birdy" ~ "Where's the birdie? Can you find it?",
+    age_group == "18" & target_image == "kitty" ~ "Where's the baby? Can you find it?",
+    age_group == "18" & target_image == "shoe" ~ "Look at the shoe. Do you like it?",
+    age_group == "18" & target_image == "ball" ~ "Look at the ball. Do you like it?",
+    T ~ phrase
+  ))
 
 # Convert to long format --------------------------------------------------
 d_tidy <- d_processed %>%
@@ -336,10 +354,10 @@ d_administration_ids <- d_tidy %>%
 d_trial_type_ids <- d_tidy %>%
   distinct(
     target_id, distractor_id, target_side,
-    condition
+    condition, phrase
   ) |>
   mutate(
-    full_phrase = NA,
+    full_phrase = phrase,
     vanilla_trial = condition %in% c("familiar", "Vanilla", "UnrelPrime-Noun", "UR-primeNoun", "Familiar-Medial"),
     trial_type_aux_data = NA,
     lab_trial_id = NA
@@ -550,6 +568,6 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload = F
+  upload = FALSE
 )
 
