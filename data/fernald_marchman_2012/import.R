@@ -26,7 +26,7 @@ d_processed_18 <- d_raw_18 %>%
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
     truncation_point = truncation_point_calc(.)
-  )
+  ) |> mutate(age_group = "18")
 
 # 24-month-olds
 d_raw_24 <- read_delim(fs::path(read_path, "TL2-24ABAlltrialstoMF.txt"),
@@ -39,7 +39,7 @@ d_processed_24 <- d_raw_24 %>%
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
     truncation_point = truncation_point_calc(.)
-  )
+  ) |> mutate(age_group = "24")
 
 # 30-month-olds
 d_raw_30 <- read_delim(fs::path(read_path, "TL230ABoriginalichartsn1-121toMF.txt"),
@@ -81,11 +81,12 @@ d_processed_30_part_2 <- d_raw_30 |>
   mutate(across(everything(), as.character))
 
 d_processed_30 <- d_processed_30_part_1 |>
-  bind_rows(d_processed_30_part_2)
+  bind_rows(d_processed_30_part_2) |> mutate(age_group = "30")
 
 # agglomerate
 
 d_processed <- d_processed_18 |>
+  
   # this is a very hacky fix for some of the columns being bools
   # so force everything to chars and sort it out later
   mutate(across(everything(), as.character)) |>
@@ -195,18 +196,44 @@ d_tidy <- d_tidy %>%
     TRUE ~ right_image
   ))
 
+# to rejoin the stimulus linking later
+d_tidy <- d_tidy %>% 
+  mutate(target_image = paste0(target_image, "_", age_group), 
+         distractor_image = paste0(distractor_image, "_", age_group))
+
 # create stimulus table
 stimulus_table_link <- d_tidy %>%
-  distinct(target_image, target_label) |>
+  distinct(target_image, target_label, months) |>
   # add the images that only appear in distractor position
   full_join(d_tidy |> distinct(distractor_image) |> rename(target_image = distractor_image)) |>
   mutate(
     clean_target_image = str_replace_all(target_image, " ", ""),
     target_label = ifelse(is.na(target_label), target_image, target_label),
     target_label = trimws(target_label),
-    target_label = str_remove_all(target_label, "[0-9AB]"),
-    clean_target_image = str_replace(clean_target_image, "birdy", "birdie"),
+    target_label = str_remove_all(target_label, "[0-9AB]|_"),
     clean_target_image = str_replace(clean_target_image, "doggy", "doggie"),
+    clean_target_image = str_replace(clean_target_image, "birdie", "birdy"),
+    # replacements for missing images based on import decisions - ugly code wise, but no real need to clean up
+    clean_target_image = str_replace(clean_target_image, "(?<!novel)A_", "1_"),
+    clean_target_image = str_replace(clean_target_image, "(?<!novel)B_", "2_"),
+    clean_target_image = str_replace(clean_target_image, "shoered_24", "shoered_30"),
+    clean_target_image = str_replace(clean_target_image, "shoeblue_24", "shoeblue_30"),
+    clean_target_image = str_replace(clean_target_image, "ballred_24", "ballred_30"),
+    clean_target_image = str_replace(clean_target_image, "ballblue_24", "ballblue_30"),
+    clean_target_image = str_replace(clean_target_image, "birdy1_30", "birdy1_24"),
+    clean_target_image = str_replace(clean_target_image, "birdy2_30", "birdy2_24"),
+    clean_target_image = str_replace(clean_target_image, "kitty1_30", "kitty1_24"),
+    clean_target_image = str_replace(clean_target_image, "kitty2_30", "kitty2_24"),
+    clean_target_image = str_replace(clean_target_image, "fanbl_30", "fanblgy_30"),
+    clean_target_image = str_replace(clean_target_image, "fanpr_30", "fanprgy_30"),
+    clean_target_image = str_replace(clean_target_image, "massageror_30", "massorgy_30"),
+    clean_target_image = str_replace(clean_target_image, "massageryl_30", "massylgy_30"),
+    clean_target_image = str_replace(clean_target_image, "manjuwh_30", "manjuwhgy_30"),
+    clean_target_image = str_replace(clean_target_image, "manjugr_30", "manjugrgy_30"),
+    clean_target_image = str_replace(clean_target_image, "tempogr_30", "tegrgy_30"),
+    clean_target_image = str_replace(clean_target_image, "tempoyl_30", "teylgy_30"),
+    clean_target_image = str_replace(clean_target_image, "novelA_24", "NovelA-moon_24"),
+    clean_target_image = str_replace(clean_target_image, "novelB_24", "NovelB-moon_24"),
     target_label = case_when(
       str_starts(target_label, "bird") ~ "birdy",
       str_starts(target_label, "dog") ~ "doggy",
@@ -229,7 +256,7 @@ stimulus_table <- stimulus_table_link |>
       TRUE ~ "familiar"
     ),
     original_stimulus_label = target_label,
-    stimulus_image_path = str_c("images/", clean_target_image, ".png"),
+    stimulus_image_path = str_c("images/", clean_target_image, "_left.jpg"),
     image_description_source = "image path",
     lab_stimulus_id = clean_target_image,
     stimulus_aux_data = NA
@@ -411,19 +438,6 @@ cdi_data_cleaned <- cdi_data |>
   select(lab_subject_id, instrument_type, measure, rawscore, percentile, age) |>
   mutate(language = "English (American)")
 
-# lwl_ages <- d_tidy_final |>
-#   distinct(lab_subject_id, age) |>
-#   nest(ages = age)
-#
-# cdi_data_matched <- cdi_data_cleaned |>
-#   left_join(lwl_ages, by = "lab_subject_id") |>
-#   mutate(best_lwl_age = map2(age, ages, \(cdi_age, lwl_ages) {
-#     offsets <- abs(lwl_ages - cdi_age)
-#     result <- lwl_ages[which(offsets == min(offsets)),][1]
-#     if (is.null(result)) NA else result[1,]
-#   }) |> unlist()) |>
-#   select(-ages)
-
 cdi_to_json <- cdi_data_cleaned |>
   nest(cdi_responses = -c(lab_subject_id)) |>
   nest(subject_aux_data = -c(lab_subject_id)) |>
@@ -536,5 +550,6 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload = TRUE
+  upload = F
 )
+

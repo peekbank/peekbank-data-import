@@ -23,11 +23,7 @@ Stimuli. Speech stimuli for each session consisted of 32 simple sentences ending
 NOTES: 
 the dataset has LWL data longitudinally on 18 / 24 / 30 mo (same kids), there are non-vanilla trials at 24 and 30 (the LWL at 24 and 30 is not reported in the paper)
 
-Note: for images, some images were shown in slightly different versions or mirrored in some conditions. Only one version is included here. 
-
 For the manju and tempo trials, some were exposure where the object was on a background and some were tests where they were not on the background.
-
-Some images were mirrored depending on left/right positioning - image labels L and R are from the participants' perspective.
 
 IMPORTANT: for related/unrelated prime noun/verb trials, the trials are represented in the raw data TWICE - once centered on the onset of the verb and once centered on the onset of the noun. We only keep the trial representation centered on the onset of the noun.
 
@@ -59,7 +55,26 @@ non-vanilla:
 * FerretVerbComp 
                   
 
-Right now, the Points of Disambiguation for non-vanilla trials have not been fully checked - so the timings of these trials could be inconsistent. TODO, if we ever find a use for these non vanilla trials  
+Right now, the Points of Disambiguation for non-vanilla trials have not been fully checked - so the timings of these trials could be inconsistent. TODO, if we ever find a use for these non vanilla trials 
+
+IMAGES:
+Some images were mirrored depending on left/right positioning - image labels L and R are from the participants' perspective.
+
+Every stimulus target label has multiple images associated with it, which differ in multiple dimensions per target label: version (e.g. there are multiple dogs), age (differing versions per age group), side they were shown on, and whether a background was present or not. We treated these the following way in the imports:
+
+* version: we treated different versions as different stimuli (e.g. bird1 != birdy2). Note: some the images only specify versions using numbers, while the datasets sometimes uses letters (A,B) to indicate differing versions. We assume that A == 1 and B == 2 for image linking purposes (e.g. kittyA (data) == kitty1 (image path))
+
+* age: most of the images are the same across ages, however, there are some (e.g. book) that differ between age groups. For consistency, we have decided to keep them as different stimuli for all targets (e.g. baby1_18 != baby1_24; book2_18 != book2_24). Exceptions: Some images were shown to an age group but are missing their specific version in the stimulus images folder. In these cases, we replaced the stimulus image path to make it point to a version of another age (since most images can be assumed to be identical). These are:
+  * shoered_24 missing -> we point to shoered_30
+  * ballred_24 missing -> we point to ballred_30
+  * shoeblue_24 missing -> we point to shoeblue_30
+  * ballblue_24 missing -> we point to ballblue_30
+  * kitty1_30 and kitty2_30 is missing -> we point to kitty1_24 and kitty2_24
+  * birdy1_30 and birdy2_30 is missing -> we point to birdy1_24 and birdy2_24
+  
+* side: we have decided to only keep the left version of every image, to stay consistent with the majority of peekbank
+
+* background present: This only applies to the novel items. The raw data gives no indication which version was shown, so we include the image path to the version WITHOUT a background. The items "novelA" and "novelB" have two versions each: one with the moon as a background image, and one with a tangled rope as a background image. There is no indication what background was used in the data, so we link the image with the moon background.
 
 5. Importing ambiguity
 
