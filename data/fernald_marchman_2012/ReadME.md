@@ -57,6 +57,9 @@ non-vanilla:
 
 Right now, the Points of Disambiguation for non-vanilla trials have not been fully checked - so the timings of these trials could be inconsistent. TODO, if we ever find a use for these non vanilla trials 
 
+Carrier phrases:
+The file manually_compiled_trial_info_2430.csv in the raw data was manually put together by peekbank members based on the data in TL2-30A.txt, TL2-30B.txt, visit B.txt, visitA.txt. The resulting file is used to look up the carrier phrases for 24mo and 30mo.
+
 IMAGES:
 Some images were mirrored depending on left/right positioning - image labels L and R are from the participants' perspective.
 
