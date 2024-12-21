@@ -103,7 +103,7 @@ stimuli_table <- tibble(lab_stimulus_id = unique(append(stimuli_trials$ImageLFil
     stimulus_novelty = "familiar",
     image_description = english_stimulus_label,
     image_description_source = "experiment documentation",
-    stimulus_image_path = paste0("/stimuli/images/", lab_stimulus_id, ".png", sep = ""),
+    stimulus_image_path = paste0("/stimuli/images/", lab_stimulus_id, ".jpg", sep = ""),
     dataset_id = dataset_id,
     stimulus_aux_data = NA
   )
@@ -366,5 +366,6 @@ write_and_validate(
   trials = trials,
   aoi_region_sets = aoi_region_sets_table,
   xy_timepoints = xy_timepoints_table,
-  aoi_timepoints = aoi_timepoints_table
+  aoi_timepoints = aoi_timepoints_table,
+  upload = F
 )
