@@ -31,13 +31,13 @@ For the purposes of peekbank, the repeat trials do not present a problem, so we 
 There is also a subset of participants that saw less trials, but we also include these.
 
 
-The original stimuli provided by the authors include the full image pairs presented to the participants. We have used a shell script using imagemagick to split them up into their separate parts.
+The original stimuli provided by the authors include some image pairs presented to the participants. We have used a shell script using imagemagick to split them up into their separate parts.
 If the split needs to be changed (crop, filetype, etc.), edit the script in this directory and run
 
 ```
 ./split_original_images.sh ./raw_data/stimulus_images/
 ```
-to generate new splits.
+to generate new splits. NOTE: We only have images for a subset of the stimuli.
 
 5. **Importing ambiguity**
 

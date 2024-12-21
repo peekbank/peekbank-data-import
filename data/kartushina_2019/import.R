@@ -135,6 +135,7 @@ if (length(is_list_match) > 0) {
 df_stimuli <- rbind(df_words_match, df_words_related)
 target_distractor <- select(df_stimuli, target, distractor, condition)
 
+
 df_stimuli <- df_stimuli %>%
   select(target) %>%
   rename(english_stimulus_label = target) %>%
@@ -146,7 +147,8 @@ df_stimuli <- df_stimuli %>%
     image_description_source = "image path",
     stimulus_aux_data = NA,
     image_description = english_stimulus_label,
-    stimulus_image_path=paste0("stimulus_images/", english_stimulus_label, ".png"),
+    # we only have a subset of the stimulus images
+    stimulus_image_path=ifelse(english_stimulus_label %in% c("apple", "banana", "belly", "book", "bread", "car", "cat", "cookie", "couch", "dog", "foot", "glasses" , "hair", "jacket", "keys", "leg"),paste0("stimulus_images/", english_stimulus_label, ".png"), NA),
     # the original norwegian labels below were pasted from the paper table 1
     original_stimulus_label = case_when(
       english_stimulus_label == "cookie" ~ "kjeks",
