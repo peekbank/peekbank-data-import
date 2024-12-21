@@ -64,11 +64,14 @@ stimulus <- stimulus_mapping |>
          left_image=str_c(source,"_left.png"),
          right_image=str_c(source,"_right.png"),
          target_stimulus_image_path=ifelse(target_pos=="R",
-                                 str_c("raw_data/stimuli/",right_image),
-                                 str_c("raw_data/stimuli/", left_image)),
+                                 str_c("stimuli/",right_image),
+                                 str_c("stimuli/", left_image)),
          distractor_stimulus_image_path=ifelse(dist_pos=="R",
-                                     str_c("raw_data/stimuli/",right_image),
-                                     str_c("raw_data/stimuli/", left_image)),
+                                     str_c("stimuli/",right_image),
+                                     str_c("stimuli/", left_image)),
+         # 2 missing images
+         target_stimulus_image_path = ifelse(target_stimulus_image_path %in% c("stimuli/L2.048_left.png", "stimuli/L2.048_right.png"),NA,target_stimulus_image_path),
+         distractor_stimulus_image_path = ifelse(distractor_stimulus_image_path %in% c("stimuli/L2.048_left.png", "stimuli/L2.048_right.png"),NA,distractor_stimulus_image_path),
          target_stimulus_label_original=target,
          target_stimulus_label_english=target,
          target_stimulus_novelty="familiar",
@@ -217,44 +220,4 @@ dataset_list <- digest.dataset(
   normalize = T
 )
 
- write_and_validate_list(dataset_list, cdi_expected = FALSE, upload = FALSE)
-
-# checking resampling behavior
-# temp <- wide.table |>
-#   group_by(subject_id, trial_index) |>
-#   mutate(t_zeroed = t - t[1]) |>
-#   ungroup() |>
-#   mutate(
-#     offset = t_zeroed - point_of_disambiguation,
-#     t_round = round(offset / 100) * 100
-#   ) |>
-#   group_by(subject_id, t_round) |>
-#   summarize(accuracy = sum(aoi == "target") /
-#     (sum(aoi == "target") + sum(aoi == "distractor")))
-# temp |>
-#   ggplot(aes(x = t_round, y = accuracy, color = as.character(subject_id))) +
-#   geom_line(alpha = .1) +
-#   geom_smooth(color = "black") +
-#   geom_hline(yintercept = .5) +
-#   geom_vline(xintercept = 0) +
-#   geom_vline(xintercept = 300) +
-#   theme(legend.position = "none")
-# 
-# temp_resampled <- dataset_list$aoi_timepoints |>
-#   left_join(dataset_list$administrations) |>
-#   # mutate(t_round=round(t_norm/100)*100) |>
-#   ungroup() |>
-#   group_by(administration_id, t_norm) |>
-#   summarize(
-#     N = n(),
-#     accuracy = sum(aoi == "target") /
-#       (sum(aoi == "target") + sum(aoi == "distractor"))
-#   )
-# temp_resampled |>
-#   ggplot(aes(x = t_norm, y = accuracy, color = as.character(administration_id))) +
-#   geom_line(alpha = .1) +
-#   geom_smooth(color = "black") +
-#   geom_hline(yintercept = .5) +
-#   geom_vline(xintercept = 0) +
-#   geom_vline(xintercept = 300) +
-#   theme(legend.position = "none")
+write_and_validate_list(dataset_list, cdi_expected = FALSE, upload = F)
