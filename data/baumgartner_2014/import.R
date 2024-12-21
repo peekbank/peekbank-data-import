@@ -168,7 +168,8 @@ stimulus_table <- d_tidy %>%
     english_stimulus_label = target_label,
     stimulus_image_path = ifelse(original_stimulus_label %in% c("lif","neem"), 
                                  str_c("stimuli/", target_image, ".png"), 
-                                 str_c("stimuli/", target_label, ".jpg")), # stimulus name depends on target, distractor, and side of target, will need to generate. For now, all stimuli are in zipped file in OSF project directory; # paste0(target_image, ".mov"), # TO DO - update once images are shared/ image file path known
+                                 str_c("stimuli/", target_label, ".jpg")),
+    stimulus_image_path = str_replace(stimulus_image_path, "kitty", "cat"),
     image_description = target_label,
     image_description_source = "image path",
     lab_stimulus_id = target_image
@@ -366,5 +367,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = F
 )
