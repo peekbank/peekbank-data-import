@@ -363,7 +363,7 @@ stimulus_table <- d_tidy %>%
     stimulus_novelty = "familiar",
     original_stimulus_label = tolower(target_label),
     english_stimulus_label = tolower(target_label),
-    stimulus_image_path = tolower(target_image),
+    stimulus_image_path = NA,
     image_description_source = "Peekbank discretion",
     lab_stimulus_id = tolower(target_image)
   ) %>%
@@ -635,5 +635,6 @@ write_and_validate(
   trials = d_trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints = aoi_table
+  aoi_timepoints = aoi_table,
+  upload = T
 )
