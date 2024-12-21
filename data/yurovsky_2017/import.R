@@ -182,17 +182,17 @@ data.full <- data.full %>% left_join(administrations.df)
 
 stimuli.df <- rbind(
   data.full %>% distinct(target_label, target_image) %>%
-    rename(original_stimulus_label = target_label, stimulus_image_path = target_image),
+    rename(original_stimulus_label = target_label, image_description = target_image),
   data.full %>% distinct(distractor_label, distractor_image) %>%
-    rename(original_stimulus_label = distractor_label, stimulus_image_path = distractor_image)
+    rename(original_stimulus_label = distractor_label, image_description = distractor_image)
 ) %>%
   distinct() %>%
   mutate(
+    stimulus_image_path = NA,
     english_stimulus_label = original_stimulus_label,
-    lab_stimulus_id = stimulus_image_path,
-    image_description = stimulus_image_path,
+    lab_stimulus_id = image_description,
+    image_description = image_description,
     image_description_source = "image path",
-    stimulus_image_path = paste0(stimulus_image_path, ".jpg"),
     stimulus_novelty = ifelse(lab_stimulus_id == "skwish" | lab_stimulus_id == "balls", "novel", "familiar"),
     dataset_id = dataset_id,
     stimulus_aux_data = NA,
@@ -264,5 +264,6 @@ write_and_validate(
   trials = trials.df,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints = aoi_timepoints.df
+  aoi_timepoints = aoi_timepoints.df,
+  upload = F
 )
