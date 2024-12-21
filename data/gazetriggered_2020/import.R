@@ -107,7 +107,7 @@ stimuli <- fixations %>%
     english_stimulus_label = translation_vector[image],
     stimulus_novelty = "familiar",
     lab_stimulus_id = NA,
-    stimulus_image_path = image,
+    stimulus_image_path = NA,
     image_description = image,
     image_description_source = "image path",
     dataset_id = 0
@@ -278,9 +278,9 @@ trial_types <- d %>%
     vanilla_trial = TRUE,
     trial_type_aux_data = NA
   ) %>%
-  left_join(stimuli, by = c("distractor_image" = "stimulus_image_path")) %>%
+  left_join(stimuli, by = c("distractor_image" = "image_description")) %>%
   rename(distractor_id = stimulus_id) %>%
-  left_join(stimuli, by = c("target_image" = "stimulus_image_path")) %>%
+  left_join(stimuli, by = c("target_image" = "image_description")) %>%
   rename(target_id = stimulus_id) %>%
   select(
     trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation,
@@ -337,21 +337,6 @@ aoi_timepoints <- d %>%
   peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 
 
-lookingscores <- aoi_timepoints %>%
-  mutate(lookingscore = case_when(
-    aoi == "distractor" ~ -1,
-    aoi == "target" ~ 1,
-    TRUE ~ 0
-  )) %>%
-  group_by(t_norm) %>%
-  summarise(ls = mean(lookingscore)) %>%
-  select(t_norm, ls)
-
-ggplot(lookingscores, aes(x = t_norm, y = ls)) +
-  geom_line() +
-  labs(x = "t_norm", y = "ls")
-
-
 write_and_validate(
   dataset_name = dataset_name,
   cdi_expected = TRUE,
@@ -363,5 +348,6 @@ write_and_validate(
   trials,
   aoi_region_sets,
   xy_timepoints,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = F
 )
