@@ -88,7 +88,7 @@ stimulus_table <- d_tidy %>%
     stimulus_novelty = "familiar",
     original_stimulus_label = target_label,
     english_stimulus_label = target_label,
-    stimulus_image_path = target_image,
+    stimulus_image_path = NA,
     image_description = target_image,
     lab_stimulus_id = target_image,
     stimulus_aux_data = NA,
@@ -189,5 +189,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = F
 )
