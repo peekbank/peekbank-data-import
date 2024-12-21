@@ -191,7 +191,7 @@ stimulus_table_target <- d_tidy %>%
   mutate(
     original_stimulus_label = target_label,
     english_stimulus_label = target_label,
-    stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
+    stimulus_image_path = paste0("stimuli/images/", target_image,".jpg"),
     lab_stimulus_id = paste0(target_image, "_", target_label)
   ) %>%
   rename(
@@ -210,7 +210,7 @@ stimulus_table_distractor <- d_tidy %>%
   mutate(
     original_stimulus_label = distractor_label,
     english_stimulus_label = distractor_label,
-    stimulus_image_path = distractor_image # TO DO - update once images are shared/ image file path known
+    stimulus_image_path = paste0("stimuli/images/", distractor_image,".jpg"), # TO DO - update once images are shared/ image file path known
   ) %>%
   rename(
     image = distractor_image,
@@ -436,5 +436,5 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload = TRUE
+  upload = F
 )
