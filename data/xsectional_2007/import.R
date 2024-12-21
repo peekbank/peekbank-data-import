@@ -160,7 +160,7 @@ stimulus_table <- d_tidy %>%
     dataset_id = 0,
     stimulus_novelty = "familiar",
     original_stimulus_label = target_label,
-    stimulus_image_path = paste0(target_image, ".pct"), # TO DO - update once images are shared/ image file path known
+    stimulus_image_path = NA,
     image_description = target_label, # Spanish or English?
     image_description_source = "image path",
     lab_stimulus_id = target_image
@@ -331,5 +331,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload=F
 )
