@@ -266,13 +266,13 @@ d_tidy_semifinal <- d_tidy %>%
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
   mutate(
-    dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
+    dataset_id = 0,
     lab_trial_id = paste(target_label, target_image, distractor_image, sep = "-"),
-    aoi_region_set_id = NA, # not applicable
+    aoi_region_set_id = NA,
     monitor_size_x = NA, # unknown TO DO
     monitor_size_y = NA, # unknown TO DO
     lab_age_units = "months",
-    age = as.numeric(months), # months # TO DO - more precise?
+    age = as.numeric(months),
     point_of_disambiguation = 0, # data is re-centered to zero based on critonset in datawiz
     tracker = "video_camera",
     sample_rate = sampling_rate_hz,
@@ -416,5 +416,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload=F
 )
