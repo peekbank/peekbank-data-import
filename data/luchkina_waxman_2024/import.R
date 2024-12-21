@@ -30,13 +30,13 @@ wide.table <- data_raw %>%
     target_stimulus_label_original = target,
     target_stimulus_label_english = target,
     target_stimulus_novelty = "familiar",
-    target_stimulus_image_path = glue("raw_data/images/target/{target}.jpg"),
+    target_stimulus_image_path = glue("images/target/{target}.jpg"),
     target_image_description = target,
     target_image_description_source = "image path",
     distractor_stimulus_label_original = distractor,
     distractor_stimulus_label_english = distractor,
     distractor_stimulus_novelty = "familiar",
-    distractor_stimulus_image_path = glue("raw_data/images/target/{distractor}.jpg"),
+    distractor_stimulus_image_path = glue("images/distractor/{distractor}.jpg"),
     distractor_image_description = distractor,
     distractor_image_description_source = "image path",
     trial_index = trial_number,
@@ -74,4 +74,4 @@ cdi <- read.csv(here(data_path, "Peekbank_LuchkinaWaxman_MCDI_data.csv")) %>%
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>% 
   digest.subject_cdi_data(cdi)
 
-write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = FALSE)
+write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = F)
