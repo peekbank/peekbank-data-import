@@ -200,7 +200,8 @@ stimulus_table <- d_tidy %>%
     stimulus_novelty = "familiar",
     lab_stimulus_id = paste0(target_image, "_", target_spoken_label, sep = ""),
     stimulus_id = seq(0, nrow(.) - 1),
-    target_image = paste("raw_data/stimuli/visual/images/",target_image,"1.png",sep="")
+    target_image = paste("stimuli/visual/images/",target_image,"1.png",sep=""),
+    target_image = str_replace(target_image, "dog1", "doggy1")
   ) %>%
   mutate(
     image_description = target_image,
@@ -431,5 +432,5 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload=TRUE
+  upload=F
 )
