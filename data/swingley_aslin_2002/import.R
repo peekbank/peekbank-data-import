@@ -134,8 +134,8 @@ stimulus_table <- d_tidy %>%
     # stimulus_novelty = "familiar",
     original_stimulus_label = target_label,
     english_stimulus_label = target_label,
-    stimulus_image_path = target_image, # TO DO - update once images are shared/ image file path known
-    image_description = stimulus_image_path,
+    stimulus_image_path = NA,
+    image_description = target_image,
     image_description_source = "experiment documentation",
     lab_stimulus_id = paste(cond, target_image, target_label, sep = "_")
   ) %>%
@@ -146,7 +146,7 @@ stimulus_table <- d_tidy %>%
       TRUE ~ "familiar"
     )
   ) %>%
-  arrange(stimulus_image_path, original_stimulus_label) %>%
+  arrange(image_description, original_stimulus_label) %>%
   mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1))
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
@@ -318,17 +318,7 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload=F
 )
-
-# trials |>
-#   left_join(trial_types) |>
-#   left_join(stimuli, by = c("target_id" = "stimulus_id")) |> 
-#   left_join(aoi_timepoints) |> 
-#   #filter(stimulus_novelty=="familiar") |> 
-#   filter(condition!="filler") |>
-#   filter(aoi %in% c("target", "distractor")) |> 
-#   filter(t_norm>0) |> 
-#   group_by(administration_id, target_id) |> 
-#   summarize(prop_target=sum(aoi=="target")/n()) |> ggplot(aes(x=prop_target))+geom_histogram()
 
