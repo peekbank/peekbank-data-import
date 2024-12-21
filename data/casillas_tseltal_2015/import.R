@@ -104,7 +104,7 @@ stimuli_table <- stim_data_raw %>%
   mutate(
     image_description = target_word,
     image_description_source = "experiment documentation",
-    stimulus_image_path = glue::glue("raw_data/split_images/{target_image}"),
+    stimulus_image_path = glue::glue("split_images/{target_image}"),
     stimulus_novelty = "familiar",
     dataset_id = dataset_id
   ) %>%
