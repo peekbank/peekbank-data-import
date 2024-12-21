@@ -62,7 +62,7 @@ stimuli_data <- target_distractors %>% # 48 entries
       stimulus_label %in% novel_words ~ "novel",
       TRUE ~ "familiar"
     ), # this is novelty of the word
-    stimulus_image_path = str_c("raw_data/images/", stimulus_label, ".png"),
+    stimulus_image_path = str_c("images/", stimulus_label, ".jpg"),
     lab_stimulus_id = stimulus_label,
     dataset_id = 0,
     stimulus_id = row_number() - 1
@@ -368,5 +368,6 @@ write_and_validate(
   trials = trials_table %>% select(-lab_subject_id),
   aoi_region_sets = aoi_info,
   xy_timepoints = xy_joined_resampled,
-  aoi_timepoints = aoi_timepoints_data
+  aoi_timepoints = aoi_timepoints_data,
+  upload = F
 )
