@@ -18,7 +18,7 @@ dataset_id <- 0 # doesn't matter (use 0)
 
 
 # read data
-d_raw <- read_delim(fs::path(read_path, "valleau_2018.csv"), delim = ",")
+d_raw <- read_delim(fs::path(read_path, "Valleau_etal_2018.csv"), delim = ",")
 
 stimuli_listAD <- c("cookie", "donut", "firetruck", "hug", "pour", "wash", "tie", "crab", "eat", "jump", "open", "read", "giraffe", "clap", "roll", "lift", "spin", "grapes", "dance", "bite", "tickle", "squeeze", "orange", "throw", "lick")
 stimuli_listBC <- c("airplane", "squirrel", "rocketship", "break", "kick", "blow", "kiss", "pancakes", "drop", "cry", "march", "pull", "bird", "bounce", "stretch", "rip", "shake", "goldfish", "run", "push", "cut", "rock", "banana", "drink", "feed")
