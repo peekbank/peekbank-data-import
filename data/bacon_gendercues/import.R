@@ -99,7 +99,7 @@ stimulus_table <- d_tidy %>%
     stimulus_novelty = "familiar",
     original_stimulus_label = target_label,
     english_stimulus_label = target_label,
-    stimulus_image_path = paste("raw_data/images/",target_image,".png", sep=""),
+    stimulus_image_path = paste("images/",target_image,".png", sep=""),
     image_description = target_label,
     image_description_source = "image path",
     lab_stimulus_id = target_image,
@@ -288,5 +288,5 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload = TRUE
+  upload = F
 )
