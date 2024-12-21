@@ -66,7 +66,7 @@ stimulus_table <- d_tidy %>%
     stimulus_novelty = "familiar",
     original_stimulus_label = target,
     english_stimulus_label = target,
-    stimulus_image_path = target,
+    stimulus_image_path = NA,
     image_description = case_when(
       target == "birdie" ~ "bird",
       TRUE ~ target
@@ -261,5 +261,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = F
 )
