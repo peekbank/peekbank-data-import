@@ -136,10 +136,10 @@ subjects <- d_tidy %>%
 stimulus_table <- d_tidy %>%
   mutate(target_image = english_stimulus_label) %>%
   distinct(target_image, distractor_image) %>%
-  pivot_longer(cols = c(target_image, distractor_image), names_to = "image_type", values_to = "stimulus_image_path") %>%
-  distinct(stimulus_image_path) %>%
+  pivot_longer(cols = c(target_image, distractor_image), names_to = "image_type", values_to = "original_stimulus_label") %>%
+  distinct(original_stimulus_label) %>%
   mutate(
-    original_stimulus_label = stimulus_image_path,
+    stimulus_image_path = NA,
     english_stimulus_label = original_stimulus_label,
     stimulus_novelty = "familiar",
     stimulus_id = seq(0, nrow(.) - 1),
