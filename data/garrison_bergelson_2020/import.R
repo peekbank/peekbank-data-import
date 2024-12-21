@@ -74,7 +74,9 @@ stimuli_prep <- d_low %>%
     english_stimulus_label = original_stimulus_label,
     stimulus_novelty = "familiar",
     lab_stimulus_id = image,
-    stimulus_image_path = str_c("raw_data/images/",image),
+    stimulus_image_path = str_c("images/",image),
+    # this specific stimulus is missing from the provided images
+    stimulus_image_path = ifelse(stimulus_image_path == "images/shoe2.jpg", NA, stimulus_image_path),
     image_description = original_stimulus_label,
     image_description_source = "image path",
     dataset_id = 0
@@ -115,7 +117,8 @@ stimuli <- stimuli_prep |>
   ) %>%
   distinct() %>%
   rowwise() |> 
-  mutate(image_description=relabel_generic(english_stimulus_label)) |> 
+  mutate(image_description=relabel_generic(english_stimulus_label)) |>
+  ungroup() %>% 
   mutate(
     stimulus_id = 0:(n() - 1),
     stimulus_aux_data = NA
@@ -303,5 +306,5 @@ write_and_validate(
   aoi_region_sets,
   xy_timepoints,
   aoi_timepoints,
-  upload = TRUE
+  upload = F
 )
