@@ -104,6 +104,9 @@ d_processed <- bind_rows(
   read_icoder_base("TL336B.iChart.LOC2A.n51.txt", "36")
 )
 
+fix_y_ending <- function(word){
+  word %>% str_replace("doggy", "doggie") %>% str_replace("birdie", "birdy")
+}
 
 wide.table <- d_processed %>%
   # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
@@ -184,7 +187,7 @@ wide.table <- d_processed %>%
     target_stimulus_novelty = ifelse(grepl("(^drive)|(^eat)|(^novel$)", target_label), "novel", "familiar"),
     target_stimulus_image_path = ifelse(
       age_group %in% c("16", "18"),
-      paste0("images/", ifelse(target_side == "right", "right/", "left/"), target_image, ".png"),
+      paste0("stimuli/images/", ifelse(target_side == "right", "right/", "left/"), fix_y_ending(target_image), ".png"),
       NA
     ),
     target_image_description = target_label,
@@ -195,7 +198,7 @@ wide.table <- d_processed %>%
     distractor_stimulus_novelty = ifelse(grepl("(^drive)|(^eat)|(^novel$)", distractor_label), "novel", "familiar"),
     distractor_stimulus_image_path = ifelse(
       age_group %in% c("16", "18"),
-      paste0("images/", ifelse(target_side == "left", "right/", "left/"), distractor_image, ".png"),
+      paste0("stimuli/images/", ifelse(target_side == "left", "right/", "left/"), fix_y_ending(distractor_image), ".png"),
       NA
     ),
     distractor_image_description = distractor_label,
@@ -281,7 +284,7 @@ dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
 
 ## 5. Write and Validate the Data
 
-write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = TRUE)
+write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = F)
 
   
 subj_after <- wide.table %>%
