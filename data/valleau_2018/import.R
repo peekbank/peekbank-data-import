@@ -10,8 +10,6 @@ source(here("helper_functions", "common.R"))
 dataset_name <- "valleau_2018"
 read_path <- init(dataset_name)
 
-# constants
-# your data will need to be in the folder "data/your_dataset_name/raw_data" starting from your working directory.
 tracker_name <- "Tobii T60-XL"
 sampling_rate_hz <- 60 # (reverse-engineered from timestamps)
 dataset_id <- 0 # doesn't matter (use 0)
@@ -62,10 +60,10 @@ d_tidy <- d_raw %>%
 
 
 ## add the full_phrase information in the "stimuli" file to the d_tidy
+# TODO: document this. the stimuli_lookup_table.csv existed at some point but got lost (origin not known, a past peekbank importer likely created it)
+# this is a reproduction based on the output files that were still existing, so it is at least as credible as that old csv.
 lookup_table <- read_delim(fs::path(read_path, "stimuli_lookup_table.csv"), delim = ",") %>%
-  mutate(target_side = if_else(target_image == left, "left", "right")) %>% # add target side column
-  select(-baseline, -query) %>%
-  mutate_all(~ str_replace_all(., "\\s", ""))
+  mutate(target_side = if_else(target_image == left, "left", "right")) # add target side column
 
 
 

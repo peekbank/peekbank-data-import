@@ -1,0 +1,101 @@
+condition,target_image,left,right,full_phrase
+A,cookie,cookie,banana,Where is the cookie? Let's find the cookie.
+A,donut,goldfish,donut,Do you see the donut? Show me the donut.
+A,firetruck,firetruck,bird,"Where is the firetruck? Look, see the firetruck?"
+A,hug,feed,hug,"Look, hugging. Find where she is hugging cookie monster."
+A,wash,wash,rock,Find washing. Do you see where she is washing the baby?
+A,tie,cut,tie,Do you see tying? Can you find where she is tying the ribbon?
+A,crab,crab,pancakes,Show me the crab. Do you see the crab?
+A,jump,run,jump,Where is jumping? Find where she is jumping.
+A,open,shake,open,Where is opening? Do you see where she is opening the present?
+A,read,read,rip,Do you see reading? Where is she reading the paper?
+A,giraffe,rocketship,giraffe,Can you find the giraffe? Look! See the giraffe?
+A,clap,stretch,clap,"Look, clapping. Where is she clapping?"
+A,lift,lift,pull,Where is lifting? Find where she is lifting pooh bear.
+A,spin,march,spin,Do you see spinning? Show me where she is spinning.
+A,dance,dance,cry,Look! Dancing! Can you show me where she is dancing?
+A,tickle,kiss,tickle,Where is tickling? Can you find where she is tickling the bear?
+A,squeeze,squeeze,blow,Do you see squeezing? Find where she is squeezing the balloon.
+A,orange,orange,airplane,Do you see the orange? Show me the orange.
+A,throw,kick,throw,Find throwing. Show me where she is throwing the balloon.
+A,pour,pour,drink,Where is pouring? Do you see where she is pouring the juice?
+A,eat,eat,push,"Look, eating. Do you see where she is eating the cake?"
+A,grapes,squirrel,grapes,Do you see the grapes? Can you find the grapes?
+A,bite,drop,bite,Find biting! Do you see where she is biting the cupcake?
+A,lick,lick,break,"Look, licking. Where is she licking the lollipop?"
+A,roll,roll,bounce,Let's find rolling! Do you see where she is rolling the ball?
+B,banana,cookie,banana,Where is the banana? Let's find the banana.
+B,goldfish,goldfish,donut,Do you see the goldfish? Show me the goldfish.
+B,bird,firetruck,bird,"Where is the bird? Look, see the bird?"
+B,feed,feed,hug,Where is feeding? Find where she is feeding cookie monster.
+B,drink,pour,drink,Do you see drinking? Where is she drinking the juice?
+B,rock,wash,rock,Can you find rocking? Show me where she is rocking the baby.
+B,push,eat,push,Do you see pushing? Find where she is pushing the cake.
+B,run,run,jump,Let's find running. Where is she running?
+B,shake,shake,open,Do you see shaking? Show me where she is shaking the present.
+B,rip,read,rip,"Look, ripping! Do you see where she is ripping the paper?"
+B,rocketship,rocketship,giraffe,Do you see the rocketship? Find the rocketship.
+B,stretch,stretch,clap,"Look, stretching. Find where she is stretching."
+B,bounce,roll,bounce,Do you see bouncing? Find where she is bouncing the ball.
+B,pull,lift,pull,Can you find pulling? Where is she pulling pooh bear?
+B,march,march,spin,Look! Marching! Can you show me where she is marching?
+B,cry,dance,cry,Do you see crying? Show me where she is crying.
+B,drop,drop,bite,Find dropping! Do you see where she is dropping the cupcake?
+B,kiss,kiss,tickle,Do you see kissing? Where is she kissing the bear?
+B,blow,squeeze,blow,Let's find blowing. Where is she blowing the balloon?
+B,airplane,orange,airplane,Let's find the airplane. Do you see the airplane?
+B,kick,kick,throw,Look! Kicking! Find where she is kicking the balloon.
+B,break,lick,break,Do you see breaking? Can you find where she is breaking the lollipop?
+B,cut,cut,tie,"Look, cutting! Can you find where she is cutting the ribbon?"
+B,pancakes,crab,pancakes,Can you show me the pancakes? Let's find the pancakes.
+B,squirrel,squirrel,grapes,Where is the squirrel? Find the squirrel?
+C,airplane,orange,airplane,Let's find the airplane. Do you see the airplane?
+C,rocketship,rocketship,giraffe,Do you see the rocketship? Find the rocketship.
+C,break,lick,break,Do you see breaking? Can you find where she is breaking the lollipop?
+C,kick,kick,throw,Look! Kicking! Find where she is kicking the balloon.
+C,blow,squeeze,blow,Let's find blowing. Where is she blowing the balloon?
+C,kiss,kiss,tickle,Can you find where she is kissing the bear?
+C,pancakes,crab,pancakes,Can you show me the pancakes? Let's find the pancakes.
+C,drop,drop,bite,Find dropping! Do you see where she is dropping the cupcake?
+C,cry,dance,cry,Do you see crying? Show me where she is crying.
+C,march,march,spin,Look! Marching! Can you show me where she is marching?
+C,pull,lift,pull,Can you find pulling? Where is she pulling pooh bear?
+C,bird,firetruck,bird,Where is the bird? Look! See the bird?
+C,bounce,roll,bounce,Do you see bouncing? Find where she is bouncing the ball.
+C,stretch,stretch,clap,"Look, stretching. Find where she is stretching."
+C,rip,read,rip,"Look, ripping! Do you see where she is ripping the paper?"
+C,shake,shake,open,Do you see shaking? Show me where she is shaking the present.
+C,goldfish,goldfish,donut,Do you see the goldfish? Show me the goldfish.
+C,run,run,jump,Let's find running. Where is she running?
+C,push,eat,push,Do you see pushing? Find where she is pushing the cake.
+C,cut,cut,tie,"Look, cutting! Can you find where she is cutting the ribbon?"
+C,rock,wash,rock,Can you find rocking? Show me where she is rocking the baby.
+C,banana,cookie,banana,Where is the banana? Let's find the banana.
+C,drink,pour,drink,Do you see drinking? Where is she drinking the juice?
+C,feed,feed,hug,Where is feeding? Find where she is feeding cookie monster.
+C,squirrel,squirrel,grapes,Where is the squirrel? Find the squirrel?
+D,giraffe,rocketship,giraffe,Can you find the giraffe? Look! See the giraffe?
+D,lick,lick,break,"Look, licking. Where is she licking the lollipop?"
+D,throw,kick,throw,Find throwing. Show me where she is throwing the balloon.
+D,squeeze,squeeze,blow,Do you see squeezing? Find where she is squeezing the balloon.
+D,tickle,kiss,tickle,Where is tickling? Can you find where she is tickling the bear?
+D,crab,crab,pancakes,Show me the crab. Do you see the crab?
+D,bite,drop,bite,Find biting! Do you see where she is biting the cupcake?
+D,dance,dance,cry,Look! Dancing! Can you show me where she is dancing?
+D,spin,march,spin,Do you see spinning? Show me where she is spinning.
+D,lift,lift,pull,Where is lifting? Find where she is lifting pooh bear.
+D,firetruck,firetruck,bird,"Where is the firetruck? Look, see the firetruck?"
+D,roll,roll,bounce,Let's find rolling! Do you see where she is rolling the ball?
+D,clap,stretch,clap,"Look, clapping. Where is she clapping?"
+D,read,read,rip,Do you see reading? Where is she reading the paper?
+D,open,shake,open,Where is opening? Do you see where she is opening the present?
+D,donut,goldfish,donut,Do you see the donut? Show me the donut.
+D,jump,run,jump,Where is jumping? Find where she is jumping.
+D,eat,eat,push,"Look, eating. Do you see where she is eating the cake?"
+D,tie,cut,tie,Do you see tying? Can you find where she is tying the ribbon?
+D,wash,wash,rock,Find washing. Do you see where she is washing the baby?
+D,cookie,cookie,banana,Where is the cookie? Let's find the cookie.
+D,pour,pour,drink,Where is pouring? Do you see where she is pouring the juice?
+D,hug,feed,hug,"Look, hugging. Find where she is hugging cookie monster."
+D,orange,orange,airplane,Do you see the orange? Show me the orange.
+D,grapes,squirrel,grapes,Do you see the grapes? Can you find the grapes?
