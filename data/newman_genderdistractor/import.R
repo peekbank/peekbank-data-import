@@ -144,7 +144,6 @@ looking_data <- looking_data %>%
 
 
 first_last_look <- looking_data %>%
-  # TODO What are B and S, Begin and Stop?
   filter(look != "B" & look != "S") %>%
   group_by(subject_file, trial_order_num) %>%
   summarise(
@@ -215,10 +214,6 @@ trials_tidy <- raw_trials_data %>%
   mutate(trial_order_num = seq(0, 19)) %>%
   ungroup() %>%
   rename(
-    # TODO: right now, we take full phrase straight from the raw data ("Look at the X"), saved in target_audio
-    # but the paper suggests that the phrase was longer: “Hey baby! Look at the ____! Do you see the ____? Where’s the ____?”
-    # which one do we put here?
-    full_phrase = target_audio,
     target_side = correct_answer,
     genderdistractor = distractor
   ) %>%
@@ -240,6 +235,8 @@ trials_tidy <- raw_trials_data %>%
       TRUE ~ "ambig"
     )
   ) %>%
+  mutate(
+    full_phrase = stringr::str_replace_all("Hey baby! Look at the _! Do you see the _? Where’s the _?", "_", target)) %>% 
   rename(lab_trial_id = x7)
 
 
