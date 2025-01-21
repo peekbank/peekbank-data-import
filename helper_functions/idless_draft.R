@@ -99,7 +99,16 @@ digest.dataset <- function(
       target_original_stimulus_label = target_stimulus_label_original,
       target_english_stimulus_label = target_stimulus_label_english
     )
-
+  
+  # remove non utf8 characters because they break the server import
+  data[] <- lapply(data, function(x) {
+    if(is.character(x)) {
+      enc <- iconv(x, from = "", to = "UTF-8", sub = "")
+      return(enc)
+    }
+    return(x)
+  })
+  
   # TODO Validate the values (how much validation do we want to put in here?)
 
   stimuli <- data %>%
