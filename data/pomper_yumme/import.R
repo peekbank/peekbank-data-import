@@ -29,7 +29,7 @@ remove_repeat_headers <- function(d, idx_var) {
 
 # read raw icoder files
 d_raw <- read_delim(fs::path(read_path, "YumME_v4_DataCombined_Raw_n37.txt"),
-                    delim = "\t"
+  delim = "\t"
 )
 
 # yzd
@@ -144,13 +144,14 @@ stimulus_table <- d_tidy %>%
   pivot_longer(cols = c(target_image, distractor_image), names_to = "image_type", values_to = "stimulus_image_path") %>%
   distinct(stimulus_image_path) %>%
   mutate(
-    stimulus_image_path = case_when(
-      # assume "black" in table means empty target/distractor, based on interpretation of data
-      stimulus_image_path == "black" ~ "empty",
-      TRUE ~ stimulus_image_path
-    ),
-    original_stimulus_label = stimulus_image_path,
-    english_stimulus_label = original_stimulus_label
+    # assume "black" in table means empty target/distractor, based on interpretation of data
+    original_stimulus_label = if_else(stimulus_image_path == "black", "empty", stimulus_image_path),
+    english_stimulus_label = original_stimulus_label,
+    stimulus_image_path = if_else(
+      original_stimulus_label == "empty",
+      NA_character_,
+      paste0("stimuli/v5/images/", str_to_title(original_stimulus_label), ".jpg")
+    )
   ) %>%
   mutate(
     stimulus_novelty = case_when(str_detect(original_stimulus_label, "novel") ~ "novel", TRUE ~ "familiar"),
