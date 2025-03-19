@@ -62,9 +62,9 @@ subjects_table <- subjects %>%
   ) |>
   nest(cdi_responses = c(instrument_type, measure, rawscore, age, language)) |>
   nest(subject_aux_data = cdi_responses) |>
-  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON)) |> 
+  mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON)) |>
   # hacky way to transform the top level list with one object into a top level object - but simplest way to integrate into the existing code
-  mutate(subject_aux_data = gsub('^.|.$', '', as.character(subject_aux_data)))
+  mutate(subject_aux_data = gsub("^.|.$", "", as.character(subject_aux_data)))
 
 # build administrations table
 administrations_table <- subjects_table %>%
@@ -103,7 +103,10 @@ stimuli_table <- tibble(lab_stimulus_id = unique(append(stimuli_trials$ImageLFil
     stimulus_novelty = "familiar",
     image_description = english_stimulus_label,
     image_description_source = "experiment documentation",
-    stimulus_image_path = paste0("/stimuli/images/", lab_stimulus_id, ".jpg", sep = ""),
+    stimulus_image_path = paste0("/stimuli/images/", paste0(
+      toupper(substring(lab_stimulus_id, 1, 1)),
+      tolower(substring(lab_stimulus_id, 2))
+    ), ".jpg", sep = ""),
     dataset_id = dataset_id,
     stimulus_aux_data = NA
   )
