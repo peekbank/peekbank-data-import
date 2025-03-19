@@ -155,7 +155,7 @@ stimuli <- data %>%
     english_stimulus_label = image,
     stimulus_novelty = "familiar",
     lab_stimulus_id = NA,
-    stimulus_image_path = NA,
+    stimulus_image_path = paste0('stimuli/images/',image, ".jpg"),
     image_description = image,
     image_description_source = "image path",
     dataset_id = 0
@@ -224,5 +224,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = F
 )
