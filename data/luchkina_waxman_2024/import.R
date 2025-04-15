@@ -21,7 +21,6 @@ wide.table <- data_raw %>%
     exclusion_reason = ifelse(excluded, excluded., NA),
     full_phrase_language = "eng",
     # says the target label twice, use the first one for target onset, this makes this non vanilla
-    # TODO: check if this actually makes this non vanilla
     point_of_disambiguation = target_word_onset_1_ms,
     vanilla_trial = FALSE,
     condition = NA,
@@ -48,7 +47,6 @@ dataset_list <- digest.dataset(
   cite = "Luchkina, E., & Waxman, S. (2024). Fifteen-month-olds represent never-seen objects and learn their names. PloS One",
   shortcite = "Luchkina, E., & Waxman, S. (2024)",
   wide.table = wide.table,
-  # TODO: check if they already normalized while following import instructions
   normalize = FALSE,
   rezero = FALSE
 )

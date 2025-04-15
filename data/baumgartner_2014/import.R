@@ -153,7 +153,7 @@ d_tidy <- d_tidy %>%
   mutate(
     vanilla_trial = case_when(
       stimulus_novelty == "novel" ~ FALSE,
-      TRUE ~ TRUE
+      TRUE ~ FALSE # since we have double onset, we should consider all trials non vanilla
     ),
     condition = ifelse(stimulus_novelty=="familiar", "familiar", paste(study_condition, stimulus_novelty, sep = "_"))
   )
