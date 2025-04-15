@@ -314,7 +314,7 @@ trial_types <- d_tidy_final %>%
   mutate(
     full_phrase_language = "eng",
     trial_type_aux_data = NA,
-    vanilla_trial = TRUE
+    vanilla_trial = condition != "color"
   ) %>%
   select(-distractor_label, -target_label)
 
