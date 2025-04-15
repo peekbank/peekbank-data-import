@@ -185,7 +185,7 @@ d_tidy <- d_tidy %>%
     target_label = target_image,
     distractor_image = case_when(
       distractor_image == "black" ~ "empty",
-      TRUE ~ target_image
+      TRUE ~ distractor_image
     )
   )
 
@@ -366,5 +366,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload=F
 )
