@@ -359,6 +359,7 @@ d_trial_type_ids <- d_tidy %>%
   mutate(
     full_phrase = phrase,
     vanilla_trial = condition %in% c("familiar", "Vanilla", "UnrelPrime-Noun", "UR-primeNoun", "Familiar-Medial"),
+    vanilla_trial = ifelse(grepl("deebo|manju|tempo", full_phrase), FALSE, vanilla_trial),
     trial_type_aux_data = NA,
     lab_trial_id = NA
   ) %>%
