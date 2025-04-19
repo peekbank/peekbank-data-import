@@ -274,8 +274,8 @@ trial_data <- all_data |>
   mutate(
     trial_type_id = cur_group_id() - 1,
     full_phrase = ifelse(type == "positive",
-      glue("Look at the boy who has {item}"),
-      glue("Look at the boy who has no {item}")
+      glue("Look at the boy who has {item}!"),
+      glue("Look at the boy who has no {item}!")
     ),
     noun_onset = noun_onset,
     full_phrase_language = "eng",
@@ -468,5 +468,6 @@ write_and_validate(
   trials,
   aoi_region_sets,
   xy_timepoints = xy_data,
-  aoi_timepoints = aoi_timepoints_data
+  aoi_timepoints = aoi_timepoints_data,
+  upload=F
 )
