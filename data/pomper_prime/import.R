@@ -173,7 +173,8 @@ stimuli <- data %>%
 trial_types <- data %>%
   distinct(target, target_side, distractor, condition, lab_trial_id, trial_type_id, point_of_disambiguation) %>%
   mutate(
-    full_phrase = target,
+    # audio files contain the phrases, but we dont know which phrase maps to which trial, as all combinations are present
+    full_phrase = NA,
     target_side = case_when(
       target_side == "l" ~ "left",
       target_side == "r" ~ "right",
