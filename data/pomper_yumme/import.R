@@ -130,7 +130,9 @@ d_tidy <- d_tidy %>%
   mutate(
     target_label = target_image,
     distractor_label = distractor_image,
-    full_phrase = "Where's the _?", # see paper: sometimes was "Find the _"
+    # see paper: sometimes "Where's the", sometimes "Find the _", audio files have an attention getter phrase afterwards. 
+    # leaving this empty for now until we figure out the pomper phrases
+    full_phrase = NA,
     dataset_id = 0
   )
 # image_description, image_description_source,
