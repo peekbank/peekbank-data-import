@@ -22,7 +22,14 @@ According to paper there were Trial level exclusions, Import code was adjusted t
 
 Stimulus images were available on the original study's OSF. These files have been added to OSF and file_path was adjusted in the stimulus table.
 
-Monitor Size was added.
+The paper states that there were the following carrier phrases and attention getters, however, there is no info on what phrase was matches with what noun:
+Where’s the XXXX 
+Can you find the XXXX 
+Do you see the XXXX
+Check that out!
+That’s cool!
+I like that!
+Wow!
 
 ## Importing ambiguity
 Many of the reported CDIs are well above the 90th percentile (on WordBank) for production on the WS Short Form. 
