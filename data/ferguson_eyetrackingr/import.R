@@ -186,7 +186,7 @@ administrations <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  mutate(full_phrase = paste("Where is the", english_stimulus_label, "?")) %>%
+  mutate(full_phrase = paste0("Where is the ", english_stimulus_label, "?")) %>%
   distinct(
     subject_id, TrialNum, full_phrase,
     target_id, distractor_id, target_side
@@ -310,5 +310,6 @@ write_and_validate(
   trials,
   aoi_region_sets,
   xy_timepoints,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = F
 )
