@@ -37,6 +37,10 @@ The translations for the stimulus labels into english were taken from the paper.
 
 Some administrations have significantly less trials than others of the same age group (e.g. 18 months for 5624, 5634 ). These were already missing in the raw data, and we decided to include all the trials that were there, regardless how many trials there were overall for a given administration.
 
+The full phrases are not available on a trial level, so they are left as NA. This is what the paper states:
+All of the words were presented in simple sentence frames ending with the target
+noun (e.g., Mira el perro. ‘Look at the doggie.’).
+
 5. Importing ambiguity
 
 
