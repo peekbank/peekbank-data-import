@@ -20,5 +20,9 @@ Longitudinal (LWL at 18 and 24 months), all "vanilla" trials of familiar object/
   - “-” ~ “missing” (This entry means “away” in the language of iCoder. In practice, this can also correspond to multiple looking situations; e.g., child is turned away from the screen; very long blinks. All of these situations should correspond to the situation “missing”)
 - left/right locations were reversed to reflect the participant's perspective, because iCoder files encode left/ right from the perspective of the coder (who has a frontal view of the infant)
 
+- Full phrases were left empty as they are missing from the data and the paper does not provide strong enough information to reconstruct them, only stating:
+Speech stimuli, recorded by a native Spanish-speaker, consisted of simple sentences ending
+with a target noun (¿Dónde está el/la [target]? ‘Where's the [target]?’). A
+
 5. **Importing ambiguity**
 - There are more subjects in the data (n=76) than reported in the paper (n=27)
