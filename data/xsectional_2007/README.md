@@ -21,6 +21,11 @@ Straightforward LWL, all "vanilla" trials of familiar object/labels in Spanish.
 - left/ right locations were reversed to reflect the participant's perspective, because iCoder files encode left/ right from the perspective of the coder (who has a frontal view of the infant)
 
 
+- full phrase data is not available on a per trial level, so we left it as NA. This is what the paper says about the phrases:
+The stimuli consisted of Spanish sentences in which a target noun was
+presented in a simple carrier phrase (e.g. ¿Dónde está el/la [target]?¿Te gusta? ‘Where's the
+[target]? Do you like it?’).
+
 5. **Importing ambiguity**
 - paper says there were 16 test trials, but some administrations have up to 24 trials (average 20.61 trials per administration)
 - no trial-level exclusion criteria included in data
