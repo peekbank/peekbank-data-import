@@ -174,7 +174,8 @@ sound_stimuli <- all_orders %>%
 d_tidy <- d_tidy %>%
   mutate(tr_num = as.numeric(tr_num)) %>%
   left_join(sound_stimuli) %>%
-  rename(full_phrase = sound_stimulus)
+  rename(full_phrase = sound_stimulus) %>% 
+  mutate(full_phrase = paste0(full_phrase, ifelse(grepl("Te gusta|Do you like", full_phrase),"?","!")))
 
 # add exclusion information
 d_tidy <- d_tidy %>%
