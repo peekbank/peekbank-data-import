@@ -114,7 +114,8 @@ mega_trials_table <- target_distractors %>%
 
 trial_types_data <- mega_trials_table %>%
   mutate(
-    full_phrase = NA,
+    # best guess according to paper, as the phrasing of the paper is a bit ambiguous as to if there is only one carrier phrase
+    full_phrase = paste0("Can you find the ",word,"?"),
     full_phrase_language = "eng",
     point_of_disambiguation = 179.4 * 16.666667, # 179.4 is in units based on sampling frequency; 16.67 is sampling frequency (Martin Z figured this out.)
     aoi_region_set_id = 0, # all have the same, so hard code

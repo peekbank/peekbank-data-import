@@ -21,3 +21,10 @@ The trials included (a) familiar-word trials (two familiar objects), (b) mutual 
 ## Importing ambiguity
 Some participants were not recorded in the demographics.
 As a result, these participants had NAs for exclusion; these were replaced with 0s (i.e., not excluded).
+
+Carrier phrase: The paper states 
+
+"Audio stimuli consisted of a carrier phrase (“Can you find the [target]?”), into which we
+spliced recordings of the target words"
+
+This makes it slightly ambiguous as to whether there is only one carrier phrase or different ones, but we assume that there is only one carrier phrase when importing.
