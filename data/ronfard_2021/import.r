@@ -36,7 +36,8 @@ d_tidy <- d_raw %>%
     target_side == "R" ~ "right",
     target_side == "L" ~ "left"
   )) %>%
-  mutate(full_phrase = paste(carrier_phrase, target))
+  mutate(full_phrase = paste0(carrier_phrase, " ", target, ifelse(grepl("where",carrier_phrase),"?","!"))) %>% 
+  mutate(full_phrase = paste0(toupper(substr(full_phrase, 1, 1)), substr(full_phrase, 2, nchar(full_phrase))))
 
 # code aois.
 # info from the authors: "eyegaze" represents our coding; R = looking to the right, L = left, A = away, T = transitioning between the two images.
