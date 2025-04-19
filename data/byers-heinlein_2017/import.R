@@ -368,7 +368,23 @@ aoi_region_sets <- aoi_regions %>%
 d_tidy_final <- d_tidy_final %>%
   mutate(point_of_disambiguation = pod) %>%
   mutate(
-    full_phrase = NA,
+    full_phrase = paste0(
+      ifelse(
+        carrier_language == "English",
+        ifelse(study == "mix", "Look! Find the ", "That one looks fun! "),
+        ifelse(study == "mix", "Regarde! Trouve le ", "Celui-la a l'air amusant! ")
+      ),
+      ifelse(
+        target_language == "English",
+        ifelse(study == "mix", target_word_english, paste0("The ", target_word_english)),
+        ifelse(study == "mix", target_word_french, paste0(case_when(
+          target_word_french %in% c("bouche", "porte") ~ "La ",
+          target_word_french %in% c("chien", "pied", "livre", "biscuit") ~ "Le ",
+          TRUE ~ "MISSING "
+        ), target_word_french))
+      ), 
+      "!"
+    ),
     full_phrase_language = case_when(
       carrier_language == "English" & target_language == "English" ~ "eng",
       carrier_language == "French" & target_language == "French" ~ "fre",
@@ -449,5 +465,6 @@ write_and_validate(
   trials,
   aoi_region_sets,
   xy_timepoints,
-  aoi_timepoints
+  aoi_timepoints,
+  upload=F
 )
