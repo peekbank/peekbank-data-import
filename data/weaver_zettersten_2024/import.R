@@ -57,10 +57,10 @@ wide.table <- data %>%
     coding_method = "manual gaze coding",
     TEMP_audio = str_extract(audio, "^[^_]+"),
     full_phrase = case_when(
-      TEMP_audio == "look" ~ paste0("Look at the ", target_category),
-      TEMP_audio == "find" ~ paste0("Find the ", target_category),
-      TEMP_audio == "see" ~ paste0("Do you see the ", target_category),
-      TEMP_audio == "where" ~ paste0("Where's the ", target_category),
+      TEMP_audio == "look" ~ paste0("Look at the ", target_category, "!"),
+      TEMP_audio == "find" ~ paste0("Find the ", target_category, "!"),
+      TEMP_audio == "see" ~ paste0("Do you see the ", target_category, "?"),
+      TEMP_audio == "where" ~ paste0("Where's the ", target_category, "?"),
       .default = NA
     ),
     full_phrase_language = "eng",
@@ -93,4 +93,4 @@ dataset_list <- digest.dataset(
     wide.table = wide.table
 )
 
-write_and_validate_list(dataset_list, cdi_expected = FALSE)
+write_and_validate_list(dataset_list, cdi_expected = FALSE, upload=F)
