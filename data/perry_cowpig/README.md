@@ -25,5 +25,11 @@
 
 156, 149, and 136 are participants that are included in the eyetracking data abut have no age in their cdi scores. As we require ages for cdi scores to be valid, we use the age median age of the other cdi entries as imputed scores (20 months in this case)
 
+Full phrases were not available in the data, the paper says the following about the structure (though this is not enough to reconstruct them on a trial level):
+Toddlers saw drawings of two familiar objects on the screen (e.g., a cow and pig) and heard
+infant-directed speech describing one object (e.g., “Where’s the pig?”) followed by 1s of
+silence, an attention-getting phrase (e.g., “Can you see it?”), and another 1s of silence. The
+target word (e.g., “pig”) occurred 2s into each trial
+
 5. **Importing ambiguity**
     - Stimulus information was used to add picture-by-picture `image_description`.
