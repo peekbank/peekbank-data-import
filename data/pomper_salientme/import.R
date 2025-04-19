@@ -141,8 +141,8 @@ all_orders <- map_df(order_files, read_order) %>%
     str_detect(carrier_phrase_code, "Where") ~ "Where is the",
     str_detect(carrier_phrase_code, "Look") ~ "Look at the"
   )) %>%
-  mutate(full_phrase = paste0(carrier_phrase, " ", target_label)) %>%
-  # fix some inconsistencies in condition naming
+  mutate(full_phrase = paste0(carrier_phrase, " ", target_label, 
+                              ifelse(grepl("^Where", carrier_phrase), "?", "!"))) %>%  # fix some inconsistencies in condition naming
   mutate(condition = case_when(
     condition == "Fam-LoComp" ~ "Fam-LowComp",
     condition == "Fam-LowCompTest" ~ "Fam-LowComp-Test",
