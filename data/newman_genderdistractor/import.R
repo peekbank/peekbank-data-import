@@ -485,7 +485,7 @@ trial_types_table <- trail_type_ids %>%
   mutate(
     vanilla_trial = ifelse(db_level == "0db", TRUE, FALSE),
     # Double unset, so everything is nothing vanilla. line above this is kept if we ever go back on that decision.
-    vanilla_tial = FALSE,
+    vanilla_trial = FALSE,
     full_phrase_language = "eng",
     trial_type_aux_data = NA,
     point_of_disambiguation = point_of_disambiguation,
