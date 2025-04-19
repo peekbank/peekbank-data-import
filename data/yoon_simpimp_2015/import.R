@@ -105,7 +105,7 @@ draft_data <- combined_data_index |> left_join(stimulus) |>
   mutate(
     age_units = "years",
     age = as.numeric(age),
-    full_phrase = NA,
+    #full_phrase = NA,
     native_language = "eng",
     full_phrase_language = "eng",
     session_num = 0,
