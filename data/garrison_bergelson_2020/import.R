@@ -176,6 +176,7 @@ trial_table <- d_low %>%
     ),
     target_image = str_replace(target_image_full, "[0-9]*\\.jpg", ""),
     distractor_image = str_replace(distractor_image_full, "[0-9]*\\.jpg", ""),
+    full_phrase = paste0(full_phrase, " " ,target_image ,"?")
   ) %>%
   group_by(target_image, target_side, distractor_image, condition, point_of_disambiguation) %>%
   mutate(trial_type_id = cur_group_id() - 1) %>%
