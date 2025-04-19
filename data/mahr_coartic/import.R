@@ -126,7 +126,16 @@ find_phrase_part <- function(file_part) {
 
 find_full_phrase <- function(file_name) {
   stringList <- str_split(file_name, "_")
-  new_phrase <- paste(unlist(lapply(stringList, find_phrase_part)), collapse = "")
+  phrase_parts <- unlist(lapply(stringList[[1]], find_phrase_part))
+  new_phrase <- paste(phrase_parts, collapse = "")
+  
+  # Add question mark or exclamation mark based on whether it's a question
+  if (startsWith(new_phrase, "Wheres ")) {
+    new_phrase <- paste0(new_phrase, "?")
+  } else {
+    new_phrase <- paste0(new_phrase, "!")
+  }
+  
   return(new_phrase)
 }
 
