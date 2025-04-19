@@ -118,13 +118,13 @@ color_carrier_phrases <- all_orders_cleaned %>%
   filter(target_word %in% colors) %>%
   mutate(carrier_try = str_split_fixed(SoundStimulus, "_", 3)[, 2]) %>%
   mutate(carrier_try = factor(carrier_try, levels = c("Find", "Where", "Look"), labels = c("Find the", "Where is the", "Look at the"))) %>%
-  mutate(full_phrase = paste0(carrier_try, " ", target_word, " one")) %>%
+  mutate(full_phrase = paste0(carrier_try, " ", target_word, " one!")) %>%
   select(target_word, target_image, carrier_try, full_phrase, SoundStimulus) %>%
   distinct(target_word, target_image, carrier_try, full_phrase, SoundStimulus)
 
 # ## Load noun carrier phrases from .csv
 all_carrier_phrases <- read_csv(here("data", dataset_name, "raw_data", "carrier_phrases.csv")) %>% # only has nouns
-  mutate(target_word = lab_stimulus_id, target_image = lab_stimulus_id, full_phrase = paste0(carrier_phrase, " ", lab_stimulus_id)) %>%
+  mutate(target_word = lab_stimulus_id, target_image = lab_stimulus_id, full_phrase = paste0(carrier_phrase, " ", lab_stimulus_id, "!")) %>%
   select(target_word, target_image, full_phrase) %>%
   full_join(color_carrier_phrases) %>%
   mutate(target_word = tolower(target_word), target_image = tolower(target_image))
@@ -359,5 +359,6 @@ write_and_validate(
   trials,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints
+  aoi_timepoints,
+  upload = F
 )
