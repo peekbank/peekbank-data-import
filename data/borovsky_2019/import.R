@@ -114,10 +114,10 @@ d_tidy <- d_tidy %>%
 
 # create trial types table
 trial_types <- d_tidy %>%
-  distinct(condition, target_side, target_id, distractor_id, lab_trial_id) %>%
+  mutate(full_phrase = paste0("Look! ", target_image, "! ...")) %>%
+  distinct(condition, target_side, target_id, distractor_id, lab_trial_id, full_phrase) %>%
   mutate(trial_type_id = row_number() - 1) %>%
   mutate(full_phrase_language = "eng") %>%
-  mutate(full_phrase = "Look, xxx") %>%
   mutate(point_of_disambiguation = "300") %>%
   mutate(dataset_id = 0) %>%
   mutate(vanilla_trial = if_else(condition == "unrelated", TRUE, FALSE)) %>%
