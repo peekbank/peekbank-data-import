@@ -1,6 +1,8 @@
 Notes: import_outdated is written using the legacy variant and does not target the entirety of the dataset (so not equivalent for regression testing purposes) 
 
-conditions and their effect on wether a trial is considered vanilla:
+Phrases and images are taken from the stimuli folder provided on OSF, titles Totlot 3 - 18
+
+conditions and their effect on whether a trial is considered vanilla:
 
 vanilla:
 * all trials

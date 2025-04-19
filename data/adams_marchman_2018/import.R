@@ -169,9 +169,20 @@ wide.table <- d_processed %>%
     native_language = "eng",
     age_units = "months",
     full_phrase_language = "eng",
-    full_phrase = NA,
+    # From audio files on osf (Totlot 3 - 18)
+    full_phrase = case_when(
+      target_label == "doggy" ~ "Where's the doggy? Can you see it?",
+      target_label == "apple" ~ "See the apple? Do you see it?",
+      target_label == "baby" ~ "Where's the baby? Can you see it?",
+      target_label == "car" ~ "Where's the car? Can you find it?",
+      target_label == "ball" ~ "Look at the ball! Do you like it?",
+      target_label == "shoe" ~ "See the shoe? Do you like it?",
+      target_label == "kitty" ~ "See the kitty? Can you find it?",
+      target_label == "birdie" ~ "See the birdie? Can you find it?",
+      target_label == "book" ~ "Where's the book? Can you find it?",
+      TRUE ~ NA
+    ),
     condition = condition,
-    vanilla_trial = condition %in% c("all trials", "familiar", "name", "VanURP", "UR-primeNoun"),
     lab_trial_id = paste(order, tr_num, sep = "-"),
     monitor_size_x = NA, # unknown TO DO
     monitor_size_y = NA, # unknown TO DO
@@ -184,7 +195,7 @@ wide.table <- d_processed %>%
     target_stimulus_label_original = target_label,
     target_stimulus_label_english = target_label,
     # drive and eat seem to be panju and modi
-    target_stimulus_novelty = ifelse(grepl("(^drive)|(^eat)|(^novel$)", target_label), "novel", "familiar"),
+    target_stimulus_novelty = ifelse(grepl("(^drive)|(^eat)|(^novel$)|(^modi$)|(^panju$)", target_label), "novel", "familiar"),
     target_stimulus_image_path = ifelse(
       age_group %in% c("16", "18"),
       paste0("stimuli/images/", ifelse(target_side == "right", "right/", "left/"), fix_y_ending(target_image), ".png"),
@@ -195,7 +206,7 @@ wide.table <- d_processed %>%
     distractor_stimulus_label_original = distractor_label,
     distractor_stimulus_label_english = distractor_label,
     # drive and eat seem to be panju and modi
-    distractor_stimulus_novelty = ifelse(grepl("(^drive)|(^eat)|(^novel$)", distractor_label), "novel", "familiar"),
+    distractor_stimulus_novelty = ifelse(grepl("(^drive)|(^eat)|(^novel$)|(^modi$)|(^panju$)", distractor_label), "novel", "familiar"),
     distractor_stimulus_image_path = ifelse(
       age_group %in% c("16", "18"),
       paste0("stimuli/images/", ifelse(target_side == "left", "right/", "left/"), fix_y_ending(distractor_image), ".png"),
@@ -204,7 +215,8 @@ wide.table <- d_processed %>%
     distractor_image_description = distractor_label,
     distractor_image_description_source = "image path",
     target_stimulus_name = target_image,
-    distractor_stimulus_name = distractor_image
+    distractor_stimulus_name = distractor_image,
+    vanilla_trial = condition %in% c("all trials", "familiar", "name", "VanURP", "UR-primeNoun") & distractor_stimulus_novelty == "familiar" & target_stimulus_novelty == "familiar",
   ) %>%
   mutate(sex = case_when(
     subject_id == "12608" ~ "F", # one participant has different entries for sex - 12608 is female via V Marchman
