@@ -286,6 +286,9 @@ d_processed <- bind_rows(temp_1_18, temp_1_24, temp_2_18, temp_2_24) %>%
   # remove unneeded columns
   select(-word_onset, -gap, -target_rt_sec, -dis_rt_sec, -shifts, -orig_resp)
 
+# filter out wrongly coded video
+d_processed <- d_processed %>% filter(!(sub_num == "20136" & order== "TL2-2A"))
+
 # make tidy
 d_tidy <- d_processed %>%
   pivot_longer(names_to = "t", cols = `-600`:`6533`, values_to = "aoi") %>%

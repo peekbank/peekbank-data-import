@@ -18,6 +18,9 @@ CDIs and LWL were collected at 18 and 24 months. For LWL, two overlapping sets o
 - AOIs labelled ".", "-", or NA were treated as missing (see also README for pomper_saffran_2016).
 - **Note that stimuli table has image paths but images are not present on OSF.**
 
+- Participant (20136) had an accidental double coding of a video, where session 2's data (TL2-2A) was likely the session 1 video coded again. We removed that participant from the data.
+
+
 5. **Importing ambiguity.**
 
 - What is the right point of disambiguation for trials with informative verbs or adjectives? Current decision is to always make the target noun onset the point of disambiguation.
