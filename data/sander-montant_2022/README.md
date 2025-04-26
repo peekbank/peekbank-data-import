@@ -36,5 +36,7 @@ Monitor size was set as 1920x1080 (based on the studies), although note that the
 
 Stimuli and trial properties in trial_info were coded off of the image/trial naming system. 
 
+There is no full_phrase data available. However, by looking at other datasets from that lab and asking people who worked with them, we conclude that the full phrases don't hurt the vanilla status of the trials (e.g. double word onset)
+
 ## Importing ambiguity
 None other than those reported above.
