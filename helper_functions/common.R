@@ -369,8 +369,8 @@ write_and_validate <- function(
       )
 
     if (length(na.omit(unique(summarize_across_subj_by_condition$condition)) >= 2)) {
-      suppressMessages(plot(ggplot(filter(summarize_across_subj_by_condition, t_norm > -500 & t_norm <= 2000), aes(x = t_norm, y = accuracy, color = condition, group = condition)) +
-        geom_smooth(data = filter(summarize_by_subj_by_condition, t_norm > -500 & t_norm <= 2000), aes(y = mean_accuracy), method = "gam") +
+      suppressMessages(plot(ggplot(filter(summarize_across_subj_by_condition, t_norm > -500 & t_norm <= 3500), aes(x = t_norm, y = accuracy, color = condition, group = condition)) +
+        geom_smooth(data = filter(summarize_by_subj_by_condition, t_norm > -500 & t_norm <= 3500), aes(y = mean_accuracy), method = "gam") +
         geom_errorbar(aes(ymin = accuracy - se_accuracy, ymax = accuracy + se_accuracy), width = 0) +
         geom_point() +
         geom_vline(xintercept = 0) +

@@ -176,13 +176,13 @@ wide.table.vna <-
   inner_join(demographics,
     by = "subject_id"
   ) %>% 
-  select(-pronunciation, -verb_type, -target_image_name, -distractor_image_name,-word,-carrier_phrase_label,-audio_name,-carrier_phrase)
+  select(-pronunciation, -verb_type, -target_image_name, -distractor_image_name,-word,-carrier_phrase_label,-audio_name,-carrier_phrase) #%>% filter(age>23) %>% filter(condition == "correctly pronounced x irregular") # use these to more clearly see condition wise plots further down
 
 
 wide.table <-
   bind_rows(wide.table.vna, wide.table.nalts) %>%
-  #wide.table.vna %>%
-  #wide.table.nalts %>%
+  #wide.table.vna %>% # use to only see one plot
+  #wide.table.nalts %>% # use to only see one plot
   mutate(
     aoi = ifelse(!is.na(aoi), tolower(aoi), "missing"),
     full_phrase_language = "eng",
