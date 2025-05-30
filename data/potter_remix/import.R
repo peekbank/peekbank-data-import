@@ -205,7 +205,7 @@ stimulus_table <- d_tidy %>%
     target_image = str_replace(target_image, "dog1", "doggy1")
   ) %>%
   mutate(
-    image_description = target_image,
+    image_description = tools::file_path_sans_ext(basename(target_image)),
     image_description_source = "experiment documentation"
   ) %>%
   rename(
