@@ -238,7 +238,7 @@ trial_types <- d_tidy_final %>%
   mutate(
     full_phrase_language = "eng",
     trial_type_aux_data = NA,
-    vanilla_trial = TRUE
+    vanilla_trial = FALSE # double onset with the phases makes this non vanilla
   )
 
 ### 6. TRIALS TABLE
