@@ -25,7 +25,8 @@ d_processed_18 <- d_raw_18 %>%
     metadata_names = extract_col_types(.)[["metadata_names"]],
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
-    truncation_point = truncation_point_calc(.)
+    truncation_point = truncation_point_calc(.),
+    sampling_rate = sampling_rate_ms
   ) |> mutate(age_group = 18)
 
 # 24-month-olds
@@ -38,7 +39,8 @@ d_processed_24 <- d_raw_24 %>%
     metadata_names = extract_col_types(.)[["metadata_names"]],
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
-    truncation_point = truncation_point_calc(.)
+    truncation_point = truncation_point_calc(.),
+    sampling_rate = sampling_rate_ms
   ) |> mutate(age_group = 24)
 
 # 30-month-olds
@@ -55,7 +57,8 @@ d_processed_30_part_1 <- d_raw_30 |>
     metadata_names = extract_col_types(.)[["metadata_names"]],
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
-    truncation_point = truncation_point_calc(.)
+    truncation_point = truncation_point_calc(.),
+    sampling_rate = sampling_rate_ms
   ) |>
   mutate(across(everything(), as.character))
 
@@ -76,7 +79,8 @@ d_processed_30_part_2 <- d_raw_30 |>
     metadata_names = extract_col_types(.)[["metadata_names"]],
     pre_dis_names = extract_col_types(.)[["pre_dis_names"]],
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
-    truncation_point = truncation_point_calc(.)
+    truncation_point = truncation_point_calc(.),
+    sampling_rate = sampling_rate_ms
   ) |>
   mutate(across(everything(), as.character))
 
@@ -87,7 +91,7 @@ d_processed_30 <- d_processed_30_part_1 |>
 
 d_processed <- d_processed_18 |>
   
-  # this is a very hacky fix for some of the columns being bools
+  # this is a very hacky fix for some of the columns being logicals
   # so force everything to chars and sort it out later
   mutate(across(everything(), as.character)) |>
   bind_rows(d_processed_24 |> mutate(across(everything(), as.character))) |>
@@ -101,6 +105,7 @@ d_processed <- d_processed %>%
       !is.na(cond_orig) ~ cond_orig,
       !is.na(original_condition) ~ condition2,
       !is.na(condition) ~ condition,
+      .default = NA_character_
     ),
     months = as.numeric(months)
   ) 
@@ -189,7 +194,6 @@ d_tidy <- d_tidy %>%
   select(
     -gap,
     -word_onset,
-    -gap,
     -target_rt_sec,
     -dis_rt_sec,
     -shifts,

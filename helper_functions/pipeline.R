@@ -5,8 +5,6 @@ library(tidyr)
 
 source(here("helper_functions", "osf.R"))
 
-# to prevent source calls in the import scripts to bleed through functions into the global environment
-formals(source)$local <- TRUE
 
 # returns a list of all datasets that are in the active pipeline
 list_all <- function(activeonly = TRUE) {
@@ -110,8 +108,13 @@ run_all <- function(nocache = FALSE, clean = TRUE, upload = FALSE) {
         {
           # Loaded packages might bleed through, but for these validation-runs this
           # should be fine, as we aren't using highly specified package versions
-          env <- new.env()
+          env <- new.env(parent = .GlobalEnv)
           env$external_block_peekbank_separate_upload <- TRUE
+          # Override source() in this environment to default sourcing into parent frame
+          # This makes nested source() calls share the same environment
+          env$source <- function(file, local = parent.frame(), ...) {
+            base::source(file, local = local, ...)
+          }
           source(import_script, local = env)
           return("")
         },
@@ -150,5 +153,5 @@ upload_all <- function(activeonly = FALSE) {
 }
 
 global_block_peekbank_summary <- TRUE
-run_all(nocache = TRUE, clean=FALSE, upload=TRUE)
+run_all(nocache = FALSE, clean=TRUE, upload=FALSE)
 # x <- validate_all()

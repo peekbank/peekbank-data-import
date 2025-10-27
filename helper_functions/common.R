@@ -58,7 +58,7 @@ write_and_validate <- function(
     aoi_timepoints,
     upload = FALSE) {
   if (missing(cdi_expected)) {
-    stop("Need to specifiy cdi_expected boolean argument to validator")
+    stop("Need to specifiy cdi_expected argument of type logical to validator")
   }
 
   basepath <- here("data", dataset_name)

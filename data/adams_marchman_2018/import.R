@@ -11,10 +11,6 @@ data_path <- init(dataset_name)
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000 / sampling_rate_hz
 
-remove_repeat_headers <- function(d, idx_var) {
-
-}
-
 read_icoder_base <- function(filename, age_group) {
   df <- read_delim(fs::path(data_path, filename),
     delim = "\t"
@@ -287,7 +283,7 @@ cdi_data <- read_excel(here(data_path, "Adams_2019_CDIs.xlsx")) %>%
     rawscore = coalesce(Comp, Prod),
     percentile = coalesce(Compptile, Prodptile, ProdPtile)
   ) %>%
-  select(subject_id, measure, age = Age, instrument_type, measure, rawscore, percentile) %>%
+  select(subject_id, age = Age, instrument_type, measure, rawscore, percentile) %>%
   mutate(language = "English (American)") %>%
   na.omit()
 

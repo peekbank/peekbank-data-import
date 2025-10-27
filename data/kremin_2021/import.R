@@ -297,22 +297,22 @@ dataset_list <- digest.dataset(
 # CDI data taken from https://osf.io/mxksz/
 
 # cdi data
- load(here(mtl_path, "anon_cdi.rda"))
+# load(here(mtl_path, "anon_cdi.rda"))
 
- cdi_data <- cdi_fr_en %>%
-  select(subject_id = study_id, age = age_in_months, language = form_language, prod = produces_word, comp = understands_word) %>%
-  #mutate(subject_id = sub(".*_S(\\d{2}).*", "\\1", subject_id)) %>%
-  group_by(subject_id, language, age) %>%
-  summarise(
-    comp = sum(comp),
-    prod = sum(prod)
-  ) %>%
- mutate(instrument_type=ifelse(is.na(comp), "ws", "wg")) %>%
- pivot_longer(cols=c(comp, prod), values_to = "rawscore", names_to="measure") %>%
- filter(!is.na(rawscore)) %>%
- mutate(
-   percentile = NA,
- )
+# cdi_data <- cdi_fr_en %>%
+#  select(subject_id = study_id, age = age_in_months, language = form_language, prod = produces_word, comp = understands_word) %>%
+#  #mutate(subject_id = sub(".*_S(\\d{2}).*", "\\1", subject_id)) %>%
+#  group_by(subject_id, language, age) %>%
+#  summarise(
+#    comp = sum(comp),
+#    prod = sum(prod)
+#  ) %>%
+# mutate(instrument_type=ifelse(is.na(comp), "ws", "wg")) %>%
+# pivot_longer(cols=c(comp, prod), values_to = "rawscore", names_to="measure") %>%
+# filter(!is.na(rawscore)) %>%
+# mutate(
+#   percentile = NA,
+# )
 
 
 # DVAP

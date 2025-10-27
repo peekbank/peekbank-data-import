@@ -55,7 +55,7 @@ dataset <- tibble(
   cite = "Borovsky, A., & Peters, R. E. (2019). Vocabulary size and structure affects real-time lexical recognition in 18-month-olds. PloS one, 14(7), e0219290.",
   shortcite = "Borovsky et al_2019"
 ) %>%
-  mutate(dataset_aux_data = "NA")
+  mutate(dataset_aux_data = NA)
 
 
 #### (2) subjects ####
@@ -118,11 +118,11 @@ trial_types <- d_tidy %>%
   distinct(condition, target_side, target_id, distractor_id, lab_trial_id, full_phrase) %>%
   mutate(trial_type_id = row_number() - 1) %>%
   mutate(full_phrase_language = "eng") %>%
-  mutate(point_of_disambiguation = "300") %>%
+  mutate(point_of_disambiguation = 300) %>%
   mutate(dataset_id = 0) %>%
   mutate(vanilla_trial = if_else(condition == "unrelated", TRUE, FALSE)) %>%
-  mutate(aoi_region_set_id = "NA") %>%
-  mutate(trial_type_aux_data = "NA")
+  mutate(aoi_region_set_id = NA) %>%
+  mutate(trial_type_aux_data = NA)
 
 # join in trial type IDs #
 d_tidy <- d_tidy %>% left_join(trial_types)
@@ -151,14 +151,14 @@ administrations <- subjects %>%
     dataset_id = 0,
     coding_method = "preprocessed eyetracking",
     tracker = "Eyelink 1000+",
-    monitor_size_x = "1280",
-    monitor_size_y = "1024",
+    monitor_size_x = 1280,
+    monitor_size_y = 1024,
     lab_age_units = "months",
-    sample_rate = "500"
+    sample_rate = 500
   ) %>%
   mutate(administration_id = seq(0, nrow(.) - 1)) %>%
   mutate(lab_age = age) %>%
-  mutate(administration_aux_data = "NA") %>%
+  mutate(administration_aux_data = NA) %>%
   select(
     administration_id, dataset_id, subject_id, lab_age, lab_age_units, age,
     monitor_size_x, monitor_size_y, sample_rate, tracker, administration_aux_data,
