@@ -51,24 +51,28 @@ post_dis_names_clean <- post_dis_names %>%
 
 colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_clean)
 
-### truncate columns at F3600, since trials are almost never coded later than this timepoint
-## TO DO: check in about this decision
-post_dis_names_clean_cols_to_remove <- post_dis_names_clean[110:length(post_dis_names_clean)]
-# remove
-d_processed_cleaned <- d_processed %>%
-  select(-all_of(post_dis_names_clean_cols_to_remove))
-
 # Convert to long format --------------------------------------------------
 
 # get idx of first time series
-first_t_idx <- colnames(d_processed_cleaned)[length(metadata_names) + 1] # this returns a numeric
-last_t_idx <- colnames(d_processed_cleaned) %>%
+first_t_idx <- colnames(d_processed)[length(metadata_names) + 1] # this returns a numeric
+last_t_idx <- colnames(d_processed) %>%
   dplyr::last() # this returns a string
-d_tidy <- d_processed_cleaned %>%
+d_tidy <- d_processed %>%
   pivot_longer(names_to = "t", cols = first_t_idx:last_t_idx, values_to = "aoi") %>%
   mutate(t = as.numeric(t)) %>%
   # also make trial number numeric
   mutate(tr_num = as.numeric(tr_num))
+
+post_dis_names_clean_cols_to_remove <- d_tidy |>
+  group_by(t) |>
+  filter(!is.na(aoi)) |>
+  filter(n() < 5) |>
+  mutate(n = n()) |>
+  distinct(t, n)
+
+## truncate columns at F3200 since only 1 trial is coded past this point.
+d_tidy <- d_tidy |>
+  filter(t < min(post_dis_names_clean_cols_to_remove$t))
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -105,10 +109,10 @@ d_tidy <- d_tidy %>%
 stimulus_table <- d_tidy %>%
   distinct(target_image, target_label, condition) %>%
   # recode condition from "familiar" (== typical color) and "test" (==atypical color) to more descriptive labels
-  mutate(condition_new = ifelse(condition == "familiar", "typical_color", "atypical_color")) %>%
+  mutate(condition_recoded = ifelse(condition == "familiar", "typical_color", "atypical_color")) %>%
   mutate(target_image_old = target_image) %>%
   # combine target_image w/ condition to create unique set of images (e.g., the cow item can have typical or atypical coloring)
-  unite(target_image, c(target_image, condition_new), remove = FALSE) %>%
+  unite(target_image, c(target_image, condition_recoded), remove = FALSE) %>%
   unite(original_image_name_condition, c(target_image_old, condition), remove = FALSE) %>%
   mutate(
     dataset_id = 0,
@@ -168,7 +172,7 @@ stimulus_table <- d_tidy %>%
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distactor image
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id, original_image_name, condition, condition_new), by = c("target_image" = "original_image_name", "condition")) %>%
+  left_join(stimulus_table %>% select(lab_stimulus_id, stimulus_id, original_image_name, condition, condition_recoded), by = c("target_image" = "original_image_name", "condition")) %>%
   rename(target_id = stimulus_id) %>%
   left_join(stimulus_table %>% select(stimulus_id, original_image_name, condition), by = c("distractor_image" = "original_image_name", "condition")) %>%
   rename(distractor_id = stimulus_id)
@@ -218,7 +222,7 @@ d_tidy_final <- d_tidy_semifinal %>%
     monitor_size_y = 1200,
     lab_age_units = "months",
     age = as.numeric(months), # TODO - lookup participants with missing ages
-    point_of_disambiguation = 0, # data is re-centered to zero based on critonset in datawiz
+    point_of_disambiguation = 0, # data is re-centered to zero based on criterion set in dataviz
     tracker = "video_camera",
     sample_rate = sampling_rate_hz
   ) %>%
@@ -304,14 +308,14 @@ trials <- d_tidy_final %>%
 trial_types <- d_tidy_final %>%
   mutate(
     trial_type_aux_data = NA,
-    vanilla_trial = ifelse(condition_new == "atypical_color", FALSE, TRUE)
+    vanilla_trial = ifelse(condition_recoded == "atypical_color", FALSE, TRUE)
   ) %>%
   distinct(
     trial_type_id,
     full_phrase,
     point_of_disambiguation,
     target_side,
-    condition_new,
+    condition_recoded,
     trial_type_aux_data,
     vanilla_trial,
     aoi_region_set_id,
@@ -321,7 +325,7 @@ trial_types <- d_tidy_final %>%
     distractor_id
   ) %>%
   mutate(full_phrase_language = "eng") %>%
-  rename(condition = condition_new)
+  rename(condition = condition_recoded)
 
 
 ##### DATASETS TABLE ####
@@ -357,12 +361,12 @@ cdi_data <- list.files(here(read_path, "cdi"), full.names = TRUE, pattern = ".xl
   rename(subject_id = id, # the digest function expects this to be equal to the lab subject id
          rawscore = score
   ) %>%
-  # 156, 149, and 136 are participants that are included in the eyetracking data abut have no age in their cdi scores - so we use the age median as imputed scores / 20 in this case
+  # 146, 149, and 130 are participants that are included in the eyetracking data but have no age in their cdi scores - so we use the age median as imputed scores / 20 in this case
   mutate(age = replace_na(age, median(age, na.rm = TRUE)))
 
 
 subjects <- subjects %>%
-  digest.subject_cdi_data(cdi_data)
+  digest.subject_aux_data(cdi=cdi_data)
 
 
 write_and_validate(
