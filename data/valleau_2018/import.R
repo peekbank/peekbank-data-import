@@ -21,6 +21,10 @@ d_raw <- read_delim(fs::path(read_path, "Valleau_etal_2018.csv"), delim = ",")
 stimuli_listAD <- c("cookie", "donut", "firetruck", "hug", "pour", "wash", "tie", "crab", "eat", "jump", "open", "read", "giraffe", "clap", "roll", "lift", "spin", "grapes", "dance", "bite", "tickle", "squeeze", "orange", "throw", "lick")
 stimuli_listBC <- c("airplane", "squirrel", "rocketship", "break", "kick", "blow", "kiss", "pancakes", "drop", "cry", "march", "pull", "bird", "bounce", "stretch", "rip", "shake", "goldfish", "run", "push", "cut", "rock", "banana", "drink", "feed")
 
+stimuli_nouns <- c(
+  "airplane", "orange", "banana", "cookie", "bird", "firetruck", "crab", "pancakes", "donut",
+  "goldfish", "giraffe", "rocketship", "grapes", "squirrel"
+)
 # basic dataset filtering and cleaning up
 d_tidy <- d_raw %>%
   clean_names() %>% # change column name into lower case
@@ -44,6 +48,7 @@ d_tidy <- d_raw %>%
     ), TRUE ~ NA_character_
   )) %>%
   # add the target_image column
+  mutate(condition_type=ifelse(target_image%in%stimuli_nouns, "noun", "verb")) |> 
   mutate(target_label = target_image) %>%
   rename(trials = subphase) %>% # the subphase column is actually a column for trials. Here I rename this column to trails
   rename(subphase = sr) %>% # rename the subphase column
@@ -60,8 +65,6 @@ d_tidy <- d_raw %>%
 
 
 ## add the full_phrase information in the "stimuli" file to the d_tidy
-# TODO: document this. the stimuli_lookup_table.csv existed at some point but got lost (origin not known, a past peekbank importer likely created it)
-# this is a reproduction based on the output files that were still existing, so it is at least as credible as that old csv.
 lookup_table <- read_delim(fs::path(read_path, "stimuli_lookup_table.csv"), delim = ",") %>%
   mutate(target_side = if_else(target_image == left, "left", "right")) # add target side column
 
@@ -69,7 +72,8 @@ lookup_table <- read_delim(fs::path(read_path, "stimuli_lookup_table.csv"), deli
 
 # add lookup_table to big table
 d_tidy <- d_tidy %>%
-  left_join(lookup_table, by = c("condition", "target_image"))
+  left_join(lookup_table, by = c("condition", "target_image")) |> 
+  mutate(condition=str_c(condition_type,"_", condition))
 
 
 ######## Make 9 Peekbank tables #########
