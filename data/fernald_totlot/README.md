@@ -40,6 +40,7 @@ Important note: the script currently filters out the "super" trial as the lookin
 
 - word_onset column was set as F0 (i.e. the word onset column in the canonical icoder format)
 - no pre-word onset coded data seems to be available
+- super trials not imported (see above)
 
 5. **Importing ambiguity.**
 

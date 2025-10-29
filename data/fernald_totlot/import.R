@@ -46,7 +46,7 @@ read_age_group <- function(age_group, filename) {
     relocate(matches("^f\\d+"), .after = last_col())
   # relabel frame bins
   colnames(df) <- sub("^f(\\d+)", "\\1", colnames(df))
-  
+
   x <- df %>%
     pivot_longer(names_to = "t", cols = `0`:last_col(), values_to = "aoi")
 }
@@ -105,7 +105,12 @@ wide.table <- d_tidy %>%
     target_side = ifelse(limage == target, "left", "right"),
     condition = group,
     vanilla_trial = !(condition %in% c("xfacil", "gated", "zteach", "new", "ylearn", "alearn", "learn", "losse")),
-    excluded = ifelse(is.na(includeinfinalanalysis), FALSE, includeinfinalanalysis == "n"),
+    excluded = case_when(
+      includeinfinalanalysis == "n" ~ T,
+      includedinfinal == "n" ~ T,
+      subjincluded == "n" ~ T,
+      T ~ F
+    ),
     exclusion_reason = ifelse(excluded, "unspecified", NA),
     session_num = age_group,
     sample_rate = sampling_rate_hz,
@@ -135,7 +140,8 @@ wide.table <- wide.table %>%
       summarize(existing_data = sum(aoi != "missing") / n()) %>%
       filter(existing_data >= THRESHOLD) %>%
       summarize(cutoff = max(t)),
-    by=join_by(age_group)) %>%
+    by = join_by(age_group)
+  ) %>%
   filter(t <= cutoff)
 
 # Filter out super as the data seems to be an anomaly (looking score constantly above 60%)
@@ -155,9 +161,11 @@ dataset_list <- digest.dataset(
 
 
 cdi_data <- read_excel(here(data_path, "TLOriginal_CDIScores.xlsx")) %>%
-  rename(subject_id = subj,
-         und12 = und12new,
-         und15 = und15new) %>%
+  rename(
+    subject_id = subj,
+    und12 = und12new,
+    und15 = und15new
+  ) %>%
   select(-child_sex) %>%
   mutate(across(-subject_id, as.numeric)) %>%
   pivot_longer(
@@ -166,18 +174,19 @@ cdi_data <- read_excel(here(data_path, "TLOriginal_CDIScores.xlsx")) %>%
     names_pattern = "([^0-9]+)(\\d+)",
     values_to = "value"
   ) %>%
-  filter(!grepl("co?mplx?", category)) %>% 
+  filter(!grepl("co?mplx?", category)) %>%
   mutate(
     language = "English (American)",
     age = as.numeric(age),
     valuetype = ifelse(grepl("per", category), "percentile", "rawscore"),
     measure = ifelse(grepl("voc", category) | grepl("said", category), "prod", "comp"),
-    instrument_type = ifelse(age %in% c(12,15), "wg", "ws") # according to paper
+    instrument_type = ifelse(age %in% c(12, 15), "wg", "ws") # according to paper
   ) %>%
-  select(-category) %>% 
+  select(-category) %>%
   pivot_wider(
     names_from = valuetype,
-    values_from = value) %>% 
+    values_from = value
+  ) %>%
   filter(!is.na(rawscore) & !is.na(instrument_type) & !is.na(age) & !is.na(language))
 
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
