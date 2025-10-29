@@ -18,8 +18,6 @@ gaze <- read_csv(paste0(read_path, "gazes.csv")) %>%
 
 binned_looks <- read_csv(paste0(read_path, "binned_looks.csv"))
 
-genders <- read_csv(paste0(read_path, "genders.csv"))
-
 model_data <- read_csv(paste0(read_path, "model_data.csv"))
 
 subjects <- read_csv(paste0(read_path, "subj.csv"))
@@ -27,6 +25,7 @@ subjects <- read_csv(paste0(read_path, "subj.csv"))
 raw_trials <- read_csv(paste0(read_path, "trials.csv"))
 
 stimuli_trials <- read_csv(paste0(read_path, "stimuli/trials.csv"))
+
 ### ------- TABLE GENERATION ------- ###
 
 ### datasets table ###
@@ -38,6 +37,7 @@ datasets_table <- tibble(
   shortcite = "Mahr et al. (2015)",
   dataset_aux_data = NA
 )
+
 # rename and reorder data
 ### subjects table ###
 subjects_table <- subjects %>%
@@ -50,7 +50,7 @@ subjects_table <- subjects %>%
   filter(is.na(Exclude)) %>%
   mutate(
     subject_id = seq(0, nrow(.) - 1, 1),
-    sex = "unspecified",
+    sex = "unspecified",                 # sex is not reported in original data for each subject
     native_language = "eng"
   ) %>%
   select(lab_subject_id, lab_age, rawscore = cdi, subject_id, sex, native_language) %>%
