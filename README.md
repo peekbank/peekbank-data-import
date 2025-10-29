@@ -158,7 +158,6 @@ After you have finished all of the steps, run the entire import script. Some aut
 After the validation, a summary along with multiple plots about the dataset will be printed. Use these to sanity-check the data and cross-reference it with the original paper.
 
 Once you are happy with the state of the data, upload the data by adding a `upload=TRUE` flag to the arguments of `write_and_validate_list()` and run it again.
-Finally, manually upload your `README.md` to the OSF folder of the dataset.
 
 ## Import Guide (Legacy Method) 
 
