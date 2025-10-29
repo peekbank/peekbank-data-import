@@ -15,7 +15,7 @@ How do infants become word meaning experts? This registered report investigated 
 - Both typical and atypical trials are treated as vanilla because the general design follows a canonical LWL structure (non-informative carrier phrases, familiar words, typical event timing)
 
 4. **Importing decisions.**
-- vanilla trials: we decided to keep atypical trials as vanilla.
+- vanilla trials: we decided to keep atypical trials as vanilla. This also fits with the fact that there were no differences for typical vs. atypical trials in the original study.
 
 5. **Importing ambiguity.**
 
