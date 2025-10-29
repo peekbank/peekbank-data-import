@@ -449,7 +449,7 @@ cdi_data <- read_excel(fs::path(exp_info_path, subject_info), sheet=2) %>%
 
 
 df_subjects <- df_subjects %>%
-  digest.subject_cdi_data(cdi_data)
+  digest.subject_aux_data(cdi = cdi_data)
 
 write_and_validate(
   dataset_name = dataset_name,
