@@ -222,7 +222,7 @@ d_tidy_final <- d_tidy_semifinal %>%
     monitor_size_y = 1200,
     lab_age_units = "months",
     age = as.numeric(months), # TODO - lookup participants with missing ages
-    point_of_disambiguation = 0, # data is re-centered to zero based on criterion set in dataviz
+    point_of_disambiguation = 0, # data is re-centered to zero based on criterion set in datawiz
     tracker = "video_camera",
     sample_rate = sampling_rate_hz
   ) %>%
