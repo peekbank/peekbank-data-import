@@ -70,6 +70,6 @@ cdi <- read.csv(here(data_path, "Peekbank_LuchkinaWaxman_MCDI_data.csv")) %>%
     instrument_type = "wg")
 
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>% 
-  digest.subject_cdi_data(cdi)
+  digest.subject_aux_data(cdi)
 
 write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = F)
