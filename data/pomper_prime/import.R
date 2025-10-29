@@ -11,7 +11,7 @@ dataset <- tibble(
   dataset_id = 0,
   lab_dataset_id = 0,
   dataset_name = dataset_name,
-  shortcite = "",
+  shortcite = "Pomper & Saffran (unpublished)",
   cite = "",
   dataset_aux_data = NA
 )
@@ -30,7 +30,7 @@ subjects <- demo %>%
   )) %>%
   select(lab_subject_id, sex) %>%
   mutate(
-    # delay subject id assignment so we only id the subjects that are acutally present in the tracking data
+    # delay subject id assignment so we only id the subjects that are actually present in the tracking data
     subject_aux_data = NA,
     native_language = "eng" # according to Martin, all monoling
   )
@@ -66,10 +66,9 @@ data <- data_raw %>%
     trial_order = trial_order - 1,
     lab_trial_id = NA,
     point_of_disambiguation = 0, # times already normalized, info on pod not included in data
-    # xy_timepoint_id = 0:(n() - 1),
     aoi_timepoint_id = 0:(n() - 1),
     aoi = case_when(
-      Accuracy == 0 ~ "distractor", #
+      Accuracy == 0 ~ "distractor",
       Accuracy == 1 ~ "target",
       is.na(Accuracy) ~ "missing",
       TRUE ~ "other"

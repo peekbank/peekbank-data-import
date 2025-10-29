@@ -101,7 +101,7 @@ d_processed_1 <- d_processed_1 %>%
 first_t_idx_1 <- length(metadata_names_1) + 1
 last_t_idx_1 <- colnames(d_processed_1) %>% length()
 d_tidy_1 <- d_processed_1 %>%
-  pivot_longer(first_t_idx_1:last_t_idx_1, names_to = "t", values_to = "aoi")
+  pivot_longer(all_of(first_t_idx_1:last_t_idx_1), names_to = "t", values_to = "aoi")
 
 ## dataset 2
 
@@ -148,7 +148,7 @@ d_processed_2 <- d_processed_2 %>%
 first_t_idx_2 <- length(metadata_names_2) + 1
 last_t_idx_2 <- colnames(d_processed_2) %>% length()
 d_tidy_2 <- d_processed_2 %>%
-  pivot_longer(first_t_idx_2:last_t_idx_2, names_to = "t", values_to = "aoi")
+  pivot_longer(all_of(first_t_idx_2:last_t_idx_2), names_to = "t", values_to = "aoi")
 
 # Combine data
 d_tidy <- bind_rows(d_tidy_1, d_tidy_2)
@@ -291,7 +291,14 @@ aoi_timepoints <- d_tidy_final %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
 
 ##### SUBJECTS TABLE ####
-
+subjects <- d_tidy_final %>%
+  distinct(subject_id, lab_subject_id, sex) %>%
+  mutate(
+    sex = factor(sex, levels = c("M", "F"), labels = c("male", "female")),
+    native_language = "eng",
+    lab_subject_id = as.double(lab_subject_id),
+    subject_aux_data = NA
+  )
 
 cdi_raw1 <- read.csv(here(read_path, "Canine.Means.367-2000.n36.csv")) %>%
   select(lab_subject_id = Sub.Num, cdi = CDIwords) %>%
@@ -305,25 +312,15 @@ cdi_raw2 <- read.csv(here(read_path, "canine2_subjectMeans.csv")) %>%
 cdi_data <- cdi_raw1 %>%
   rbind(cdi_raw2) %>%
   filter(!is.na(cdi)) %>%
-  mutate(cdi = as.numeric(cdi)) %>%
-  mutate(subject_aux_data = as.character(pmap(
-    list(cdi, age),
-    function(cdi, age) {
-      jsonlite::toJSON(list(cdi_responses = list(
-        list(rawscore = jsonlite::unbox(cdi), age = jsonlite::unbox(age), measure = jsonlite::unbox("prod"), language = jsonlite::unbox("English (American)"), instrument_type = jsonlite::unbox("ws"))
-      )))
-    }
-  )), lab_subject_id = as.character(lab_subject_id)) %>%
-  select(lab_subject_id, subject_aux_data)
+  mutate(percentile = NA,
+         rawscore = as.numeric(cdi),
+         instrument_type = "ws",
+         measure = "comp",
+         language="English",
+         subject_id = lab_subject_id) |> select(-lab_subject_id)
 
-
-subjects <- d_tidy_final %>%
-  distinct(subject_id, lab_subject_id, sex) %>%
-  mutate(
-    sex = factor(sex, levels = c("M", "F"), labels = c("male", "female")),
-    native_language = "eng"
-  ) %>%
-  left_join(cdi_data)
+subjects <- subjects %>%
+  digest.subject_aux_data(cdi = cdi_data)
 
 ##### ADMINISTRATIONS TABLE ####
 administrations <- d_tidy_final %>%
@@ -399,8 +396,8 @@ dataset <- tibble(
   dataset_id = 0,
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name,
-  cite = "Potter, C. E., & Lew-Williams, C. (2023). Frequent vs. infrequent words shape toddlers’ real-time sentence comprehension. Journal of Child Language, 1-11. doi:10.1017/S0305000923000387",
-  shortcite = "Potter, C., & Lew-Williams, C. (2023)",
+  cite = "Potter, C. E., & Lew-Williams, C. (2024). Frequent vs. infrequent words shape toddlers’ real-time sentence comprehension. Journal of Child Language. 2024;51(6):1478-1488.",
+  shortcite = "Potter, C., & Lew-Williams, C. (2024)",
   dataset_aux_data = NA
 )
 

@@ -3,7 +3,7 @@ library(here)
 library(XML)
 library(reader)
 library(fs)
-library(feather)
+# library(feather)
 library(tidyverse)
 library(peekbankr)
 library(osfr)
@@ -109,7 +109,8 @@ dataset.data <- process_smi_dataset(lab_dataset_id = "reflook_v4") %>%
 ## create stimuli data
 stimuli.data <- process_smi_stimuli(trial_file_path) %>%
   mutate(stimulus_id = seq(0, length(english_stimulus_label) - 1)) %>%
-  mutate(stimulus_aux_data = NA)
+  mutate(stimulus_aux_data = NA) |> 
+  mutate(stimulus_image_path = "stimuli") #TODO 
 
 
 ## create timepoint data so we have a list of participants for whom we actually have data
@@ -185,7 +186,7 @@ trial_types.data <- process_smi_trial_info(trial_file_path) %>%
   ) %>%
   rename(target_id = stimulus_id) %>%
   left_join(aoi_ids %>% select(-stimulus_name), by = "Stimulus") %>%
-  mutate(condition = "reflook") %>%
+  mutate(condition = ifelse(str_detect(Stimulus, "toma"), "novel", "familiar")) %>%
   mutate(trial_type_aux_data = NA) %>%
   mutate(vanilla_trial = ifelse(stimulus_novelty == "familiar", TRUE, FALSE)) %>%
   dplyr::select(
@@ -207,7 +208,18 @@ xy.data <- xy_merged.data %>%
   dplyr::select(xy_timepoint_id, x, y, t, administration_id, trial_id, point_of_disambiguation) %>%
   peekbankr::ds.rezero_times(.) %>%
   peekbankr::ds.normalize_times(.) %>%
-  peekbankr::ds.resample_times(., table_type = "xy_timepoints")
+  peekbankr::ds.resample_times(., table_type = "xy_timepoints") 
+
+# heuristic removal of a small number of very short trials
+short_trials <- xy.data |> 
+  group_by(trial_id) |> 
+  summarise(max = max(t_norm)) |> 
+  filter(max < 0) |>
+  pull(trial_id)
+
+# trials.data <- filter(trials.data, ~(trial_id %in% short_trials))
+xy_merged.data <- filter(xy_merged.data, ~(trial_id %in% short_trials))
+xy.data <- filter(xy.data, ~(trial_id %in% short_trials))
 
 # assign aoa based on aoa_coordinates
 # find correct aoi based on trials
