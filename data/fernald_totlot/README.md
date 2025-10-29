@@ -44,5 +44,6 @@ Important note: the script currently filters out the "super" trial as the lookin
 
 5. **Importing ambiguity.**
 
-- 
-
+- possible ambiguity around what the exclusions were. It looks like different original files (=age groups) have different column names for whether kiddos were included or excluded. the 15 months I think the column name is "subjincluded", 18 mo "includeinfinalanalysis", and 21 and 25 mo "includedinfinal".  
+I didn't identify columns that represented trial-level exclusions, but couldn't interpret all column names. 
+Assuming that NA in the "include" type columns means included (and not excluded). 
