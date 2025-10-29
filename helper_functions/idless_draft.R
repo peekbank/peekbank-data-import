@@ -464,8 +464,8 @@ digest.subject_aux_data <- function(
       )
   }
 
-  if (exists(language_exposures)) {
-    check_required_columns(language_exposures, required_columns$language_exposures, "language_exposures")
+  if (exists(lang_exposures)) {
+    check_required_columns(lang_exposures, required_columns$language_exposures, "language_exposures")
 
     subject_aux_data <- subject_aux_data |>
       full_join(
@@ -474,8 +474,8 @@ digest.subject_aux_data <- function(
       )
   }
 
-  if (exists(language_measures)) {
-    check_required_columns(language_measures, required_columns$language_measures, "language_measures")
+  if (exists(lang_measures)) {
+    check_required_columns(lang_measures, required_columns$language_measures, "language_measures")
     subject_aux_data <- subject_aux_data |>
       full_join(
         lang_measures %>% nest(lang_measures = -subject_id),
