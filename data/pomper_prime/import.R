@@ -26,7 +26,6 @@ subjects <- demo %>%
   mutate(sex = case_when(
     toupper(Gender) == "F" ~ "female",
     toupper(Gender) == "M" ~ "male",
-    TRUE ~ "ERROR" # the data only contained m and f - this line is for the validator
   )) %>%
   select(lab_subject_id, sex) %>%
   mutate(
@@ -87,12 +86,12 @@ data <- data_raw %>%
     by = "lab_subject_id"
   )
 
-subjects <- subjects %>% 
-  filter(lab_subject_id %in% data$lab_subject_id) %>% 
+subjects <- subjects %>%
+  filter(lab_subject_id %in% data$lab_subject_id) %>%
   mutate(subject_id = 0:(n() - 1))
 
-data <- data %>% 
-  left_join(subjects %>% select(subject_id, lab_subject_id), by=join_by(lab_subject_id))
+data <- data %>%
+  left_join(subjects %>% select(subject_id, lab_subject_id), by = join_by(lab_subject_id))
 
 ### 3. Administrations Table
 
@@ -121,16 +120,14 @@ administrations <- demo %>%
     tracker = case_when(
       tracker == "tobii" ~ "Tobii X2-60",
       tracker == "lwl" ~ "video_camera",
-      TRUE ~ "ERROR"
     ),
     coding_method = case_when(
       tracker == "Tobii X2-60" ~ "preprocessed eyetracking",
       tracker == "video_camera" ~ "manual gaze coding",
-      TRUE ~ "ERROR"
     )
   ) %>%
-  left_join(subjects %>% select(subject_id, lab_subject_id), by=join_by(lab_subject_id)) %>% 
-  mutate(administration_id = 0:(n() - 1)) %>% 
+  left_join(subjects %>% select(subject_id, lab_subject_id), by = join_by(lab_subject_id)) %>%
+  mutate(administration_id = 0:(n() - 1)) %>%
   select(-lab_subject_id)
 
 # add administration id to the data
@@ -154,7 +151,7 @@ stimuli <- data %>%
     english_stimulus_label = image,
     stimulus_novelty = "familiar",
     lab_stimulus_id = NA,
-    stimulus_image_path = paste0('stimuli/images/',image, ".jpg"),
+    stimulus_image_path = paste0("stimuli/images/", image, ".jpg"),
     image_description = image,
     image_description_source = "image path",
     dataset_id = 0
@@ -172,12 +169,10 @@ stimuli <- data %>%
 trial_types <- data %>%
   distinct(target, target_side, distractor, condition, lab_trial_id, trial_type_id, point_of_disambiguation) %>%
   mutate(
-    # audio files contain the phrases, but we dont know which phrase maps to which trial, as all combinations are present
     full_phrase = NA,
     target_side = case_when(
       target_side == "l" ~ "left",
       target_side == "r" ~ "right",
-      TRUE ~ "ERROR"
     ),
     condition = condition,
     full_phrase_language = "eng",
