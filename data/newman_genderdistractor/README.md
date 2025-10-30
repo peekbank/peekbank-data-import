@@ -10,33 +10,55 @@ When faced with multiple people speaking simultaneously, adult listeners use the
 3. Original study info
 Expt 1 is on 18 30-month toddlers (+3 reported exclusions).
 
-Target stream is a female voice attracting attention to the target object. Mixed with a distractor stream at 5dB signal to noise, either from a female or male voice. 
+Target stream is a female voice attracting attention to the target object. 
+Mixed with a distractor stream at 5dB signal to noise, either from a female or male voice. 
 
 Each pair of objects occurred 5 times in the 20 trials (2 left, 2 right, 1 "look in general" = baseline). of the 16 test trials, 8 with male and 8 with female voice. 
 
 Expt 2 is on 24 16-17-month toddlers (+8 reported exclusions). 
 
-Same as expt 1, except that *pilot testing* indicated 5db was too hard, so it was 10db as well. 
+Same as expt 1, except that *pilot testing* indicated 5db was too hard, so it was 10db
+as well. 
 
-The raw data makes it look like there's 5db and 0db for 30months and 10db and 5db for 16 months. 
+The raw data makes it look like there's 5db and 0db for 30months and 10db and 5db
+for 16 months. 
 
 4. Importing decisions:
 
-3 participants who had less than the full set of 20 trials in the raw data were dropped of issues with trial order coding. However, some other participants seem to only have missing data for some of trials and are kept because the start times for all the trials were present?
+3 participants who had less than the full set of 20 trials in the raw data were dropped
+of issues with trial order coding. However, some other participants seem to only have 
+missing data for some of trials and are kept because the start times for all the trials
+were present?
 
 30 frames have conflicting codes, they are resolved to the preceding coded area
 
-full phrase is taken from raw audio, but this mismatches what is reported in the paper
+full phrase is taken from the paper (this mismatches the target_audio column in the raw data)
 
-The 4 ambiguous baseline trials, where no object is named are removed because they are not of interest to peekbank (and don't fit the schema). The import therefore replaces the original trial ordering (trial_order_num) with a new one
+The 4 ambiguous baseline trials, where no object is named are removed 
+because they are not of interest to peekbank (and don't fit the schema). 
+The import therefore replaces the original trial ordering (trial_order_num) with a new one
 (trial_order) that has no gaps in numbering, and only goes up to 15 instead of 19
 
 
 start frames is marked as 68 which is what is reported in the paper for target word start.
 
+4 children have CDI data, many (but not all) of the other children have language measures
+using LDS instead. 
+
+These trials are non-vanilla due to the presence of another speaker voice in audio.
 
 5. Importing ambiguity
 
-unclear how to apply exclusions -- paper talks about some fussiness exclusions and one child excluded for a later autism diagnosis. Demographic data has a keep-drop column (with one YES for the autism diagnosis, and a handful of maybes and one notes about side bias) and session notes and fussiness scores, but it's unclear what happened with the maybes for fussiness. 
+unclear how to apply exclusions -- paper talks about some fussiness exclusions and 
+one child excluded for a later autism diagnosis. Demographic data has a keep-drop 
+column (with one YES for the autism diagnosis, and a handful of maybes and one notes
+about side bias) and session notes and fussiness scores, but it's unclear what 
+happened with the maybes for fussiness. 
 
-There are 156 kids listed in the demographic sheets, 97 kids that we have looking data for (not all of whom do we have demographic data for it seems). There's only a couple of the 97 who have anything about exclusions -- some maybe's and one who was excluded later for an autism diagnosis. So, my guess is that kids who were excluded for fussiness or language input don't have coded data at all. The one child excluded for autism diagnosis was marked as excluded, but we did not mark the kids who were labelled as "maybe" for exclude. 
+There are 156 kids listed in the demographic sheets, 97 kids that we have looking
+data for (not all of whom do we have demographic data for it seems). There's only
+a couple of the 97 who have anything about exclusions -- some maybe's and one who
+was excluded later for an autism diagnosis. So, my guess is that kids who were 
+excluded for fussiness or language input don't have coded data at all. The one 
+child excluded for autism diagnosis was marked as excluded, but we did not mark
+the kids who were labelled as "maybe" for exclude. 

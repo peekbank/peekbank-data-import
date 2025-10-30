@@ -13,7 +13,7 @@ dataset_id <- 0
 # these are 30 fps
 sampling_rate_hz <- 30
 sample_rate_ms <- 1000 / 30
-start_frames <- 68 
+start_frames <- 68
 point_of_disambiguation <- start_frames * sample_rate_ms
 
 # these files contain demographic data instead of the trial data for one participant
@@ -123,7 +123,8 @@ raw_demo_data <- bind_rows(lapply(subj_data_list, read_subject_demographic_data)
 # CLEAN DATA
 ## Looking
 
-# The raw data has the start and stop points of each looking period. Instead, we want a row
+# The raw data has the start and stop points of each looking period.
+# Instead, we want a row
 # for each frame with the relevant look and trial number.
 
 # generate trial numbers
@@ -236,7 +237,8 @@ trials_tidy <- raw_trials_data %>%
     )
   ) %>%
   mutate(
-    full_phrase = stringr::str_replace_all("Hey baby! Look at the _! Do you see the _? Where’s the _?", "_", target)) %>% 
+    full_phrase = stringr::str_replace_all("Hey baby! Look at the _! Do you see the _? Where’s the _?", "_", target)
+  ) %>%
   rename(lab_trial_id = x7)
 
 
@@ -251,40 +253,42 @@ demo_data_tidy <- raw_demo_data %>%
     ),
     native_language = "eng"
   ) |>
-  left_join(lang_exposure, by=join_by(lab_subject_id)) |>
+  left_join(lang_exposure, by = join_by(lab_subject_id)) |>
   mutate(subject_aux_data = as.character(pmap(
     list(mcdi, lds, lab_age, lang_exposure),
     function(mcdi, lds, age, lang_exposure) {
       if (is.na(mcdi) && is.na(lds) && is.na(lang_exposure)) {
         return(NA)
       }
-      
+
       jsonlist <- list()
-      if (!is.na(lang_exposure)){
-        jsonlist <- jsonlist %>%  append(jsonlite::fromJSON(lang_exposure))
+      if (!is.na(lang_exposure)) {
+        jsonlist <- jsonlist %>% append(jsonlite::fromJSON(lang_exposure))
       }
       if (!is.na(mcdi)) {
         jsonlist <- jsonlist %>% append(
-        list(
-          cdi_responses = compact(list(
-            list(rawscore = mcdi, age = age, measure = "prod", language = "English (American)", instrument_type = "wsshort")
-          ))
-        ))
-      } 
+          list(
+            cdi_responses = compact(list(
+              list(rawscore = mcdi, age = age, measure = "prod", language = "English (American)", instrument_type = "wsshort")
+            ))
+          )
+        )
+      }
       if (!is.na(lds)) {
         jsonlist <- jsonlist %>% append(
-        list(
-          lang_measures = compact(list(
-            list(rawscore = lds, age = age, language = "English (American)", instrument_type = "LDS")
-          ))
-        ))
-      } 
+          list(
+            lang_measures = compact(list(
+              list(rawscore = lds, age = age, language = "English (American)", instrument_type = "LDS")
+            ))
+          )
+        )
+      }
 
       jsonlite::toJSON(jsonlist, auto_unbox = TRUE)
     }
-  ))) |> 
-  mutate(subject_aux_data=ifelse(subject_aux_data=="NA", NA, subject_aux_data)) 
-  
+  ))) |>
+  mutate(subject_aux_data = ifelse(subject_aux_data == "NA", NA, subject_aux_data))
+
 
 looking_participant_column <- looking_data_tidy %>%
   rename(looking_part_group = part_group) %>%
@@ -301,7 +305,6 @@ looking_participant_column <- looking_data_tidy %>%
     ),
     sep = "_", remove = F
   ) %>%
-  # potential code cleanup: this can be found in the participant demo info, not needed here
   mutate(file_trial_group = case_when(
     str_detect(study, "(?i)order") ~ study,
     str_detect(other_stuff, "(?i)order") ~ other_stuff,
@@ -323,13 +326,16 @@ demo_data_tidy <- demo_data_tidy %>%
       looking_part_group == "30 month olds, 5 dB SNR" ~ 30.5,
       TRUE ~ lab_age
     ), lab_age
-  )) |> 
-  mutate(excluded=case_when(
-     is.na(drop_yes_or_leave_blank_if_no) ~ FALSE,
-      drop_yes_or_leave_blank_if_no=="YES"~ TRUE, 
-       T ~ FALSE),
-         exclusion_reason=ifelse(excluded, reason_for_drop_or_general_results, NA))
-  
+  )) |>
+  mutate(
+    excluded = case_when(
+      is.na(drop_yes_or_leave_blank_if_no) ~ FALSE,
+      drop_yes_or_leave_blank_if_no == "YES" ~ TRUE,
+      T ~ FALSE
+    ),
+    exclusion_reason = ifelse(excluded, reason_for_drop_or_general_results, NA)
+  )
+
 
 d_tidy <- looking_data_tidy %>%
   left_join(demo_data_tidy) %>%
@@ -381,7 +387,7 @@ stimuli_table <- rbind(
 ) %>%
   # ambig is not a stimulus, but represents the baseline trials where no item
   # was indicated by the voice
-  filter(original_stimulus_label != "ambig") %>% 
+  filter(original_stimulus_label != "ambig") %>%
   distinct() %>%
   mutate(
     english_stimulus_label = original_stimulus_label,
@@ -459,7 +465,7 @@ administrations_table <- d_tidy %>%
 d_tidy <- d_tidy %>% left_join(administrations_table %>% select(subject_id, administration_id))
 
 
-trail_type_ids <- d_tidy %>%
+trial_type_ids <- d_tidy %>%
   distinct(
     target_id, distractor_id,
     full_phrase, target_side, lab_trial_id, condition
@@ -467,14 +473,9 @@ trail_type_ids <- d_tidy %>%
   mutate(trial_type_id = row_number() - 1)
 
 
-d_tidy <- d_tidy %>% left_join(trail_type_ids)
+d_tidy <- d_tidy %>% left_join(trial_type_ids)
 
-# Also documented in readme:
-# The experiment features 4 trials (for each participant) that do not have a target
-# side. Currently, peekbank has no standard for representing these trials.
-# The current version of the import therefore removes these trials from the dataset,
-# and replaces the original trial ordering (trial_order_num) with a new one
-# (trial_order) that has no gaps in numbering, and only goes up to 15 instead of 19
+
 d_tidy <- d_tidy %>%
   group_by(administration_id) %>%
   mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
@@ -513,8 +514,8 @@ aoi_table <- d_tidy %>%
     t = running_frame * sample_rate_ms
   ) %>%
   select(trial_id, aoi, t, administration_id, point_of_disambiguation) %>%
- peekbankr::ds.rezero_times() %>%
- peekbankr::ds.normalize_times() %>%
+  peekbankr::ds.rezero_times() %>%
+  peekbankr::ds.normalize_times() %>%
   peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 
 
