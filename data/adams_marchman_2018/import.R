@@ -13,7 +13,9 @@ sampling_rate_ms <- 1000 / sampling_rate_hz
 
 read_icoder_base <- function(filename, age_group) {
   df <- read_delim(fs::path(data_path, filename),
-    delim = "\t"
+    delim = "\t",
+    show_col_types = FALSE,
+    name_repair = "unique_quiet"
   ) %>%
     # the order column is needed to disambiguate administrations for one subject who received the same order twice
     # in the 18-month-old group below
@@ -22,7 +24,7 @@ read_icoder_base <- function(filename, age_group) {
     relocate(order_uniquified, .after = order) %>%
     mutate(row_number = as.numeric(row.names(.))) %>%
     relocate(row_number, .after = sub_num) %>%
-    mutate(age_group = age_group) %>%
+    mutate(age_group = factor(age_group)) %>%
     relocate(age_group, .after = sub_num) %>%
     # filter out duplicate rows for trials focusing on the verbs pod
     filter(!(condition %in% c("R-primeVerb", "UR-primeVerb"))) %>%
@@ -95,23 +97,41 @@ wide.table <- bind_rows(
   read_icoder_base("TL336A.iChart.PT3036.n.55.txt", "36"),
   read_icoder_base("TL336B.iChart.LOC2A.n51.txt", "36")
 ) %>%
-  # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
-  # this leaves NA as NA
-  rename(aoi_old = aoi) %>%
-  mutate(aoi = case_when(
-    aoi_old == "0" ~ "distractor",
-    aoi_old == "1" ~ "target",
-    aoi_old == "0.5" ~ "other",
-    aoi_old == ".5" ~ "other",
-    aoi_old == "." ~ "missing",
-    aoi_old == "-" ~ "missing",
-    aoi_old == " " ~ "missing",
-    is.na(aoi_old) ~ "missing",
-  )) %>%
-  mutate(t = as.numeric(t)) %>% # ensure time is an integer/ numeric
-  # Clean up column names and add stimulus information based on existing columnns
   filter(!is.na(sub_num)) %>%
-  select(-response, -first_shift_gap, -rt) %>%
+  mutate(aoi = case_when(
+    aoi == "0" ~ "distractor",
+    aoi == "1" ~ "target",
+    aoi == "0.5" ~ "other",
+    aoi == ".5" ~ "other",
+    aoi == "." ~ "missing",
+    aoi == "-" ~ "missing",
+    aoi == " " ~ "missing",
+    is.na(aoi) ~ "missing",
+  )) %>%
+  mutate(aoi = factor(aoi)) %>%
+  mutate(t = as.numeric(t)) %>% 
+  select(-response, -first_shift_gap, -rt, -row_number, -overall_row_number)
+
+# Force garbage collection, only helps on some machines, but cant hurt
+gc()
+
+# cutoff timepoints after which there is very little data - indicating accidental clicks
+THRESHOLD <- 0.05
+
+cutoffs <- wide.table %>%
+  group_by(age_group, t) %>%
+  summarize(existing_data = sum(aoi != "missing") / n(), .groups = "drop") %>%
+  filter(existing_data >= THRESHOLD) %>%
+  group_by(age_group) %>%
+  summarize(cutoffmax = max(t), cutoffmin = min(t), .groups = "drop")
+
+gc()
+
+wide.table <- wide.table %>%
+  left_join(cutoffs, by = join_by(age_group)) %>%
+  filter(t <= cutoffmax & t >= cutoffmin) %>%
+  select(-cutoffmax, -cutoffmin) %>%
+  # Clean up column names and add stimulus information based on existing columnns
   # left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c("l", "r"), labels = c("right", "left"))) %>%
   rename(left_image = r_image, right_image = l_image) %>%
@@ -133,6 +153,7 @@ wide.table <- bind_rows(
     target_side == "right" ~ left_image,
     TRUE ~ right_image
   )) %>%
+  select(-target_image_old) %>%
   # add exclusion information
   mutate(excluded = case_when(
     is.na(prescreen_notes) ~ FALSE,
@@ -219,22 +240,26 @@ wide.table <- bind_rows(
       subject_id == "13094" & age == 12 ~ 22,
       TRUE ~ age
     )
-  )
+  ) %>%
+  # Convert string columns to factors - a bit ugly, but on 64 bit systems the
+  # factor values take up half of the memory of pointers to the string pool
+  mutate(across(c(
+    native_language, full_phrase_language, age_units, lab_age_units,
+    tracker, coding_method, target_image_description_source,
+    distractor_image_description_source,
+    target_stimulus_novelty, distractor_stimulus_novelty, sex,
+    target_label, distractor_label, full_phrase, condition,
+    target_stimulus_label_original, target_stimulus_label_english,
+    distractor_stimulus_label_original, distractor_stimulus_label_english,
+    target_image_description, distractor_image_description,
+    target_image, distractor_image, target_stimulus_name, distractor_stimulus_name,
+    subject_id, order, order_uniquified, trial_name, lab_trial_id,
+    target_stimulus_image_path, distractor_stimulus_image_path,
+    exclusion_reason
+  ), factor))
 
-# cutoff timepoints after which there is very little data - indicating accidental clicks
-THRESHOLD <- 0.05
-
-cutoffs <- wide.table %>%
-  group_by(age_group, t) %>%
-  summarize(existing_data = sum(aoi != "missing") / n()) %>%
-  filter(existing_data >= THRESHOLD) %>%
-  summarize(cutoffmax = max(t), cutoffmin = min(t))
-
-
-wide.table <- wide.table %>%
-  left_join(cutoffs, by = join_by(age_group)) %>%
-  filter(t <= cutoffmax & t >= cutoffmin) %>%
-  select(-cutoffmax, -cutoffmin)
+rm(cutoffs)
+gc()
 
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
@@ -246,6 +271,10 @@ dataset_list <- digest.dataset(
   normalize = FALSE,
   resample = TRUE
 )
+
+
+rm(wide.table)
+gc()
 
 ## 4. Aux Data
 
@@ -281,9 +310,11 @@ cdi_data <- read_excel(here(data_path, "Adams_2019_CDIs.xlsx")) %>%
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
   digest.subject_cdi_data(cdi_data)
 
+gc()
 
 write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = F)
 
+gc()
 
 ## Some legacy plotting useful for comparing results with paper
 ## commented out to save memory when running this thing in the pipeline
