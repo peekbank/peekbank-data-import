@@ -33,10 +33,6 @@ read_icoder_base <- function(filename, age_group) {
     # Create clean column headers, remove_repeat_headers
     filter(months != "Months")
 
-
-  
-  #df[df[, "months"] != "Months", ]
-
   # Relabel time bins --------------------------------------------------
   old_names <- colnames(df)
   metadata_names <- old_names[!str_detect(old_names, "x\\d|f\\d")]
@@ -67,44 +63,38 @@ read_icoder_base <- function(filename, age_group) {
     pivot_longer(names_to = "t", cols = all_of(c(pre_dis_names_clean, post_dis_names_clean)), values_to = "aoi")
 }
 
-
-# 18-month-olds
-# one participant (Sub Num 12959) was administered the same order twice
-# this leads to problems down the road with determining administration id and resampling times
-# to avoid this, we need to handle the second presentation of the same order as a separate "order"
-# (in order to capture that it is a distinct administration)
-# strategy: add row numbers as a new column to disambiguate otherwise identical trial information
-d_raw_18 <- read_icoder_base("TL318AB.ichart.n67.txt", "18") %>%
-  group_by(sub_num, order, tr_num) %>%
-  mutate(
-    order_uniquified = case_when(
-      sub_num == "12959" ~ ifelse(row_number < max(row_number), "TL2-2-1", "TL2-2-2"),
-      TRUE ~ order
-    )
-  ) %>%
-  relocate(order_uniquified, .after = order) %>%
-  ungroup()
+fix_y_ending <- function(word) {
+  word %>%
+    str_replace("doggy", "doggie") %>%
+    str_replace("birdie", "birdy")
+}
 
 
-
-
-# combine
-d_processed <- bind_rows(
+wide.table <- bind_rows(
   read_icoder_base("TL316AB.ichart.n69.txt", "16"),
-  d_raw_18,
+  # 18-month-olds
+  # one participant (Sub Num 12959) was administered the same order twice
+  # this leads to problems down the road with determining administration id and resampling times
+  # to avoid this, we need to handle the second presentation of the same order as a separate "order"
+  # (in order to capture that it is a distinct administration)
+  # strategy: add row numbers as a new column to disambiguate otherwise identical trial information
+  read_icoder_base("TL318AB.ichart.n67.txt", "18") %>%
+    group_by(sub_num, order, tr_num) %>%
+    mutate(
+      order_uniquified = case_when(
+        sub_num == "12959" ~ ifelse(row_number < max(row_number), "TL2-2-1", "TL2-2-2"),
+        TRUE ~ order
+      )
+    ) %>%
+    relocate(order_uniquified, .after = order) %>%
+    ungroup(),
   read_icoder_base("TL322AB.ichart.alltrials.n63.txt", "22"),
   read_icoder_base("TL324AB.ichart.alltrials.n62.txt", "24"),
   read_icoder_base("TL330A.PT3036.iChart.n44.txt", "30"),
   read_icoder_base("TL330B.LOC2A-1.iChart.n44.txt", "30"),
   read_icoder_base("TL336A.iChart.PT3036.n.55.txt", "36"),
   read_icoder_base("TL336B.iChart.LOC2A.n51.txt", "36")
-)
-
-fix_y_ending <- function(word){
-  word %>% str_replace("doggy", "doggie") %>% str_replace("birdie", "birdy")
-}
-
-wide.table <- d_processed %>%
+) %>%
   # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
   # this leaves NA as NA
   rename(aoi_old = aoi) %>%
@@ -223,7 +213,7 @@ wide.table <- d_processed %>%
     subject_id == "13628" ~ "M", # Same
     TRUE ~ sex
   )) %>%
-  #fix one age that seems way off (one session at 22 is specified as being age 12 months)
+  # fix one age that seems way off (one session at 22 is specified as being age 12 months)
   mutate(
     age = case_when(
       subject_id == "13094" & age == 12 ~ 22,
@@ -233,17 +223,18 @@ wide.table <- d_processed %>%
 
 # cutoff timepoints after which there is very little data - indicating accidental clicks
 THRESHOLD <- 0.05
-wide.table <- wide.table %>%
-  left_join(
-    wide.table %>%
-      group_by(age_group, t) %>%
-      summarize(existing_data = sum(aoi != "missing") / n()) %>%
-      filter(existing_data >= THRESHOLD) %>%
-      summarize(cutoffmax = max(t), cutoffmin = min(t)),
-    by = join_by(age_group)
-  ) %>%
-  filter(t <= cutoffmax & t >= cutoffmin)
 
+cutoffs <- wide.table %>%
+  group_by(age_group, t) %>%
+  summarize(existing_data = sum(aoi != "missing") / n()) %>%
+  filter(existing_data >= THRESHOLD) %>%
+  summarize(cutoffmax = max(t), cutoffmin = min(t))
+
+
+wide.table <- wide.table %>%
+  left_join(cutoffs, by = join_by(age_group)) %>%
+  filter(t <= cutoffmax & t >= cutoffmin) %>%
+  select(-cutoffmax, -cutoffmin)
 
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
@@ -290,29 +281,33 @@ cdi_data <- read_excel(here(data_path, "Adams_2019_CDIs.xlsx")) %>%
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
   digest.subject_cdi_data(cdi_data)
 
-## 5. Write and Validate the Data
 
 write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = F)
 
-  
-subj_after <- wide.table %>%
-  group_by(age_group, t, subject_id) %>%
-  summarize(
-    mean_looking = mean(case_when(aoi == "target" ~ 1, aoi == "distractor" ~ 0, T ~ NA), na.rm = T)
-  )
 
-overall_after <- subj_after %>%
-  group_by(age_group, t) %>%
-  summarize(
-    N=n(),
-    avg = mean(mean_looking,na.rm=T),
-    sum_na = sum(is.na(mean_looking))
-  )
+## Some legacy plotting useful for comparing results with paper
+## commented out to save memory when running this thing in the pipeline
 
-ggplot(overall_after, aes(t, avg)) +
-  geom_hline(yintercept = 0.5, linetype = "dashed") +
-  geom_line(data = subj_after, aes(y = mean_looking, group = subject_id),color="green",
-alpha = 0.05) +
-  theme(legend.position = "none") +
-  geom_line() +
-  facet_wrap(~age_group)
+#subj_after <- wide.table %>%
+#  group_by(age_group, t, subject_id) %>%
+#  summarize(
+#    mean_looking = mean(case_when(aoi == "target" ~ 1, aoi == "distractor" ~ 0, T ~ NA), na.rm = T)
+#  )
+
+#overall_after <- subj_after %>%
+#  group_by(age_group, t) %>%
+#  summarize(
+#    N = n(),
+#    avg = mean(mean_looking, na.rm = T),
+#    sum_na = sum(is.na(mean_looking))
+#  )
+
+#ggplot(overall_after, aes(t, avg)) +
+#  geom_hline(yintercept = 0.5, linetype = "dashed") +
+#  geom_line(
+#    data = subj_after, aes(y = mean_looking, group = subject_id), color = "green",
+#    alpha = 0.05
+#  ) +
+#  theme(legend.position = "none") +
+#  geom_line() +
+#  facet_wrap(~age_group)
