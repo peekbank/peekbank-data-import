@@ -13,7 +13,8 @@ digest.dataset <- function(
     rezero = TRUE,
     normalize = TRUE,
     resample = TRUE) {
-  wide.table <- wide.table %>% ungroup()
+  # Ensure tibble class once at the start - all dplyr operations preserve class
+  wide.table <- wide.table %>% ungroup() %>% as_tibble()
 
   required_cols <- c(
     "subject_id",
@@ -99,7 +100,7 @@ digest.dataset <- function(
       target_original_stimulus_label = target_stimulus_label_original,
       target_english_stimulus_label = target_stimulus_label_english
     )
-  
+
   # remove non utf8 characters because they break the server import
   data[] <- lapply(data, function(x) {
     if(is.character(x)) {
@@ -108,44 +109,19 @@ digest.dataset <- function(
     }
     return(x)
   })
-  
+
+  # Convert character columns with little unique values to factors for memory efficiency
+  # On 64-bit systems, factor integers (4 bytes) take up half the memory
+  # of character pointers to the string pool (8 bytes)
+  low_cardinality_cols <- sapply(data, function(col) {
+    is.character(col) && n_distinct(col) < nrow(data) / 2
+  })
+  data <- data %>%
+    mutate(across(all_of(names(low_cardinality_cols)[low_cardinality_cols]), factor))
+
+  gc()
+
   # TODO Validate the values (how much validation do we want to put in here?)
-
-  stimuli <- data %>%
-    select(
-      target_original_stimulus_label,
-      target_english_stimulus_label,
-      target_stimulus_novelty,
-      target_stimulus_image_path,
-      target_lab_stimulus_id,
-      target_image_description,
-      target_image_description_source,
-      distractor_original_stimulus_label,
-      distractor_english_stimulus_label,
-      distractor_stimulus_novelty,
-      distractor_stimulus_image_path,
-      distractor_lab_stimulus_id,
-      distractor_image_description,
-      distractor_image_description_source
-    ) %>%
-    distinct() %>%
-    mutate(across(everything(), as.character)) %>%
-    mutate(id = row_number()) %>%
-    pivot_longer(
-      cols = contains("target_") | contains("distractor_"),
-      names_to = c("type", "variable"),
-      names_pattern = "([^_]+)_(.+)",
-      values_to = "value"
-    ) %>%
-    pivot_wider(id_cols = c(id, type), names_from = variable, values_from = value) %>%
-    select(-type, -id) %>%
-    distinct() %>%
-    mutate(
-      stimulus_id = row_number() - 1,
-      dataset_id = 0,
-      stimulus_aux_data = NA
-    )
-
 
   data <- data %>%
     mutate(
@@ -155,52 +131,11 @@ digest.dataset <- function(
     ) %>%
     group_by(lab_subject_id) %>%
     mutate(subject_id = cur_group_id() - 1) %>%
-    ungroup() %>%
-    group_by(lab_subject_id, session_num) %>%
+    group_by(session_num, .add = TRUE) %>%
     mutate(administration_id = cur_group_id() - 1) %>%
-    ungroup() %>%
-    left_join(stimuli %>%
-      rename_with(~ paste0("target_", .x))) %>%
-    left_join(stimuli %>%
-      rename_with(~ paste0("distractor_", .x))) %>%
-    rename(
-      target_id = target_stimulus_id,
-      distractor_id = distractor_stimulus_id
-    ) %>%
-    group_by(
-      full_phrase,
-      full_phrase_language,
-      point_of_disambiguation,
-      target_side,
-      lab_trial_id,
-      condition,
-      vanilla_trial,
-      target_id,
-      distractor_id
-    ) %>%
-    mutate(trial_type_id = cur_group_id() - 1) %>%
-    ungroup() %>%
-    group_by(administration_id) %>%
-    mutate(trial_order = consecutive_id(trial_type_id, trial_index)) %>%
-    ungroup() %>%
-    group_by(administration_id, trial_type_id, trial_order) %>%
-    mutate(trial_id = cur_group_id() - 1) %>%
-    ungroup() %>%
-    group_by(
-      l_x_max, l_x_min, l_y_max, l_y_min,
-      r_x_max, r_x_min, r_y_max, r_y_min
-    ) %>%
-    mutate(aoi_region_set_id = cur_group_id() - 1) %>%
     ungroup()
-
-  datasets <- tibble(
-    dataset_id = 0,
-    dataset_name = dataset_name,
-    lab_dataset_id = dataset_name,
-    cite = cite,
-    shortcite = shortcite,
-    dataset_aux_data = NA
-  )
+  
+  gc()
 
   subjects <- data %>%
     distinct(subject_id, sex, native_language, lab_subject_id) %>%
@@ -220,7 +155,6 @@ digest.dataset <- function(
     ) %>%
     mutate(subject_aux_data = NA)
 
-  # Check if one subject has multiple sexes
   problematic_ids <- subjects %>%
     group_by(subject_id) %>%
     filter(n_distinct(sex) > 1)
@@ -255,6 +189,155 @@ digest.dataset <- function(
       administration_aux_data = NA
     )
 
+  # Create integer proxy ids for both targets and distractors
+  data <- data %>%
+    group_by(
+      target_original_stimulus_label,
+      target_english_stimulus_label,
+      target_stimulus_novelty,
+      target_stimulus_image_path,
+      target_lab_stimulus_id,
+      target_image_description,
+      target_image_description_source
+    ) %>%
+    mutate(target_proxy = cur_group_id()) %>%
+    ungroup()
+
+  max_target_proxy <- max(data$target_proxy)
+
+  data <- data %>%
+    group_by(
+      distractor_original_stimulus_label,
+      distractor_english_stimulus_label,
+      distractor_stimulus_novelty,
+      distractor_stimulus_image_path,
+      distractor_lab_stimulus_id,
+      distractor_image_description,
+      distractor_image_description_source
+    ) %>%
+    mutate(distractor_proxy = cur_group_id() + max_target_proxy) %>%
+    ungroup()
+
+  # Stack target and distractor to create stimulus ids
+  stimulus_data <- bind_rows(
+    data %>%
+      distinct(target_proxy, target_original_stimulus_label, target_english_stimulus_label,
+               target_stimulus_novelty, target_stimulus_image_path, target_lab_stimulus_id,
+               target_image_description, target_image_description_source) %>%
+      transmute(
+        proxy = target_proxy,
+        original_stimulus_label = target_original_stimulus_label,
+        english_stimulus_label = target_english_stimulus_label,
+        stimulus_novelty = target_stimulus_novelty,
+        stimulus_image_path = target_stimulus_image_path,
+        lab_stimulus_id = target_lab_stimulus_id,
+        image_description = target_image_description,
+        image_description_source = target_image_description_source
+      ),
+    data %>%
+      distinct(distractor_proxy, distractor_original_stimulus_label, distractor_english_stimulus_label,
+               distractor_stimulus_novelty, distractor_stimulus_image_path, distractor_lab_stimulus_id,
+               distractor_image_description, distractor_image_description_source) %>%
+      transmute(
+        proxy = distractor_proxy,
+        original_stimulus_label = distractor_original_stimulus_label,
+        english_stimulus_label = distractor_english_stimulus_label,
+        stimulus_novelty = distractor_stimulus_novelty,
+        stimulus_image_path = distractor_stimulus_image_path,
+        lab_stimulus_id = distractor_lab_stimulus_id,
+        image_description = distractor_image_description,
+        image_description_source = distractor_image_description_source
+      )
+  ) %>%
+    distinct() %>%
+    group_by(original_stimulus_label, english_stimulus_label, stimulus_novelty,
+             stimulus_image_path, lab_stimulus_id, image_description,
+             image_description_source) %>%
+    mutate(stimulus_id = cur_group_id() - 1) %>%
+    ungroup()
+
+  # Extract stimuli table
+  stimuli <- stimulus_data %>%
+    distinct(stimulus_id, original_stimulus_label, english_stimulus_label,
+             stimulus_novelty, stimulus_image_path, lab_stimulus_id,
+             image_description, image_description_source) %>%
+    mutate(dataset_id = 0, stimulus_aux_data = NA)
+
+  # Create minimal join table with only 2 integer columns (proxy, stimulus_id)
+  proxy_to_id <- stimulus_data %>%
+    distinct(proxy, stimulus_id)
+
+  rm(stimulus_data)
+  gc()
+
+  # Drop columns joins to minimize memory usage during join 
+  data <- data %>%
+    select(
+      -sex, -native_language, -lab_subject_id, -lab_age, -lab_age_units,
+      -monitor_size_x, -monitor_size_y, -sample_rate, -tracker, -coding_method,
+      -session_num,
+      -target_original_stimulus_label, -target_english_stimulus_label,
+      -target_stimulus_novelty, -target_stimulus_image_path,
+      -target_lab_stimulus_id, -target_image_description,
+      -target_image_description_source,
+      -distractor_original_stimulus_label, -distractor_english_stimulus_label,
+      -distractor_stimulus_novelty, -distractor_stimulus_image_path,
+      -distractor_lab_stimulus_id, -distractor_image_description,
+      -distractor_image_description_source
+    )
+
+  gc()
+
+  # Join stimulus map twice (once for target, once for distractor)
+  data <- data %>%
+    left_join(proxy_to_id, by = c("target_proxy" = "proxy")) %>%
+    rename(target_id = stimulus_id) %>%
+    left_join(proxy_to_id, by = c("distractor_proxy" = "proxy")) %>%
+    rename(distractor_id = stimulus_id) %>%
+    select(-target_proxy, -distractor_proxy)
+
+  rm(proxy_to_id)
+  gc()
+
+  # Continue with trial_type_id assignment
+  data <- data %>%
+    group_by(
+      full_phrase,
+      full_phrase_language,
+      point_of_disambiguation,
+      target_side,
+      lab_trial_id,
+      condition,
+      vanilla_trial,
+      target_id,
+      distractor_id
+    ) %>%
+    mutate(trial_type_id = cur_group_id() - 1) %>%
+    ungroup() %>%
+    group_by(administration_id) %>%
+    mutate(trial_order = consecutive_id(trial_type_id, trial_index)) %>%
+    ungroup() %>%
+    group_by(administration_id, trial_type_id, trial_order) %>%
+    mutate(trial_id = cur_group_id() - 1) %>%
+    ungroup() %>%
+    group_by(
+      l_x_max, l_x_min, l_y_max, l_y_min,
+      r_x_max, r_x_min, r_y_max, r_y_min
+    ) %>%
+    mutate(aoi_region_set_id = cur_group_id() - 1) %>%
+    ungroup()
+
+  gc()
+
+  datasets <- tibble(
+    dataset_id = 0,
+    dataset_name = dataset_name,
+    lab_dataset_id = dataset_name,
+    cite = cite,
+    shortcite = shortcite,
+    dataset_aux_data = NA
+  )
+
   trial_types <- data %>%
     distinct(
       trial_type_id,
@@ -279,10 +362,8 @@ digest.dataset <- function(
         target_side == "r" ~ "right",
         .default = "ERROR"
       ),
-      trial_type_aux_data = NA,
+      trial_type_aux_data = NA
     )
-
-
 
   trials <- data %>%
     distinct(
@@ -354,6 +435,8 @@ digest.dataset <- function(
   } else {
     trial_types$aoi_region_set_id <- NA
   }
+
+  gc()
 
   return(list(
     datasets = datasets,
