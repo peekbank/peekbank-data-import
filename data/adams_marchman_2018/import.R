@@ -90,8 +90,8 @@ wide.table <- bind_rows(
     ) %>%
     relocate(order_uniquified, .after = order) %>%
     ungroup(),
-  read_icoder_base("TL322AB.ichart.alltrials.n63.txt", "22"),
-  read_icoder_base("TL324AB.ichart.alltrials.n62.txt", "24"),
+  read_icoder_base("TL322AB.iChart.alltrials.n63.txt", "22"),
+  read_icoder_base("TL324AB.iChart.alltrials.n62.txt", "24"),
   read_icoder_base("TL330A.PT3036.iChart.n44.txt", "30"),
   read_icoder_base("TL330B.LOC2A-1.iChart.n44.txt", "30"),
   read_icoder_base("TL336A.iChart.PT3036.n.55.txt", "36"),
