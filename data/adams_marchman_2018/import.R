@@ -71,6 +71,14 @@ fix_y_ending <- function(word) {
     str_replace("birdie", "birdy")
 }
 
+standardize_stim_names <- function(word) {
+  word |>
+    str_replace("doggie", "doggy") |>
+    str_replace("birdie", "birdy") |>
+    str_replace("icecream", "ice cream") |>
+    str_replace("blue", "") |>
+    str_replace("red", "")
+}
 
 wide.table <- bind_rows(
   read_icoder_base("TL316AB.ichart.n69.txt", "16"),
@@ -109,7 +117,7 @@ wide.table <- bind_rows(
     is.na(aoi) ~ "missing",
   )) %>%
   mutate(aoi = factor(aoi)) %>%
-  mutate(t = as.numeric(t)) %>% 
+  mutate(t = as.numeric(t)) %>%
   select(-response, -first_shift_gap, -rt, -row_number, -overall_row_number)
 
 # Force garbage collection, only helps on some machines, but cant hurt
@@ -141,8 +149,8 @@ wide.table <- wide.table %>%
       case_when(
         grepl("modi", condition) ~ "modi",
         grepl("panju", condition) ~ "panju",
-        T ~ gsub("[0-9]+", "", target_image)
-      )
+        T ~ gsub("[0-9ABET]+", "", target_image)
+      ) |> standardize_stim_names()
   ) %>%
   rename(target_image_old = target_image) %>% # since target image doesn't seem to be the specific image identifier
   mutate(target_image = case_when(
@@ -157,9 +165,10 @@ wide.table <- wide.table %>%
   # add exclusion information
   mutate(excluded = case_when(
     is.na(prescreen_notes) ~ FALSE,
+    prescreen_notes == "All Good" ~ F,
     TRUE ~ TRUE
   )) %>%
-  rename(exclusion_reason = prescreen_notes) %>%
+  mutate(exclusion_reason = ifelse(excluded, prescreen_notes, NA)) %>%
   rename(subject_id = sub_num) %>%
   group_by(subject_id) %>%
   mutate(
@@ -171,7 +180,7 @@ wide.table <- wide.table %>%
   ungroup() %>%
   mutate(
     distractor_image = gsub("\\.pct$", "", distractor_image),
-    distractor_label = gsub("[0-9]+", "", distractor_image),
+    distractor_label = gsub("[0-9ABET]+", "", distractor_image) |> standardize_stim_names(),
     trial_name = paste(order, tr_num, sep = "-"),
     native_language = "eng",
     age_units = "months",
@@ -185,7 +194,7 @@ wide.table <- wide.table %>%
       target_label == "ball" ~ "Look at the ball! Do you like it?",
       target_label == "shoe" ~ "See the shoe? Do you like it?",
       target_label == "kitty" ~ "See the kitty? Can you find it?",
-      target_label == "birdie" ~ "See the birdie? Can you find it?",
+      target_label == "birdy" ~ "See the birdie? Can you find it?",
       target_label == "book" ~ "Where's the book? Can you find it?",
       TRUE ~ NA
     ),
@@ -308,7 +317,7 @@ cdi_data <- read_excel(here(data_path, "Adams_2019_CDIs.xlsx")) %>%
   na.omit()
 
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
-  digest.subject_cdi_data(cdi_data)
+  digest.subject_aux_data(cdi_data)
 
 gc()
 
@@ -319,22 +328,24 @@ gc()
 ## Some legacy plotting useful for comparing results with paper
 ## commented out to save memory when running this thing in the pipeline
 
-#subj_after <- wide.table %>%
+# subj_after <- wide.table %>%
 #  group_by(age_group, t, subject_id) %>%
 #  summarize(
 #    mean_looking = mean(case_when(aoi == "target" ~ 1, aoi == "distractor" ~ 0, T ~ NA), na.rm = T)
 #  )
-
-#overall_after <- subj_after %>%
+#
+# overall_after <- subj_after %>%
 #  group_by(age_group, t) %>%
 #  summarize(
 #    N = n(),
 #    avg = mean(mean_looking, na.rm = T),
 #    sum_na = sum(is.na(mean_looking))
 #  )
-
-#ggplot(overall_after, aes(t, avg)) +
+#
+# ggplot(overall_after, aes(t, avg)) +
 #  geom_hline(yintercept = 0.5, linetype = "dashed") +
+#   geom_vline(xintercept = 600, linetype = "dashed") +
+#   coord_cartesian(xlim=c(0,1800))+
 #  geom_line(
 #    data = subj_after, aes(y = mean_looking, group = subject_id), color = "green",
 #    alpha = 0.05
