@@ -52,7 +52,7 @@ wide.table.nalts <-
     audio_name = file_path_sans_ext(audio),
     target_stimulus_label_original = audio_name,
     target_stimulus_label_english = audio_name,
-    target_stimulus_novelty = ifelse(condition == "CP", "familiar", "novel"), # Decision: wrong pronounciation is a novel stimulus
+    target_stimulus_novelty = ifelse(condition == "CP", "familiar", "novel"),
     target_stimulus_image_path = paste0("visual_stimuli/Nouns/", target_pic),
     target_image_description = target_image_name,
     target_image_description_source = "image path",
@@ -125,15 +125,10 @@ wide.table.vna <-
     audio_name = file_path_sans_ext(audio_path)
   ) %>%
   mutate(
-    # there are some video files for the verbs here, but
-    # A) peekbank is not build with stimulus videos in mind and
-    # B) they would need manual editing anyway, since they are not split into separate videos yet
-    # so we leave NA for now
+    # videos not images, so no *image* path
     target_stimulus_image_path = NA,
     distractor_stimulus_image_path = NA,
-    #target_stimulus_image_path = paste0("visual_stimuli/Verbs/",target_image_name, ".avi"),
-    #distractor_stimulus_image_path = paste0("visual_stimuli/Verbs/",distractor_image_name, ".avi")
-  ) %>% 
+  ) %>%
   # joomp_can -> joomp, can
   separate_wider_delim(
     audio_name,
@@ -175,18 +170,15 @@ wide.table.vna <-
   ) %>%
   inner_join(demographics,
     by = "subject_id"
-  ) %>% 
-  select(-pronunciation, -verb_type, -target_image_name, -distractor_image_name,-word,-carrier_phrase_label,-audio_name,-carrier_phrase) #%>% filter(age>23) %>% filter(condition == "correctly pronounced x irregular") # use these to more clearly see condition wise plots further down
+  ) %>%
+  select(-pronunciation, -verb_type, -target_image_name, -distractor_image_name, -word, -carrier_phrase_label, -audio_name, -carrier_phrase) # %>% filter(age>23) %>% filter(condition == "correctly pronounced x irregular") # use these to more clearly see condition wise plots further down
 
 
 wide.table <-
   bind_rows(wide.table.vna, wide.table.nalts) %>%
-  #wide.table.vna %>% # use to only see one plot
-  #wide.table.nalts %>% # use to only see one plot
   mutate(
     aoi = ifelse(!is.na(aoi), tolower(aoi), "missing"),
     full_phrase_language = "eng",
-    # even though the location of the stimuli is given in pixels, the paper makes it clear that the screen was split in two halfs for the eyetracking and the aois were counted that way
     l_x_max = 640,
     l_x_min = 0,
     l_y_max = 1024,
@@ -226,7 +218,7 @@ dataset_list <- digest.dataset(
 
 cdi_data <- here(data_path, "vna/vna_cdi_totals_both_ages.csv") %>%
   read_csv() %>%
-  bind_rows(read_csv(here(data_path,"nalts/nalts_cdi_totals.csv"))) %>% 
+  bind_rows(read_csv(here(data_path, "nalts/nalts_cdi_totals.csv"))) %>%
   select(age_cdi = age, subject_id = SubjectNumber, comp = CDIcomp, prod = produces) %>%
   left_join(
     demographics %>% select(subject_id, age),
@@ -243,9 +235,32 @@ cdi_data <- here(data_path, "vna/vna_cdi_totals_both_ages.csv") %>%
   ) %>%
   select(-age_cdi)
 
-dataset_list[["subjects"]] <- digest.subject_cdi_data(
+dataset_list[["subjects"]] <- digest.subject_aux_data(
   dataset_list[["subjects"]],
   cdi_data
 )
 
 write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = FALSE)
+
+# plot for comparing to condition in paper more easily!
+
+# wide.table |> mutate(younger=age<23) |>
+#   mutate(type=case_when(
+#     str_detect(condition, "irregular")~ "irreg verb",
+#     str_detect(condition, "regular")~"reg verb",
+#     target_image_description %in% c("tooth", "mouse", "goose", "foot" )~"irreg noun",
+#     target_image_description %in% c("kitty", "whale", "pig", "dog")~"reg noun"
+#   ),
+#   pronounced=case_when(
+#     str_detect(condition, "MP") ~ "mispron.",
+#     str_detect(condition, "CP") ~ "correct",
+#     str_detect(condition, "correctly")~ "correct",
+#     str_detect(condition, "mis")~"mispron.")
+#   ) |> mutate(t_norm=round((t-point_of_disambiguation)/30)*30) |>
+#   mutate(correct=case_when(aoi=="target"~1,
+#                            aoi=="distractor"~0,
+#                            )) |>
+#   group_by(younger, type, pronounced, t_norm) |>
+#   summarize(correct=mean(correct, na.rm=T)) |> filter(t_norm>-1000, t_norm<3000) |>
+#   ggplot(aes(x=t_norm, y=correct, color=pronounced))+geom_line()+facet_wrap(younger~type)+
+#   geom_hline(yintercept=.5)+geom_vline(xintercept=0)+theme_bw()

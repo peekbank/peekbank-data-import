@@ -5,16 +5,34 @@ https://doi.org/10.1016/j.jml.2022.104337
 
 2. Abstract
 
-By around 12 months, infants have well-specified phonetic representations for the nouns they understand, for instance looking less at a car upon hearing ‘cur’ than ‘car’ (Swingley and Aslin, 2002). Here we test whether such high-fidelity representations extend to irregular nouns, and regular and irregular verbs. A corpus analysis confirms the intuition that irregular verbs are far more common than irregular nouns in speech to young children. Two eyetracking experiments then test whether toddlers are sensitive to mispronunciation in regular and irregular nouns (Experiment 1) and verbs (Experiment 2). For nouns, we find a mispronunciation effect and no regularity effect in 18-month-olds. For verbs, in Experiment 2a, we find only a regularity effect and no mispronunciation effect in 18-month-olds, though toddlers’ poor comprehension overall limits interpretation. Finally, in Experiment 2b we find a mispronunciation effect and no regularity effect in 26-month-olds. The interlocking roles of lexical class and regularity for wordform representations and early word learning are discussed.
+By around 12 months, infants have well-specified phonetic representations for the
+nouns they understand, for instance looking less at a car upon hearing ‘cur’ than 
+‘car’ (Swingley and Aslin, 2002). Here we test whether such high-fidelity 
+representations extend to irregular nouns, and regular and irregular verbs.
+A corpus analysis confirms the intuition that irregular verbs are far more common
+than irregular nouns in speech to young children. Two eyetracking experiments 
+then test whether toddlers are sensitive to mispronunciation in regular and 
+irregular nouns (Experiment 1) and verbs (Experiment 2). For nouns, we find a 
+mispronunciation effect and no regularity effect in 18-month-olds. For verbs, 
+in Experiment 2a, we find only a regularity effect and no mispronunciation effect
+in 18-month-olds, though toddlers’ poor comprehension overall limits interpretation. 
+Finally, in Experiment 2b we find a mispronunciation effect and no regularity effect 
+in 26-month-olds. The interlocking roles of lexical class and regularity for 
+wordform representations and early word learning are discussed.
 
 3. Original study info
 
-This dataset currently contains data from Experiment 2a and 2b.
+This dataset currently contains data from Experiments 1,  2a,  and 2b.
 
-Key conditions. (note: column names refer to the dataframe in raw_data/data/eyetracking/vna_test_taglowdata.Rds)
-- Whether the verb was regular or irregular. Column VerbType.
-- Whether the verb was mispronounced. Column TrialType with values CP (for *c*orrectly pronounced) and MP (for mispronounced).
-- Age group: young (15-20 months) or old (23-29) months. Column young_old. It is not getting directly imported but can be reconstructed from the age column in the administrations table.
+All experiments compare 
+* correct and incorrect pronunciation of 
+* regular and irregular words. 
+
+Experiment 1 includes younger (16-20 month) kids tested on nouns.
+Experiment 2a includes younger (16-20 month) kids tested on verbs.
+Experiment 2b includes older (24-28 month) kids tested on verbs. 
+
+32 test trials (2 repeats of ) correct v incorrect x 8 words
 
 4. Importing decisions
 
@@ -30,6 +48,13 @@ Key conditions. (note: column names refer to the dataframe in raw_data/data/eyet
 
     Distractors, however, don't have a label or a carrier phrase associated with them and so there isn’t an obvious target stimulus we could assign to represent them. We could have arbitrarily selected one of the two target stimuli that use the same video; for example, the one with the correctly pronounced verb. Instead, we added distractors as separate stimuli and gave them labels like “jump_distractor”.
 
+    Mispronuniciations are marked as "novel" stimulus even if the image is familiar. 
+
+    there are some video files for the verbs (expt 2) in the osf raw data but 
+     A) peekbank is not build with stimulus videos in mind and
+     B) they would need manual editing anyway, since they are not split into separate videos yet
+     so they do not go in the file_path which is for images only. 
+
     # Trial types
 
     The target word onset time varied considerably between trials. Because of that, we ended up with as many trial types as there were trials.
@@ -37,6 +62,8 @@ Key conditions. (note: column names refer to the dataframe in raw_data/data/eyet
     # AOI region sets
 
     Points with x coordinate 640 were assigned to the “left” AOI, and with 640.1 and above - to the right AOI. To represent that in the table, we would need to set r_x_min to 640.1 or any other number larger than 640 and not larger than 640.1. The table columns are interger, however, so we could either go with 640 or 641. We went with 640.
+
+    even though the location of the stimuli is given in pixels, the paper makes it clear that the screen was split in two halfs for the eyetracking and the aois were counted that way
 
 5. Importing ambiguity
 
