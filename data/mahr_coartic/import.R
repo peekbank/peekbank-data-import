@@ -50,7 +50,7 @@ subjects_table <- subjects %>%
   filter(is.na(Exclude)) %>%
   mutate(
     subject_id = seq(0, nrow(.) - 1, 1),
-    sex = "unspecified",                 # sex is not reported in original data for each subject
+    sex = "unspecified",                 
     native_language = "eng"
   ) %>%
   select(lab_subject_id, lab_age, rawscore = cdi, subject_id, sex, native_language) %>%
