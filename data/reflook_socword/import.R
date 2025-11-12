@@ -29,8 +29,6 @@ participant_file_name <- "reflook_v3_demographics.csv"
 # load
 source(here("data/reflook_socword/import_helpers.R"))
 
-# Specify file
-file_name <- "2011_0426_042412_01_1105_Samples.txt"
 
 #### define directory ####
 # Define root path
@@ -38,7 +36,6 @@ project_root <- here::here()
 # build directory path
 dir_path <- fs::path(project_root, "data", dataset_name, "raw_data", "full_dataset")
 exp_info_path <- fs::path(project_root, "data", dataset_name, "raw_data", "experiment_info")
-aoi_path <- fs::path(project_root, "data", dataset_name, "raw_data", "test_aois")
 
 # output path
 output_path <- fs::path(project_root, "data", dataset_name, "processed_data")
@@ -166,7 +163,7 @@ trial_types.data <- process_smi_trial_info(trial_file_path) %>%
     distractor_id, target_id, condition
   ) %>%
   mutate(trial_type_aux_data = "NA") %>%
-  mutate(vanilla_trial = "FALSE")
+  mutate(vanilla_trial = condition == "familiar")
 
 # create xy data
 xy_merged.data <- timepoint.data %>%

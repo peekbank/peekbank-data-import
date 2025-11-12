@@ -98,7 +98,7 @@ process_smi_trial_info <- function(file_path) {
       dataset = dataset_id # choose specific dataset id for now
     )
 
-  # full phrase? currently unknown for refword
+  # full phrase is added later
   trial_data$full_phrase <- NA
 
 
@@ -201,7 +201,7 @@ process_smi_dataset <- function(lab_dataset_id = dataset_name) {
     dataset_id = dataset_id, # hard code data set id for now
     lab_dataset_id = lab_dataset_id,
     dataset_name = lab_dataset_id,
-    cite = "Yurovsky, Wade & Frank, 2013", ## what is the full citation on this?
+    cite = "Yurovsky, D., Wade, A., & Frank, M. C. (2013). Online processing of speech and social information in early word learning. In Proceedings of the 35th Annual Meeting of the Cognitive Science Society.",
     shortcite = "Yurovsky et al., 2013"
   )
 
