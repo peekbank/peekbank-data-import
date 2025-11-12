@@ -292,10 +292,7 @@ dataset_list <- digest.dataset(
   wide.table = wide.table
 )
 
-
-# TODO: tbd if the cdi data actually matches this sample, in that case we need to do id matching
-# CDI data taken from https://osf.io/mxksz/
-
+## there is CDI data for some of these kids we think, but we don't know how to line it up yet
 # cdi data
 # load(here(mtl_path, "anon_cdi.rda"))
 
@@ -316,40 +313,41 @@ dataset_list <- digest.dataset(
 
 
 # DVAP
-mtl_dvap <- mtl_demog %>% 
+mtl_dvap <- mtl_demog %>%
   distinct(study_id, vocab_eng, vocab_fr, age_years) %>%
   mutate(vocab_eng = as.numeric(vocab_eng), vocab_fr = as.numeric(vocab_fr)) %>%
   pivot_longer(cols = c(vocab_eng, vocab_fr), names_to = "language", values_to = "rawscore") %>%
   mutate(language = ifelse(language == "vocab_eng", "English (American)", "French (Quebecois)")) %>%
-  mutate(subject_id = sprintf("CompMix36_%s", study_id)) %>% 
+  mutate(subject_id = sprintf("CompMix36_%s", study_id)) %>%
   select(-study_id)
-  
+
 pct_dvap <- pct_demog %>%
   distinct(study_id, vocab_eng, vocab_sp, age_years) %>%
   mutate(vocab_eng = as.numeric(vocab_eng), vocab_sp = as.numeric(vocab_sp)) %>%
   pivot_longer(cols = c(vocab_eng, vocab_sp), names_to = "language", values_to = "rawscore") %>%
   mutate(language = ifelse(language == "vocab_eng", "English (American)", "Spanish (Mexican)")) %>%
-  mutate(subject_id = sprintf("Mix3a_%02d", as.numeric(study_id))) %>% 
-  select(-study_id) 
-  
-language_measures <- rbind(mtl_dvap, pct_dvap) %>% 
-  mutate(age = age_years/12, instrument_type="DVAP") %>% 
+  mutate(subject_id = sprintf("Mix3a_%02d", as.numeric(study_id))) %>%
+  select(-study_id)
+
+language_measures <- rbind(mtl_dvap, pct_dvap) %>%
+  mutate(age = age_years / 12, instrument_type = "DVAP") %>%
   select(-age_years)
 
 # Language Exposures
-mtl_exposure <- demo_comp %>% 
-  pivot_longer(cols = c(eng_exp, fre_exp), names_to = "language", values_to = "exposure") %>% 
-  mutate(language = ifelse(language == "eng_exp", "English (American)", "French (Quebecois)")) %>% 
-  mutate(subject_id = sprintf("CompMix36_%s", study_id)) %>% 
+mtl_exposure <- demo_comp %>%
+  pivot_longer(cols = c(eng_exp, fre_exp), names_to = "language", values_to = "exposure") %>%
+  mutate(language = ifelse(language == "eng_exp", "English (American)", "French (Quebecois)")) %>%
+  mutate(subject_id = sprintf("CompMix36_%s", study_id)) %>%
   select(-study_id)
 
-pct_exposure <- pct_demog %>% distinct(study_id, parent_report_average_exposure_english) %>%
-  rename(exposure = parent_report_average_exposure_english) %>% 
-  mutate(language = "English (American)") %>% 
-  mutate(subject_id = sprintf("Mix3a_%02d", as.numeric(study_id))) %>% 
+pct_exposure <- pct_demog %>%
+  distinct(study_id, parent_report_average_exposure_english) %>%
+  rename(exposure = parent_report_average_exposure_english) %>%
+  mutate(language = "English (American)") %>%
+  mutate(subject_id = sprintf("Mix3a_%02d", as.numeric(study_id))) %>%
   select(-study_id)
 
-language_exposures <- rbind(mtl_exposure, pct_exposure) %>% 
+language_exposures <- rbind(mtl_exposure, pct_exposure) %>%
   filter(!is.na(exposure))
 
 
