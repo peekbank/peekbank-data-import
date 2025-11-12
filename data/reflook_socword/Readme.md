@@ -3,6 +3,9 @@
 1. Reference
 Yurovsky, D., Wade, A., & Frank, M. C. (2013). Online processing of speech and social information in early word learning. In Proceedings of the 35th Annual Meeting of the Cognitive Science Society.
 
+Yurovsky, D., Wade, A., Kraus, A. M., Gengoux, G. W., Antonio, Y., & Frank, M. C. (2017). Developmental changes in the speed of social attention in early word learning. (unpublished)
+(available at https://callab.uchicago.edu/papers/ywkghf-ur.pdf)
+
 2. Abstract
 
 Although word learning unfolds over days, weeks, and months,
@@ -21,26 +24,48 @@ cessing and cue-following together. Thus, even through the
 4th year, real-time processing of social and linguistic informa-
 tion are a critical bottleneck for word learning.
 
+(Abstract from developmental changes...)
+How do children learn words so rapidly? A powerful source of information about a new
+word’s meaning is the set of social cues provided by its speaker (e.g. eye-gaze). Studies of
+children’s use of social cues have tended to focus on the emergence of this ability in early
+infancy. We show, however, that this early-emerging ability has a long developmental
+trajectory: Slow, continuous improvements in speed of social information processing occur
+over the course of the first five years of life. This developing ability to allocate social
+attention is a significant bottleneck on early word learning—continuous changes in social
+information processing predict continuous changes in children’s ability to learn new words.
+Further, we show that this bottleneck generalizes to children diagnosed with autism
+spectrum disorder, whose social information processing is atypical. These results describe a
+route by which increases in social expertise can lead to changes in language learning ability,
+and more generally highlight the dependence of developmental outcomes not on just the
+existence of particular competencies, but on their proficient use in complex contexts.
 
 3. Original study info
 
-Children 1-5 years old were tested, a total of 114 children, 39 of whom were excluded. 
-The final sample consisted of 18 1-2 year olds, 25 2-3 year olds, 21 3-4
-year olds, and 11 children over the age of 4.
+This study is reported in the cogsci paper, and also as expt 3 in an unpublished ms. 
+The unpublished ms includes more children and also describes more trials. (only the first 
+part of each expt is in the cogsci paper). 
 
-Each child did 4 familiar trials and 6 learning trials (3 in brief, 3 in extended) 
-interleaved with learning trials (not included here).
+(from the unpublished ms)
+425 children ages 125 were tested, with 200 excluded for a final sample of 225 children:
+61 1-year-olds (25 girls); 57 2-year-olds (30 girls); 51 3-year-olds (25 girls); and 50 4-year-olds (24 girls))
 
-It looks like these are the first 10 trials of each admin in the data, but that there are then 
-more (different?) novel trials and more filler trials (?). 
+Each child did 8 familiar trials, learning trials (not included here),
+8 test trials with the novel object shown against a consistent distractor
+(4 in brief, 4 in extended)  and 4 trials with the two novel objects against each other. 
+
 
 4. Importing decisions
 
 Note that some of the import processing code is in functions in import_helpers.R.
 
-There are many more children in the dataset (435) than are reported in the cogsci paper (114 including some who were excluded)
-
 We do not have access to all the child-level info needed to match the exclusions reported in the paper. 
+We have marked the exclusions for prematurity (assuming this lines up with atypical
+developmental trajectories) and for <75% English. We have not re-recreated exclusions
+based on eye-tracker calibration. 
+
+We excluded trials that are length 0. We exclude children without age information. 
+
+We do not have the image stimuli, although we might be able to in the future. 
 
 5. Importing ambiguity
 no known ambiguities

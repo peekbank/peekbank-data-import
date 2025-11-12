@@ -95,22 +95,28 @@ stimuli.data <- process_smi_stimuli(trial_file_path) %>%
 timepoint.data <- lapply(all_file_paths, process_smi_eyetracking_file) %>%
   bind_rows() %>%
   mutate(xy_timepoint_id = seq(0, length(lab_subject_id) - 1)) %>%
-  mutate(subject_id = as.numeric(factor(lab_subject_id, levels = unique(lab_subject_id))) - 1) %>%
   mutate(trial_order = trial_type_id + 1) %>%
-  group_by(subject_id, trial_type_id) %>%
+  group_by(lab_subject_id, trial_type_id) %>%
   mutate(trial_id = cur_group_id() - 1) %>%
+  group_by(trial_id) |>
+  mutate(num_t = n()) |>
+  filter(num_t > 1) |> # get rid of 0 length trials
+  select(-num_t) |>
   ungroup()
 
 ## extract unique participant ids from eyetracking data (in order to filter participant demographic file)
 participant_id_table <- timepoint.data %>%
-  distinct(lab_subject_id, subject_id)
+  distinct(lab_subject_id)
 
 # create participant data
 subjects.data <- process_subjects_info(participant_file_path) %>%
-  left_join(participant_id_table, by = "lab_subject_id") %>%
-  filter(!is.na(subject_id)) %>%
+  inner_join(participant_id_table, by = "lab_subject_id") %>%
+  mutate(subject_id = as.numeric(factor(lab_subject_id, levels = unique(lab_subject_id))) - 1) %>%
   mutate(native_language = "eng") %>%
-  dplyr::select(subject_id, sex, lab_subject_id, native_language, english) %>%
+  dplyr::select(
+    subject_id, sex, lab_subject_id, native_language, english,
+    excluded, exclusion_reason
+  ) %>%
   mutate(
     subject_aux_data =
       as.character(pmap(list(english), function(english) {
@@ -130,8 +136,8 @@ administration.data <- process_administration_info(
 )
 
 administration.data <- participant_id_table %>%
-  left_join(administration.data, by = "lab_subject_id") %>%
-  dplyr::select(-lab_subject_id) %>%
+  inner_join(administration.data, by = "lab_subject_id") %>%
+  inner_join(subjects.data) |>
   dplyr::select(
     dataset_id, subject_id, age, lab_age, lab_age_units,
     monitor_size_x, monitor_size_y, sample_rate, tracker, coding_method
@@ -140,12 +146,19 @@ administration.data <- participant_id_table %>%
   mutate(administration_id = seq(0, length(subject_id) - 1)) %>%
   mutate(administration_aux_data = "NA")
 
+
+timepoint.data <- timepoint.data |>
+  inner_join(subjects.data |> select(lab_subject_id, subject_id, excluded, exclusion_reason)) |>
+  mutate(trial_id = as.numeric(factor(trial_id, levels = unique(trial_id))) - 1)
+
 # create trials data
 trials.data <- timepoint.data %>%
-  distinct(trial_id, trial_order, trial_type_id) %>%
-  mutate(trial_aux_data = NA) %>%
-  mutate(excluded = FALSE) %>%
-  mutate(exclusion_reason = NA)
+  distinct(trial_id, trial_order, trial_type_id, excluded, exclusion_reason) %>%
+  mutate(trial_aux_data = NA)
+
+subjects.data <- subjects.data |>
+  select(-excluded, -exclusion_reason) |>
+  inner_join(administration.data |> select(subject_id))
 
 # create trials data and match with stimulus id and aoi_region_set_id
 trial_types.data <- process_smi_trial_info(trial_file_path) %>%
@@ -206,5 +219,6 @@ write_and_validate(
   trials = trials.data,
   aoi_region_sets = aoi.data,
   xy_timepoints = xy.data,
-  aoi_timepoints = aoi_timepoints.data
+  aoi_timepoints = aoi_timepoints.data,
+  upload = F
 )

@@ -13,7 +13,7 @@ dataset_id <- 0
 # these are 30 fps
 sampling_rate_hz <- 30
 sample_rate_ms <- 1000 / 30
-start_frames <- 18 # TODO: start of phrase or start of word?
+start_frames <- 18
 point_of_disambiguation <- start_frames * sample_rate_ms
 
 #----
@@ -108,12 +108,6 @@ looking_data <- raw_looking_data %>%
   ungroup() %>%
   fill(trial_order_num)
 
-# Check that there are the correct number of trials per participant
-looking_data %>%
-  group_by(subject_file) %>%
-  summarize(num_trials = max(trial_order_num)) %>%
-  filter(num_trials != 15) # we expect 16 trials per participant, one has 15
-
 # Dataset note says the first trial was cut out for participant 27AS, so we need to increment that participants trial #s...
 looking_data <- looking_data %>%
   mutate(trial_order_num = ifelse(subject_file == "27AS_SineWaveSpeechv2_Order2.xls",
@@ -168,8 +162,6 @@ looking_data_tidy <- looking_data %>%
   mutate(frame = map2(start_frame, end_frame, seq)) %>%
   unnest(frame) %>%
   select(look, frame, subject_file, trial_order_num) %>%
-  # NOTE: There are some (~30) frames in this dataset which have two conflicting looks
-  # Here we are just taking the preceeding look for these conflicts
   group_by(across(c(-look))) %>%
   slice(1) %>%
   ungroup()
@@ -237,7 +229,7 @@ trials_tidy <- raw_trials_data %>%
       target_side == "right" ~ image_left,
       TRUE ~ "ambig"
     ),
-    vanilla_trial = ifelse(type == "FULL", TRUE, FALSE)
+    vanilla_trial = condition == "Full",
   ) %>%
   filter(target_side != "ambig")
 
@@ -255,13 +247,7 @@ demo_data_tidy <- raw_demo_data %>%
     native_language = "eng"
   ) |>
   mutate(eng_lds_rawscore = gsub("\\s.*", "", lds))
-# check if we're missing data from any kids
-demo_data_tidy %>%
-  count(lab_subject_id) %>%
-  filter(n != 1)
 
-# check gender assignment
-unique(demo_data_tidy$sex)
 
 # join to generate a large (tm) table, which we can then distinct to create our peekbank tables!
 d_tidy <- looking_data_tidy %>%
@@ -287,7 +273,7 @@ datasets_table <- tibble(
   dataset_id = dataset_id,
   lab_dataset_id = dataset_name,
   dataset_name = "newman_sinewave_2015",
-  cite = "Newman R.S, Chatterjee M., Morini G. Remez, R.E. (2015). The Journal of the Acoustical Society of America 138, EL311",
+  cite = "Newman, R. S., Chatterjee, M., Morini, G., & Remez, R. E. (2015). Toddlers' comprehension of degraded signals: Noise-vocoded versus sine-wave analogs. The Journal of the Acoustical Society of America, 138(3), EL311-EL317.",
   shortcite = "Newman et al. (2015)",
   dataset_aux_data = NA
 )
@@ -305,7 +291,7 @@ stimuli_table <- rbind(
     stimulus_novelty = "familiar",
     stimulus_image_path = NA,
     image_description = english_stimulus_label,
-    image_description_source = "Peekbank discretion",
+    image_description_source = "experiment documentation",
     lab_stimulus_id = english_stimulus_label,
     stimulus_id = row_number() - 1,
     dataset_id = dataset_id,
@@ -418,7 +404,7 @@ trials_table <- trials_table %>% select(-administration_id)
 aoi_table <- d_tidy %>%
   left_join(trial_types_table) %>%
   select(trial_id, aoi, t_zeroed = t, administration_id, point_of_disambiguation) %>%
- peekbankr::ds.normalize_times() %>%
+  peekbankr::ds.normalize_times() %>%
   peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 
 write_and_validate(
@@ -434,3 +420,8 @@ write_and_validate(
   xy_timepoints = NA,
   aoi_timepoints = aoi_table
 )
+
+# d_tidy |> filter(condition=="Full") |> group_by(target_id, t) |>
+#   filter(aoi%in% c("target", "distractor")) |>
+#   summarize(m=mean(aoi=="target")) |> left_join(stimuli_table, c("target_id"="stimulus_id")) |>
+#   ggplot(aes(x=t, y=m,color=english_stimulus_label))+geom_line()+geom_vline(xintercept=600)+geom_hline(yintercept=.5)

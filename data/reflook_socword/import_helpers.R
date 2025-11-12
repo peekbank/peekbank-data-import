@@ -16,7 +16,14 @@ extract_smi_info <- function(file_path, parameter_name) {
 
 process_subjects_info <- function(file_path) {
   data <- read.csv(file_path) %>%
-    dplyr::select(subid, age, gender, english) %>%
+    filter(age != "NaN") |>
+    mutate(
+      excluded = (english < 75 | is.na(english)),
+      exclusion_reason = ifelse((english < 75 | is.na(english)), "less than 75% reported English exposure,", ""),
+      excluded = (excluded | premature == "TRUE"),
+      exclusion_reason = str_c(exclusion_reason, ifelse(premature == "TRUE", " premature", ""))
+    ) |>
+    dplyr::select(subid, age, gender, english, excluded, exclusion_reason) %>%
     dplyr::rename(
       "lab_subject_id" = "subid",
       "sex" = "gender"
