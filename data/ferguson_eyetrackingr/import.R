@@ -1,35 +1,12 @@
-# Import script for peekbank
-# CITATION Ferguson, B., Graf, E., & Waxman, S. R. (2014).
-# Infants use known verbs to learn novel nouns: Evidence from 15- and 19-month-olds.
-# Cognition, 131(1), 139-146.
-# 10.1016/j.cognition.2013.12.014
-# George Kachergis
-# 3/21/2022
-
 library(tidyverse)
 library(here)
 library(peekbankr)
 library(osfr)
 
-# MacArthur Short Form Vocabulary Checklist: Level II (Form A)  - WSshort, right?
-
 source(here("helper_functions", "common.R"))
 dataset_name <- "ferguson_eyetrackingr"
 data_path <- init(dataset_name)
 
-
-# http://www.eyetracking-r.com/docs/word_recognition
-# Description: Data from a simple 2-alternative forced choice (2AFC) word recognition task
-# administered to 19- and 24-month-olds. On each trial, infants were shown a picture of an
-# animate object (e.g., a horse) and an inanimate object (e.g., a spoon). After inspecting
-# the images, they disappeared and they heard a label referring to one of them (e.g.,
-# "The horse is nearby!"). Finally, the objects re-appeared on the screen and they were
-# prompted to look at the target (e.g., "Look at the horse!").
-
-# "We focused our analysis on the window beginning at the onset of the target word at test and lasting through the end of the trial (5.5s total)
-
-# distractor information: see ferguston_eyetrackingr.png from email from Brock Ferguson
-# (Trial contains 6 unique values specifying target, e.g. "FamiliarBottle")
 trial_stim <- tibble(
   original_stimulus_label = c(
     "FamiliarBottle", "FamiliarDog", "FamiliarHorse",
@@ -37,18 +14,10 @@ trial_stim <- tibble(
   ),
   english_stimulus_label = c("bottle", "dog", "horse", "spoon", "bird", "cow"),
   target_image = c("bottle", "dog", "horse", "spoon", "bird", "cow"),
-  distractor_image = c("rabbit", "mouse", "car", "shoe", "chair", "television"),
+  target_animacy = c(F, T, T, F, T, T),
+  distractor_image = c("rabbit", "television", "car", "mouse", "shoe", "chair"),
   target_side = c("left", "right", "right", "left", "right", "left")
 )
-
-# AOI: 811 x 713 pixel around each object image -- but what is the resolution of the screen?
-# full AOI XY-coordinates are taken from ancat-aoi.txt
-
-# could extract target_side from this (did it manually above)
-# aoi_info <- readr::read_delim(paste0(data_path,"/ancat-aoi.txt")) %>%
-#  select(Trial, SceneName, Position, SceneType) %>%
-#  rename(original_stimulus_label = Trial)
-
 
 cdi_language <- "English (American)"
 
@@ -58,10 +27,10 @@ raw_data <- read.csv(here(data_path, "ferguson_eyetrackingr.csv"))
 
 ################## TABLE SETUP ##################
 
-# it's very helpful to have the schema open as you do this
-# https://docs.google.com/spreadsheets/d/1Z24n9vfrAmEk6_HpoTSh58LnkmSGmNJagguRpI1jwdo/edit#gid=0
-
 proc_data <- raw_data %>%
+  filter(Subphase %in% c("Test", "Word Onset")) |>
+  # ignore the Preview window since
+  # it doesn't even have the targets for much of the time
   rename(
     age = Age,
     lab_subject_id = ParticipantName,
@@ -75,29 +44,28 @@ proc_data <- raw_data %>%
   ) %>% # we only have the 6 familiar trials
   left_join(trial_stim)
 
-# what to do with "Phase"? (Preview, Test, Word Onset)
 
-# recode  "", Animate, Inanimate, TrackLoss as other, target, distractor, and missing
 d_tidy <- proc_data %>%
   select(-Sex, -MCDI_Nouns, -MCDI_Verbs) %>%
   rename(
     aoi_old = AOI,
-    t_norm = TimeFromSubphaseOnset,
+    t = TimeFromTrialOnset,
     rawscore = MCDI_Total
   ) %>%
   mutate(
     condition = "familiar",
-    lab_trial_id = NA, # GK: maybe same as original_stimulus_label
+    lab_trial_id = original_stimulus_label,
     aoi_region_set_id = 0,
-    aoi = case_when(
-      aoi_old == "Inanimate" ~ "distractor",
-      aoi_old == "Animate" ~ "target",
+    t_norm = t - 15500, # point of disambiguation
+    aoi = case_when( # convert based on whether the target was animate
+      target_animacy & aoi_old == "Inanimate" ~ "distractor",
+      target_animacy & aoi_old == "Animate" ~ "target",
+      (!target_animacy) & aoi_old == "Inanimate" ~ "target",
+      (!target_animacy) & aoi_old == "Animate" ~ "distractor",
       aoi_old == "" ~ "other", # ?all of these are also TrackLoss=TRUE, so maybe just missing?
       aoi_old == "TrackLoss" ~ "missing"
     )
-  ) %>%
-  mutate(t_norm = as.numeric(t_norm)) # ensure time is an integer/ numeric
-
+  )
 
 ### 1. DATASET TABLE
 dataset <- tibble(
@@ -120,7 +88,7 @@ cdi_to_json <- d_tidy %>%
     list(rawscore, age),
     function(cdi, age) {
       jsonlite::toJSON(list(cdi_responses = list(
-        list(rawscore = cdi, age = age, measure = "prod", language = "English (American)", instrument_type = "ws")
+        list(rawscore = cdi, age = age, measure = "prod", language = "English (American)", instrument_type = "wsshort")
       )), auto_unbox = TRUE)
     }
   ))) %>%
@@ -181,8 +149,6 @@ administrations <- d_tidy %>%
     coding_method = "eyetracking",
     administration_aux_data = NA
   )
-# from manual: "Tobii T60XL Eye Tracker is integrated into a high resolution 24-inch
-# 1920 x 1080 pixels widescreen monitor"
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
@@ -218,8 +184,8 @@ d_tidy_final <- d_tidy %>%
   mutate(
     full_phrase_language = "eng",
     trial_order = TrialNum,
-    point_of_disambiguation = 0
-  ) # TODO: is this true? or only for Subphase=="Test"?
+    point_of_disambiguation = 0 # since we already subtracted off the start time
+  )
 
 ### 5. TRIAL TYPES TABLE
 trial_types <- d_tidy_final %>%
@@ -282,22 +248,6 @@ aoi_timepoints <- d_tidy_final %>%
   select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>%
   peekbankr::ds.resample_times(table_type = "aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
-
-
-################## ENTERTAINING PLOT ##################
-# feel free to modify
-aoi_timepoints %>%
-  left_join(trials) %>%
-  left_join(trial_types) %>%
-  group_by(t_norm, condition) %>%
-  filter(aoi %in% c("target", "distractor")) %>%
-  summarise(correct = mean(aoi == "target")) %>%
-  ggplot(aes(x = t_norm, y = correct, col = condition)) +
-  geom_line() +
-  xlim(-3000, 4000) +
-  ylim(.4, .75) +
-  geom_hline(aes(yintercept = .5), lty = 2) +
-  theme_bw()
 
 write_and_validate(
   dataset_name = dataset_name,
