@@ -1,5 +1,3 @@
-# process pomper salientme data
-## libraries
 library(here)
 library(janitor)
 library(readxl)
@@ -9,9 +7,8 @@ dataset_name <- "pomper_salientme"
 read_path <- init(dataset_name)
 
 
-## constants
 sampling_rate_hz <- 30
-sampling_rate_ms <- 33 # 33 ms
+sampling_rate_ms <- 33
 participant_file_name <- "SalientME_Participants_deID.xlsx"
 data_file_name <- "SME_Final.txt"
 
@@ -27,7 +24,6 @@ remove_repeat_headers <- function(d, idx_var) {
 d_raw <- read_delim(fs::path(read_path, data_file_name),
   delim = "\t"
 )
-
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
@@ -46,10 +42,10 @@ post_dis_names <- old_names[str_detect(old_names, "f\\d")]
 
 
 pre_dis_names_clean <- seq(
-  from = length(pre_dis_names) * sampling_rate_ms,
-  to = sampling_rate_ms,
-  by = -sampling_rate_ms
-) * -1
+  from = -length(pre_dis_names) * sampling_rate_ms,
+  to = -sampling_rate_ms,
+  by = sampling_rate_ms
+)
 
 post_dis_names_clean <- post_dis_names %>% str_remove("f")
 
@@ -59,23 +55,19 @@ colnames(d_processed) <- c(
   post_dis_names_clean
 )
 
-### truncate columns at F4367, since trials are never coded later than this timepoint
-## TO DO: check in about this decision
-post_dis_names_clean_cols_to_remove <- post_dis_names_clean[133:length(post_dis_names_clean)]
-# remove
+### truncate columns at F4367, see README
 d_processed <- d_processed %>%
-  select(-all_of(post_dis_names_clean_cols_to_remove))
+  select(-all_of(post_dis_names_clean[133:length(post_dis_names_clean)]))
 
 
 # Convert to long format --------------------------------------------------
 # get idx of first time series
 first_t_idx <- length(metadata_names) + 1
-last_t_idx <- colnames(d_processed) %>% length()
+last_t_idx <- ncol(d_processed)
 d_tidy <- d_processed %>%
   pivot_longer(first_t_idx:last_t_idx, names_to = "t", values_to = "aoi")
 
-# recode 0, 1, ., - as distractor, target, other, NA [check in about this]
-# this leaves NA as NA
+# recode 0, 1, ., -
 d_tidy <- d_tidy %>%
   rename(aoi_old = aoi) %>%
   mutate(aoi = case_when(
@@ -84,7 +76,8 @@ d_tidy <- d_tidy %>%
     aoi_old == "0.5" ~ "other",
     aoi_old == "." ~ "missing",
     aoi_old == "-" ~ "missing",
-    is.na(aoi_old) ~ "missing"
+    is.na(aoi_old) ~ "missing",
+    TRUE ~ "other"
   )) %>%
   rename(left_image = r_image, right_image = l_image) %>%
   mutate(target_side = as.character(factor(target_side, levels = c("l", "r"), labels = c("right", "left")))) %>% # need to flip the right and left sides from the icoder
@@ -97,9 +90,8 @@ d_tidy <- d_tidy %>%
     TRUE ~ right_image
   ))
 
-# read in order files
-order_read_path <- here("data", dataset_name, "raw_data", "orders")
 
+order_read_path <- here("data", dataset_name, "raw_data", "orders")
 order_files <- list.files(path = order_read_path, pattern = "xlsx", full.names = FALSE)
 
 read_order <- function(file_name, path = order_read_path) {
@@ -142,7 +134,8 @@ all_orders <- map_df(order_files, read_order) %>%
     str_detect(carrier_phrase_code, "Look") ~ "Look at the"
   )) %>%
   mutate(full_phrase = paste0(carrier_phrase, " ", target_label, 
-                              ifelse(grepl("^Where", carrier_phrase), "?", "!"))) %>%  # fix some inconsistencies in condition naming
+                              ifelse(grepl("^Where", carrier_phrase), "?", "!"))) %>%  
+  # fix some inconsistencies in condition naming
   mutate(condition = case_when(
     condition == "Fam-LoComp" ~ "Fam-LowComp",
     condition == "Fam-LowCompTest" ~ "Fam-LowComp-Test",
@@ -151,7 +144,7 @@ all_orders <- map_df(order_files, read_order) %>%
   )) %>%
   select(-target_image, -condition) # removing target_image and condition to avoid inconsistencies
 
-# join orders into d_tidy
+
 d_tidy <- d_tidy %>%
   left_join(all_orders, by = c("order", "tr_num", "target_side", "left_image", "right_image"))
 
@@ -184,7 +177,7 @@ d_tidy <- d_tidy %>%
   ) %>%
   select(-distractor_label_novel)
 
-# create stimulus table
+
 # some distractors are never target, so need to gather target and distractor stimuli separately
 stimulus_table_target <- d_tidy %>%
   distinct(target_image, target_label, stimulus_novelty) %>%
@@ -210,7 +203,7 @@ stimulus_table_distractor <- d_tidy %>%
   mutate(
     original_stimulus_label = distractor_label,
     english_stimulus_label = distractor_label,
-    stimulus_image_path = paste0("stimuli/images/", distractor_image,".jpg"), # TO DO - update once images are shared/ image file path known
+    stimulus_image_path = paste0("stimuli/images/", distractor_image,".jpg")
   ) %>%
   rename(
     image = distractor_image,
@@ -222,7 +215,7 @@ stimulus_table <- stimulus_table_target %>%
   bind_rows(stimulus_table_distractor) %>%
   distinct(original_stimulus_label, english_stimulus_label, stimulus_image_path, lab_stimulus_id, stimulus_novelty, image, label) %>%
   mutate(dataset_id = 0) %>%
-  mutate(stimulus_id = seq(0, length(.$lab_stimulus_id) - 1)) %>%
+  mutate(stimulus_id = 0:(n() - 1)) %>%
   mutate(image_description = case_when(
     image == "novel1" ~ "purple unfamiliar object",
     image == "novel2" ~ "orange-yellow unfamiliar object",
@@ -269,7 +262,7 @@ d_tidy <- d_tidy %>%
 # get zero-indexed subject ids
 d_subject_ids <- d_tidy %>%
   distinct(sub_num) %>%
-  mutate(subject_id = seq(0, length(.$sub_num) - 1))
+  mutate(subject_id = 0:(n() - 1))
 
 # join back into d_tidy
 d_tidy <- d_tidy %>%
@@ -278,22 +271,21 @@ d_tidy <- d_tidy %>%
 # get zero-indexed administration ids
 d_administration_ids <- d_tidy %>%
   distinct(sub_num, subject_id, months) %>%
-  mutate(administration_id = seq(0, length(.$sub_num) - 1))
+  mutate(administration_id = 0:(n() - 1))
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  # add sub num to make the trial ids unique across administrations
+  # add sub num to make the trial ids unique across administrations (one administration per subject)
   distinct(tr_num, condition, full_phrase, target_id, distractor_id, target_side, sub_num) %>%
   arrange(sub_num, tr_num) %>%
   mutate(trial_order = as.numeric(tr_num)) %>%
-  mutate(trial_id = seq(0, length(.$tr_num) - 1))
+  mutate(trial_id = 0:(n() - 1))
 
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
   distinct(condition, full_phrase, target_id, distractor_id, target_side) %>%
-  mutate(trial_type_id = seq(0, length(full_phrase) - 1))
+  mutate(trial_type_id = 0:(n() - 1))
 
-# joins
 d_tidy_semifinal <- d_tidy %>%
   left_join(d_administration_ids) %>%
   left_join(d_trial_type_ids) %>%
@@ -306,15 +298,15 @@ exclusions_external <- exclusions_raw %>%
   rename(lab_subject_id = `Sub Num`, exclusion_reason = Reason) %>%
   mutate(excluded = TRUE, lab_subject_id = as.character(lab_subject_id))
 
-# add some more variables to match schema
+
 d_tidy_final <- d_tidy_semifinal %>%
   mutate(
     lab_trial_id = paste(target_label, target_image, distractor_image, sep = "-"),
-    aoi_region_set_id = NA, # was aoi_region_id
-    monitor_size_x = NA, # 140cm .. diagonal?
+    aoi_region_set_id = NA,
+    monitor_size_x = NA,
     monitor_size_y = NA,
     lab_age_units = "months",
-    age = as.numeric(months), # months
+    age = as.numeric(months),
     point_of_disambiguation = 0
   ) %>%
   rename(
@@ -383,8 +375,8 @@ trial_types <- d_tidy_final %>%
   # join in the distractors so that stimulus novelty also
   left_join(stimuli %>% select(-dataset_id), by=join_by(distractor_id == stimulus_id)) %>% 
   # according to the specification, novel words make for non-vanilla trials
+  # target novelty: .y, distractor novelty: no suffix - a bit confusing, but this code likely won't need to be touched in the future, so it's fine
   mutate(vanilla_trial = stimulus_novelty.y == "familiar" & stimulus_novelty == "familiar") %>%
-  #mutate(vanilla_trial = stimulus_novelty.y == "familiar") %>% 
   distinct(
     trial_type_id,
     full_phrase,
@@ -413,11 +405,10 @@ trials <- d_tidy_final %>%
 
 
 ##### DATASETS TABLE ####
-# write Dataset table
 dataset <- tibble(
-  dataset_id = 0, # leave as 0 for all
+  dataset_id = 0,
   dataset_name = "pomper_salientme",
-  lab_dataset_id = dataset_name, # (if known)
+  lab_dataset_id = dataset_name,
   cite = "Pomper, R., & Saffran, J. R. (2018). Familiar object salience affects novel word learning. Child Development, 90(2), e246-e262. doi:10.1111/cdev.13053.",
   shortcite = "Pomper & Saffran (2018)",
   dataset_aux_data = NA
