@@ -59,7 +59,7 @@ aoi.data.all <- list.files(
     xy_file_path = all_file_paths[1]
   ) %>%
   bind_rows() %>%
-  mutate(l_x_min = pmax(l_x_min, 0)) %>% # setting negative vals to 0
+  mutate(l_x_min = pmax(l_x_min, 0)) %>%
   distinct(
     l_x_min, l_x_max, l_y_min, l_y_max,
     r_x_min, r_x_max, r_y_min, r_y_max,
@@ -190,9 +190,7 @@ xy.data <- xy_merged.data %>%
   peekbankr::ds.normalize_times(.) %>%
   peekbankr::ds.resample_times(., table_type = "xy_timepoints")
 
-# heuristic removal of a small number of very short trials
-# this data cleanup step is consistent with how peekbank handles
-# oddities like this in imports
+
 short_trials <- xy.data |>
   group_by(trial_id) |>
   summarise(max = max(t_norm)) |>
