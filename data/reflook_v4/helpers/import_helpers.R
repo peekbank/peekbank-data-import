@@ -274,6 +274,8 @@ process_smi_eyetracking_file <- function(file_path,
       file_path,
       comment = "##",
       delim = sep,
+      show_col_types = FALSE,
+      name_repair = "unique_quiet",
       guess_max = 50000 # important to set this to an appropriate value b/c otherwise older versions of readr (pre 1.2.0) may guess inappropriate column types
     )
 
@@ -287,14 +289,14 @@ process_smi_eyetracking_file <- function(file_path,
     ) %>% # from here, keep only trials, which have format o_name1_name2_.jpg;
     dplyr::select(
       raw_t = "Time",
-      lx = left_x_col_name,
-      rx = right_x_col_name,
-      ly = left_y_col_name,
-      ry = right_y_col_name,
+      lx = all_of(left_x_col_name),
+      rx = all_of(right_x_col_name),
+      ly = all_of(left_y_col_name),
+      ry = all_of(right_y_col_name),
       trial_id = "Trial",
       Stimulus = Stimulus
     )
-
+  
   ## add lab_subject_id column (extracted from data file)
   data <- data %>%
     mutate(lab_subject_id = lab_subject_id)
