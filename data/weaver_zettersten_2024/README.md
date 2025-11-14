@@ -1,4 +1,4 @@
-# fernald_totlot readme
+# weaver_zettersten_2024 README
 
 1. **Reference.**
 Weaver, H., Zettersten, M., & Saffran, J. (2024). Becoming word meaning experts: Infants’ processing of familiar words in the context of typical and atypical exemplars. Child Development, 95(5), e352-e372.
