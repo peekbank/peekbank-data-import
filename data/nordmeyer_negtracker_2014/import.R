@@ -438,7 +438,7 @@ xy_merged_data <- xy_merged_data %>%
 # rezero, normalize and resample times
 xy_data <- xy_merged_data %>%
   dplyr::select(xy_timepoint_id, x, y, t, administration_id, trial_id, point_of_disambiguation) %>%
-  arrange(trial_id, t) %>% 
+  arrange(trial_id, t) %>%
   peekbankr::ds.rezero_times(.) %>%
   peekbankr::ds.normalize_times(.) %>%
   peekbankr::ds.resample_times(., table_type = "xy_timepoints") %>%
@@ -449,7 +449,7 @@ xy_data <- xy_merged_data %>%
 # rezero, normalize and resample times
 aoi_timepoints_data <- xy_merged_data %>%
   peekbankr::ds.add_aois(.) %>%
-  arrange(trial_id, t) %>% 
+  arrange(trial_id, t) %>%
   select(trial_id, administration_id, aoi, t, point_of_disambiguation) %>%
   peekbankr::ds.rezero_times(.) %>%
   peekbankr::ds.normalize_times(.) %>%
@@ -469,5 +469,5 @@ write_and_validate(
   aoi_region_sets,
   xy_timepoints = xy_data,
   aoi_timepoints = aoi_timepoints_data,
-  upload=F
+  upload = F
 )
