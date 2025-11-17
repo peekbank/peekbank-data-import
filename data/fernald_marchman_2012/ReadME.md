@@ -1,4 +1,4 @@
-#Fernald and Marchman 2012 ReadME
+# Fernald and Marchman 2012 ReadME
 
 1. Reference
 Fernald, A., & Marchman, V. A. (2012). Individual differences in lexical processing at 18 months predict vocabulary growth in typically developing and late‐talking toddlers. Child development, 83(1), 203-222.  https://doi.org/10.1111/j.1467-8624.2011.01692.x
