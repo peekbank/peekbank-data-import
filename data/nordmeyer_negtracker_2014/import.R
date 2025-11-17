@@ -186,8 +186,8 @@ all.data <- bind_rows(mclapply(files, function(f) {
 all.data$condition <- as.factor(all.data$condition)
 
 # remove all of the negation trials for now, as we have no elegant way of representing them
-all.data <- all.data %>%
-  filter(condition == "something" & type == "positive")
+# all.data <- all.data %>%
+# filter(condition == "something" & type == "positive")
 
 # Some cleanup for subsequent processing.
 

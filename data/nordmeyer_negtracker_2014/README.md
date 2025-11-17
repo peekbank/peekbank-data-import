@@ -23,7 +23,11 @@ pragmatic context in which the negative utterance occurs.
 
 4. **Importing decisions.**
 
-Data from children who were excluded has not been imported (although at least some of it is in raw datafiles). 
+Data from children who were excluded has not been imported 
+(although at least some of it is in raw datafiles). 
+
+Negation trials are not imported. So far, only expt 2 positive trials are imported. 
+Unclear why expt 1 positive trials aren't imported?
 
 5. **Importing ambiguity.**
 
