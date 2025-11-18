@@ -58,7 +58,11 @@ Experiment 2b includes older (24-28 month) kids tested on verbs.
     # Trial types
 
     The target word onset time varied considerably between trials. Because of that, we ended up with as many trial types as there were trials.
-
+    
+    The noun trials (CP and MP conditions) are consistent in onset and offset times (-2500 -- 4000 ms compared to point of disambiguation). 
+    The verb trials generally start around -2500 but range: -5000 to 0 with some outliers beyond that; and generally end at 4000ms, again with some outliers. 
+    We don't know what happened on trials where the time course starts after pod, but these trials are rare. 
+    
     # AOI region sets
 
     Points with x coordinate 640 were assigned to the “left” AOI, and with 640.1 and above - to the right AOI. To represent that in the table, we would need to set r_x_min to 640.1 or any other number larger than 640 and not larger than 640.1. The table columns are interger, however, so we could either go with 640 or 641. We went with 640.
