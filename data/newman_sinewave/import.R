@@ -418,7 +418,8 @@ write_and_validate(
   trials = trials_table,
   aoi_region_sets = NA,
   xy_timepoints = NA,
-  aoi_timepoints = aoi_table
+  aoi_timepoints = aoi_table,
+  upload = F
 )
 
 # d_tidy |> filter(condition=="Full") |> group_by(target_id, t) |>
