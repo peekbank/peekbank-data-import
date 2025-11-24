@@ -52,4 +52,5 @@ Conditions:
 
 5. **Importing ambiguity.**
 
-TODO: exclusion information exists but is not used due to lack of documentation about what the codes mean.
+- Exclusion information of a participant level existed in the raw data, but only coded as integers in an "exclude" column. We made the decision to only count 0 as "not excluded" and any other number as "excluded", since 0 was the majority value (approx. 95%)
+- There is more fine grained exclusion info in the paper (e.g. exclude all trials with <=75% usable eye-tracking data), but as per peekbank policy, we did not rebuild those. If you want to closely replicate the papers data, please consider implementing that filter yourself.

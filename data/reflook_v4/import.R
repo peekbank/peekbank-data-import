@@ -116,6 +116,9 @@ subjects.data <- process_subjects_info(participant_file_path) %>%
   mutate(subject_aux_data = NA) %>%
   dplyr::select(subject_id, sex, native_language, lab_subject_id, subject_aux_data)
 
+participant_exclusions <- read.csv(participant_file_path) %>%
+  select(subid, exclude) %>%
+  rename(lab_subject_id = subid)
 
 administration.data <- process_administration_info(
   participant_file_path,
@@ -148,10 +151,12 @@ d_trials.data <- timepoint.data %>%
     trial_order = trial_number + 1,
     trial_aux_data = NA_character_
   ) %>%
+  left_join(participant_exclusions, by = "lab_subject_id") %>%
   mutate(
-    excluded = FALSE,
+    excluded = !is.na(exclude) & exclude != 0,
     exclusion_reason = NA_character_
   ) %>%
+  select(-exclude) %>%
   ungroup() %>%
   mutate(trial_id = 0:(n() - 1))
 
