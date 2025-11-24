@@ -9,8 +9,7 @@ read_path <- paste0(read_path, "/")
 
 dataset_id <- 0
 sample_rate <- 60 # Hz
-point_of_disambiguation <- 1000 # pod = 1s
-
+point_of_disambiguation <- 1000 # 1 second in
 
 sal_data <- read_csv(paste0(read_path, "salient.csv")) %>%
   mutate(exp = "Salient", subj = paste(exp, subj, sep = "_"))
@@ -18,9 +17,6 @@ nonsal_data <- read_csv(paste0(read_path, "nonsalient.csv")) %>%
   mutate(exp = "NonSalient", subj = paste(exp, subj, sep = "_"))
 balanced_data <- read_csv(paste0(read_path, "balanced.csv")) %>%
   mutate(exp = "Balanced", subj = paste(exp, subj, sep = "_"))
-
-# Add notes here
-design.df <- read_delim(paste0(read_path, "design.txt"), delim = "\t")
 
 # pre-process data values to be more English-readable
 data.tidy <- bind_rows(sal_data, nonsal_data, balanced_data) %>%
@@ -44,47 +40,71 @@ data.tidy <- bind_rows(sal_data, nonsal_data, balanced_data) %>%
   filter(lab_age >= 1, condition != "Learning") %>%
   clean_names()
 
-# reconstruct design lists for each experiment type
+## Experiment design from internal communication (excluding learning trials)
 
-design.tidy.df <- design.df %>%
-  clean_names() %>%
-  rename(
-    target_side = target_screen_side,
-    target_label = target
+design <- tribble(
+  ~target_label, ~left_image, ~right_image, ~target_side,
+  "dog", "book", "dog", 2,
+  "car", "car", "banana", 1,
+  "book", "dog", "book", 2,
+  "modi", "balls", "skwish", 2,
+  "banana", "banana", "car", 1,
+  "dax", "skwish", "balls", 2,
+  "dax", "balls", "skwish", 1,
+  "dog", "book", "dog", 2,
+  "modi", "skwish", "balls", 1,
+  "modi", "skwish", "balls", 1,
+  "banana", "banana", "car", 1,
+  "dax", "balls", "skwish", 1,
+  "dax", "balls", "skwish", 1,
+  "dog", "dog", "book", 1,
+  "modi", "skwish", "balls", 1,
+  "modi", "balls", "skwish", 2,
+  "banana", "car", "banana", 2,
+  "dax", "skwish", "balls", 2,
+  "modi", "balls", "skwish", 2,
+  "dax", "skwish", "balls", 2
+) |>
+  mutate(
+    trial_order = row_number(),
+    trial_type = case_when(
+      target_label == "dax" ~ "me",
+      target_label == "modi" ~ "new",
+      T ~ "easy"
+    )
   ) |>
-  filter(type == "Image", !is.na(target_label)) |>
-  select(-x3, -type) %>%
-  mutate(name = gsub(".jpg", "", name)) %>%
-  separate(name, into = c("left_image", "right_image"), sep = "_")
+  group_by(trial_type) |>
+  mutate(trial_num = row_number())
 
-# Modi = vase-thinggy (mystery), dax = cluster-thinggy (mystery)
-# assume sides for test are the same unless proven otherwise
-design.bal.df <- design.tidy.df |>
+design.bal.df <- design |>
   mutate(exp = "Balanced") |>
-  mutate(trial_order = 1:n())
+  mutate(
+    left_image = case_when(
+      left_image == "skwish" ~ "spoon",
+      left_image == "balls" ~ "star",
+      T ~ left_image
+    ),
+    right_image = case_when(
+      right_image == "skwish" ~ "spoon",
+      right_image == "balls" ~ "star",
+      T ~ right_image
+    )
+  )
 
-# Salent: Modi = squish, dax = balls
-# As set in the original design doc
-design.sal.df <- design.tidy.df |>
-  mutate(exp = "Salient") |>
-  mutate(trial_order = 1:n())
+design.sal.df <- design |>
+  mutate(exp = "Salient")
 
-# Nonsalient: Modi = balls, dax = squish
-# ASSUME: Just the sides were flipped for those specific novel/me trials
-# All other familiar trials are the same until proven otherwise
-
-design.nonsal.df <- design.tidy.df |>
+design.nonsal.df <- design |>
   mutate(exp = "NonSalient") |>
   mutate(target_side = case_when(
     target_label == "modi" & left_image == "balls" ~ 1,
     target_label == "modi" & right_image == "balls" ~ 2,
-    target_label == "dax" & left_image == "squish" ~ 1,
-    target_label == "dax" & right_image == "squish" ~ 2,
+    target_label == "dax" & left_image == "skwish" ~ 1,
+    target_label == "dax" & right_image == "skwish" ~ 2,
     TRUE ~ target_side
-  )) |>
-  mutate(trial_order = 1:n())
+  ))
 
-design.tidy.df <- rbind(design.bal.df, design.sal.df, design.nonsal.df) |>
+design.tidy <- rbind(design.bal.df, design.sal.df, design.nonsal.df) |>
   rename(condition = trial_type) %>%
   mutate(condition = if_else(condition == "new", "Novel",
     if_else(condition == "me", "ME",
@@ -92,35 +112,6 @@ design.tidy.df <- rbind(design.bal.df, design.sal.df, design.nonsal.df) |>
     )
   )) |>
   mutate(lab_trial_id = paste(exp, condition, sep = "_"))
-
-design.tidy <- design.df %>%
-  clean_names() %>%
-  rename(
-    target_side = target_screen_side,
-    target_label = target
-  ) %>%
-  mutate(trial_order = seq(0, nrow(.) - 1)) %>%
-  filter(trial_type != "hard") %>% # filter out the hard trials (why?)
-  filter(type == "Image", !is.na(target_label)) %>%
-  select(-x3, -type) %>%
-  mutate(name = gsub(".jpg", "", name)) %>%
-  separate(name, into = c("left_image", "right_image"), sep = "_") %>%
-  rename(condition = trial_type) %>%
-  mutate(condition = if_else(condition == "new", "Novel",
-    if_else(condition == "me", "ME",
-      "Familiar"
-    )
-  )) %>%
-  group_by(condition) %>%
-  mutate(trial_num = 1:n()) %>%
-  ungroup() %>%
-  # overall trial order
-  mutate(trial_order = seq(0, nrow(.) - 1))
-
-# The target during ME phase is determined by the experiment type
-# - salient, modi = squish, dax = balls
-# - nonsalient, modi = balls, dax = squish
-# ASSUMINGL: balanced, modi = squish, dax = balls (but unsure, because the stimuli used are different for balanced)
 
 data.full <- data.tidy %>%
   left_join(design.tidy) %>%
@@ -132,9 +123,9 @@ data.full <- data.tidy %>%
       target_label == "modi" ~ "dax",
       target_label == "dax" ~ "modi",
       .default = ifelse(target_side == "right", left_image, right_image)
-  )) %>%
-  select(-c(exp, left_image, right_image))
-
+    )
+  ) %>%
+  select(-c(left_image, right_image))
 
 # DATASETS
 dataset.df <- tibble(
@@ -192,8 +183,8 @@ stimuli.df <- rbind(
     english_stimulus_label = original_stimulus_label,
     lab_stimulus_id = image_description,
     image_description = image_description,
-    image_description_source = "image path",
-    stimulus_novelty = ifelse(lab_stimulus_id == "skwish" | lab_stimulus_id == "balls", "novel", "familiar"),
+    image_description_source = "Peekbank discretion",
+    stimulus_novelty = ifelse(lab_stimulus_id %in% c("skwish", "balls", "star", "spoon"), "novel", "familiar"),
     dataset_id = dataset_id,
     stimulus_aux_data = NA,
     stimulus_id = seq(0, nrow(.) - 1)
@@ -211,7 +202,7 @@ data.full <- data.full %>%
 # TRIAL TYPES
 
 trial_types.df <- data.full %>%
-  select(target_side, target_id, distractor_id, condition = condition) %>%
+  select(target_side, target_id, distractor_id, condition = condition, lab_trial_id) %>%
   distinct() %>%
   mutate(
     full_phrase_language = "eng",
@@ -219,7 +210,6 @@ trial_types.df <- data.full %>%
     dataset_id = dataset_id,
     full_phrase = NA,
     aoi_region_set_id = 0,
-    lab_trial_id = NA,
     vanilla_trial = condition == "Familiar",
     trial_type_aux_data = NA,
     trial_type_id = seq(0, nrow(.) - 1)
@@ -238,7 +228,7 @@ trials.df <- data.full %>%
     trial_aux_data = NA,
     exclusion_reason = NA,
     excluded = FALSE
-  ) # no info given on exclusion, so we assume we only got included participants
+  )
 
 data.full <- data.full %>% left_join(trials.df)
 
@@ -246,9 +236,10 @@ trials.df <- trials.df %>% select(-administration_id)
 
 # AOI Timepoints
 aoi_timepoints.df <- data.full %>%
+  select(aoi, t_ms, trial_id, administration_id, point_of_disambiguation) |>
   rename(t = t_ms) %>%
-  peekbankr::ds.rezero_times() %>%
-  peekbankr::ds.normalize_times() %>%
+  peekbankr::ds.rezero_times() |>
+  peekbankr::ds.normalize_times() |>
   peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 
 

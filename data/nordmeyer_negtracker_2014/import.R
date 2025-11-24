@@ -185,7 +185,7 @@ all.data <- bind_rows(mclapply(files, function(f) {
 
 all.data$condition <- as.factor(all.data$condition)
 
-# remove all of the negation trials for now, as we have no elegant way of representing them
+# remove all of experiment 1 and the negation trials for now, as we have no elegant way of representing them
 all.data <- all.data %>%
   filter(condition == "something" & type == "positive")
 
@@ -258,14 +258,6 @@ stimuli_data <- all_data %>%
   ) |>
   mutate(stimulus_id = 1:n() - 1)
 
-
-# TODO find the xposition/timing issue
-# TODO document in readme:in case of future inclusion of negations: include all combinations of negation, instead of having a "no" target,
-# have every combination, with "no apple" - img: gift, "no glasses" - img: apple etc.
-
-
-
-
 trial_data <- all_data |>
   group_by(
     experiment, condition, type, item, target_side,
@@ -282,7 +274,6 @@ trial_data <- all_data |>
     lab_trial_id = glue("{experiment} {study_version} {condition} {item}"),
   ) |>
   ungroup() %>%
-  # mutate(trial_order = trial_num - 1) %>% # throw out the trial order given by raw data
   rename(point_of_disambiguation = noun_onset) %>%
   left_join(expt_2_distractors, by = join_by(trial)) %>%
   left_join(
@@ -323,10 +314,6 @@ timepoint_data <- trial_data %>%
   mutate(xy_timepoint_id = 0:(n() - 1)) %>%
   rename(lab_subject_id = subid) %>%
   mutate(subject_id = dense_rank(lab_subject_id) - 1)
-
-# Next, let's make the `subjects` table. In this dataset, we have subject information in a separate file that's linked to subject IDs in the timepoints table. We want to make sure to only include subjects we have data for in the `subjects` table, so we'll get distinct subject IDs from the timepoints data and then join in other subject information from the separate subjects info file.
-# We'll also create the `administrations` table. This is a table with information for each administration, or run of the experiment. It includes information about the eyetracker used and the size of the monitor. If your experiment is longitudinal, there may be multiple administrations per subject.
-
 
 ## extract unique subjects ids from eyetracking data
 participant_id_table <- timepoint_data %>%
@@ -370,9 +357,6 @@ screen_xy <- str_split(monitor_xy, "x") %>%
 x_max <- as.numeric(as.character(screen_xy[1]))
 y_max <- as.numeric(as.character(screen_xy[2]))
 
-
-# We also want to get administrations information. Note that you will need to look at your data and determine the units in which age is recorded, and adjust the processing script accordingly. If the ages in your dataset were in days or years (to decimal precision), you'd need to convert to months, by dividing by 365.25 or multiplying by 12 respectively. If the ages in your dataset are in whole number years, convert to midway through that year in months, e.g., 2 years would become 2*12 + 6 = 30 months. This is so that we don't systematically underestimate the age of children whose ages are recorded in whole years. If this is true of your dataset, `lab_age_units` should be coded as "whole years".
-
 # create administration info
 administration.data <- process_subjects_info(participant_file_path) %>%
   dplyr::select(lab_subject_id, age, lab_age, lab_age_units) %>%
@@ -407,11 +391,6 @@ aoi_region_sets <- tibble(
   r_y_max = y_max,
   r_y_min = 0
 )
-
-# The timepoint eyetracking data needs to go through some processing to become two tables: `xy_timepoints`, which encodes the x and y coordinates of the subject's eye movements at each time point, and `aoi_timepoints`, which encodes the AOI the subject is looking at (target, distractor, other, or missing) at each timepoint.
-
-# Right now, our data has time (in milliseconds) recorded starting at zero at the beginning of the experiment and counting upward for the entire length of the experiment. We'll use some `peekbankr` functions to make this time consistent with the Peekbank schema. First, we'll need to peekbankr::ds.rezero_times()`: make `t` restart at zero at the beginning of each trial. Next, we peekbankr::ds.normalize_times()`: within each trial, center time at the `point_of_disambiguation` (the onset of the target word). After this step, each trial will start at a negative timepoint and will iterate up to the `point_of_disambiguation`, which will be at `t` = 0; looking timepoints after the `point_of_disambiguation` will be positive. Finally, we will  peekbankr::ds.resample_times()` so that the looking data are sampled at a consistent rate across all of Peekbank. If your data are already zeroed, you can skip that step; if they are already centered at the target onset, you only need to resample.
-
 
 # create xy data by merging in administration info and trial type info
 xy_merged_data <- timepoint_data %>%

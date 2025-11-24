@@ -240,7 +240,7 @@ dataset_list[["subjects"]] <- digest.subject_aux_data(
   cdi_data
 )
 
-write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = FALSE)
+write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = F)
 
 # plot for comparing to condition in paper more easily!
 
@@ -267,67 +267,65 @@ write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = FALSE)
 
 
 # Trying to understand outliers on the trial length front
-
-wide.table |>
-  filter(!excluded) |>
-  group_by(trial_index, subject_id, point_of_disambiguation) |>
-  mutate(max_t = max(t)) |>
-  filter(max_t > 10000) |>
-  distinct(trial_index, subject_id, point_of_disambiguation)
-
-wide.table |>
-  filter(!excluded) |>
-  distinct(trial_index, subject_id, point_of_disambiguation) |>
-  ggplot(aes(x = point_of_disambiguation)) +
-  geom_histogram()
-# most pod is around 14000
-
-wide.table |>
-  filter(!excluded) |>
-  filter(!condition %in% c("MP", "CP")) |>
-  distinct(trial_index, subject_id, point_of_disambiguation) |>
-  filter(point_of_disambiguation > 15000)
-# 63 trials that have point of disambiguation not around 14000
-
-wide.table |>
-  filter(!excluded) |>
-  group_by(trial_index, subject_id, point_of_disambiguation) |>
-  summarize(
-    max_t = max(t),
-    min_t = min(t)
-  ) |>
-  ggplot(aes(x = point_of_disambiguation)) +
-  geom_point(aes(y = max_t), color = "red", alpha = .1) +
-  geom_point(aes(y = min_t), color = "blue", alpha = .1) +
-  labs(y = "t (red=max, blue=min)") +
-  geom_abline() +
-  theme_bw()
-
-wide.table |>
-  filter(!excluded) |>
-  filter(!condition %in% c("MP", "CP")) |>
-  group_by(trial_index, subject_id, point_of_disambiguation, condition) |>
-  summarize(
-    max_t = max(t - point_of_disambiguation),
-    min_t = min(t - point_of_disambiguation)
-  ) |>
-  ggplot() +
-  geom_histogram(aes(x = min_t), fill = "blue", alpha = .5, binwidth = 100) +
-  geom_histogram(aes(x = max_t), fill = "red", alpha = .5, binwidth = 100) +
-  coord_cartesian(xlim = c(-5000, 5000)) +
-  # geom_point(aes(y=max_t), color="red", alpha=.1) +
-  # geom_point(aes(y=min_t), color="blue", alpha=.1) +
-  # labs(y="t (red=max, blue=min)")+
-  theme_bw()
-
-
-wide.table |>
-  filter(!condition %in% c("MP", "CP")) |>
-  group_by(trial_index, subject_id, point_of_disambiguation, condition) |>
-  summarize(
-    max_t = max(t - point_of_disambiguation),
-    min_t = min(t - point_of_disambiguation)
-  ) |>
-  filter(max_t > 5000 | max_t < 100 | min_t > 50) |>
-  # filter(max_t < 0) |>
-  View()
+#
+# wide.table |>
+#   filter(!excluded) |>
+#   group_by(trial_index, subject_id, point_of_disambiguation) |>
+#   mutate(max_t = max(t)) |>
+#   filter(max_t > 10000) |>
+#   distinct(trial_index, subject_id, point_of_disambiguation)
+#
+# wide.table |>
+#   filter(!excluded) |>
+#   distinct(trial_index, subject_id, point_of_disambiguation) |>
+#   ggplot(aes(x = point_of_disambiguation)) +
+#   geom_histogram()
+# # most pod is around 14000
+#
+# wide.table |>
+#   filter(!excluded) |>
+#   filter(!condition %in% c("MP", "CP")) |>
+#   distinct(trial_index, subject_id, point_of_disambiguation) |>
+#   filter(point_of_disambiguation > 15000)
+# # 63 trials that have point of disambiguation not around 14000
+#
+# wide.table |>
+#   filter(!excluded) |>
+#   group_by(trial_index, subject_id, point_of_disambiguation) |>
+#   summarize(
+#     max_t = max(t),
+#     min_t = min(t)
+#   ) |>
+#   ggplot(aes(x = point_of_disambiguation)) +
+#   geom_point(aes(y = max_t), color = "red", alpha = .1) +
+#   geom_point(aes(y = min_t), color = "blue", alpha = .1) +
+#   labs(y = "t (red=max, blue=min)") +
+#   geom_abline() +
+#   theme_bw()
+#
+# wide.table |>
+#   filter(!excluded) |>
+#   filter(!condition %in% c("MP", "CP")) |>
+#   group_by(trial_index, subject_id, point_of_disambiguation, condition) |>
+#   summarize(
+#     max_t = max(t - point_of_disambiguation),
+#     min_t = min(t - point_of_disambiguation)
+#   ) |>
+#   ggplot() +
+#   geom_histogram(aes(x = min_t), fill = "blue", alpha = .5, binwidth = 100) +
+#   geom_histogram(aes(x = max_t), fill = "red", alpha = .5, binwidth = 100) +
+#   coord_cartesian(xlim = c(-5000, 5000)) +
+#   # geom_point(aes(y=max_t), color="red", alpha=.1) +
+#   # geom_point(aes(y=min_t), color="blue", alpha=.1) +
+#   # labs(y="t (red=max, blue=min)")+
+#   theme_bw()
+#
+#
+# wide.table |>
+#   filter(!excluded) |>
+#   group_by(trial_index, subject_id, point_of_disambiguation, condition) |>
+#   summarize(
+#     max_t = max(t - point_of_disambiguation, na.rm=T),
+#     min_t = min(t - point_of_disambiguation, na.rm=T)
+#   ) |> ggplot(aes(x=min_t, y=max_t))+facet_wrap(~condition)+geom_point()
+#

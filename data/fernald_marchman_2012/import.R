@@ -33,6 +33,7 @@ d_processed_18 <- d_raw_18 %>%
 d_raw_24 <- read_delim(fs::path(read_path, "TL2-24ABAlltrialstoMF.txt"),
   delim = "\t"
 )
+
 d_processed_24 <- d_raw_24 %>%
   preprocess_raw_data() %>%
   relabel_time_cols(
@@ -575,4 +576,4 @@ write_and_validate(
   aoi_timepoints,
   upload = FALSE
 )
-
+  

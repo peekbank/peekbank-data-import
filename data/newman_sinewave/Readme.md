@@ -30,6 +30,10 @@ Each child did 16 trials
 
 We do not have the data for children who were excluded. 
 
+We observe that the fraction looking to ball and cat are both lower than we might 
+expect (naively and in comparison to other targets). I don't think this is an error
+but it could be a combination of few trials/kids (especially for cat) and maybe image salience/preference?
+
 5. Importing ambiguity
 
 There are some (~30) frames in this dataset which have two conflicting look. We resolve
