@@ -9,9 +9,8 @@ data_path <- init(dataset_name)
 data_raw <- read.csv(here(data_path, "Peekbank_LuchkinaWaxman_looking_data.csv"))
 names(data_raw) <- tolower(names(data_raw))
 
-# there are fewer mutate properties here than usual because the dataset was already well prepared
-wide.table <- data_raw %>% 
-  mutate (
+wide.table <- data_raw %>%
+  mutate(
     sex = gender,
     native_language = "eng",
     age = age_days,
@@ -20,7 +19,6 @@ wide.table <- data_raw %>%
     excluded = excluded. != "Include",
     exclusion_reason = ifelse(excluded, excluded., NA),
     full_phrase_language = "eng",
-    # says the target label twice, use the first one for target onset, this makes this non vanilla
     point_of_disambiguation = target_word_onset_1_ms,
     vanilla_trial = FALSE,
     condition = NA,
@@ -39,12 +37,12 @@ wide.table <- data_raw %>%
     distractor_image_description = distractor,
     distractor_image_description_source = "image path",
     trial_index = trial_number,
-)
+  )
 
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
   lab_dataset_id = NA,
-  cite = "Luchkina, E., & Waxman, S. (2024). Fifteen-month-olds represent never-seen objects and learn their names. PloS One",
+  cite = "Luchkina, E., & Waxman, S. R. (2021). Semantic priming supports infants’ ability to learn names of unseen objects. PloS one, 16(1), e0244968.",
   shortcite = "Luchkina, E., & Waxman, S. (2024)",
   wide.table = wide.table,
   normalize = FALSE,
@@ -58,18 +56,19 @@ cdi <- read.csv(here(data_path, "Peekbank_LuchkinaWaxman_MCDI_data.csv")) %>%
   mutate(comp = rowSums(sapply(.[, -c(1:3)], function(col) grepl("\\bunderstands\\b", tolower(col))))) %>%
   select(subject_id = Subject_ID, comp, prod) %>%
   distinct() %>%
-  pivot_longer(cols=c(prod, comp), values_to = "rawscore", names_to = "measure") %>% 
+  pivot_longer(cols = c(prod, comp), values_to = "rawscore", names_to = "measure") %>%
   left_join(
-    wide.table %>% 
-      distinct(subject_id, age) %>% 
-      mutate(age = age/(365.25/12))
-  ) %>% 
+    wide.table %>%
+      distinct(subject_id, age) %>%
+      mutate(age = age / (365.25 / 12))
+  ) %>%
   mutate(
     percentile = NA,
     language = "English (American)",
-    instrument_type = "wg")
+    instrument_type = "wg"
+  )
 
-dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>% 
+dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
   digest.subject_aux_data(cdi)
 
 write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = F)
