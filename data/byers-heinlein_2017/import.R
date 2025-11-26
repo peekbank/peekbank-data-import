@@ -9,6 +9,7 @@ library(feather)
 
 
 source(here("helper_functions", "common.R"))
+source(here("helper_functions", "idless_draft.R")) # for digest.subject_aux_data
 dataset_name <- "byers-heinlein_2017"
 read_path <- init(dataset_name)
 
@@ -152,7 +153,7 @@ d_tidy <- raw %>%
     t >= 0 # , # a few -13.. ## alternative would be to use the rezeroing process
   )
 
-lang_exposures <- subj_info |>
+lang_exposures_data <- subj_info |>
   select(
     lab_subject_id = id,
     `English (American)` = per_eng,
@@ -162,8 +163,7 @@ lang_exposures <- subj_info |>
     cols = c(`English (American)`, `French (Quebecois)`),
     names_to = "language",
     values_to = "exposure"
-  ) |>
-  nest(lang_exposures = -lab_subject_id)
+  ) |> mutate(subject_id = lab_subject_id)
 
 cdi_responses <- subj_info |>
   select(
@@ -179,34 +179,26 @@ cdi_responses <- subj_info |>
   ) |>
   mutate(
     instrument_type = "ws",
-    measure = "prod"
+    measure = "prod",
+    percentile = NA,
   ) |>
-  select(lab_subject_id, instrument_type, measure, rawscore, age, language) |>
+  select(lab_subject_id, instrument_type, measure, rawscore, age, language, percentile) |>
   filter(!is.na(rawscore)) |>
-  nest(cdi_responses = -lab_subject_id)
-
-subj_aux_data <- lang_exposures |>
-  left_join(cdi_responses, by = "lab_subject_id") |>
-  nest(subject_aux_data = -lab_subject_id) |>
-  mutate(subject_aux_data = sapply(subject_aux_data, function(x) {
-    json_str <- jsonlite::toJSON(x)
-    json_str <- substr(json_str, 2, nchar(json_str) - 1) # hacky, but works
-    gsub(',"cdi_responses":{}', "", json_str, fixed = TRUE) # even hackier, but worksier
-  }))
-
+  rename(subject_id = lab_subject_id) # the digest function expects this to be equivalent to lab subject id
 
 # subjects table
 subjects <- d_tidy %>%
   distinct(lab_subject_id, sex) %>%
   mutate(native_language = "eng, fre") %>%
-  mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
-  left_join(subj_aux_data, by = "lab_subject_id")
+  mutate(subject_id = seq(0, length(.$lab_subject_id) - 1),
+         subject_aux_data = NA) 
+
+subjects <- subjects |>
+  digest.subject_aux_data(cdi=cdi_responses, lang_exposures = lang_exposures_data)
 
 # join subject_id back in with d_tidy
 d_tidy <- d_tidy %>%
   left_join(subjects)
-
-
 
 # administrations table
 administrations <- d_tidy %>%
