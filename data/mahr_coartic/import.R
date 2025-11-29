@@ -1,3 +1,5 @@
+# process mahr_coartic data
+
 ### load packages ###
 library(here)
 source(here("helper_functions", "common.R"))
@@ -379,5 +381,5 @@ write_and_validate(
   aoi_region_sets = aoi_region_sets_table,
   xy_timepoints = xy_timepoints_table,
   aoi_timepoints = aoi_timepoints_table,
-  upload = F
+  upload = T
 )
