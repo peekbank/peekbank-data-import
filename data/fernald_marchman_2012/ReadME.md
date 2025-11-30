@@ -71,6 +71,7 @@ non-vanilla:
 Right now, the Points of Disambiguation for non-vanilla trials have not been fully 
 checked - so the timings of these trials could be inconsistent. TODO, 
 if we ever find a use for these non vanilla trials 
+In v_2024 this was not solved because we are focusing only on vanilla trials
 
 Carrier phrases:
 The file manually_compiled_trial_info_2430.csv in the raw data was manually put
@@ -115,6 +116,12 @@ no indication which version was shown, so we include the image path to the versi
 WITHOUT a background. The items "novelA" and "novelB" have two versions each: 
 one with the moon as a background image, and one with a tangled rope as a background image. 
 There is no indication what background was used in the data, so we link the image with the moon background.
+
+* V_2024: trial_order column in the previous code was not reflecting the original tr_num values.
+This was fixed, but there is still one administration (sub_num == 10080, session == B, months == 18)
+which has repeated trials because two orders were administered (TL2-1, TL2-2).
+For the moment, I solved this by adding "order" as a grouping factor for administrations.
+(i.e. this subject has two administrations in the same session)
 
 5. Importing ambiguity
 

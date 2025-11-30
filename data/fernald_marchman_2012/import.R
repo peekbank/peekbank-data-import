@@ -27,7 +27,7 @@ d_processed_18 <- d_raw_18 %>%
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
     truncation_point = truncation_point_calc(.),
     sampling_rate = sampling_rate_ms
-  ) |> mutate(age_group = 18)
+  ) |> mutate(age_group = 18) 
 
 # 24-month-olds
 d_raw_24 <- read_delim(fs::path(read_path, "TL2-24ABAlltrialstoMF.txt"),
@@ -87,6 +87,9 @@ d_processed_30_part_2 <- d_raw_30 |>
 
 d_processed_30 <- d_processed_30_part_1 |>
   bind_rows(d_processed_30_part_2) |> mutate(age_group = 30)
+
+
+
 
 # agglomerate
 
@@ -160,6 +163,9 @@ d_processed <- d_processed %>%
   ) %>%
   # the remaining pairings have a valid primeNoun, so we can filter out the verb rows
   filter(!(months >= 28 & grepl("([Vv]erb)", condition)))
+
+
+
 
 phrasedata_24_30 <- read_csv(here(read_path, "manually_compiled_trial_info_2430.csv")) %>% 
   mutate(across(everything(), as.character)) %>%
@@ -367,7 +373,7 @@ d_tidy <- d_tidy %>%
 
 # get zero-indexed administration ids
 d_administration_ids <- d_tidy %>%
-  distinct(subject_id, sub_num, months, session) %>%
+  distinct(subject_id, sub_num, months, session, order) %>%
   arrange(subject_id, sub_num, months, session) %>%
   mutate(administration_id = seq(0, length(.$session) - 1))
 
@@ -609,6 +615,6 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload = FALSE
+  upload = T
 )
     
