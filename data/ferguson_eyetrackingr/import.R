@@ -19,9 +19,6 @@ trial_stim <- tibble(
   target_side = c("left", "right", "right", "left", "right", "left")
 )
 
-cdi_language <- "English (American)"
-
-################## DATASET SPECIFIC READ IN CODE ##################
 
 raw_data <- read.csv(here(data_path, "ferguson_eyetrackingr.csv"))
 
@@ -62,8 +59,9 @@ d_tidy <- proc_data %>%
       target_animacy & aoi_old == "Animate" ~ "target",
       (!target_animacy) & aoi_old == "Inanimate" ~ "target",
       (!target_animacy) & aoi_old == "Animate" ~ "distractor",
-      aoi_old == "" ~ "other", # ?all of these are also TrackLoss=TRUE, so maybe just missing?
-      aoi_old == "TrackLoss" ~ "missing"
+      aoi_old == "" ~ "other", # see README
+      aoi_old == "TrackLoss" ~ "missing",
+      TRUE ~ "ERROR"
     )
   )
 
@@ -97,12 +95,11 @@ cdi_to_json <- d_tidy %>%
 ### 2. SUBJECTS TABLE
 subjects <- d_tidy %>%
   distinct(lab_subject_id, sex, native_language) %>%
-  mutate(subject_id = seq(0, length(.$lab_subject_id) - 1)) %>%
+  mutate(subject_id = seq(0, n() - 1)) %>%
   left_join(cdi_to_json, by = "lab_subject_id")
 
 ### 3. STIMULI TABLE
 stimulus_table <- d_tidy %>%
-  mutate(target_image = english_stimulus_label) %>%
   distinct(target_image, distractor_image) %>%
   pivot_longer(cols = c(target_image, distractor_image), names_to = "image_type", values_to = "original_stimulus_label") %>%
   distinct(original_stimulus_label) %>%
@@ -110,7 +107,7 @@ stimulus_table <- d_tidy %>%
     stimulus_image_path = NA,
     english_stimulus_label = original_stimulus_label,
     stimulus_novelty = "familiar",
-    stimulus_id = seq(0, nrow(.) - 1),
+    stimulus_id = seq(0, n() - 1),
     image_description_source = "experiment documentation",
     image_description = original_stimulus_label, # include animate / inanimate distinction?
     lab_stimulus_id = original_stimulus_label,
@@ -132,7 +129,8 @@ d_tidy <- d_tidy %>%
   select(-stimulus_id)
 
 d_tidy <- d_tidy %>%
-  left_join(subjects %>% select(lab_subject_id, subject_id), by = "lab_subject_id")
+  left_join(subjects %>% select(lab_subject_id, subject_id), by = "lab_subject_id") %>% 
+  mutate(full_phrase = paste0("Where is the ", english_stimulus_label, "?"))
 
 ### 4. ADMINISTRATIONS TABLE
 administrations <- d_tidy %>%
@@ -152,29 +150,26 @@ administrations <- d_tidy %>%
 
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
-  mutate(full_phrase = paste0("Where is the ", english_stimulus_label, "?")) %>%
   distinct(
     subject_id, TrialNum, full_phrase,
     target_id, distractor_id, target_side
   ) %>% # one subject per administration, so subject is a fitting standin
-  mutate(trial_id = seq(0, length(.$TrialNum) - 1))
+  mutate(trial_id = seq(0, n() - 1))
 
 # create zero-indexed ids for trial_types
-# where is data for full phrase?
 d_trial_type_ids <- d_tidy %>%
   distinct(
     condition,
-    # full_phrase,
+    full_phrase,
     target_id, distractor_id, target_side
   ) %>%
-  mutate(trial_type_id = seq(0, length(target_id) - 1))
+  mutate(trial_type_id = seq(0, n() - 1))
 
 # get zero-indexed administration ids
 d_administration_ids <- d_tidy %>%
-  mutate(order = 1) %>% # all subjects but 1 got the same order..
-  distinct(subject_id, age, order) %>% # 'age' now 'months' -- need 'order'?
-  arrange(subject_id, age, order) %>%
-  mutate(administration_id = seq(0, length(.$order) - 1))
+  distinct(subject_id) %>%
+  arrange(subject_id) %>%
+  mutate(administration_id = seq(0, n() - 1))
 
 # joins
 d_tidy_final <- d_tidy %>%
@@ -247,7 +242,7 @@ xy_timepoints <- d_tidy_final %>%
 aoi_timepoints <- d_tidy_final %>%
   select(t_norm, aoi, trial_id, administration_id, point_of_disambiguation) %>%
   peekbankr::ds.resample_times(table_type = "aoi_timepoints") %>%
-  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))
+  mutate(aoi_timepoint_id = seq(0, n() - 1))
 
 write_and_validate(
   dataset_name = dataset_name,

@@ -56,4 +56,4 @@ Decision that we will only import data during the "test" phase when the images a
 
 5. **Importing ambiguity.**
 
-none 
+In the raw data, some timepoints had an empty value for the "AOI" column. We interpret this as "other", since "TrackLoss" is a specific AOI value that exists and we interpret as "missing". However, this is ambiguous, since both values have a "TRUE" value in the TrackLoss column, so empty AOI could also be interpretes as "missing".
