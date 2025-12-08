@@ -59,7 +59,7 @@ d_tidy <- proc_data %>%
       target_animacy & aoi_old == "Animate" ~ "target",
       (!target_animacy) & aoi_old == "Inanimate" ~ "target",
       (!target_animacy) & aoi_old == "Animate" ~ "distractor",
-      aoi_old == "" ~ "other", # see README
+      aoi_old == "" ~ "missing", # see README
       aoi_old == "TrackLoss" ~ "missing",
       TRUE ~ "ERROR"
     )
