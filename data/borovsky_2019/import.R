@@ -36,7 +36,7 @@ d_tidy <- d_tidy %>%
   mutate(distractor_image = str_replace(distractor_image, "\\.bmp$", "")) %>%
   mutate(sex = "unspecified") %>%
   mutate(target_image = str_extract(item_code, "([^\\.]+)(?=\\.wav)")) %>%
-  mutate(lab_trial_id = trial) %>%
+  mutate(lab_trial_id = item_code) %>%
   mutate(aoi = case_when(
     target == TRUE & distractor == FALSE & center == FALSE ~ "target",
     target == FALSE & distractor == TRUE & center == FALSE ~ "distractor",
@@ -109,7 +109,7 @@ d_tidy <- d_tidy %>%
     by = c("distractor_image" = "lab_stimulus_id")
   ) %>%
   mutate(distractor_id = stimulus_id) %>%
-  select(-stimulus_id) ## becuase each target image has two target ID (semrelated. semunrelated), each distractor image also has two distractor ID
+  select(-stimulus_id)
 
 
 # create trial types table
@@ -118,9 +118,9 @@ trial_types <- d_tidy %>%
   distinct(condition, target_side, target_id, distractor_id, lab_trial_id, full_phrase) %>%
   mutate(trial_type_id = row_number() - 1) %>%
   mutate(full_phrase_language = "eng") %>%
-  mutate(point_of_disambiguation = 300) %>%
+  mutate(point_of_disambiguation = 0) %>%
   mutate(dataset_id = 0) %>%
-  mutate(vanilla_trial = if_else(condition == "unrelated", TRUE, FALSE)) %>%
+  mutate(vanilla_trial = TRUE) %>%
   mutate(aoi_region_set_id = NA) %>%
   mutate(trial_type_aux_data = NA)
 
@@ -132,7 +132,7 @@ d_tidy <- d_tidy %>% left_join(trial_types)
 trials <- d_tidy %>%
   group_by(lab_subject_id) %>% # only one administration per subject
   mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
-  ungroup() %>% 
+  ungroup() %>%
   distinct(trial_type_id, lab_subject_id, trial_order) %>% # only one administration per subject
   mutate(
     excluded = FALSE,
@@ -172,6 +172,7 @@ d_tidy <- d_tidy %>% left_join(administrations, by = c("dataset_id", "subject_id
 #### (7) aoi_timepoints #######
 aoi_timepoints <- d_tidy %>%
   select(timestamp, administration_id, trial_id, aoi) %>%
+  mutate(timestamp = timestamp + 300) |>
   rename(t_norm = timestamp) %>%
   peekbankr::ds.resample_times(table_type = "aoi_timepoints")
 

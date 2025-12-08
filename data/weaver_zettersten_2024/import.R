@@ -34,7 +34,7 @@ wide.table <- data %>%
     native_language = str_extract(child_language_list, "^[^ ]+"),
     # every child has eng as their native language, this line would make the validator complain if not
     native_language = ifelse(native_language == "en", "eng", "ERROR"),
-    t = corrected_time,
+    t = time_normalized_corrected,
     aoi = case_when(
       accuracy == "1" ~ "target",
       accuracy == "0" ~ "distractor",
@@ -88,7 +88,7 @@ wide.table <- data %>%
 dataset_list <- digest.dataset(
     dataset_name = dataset_name,
     lab_dataset_id = NA,
-    cite = "Weaver, H., Zettersten, M., & Saffran, J. (2024). Becoming word meaning experts: Infants’ processing of familiar words in the context of typical and atypical exemplars. Child Development.",
+    cite = "Weaver, H., Zettersten, M., & Saffran, J. (2024). Becoming word meaning experts: Infants’ processing of familiar words in the context of typical and atypical exemplars. Child Development, 95(5), e352-e372.",
     shortcite = "Weaver et al. 2024",
     wide.table = wide.table
 )

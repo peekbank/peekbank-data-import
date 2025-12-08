@@ -27,7 +27,7 @@ d_processed_18 <- d_raw_18 %>%
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
     truncation_point = truncation_point_calc(.),
     sampling_rate = sampling_rate_ms
-  ) |> mutate(age_group = 18)
+  ) |> mutate(age_group = 18) 
 
 # 24-month-olds
 d_raw_24 <- read_delim(fs::path(read_path, "TL2-24ABAlltrialstoMF.txt"),
@@ -88,6 +88,9 @@ d_processed_30_part_2 <- d_raw_30 |>
 d_processed_30 <- d_processed_30_part_1 |>
   bind_rows(d_processed_30_part_2) |> mutate(age_group = 30)
 
+
+
+
 # agglomerate
 
 d_processed <- d_processed_18 |>
@@ -100,6 +103,7 @@ d_processed <- d_processed_18 |>
   select(!matches("^\\d|^-"), everything()) # get all the metadata up front
 
 
+
 d_processed <- d_processed %>%
   mutate(
     condition = case_when(
@@ -108,8 +112,19 @@ d_processed <- d_processed %>%
       !is.na(condition) ~ condition,
       .default = NA_character_
     ),
-    months = as.numeric(months)
+    # make some variables numeric v2024
+    months = as.numeric(months),
+    sub_num = as.numeric(sub_num),
+    tr_num = as.numeric(tr_num)
   ) 
+
+## v2024
+## There was a problem with trial orders. The original datasets were not arranged 
+## by trial order (tr_num) and that could be one of the causes of
+## repeated trials in the final tidy dataset
+## So here I order d_processed by subject, months, session, and trial order
+d_processed <- d_processed %>% 
+  arrange(sub_num, months, session, tr_num) 
 
 # some row pairs in the raw data refer to the same trial, coded with 2 different
 # word onsets to target either the verb or the noun of the phrase
@@ -149,8 +164,17 @@ d_processed <- d_processed %>%
   # the remaining pairings have a valid primeNoun, so we can filter out the verb rows
   filter(!(months >= 28 & grepl("([Vv]erb)", condition)))
 
+
+
+
 phrasedata_24_30 <- read_csv(here(read_path, "manually_compiled_trial_info_2430.csv")) %>% 
-  mutate(across(everything(), as.character))
+  mutate(across(everything(), as.character)) %>%
+  select(age_group, session, trialnum, phrase) %>%    # This is to avoid a column called "...5" v_2024
+  ## put numeric variables as numeric v_2024
+  mutate(trialnum = as.numeric(trialnum)
+         # ,
+         # age_group = as.numeric(age_group)
+         )
 
 # add carrier phrases
 d_processed <- d_processed %>%
@@ -192,6 +216,7 @@ d_tidy <- d_tidy %>%
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
 
 d_tidy <- d_tidy %>%
+
   select(
     -gap,
     -word_onset,
@@ -202,7 +227,7 @@ d_tidy <- d_tidy %>%
     -crit_off_set,
     -first_shift_gap,
     -rt,
-    -tr_num,
+    # -tr_num,     # Keeping original trial order v_2024
     -starts_with("frames")
   ) %>%
   # left-right is from the coder's perspective - flip to participant's perspective
@@ -348,7 +373,7 @@ d_tidy <- d_tidy %>%
 
 # get zero-indexed administration ids
 d_administration_ids <- d_tidy %>%
-  distinct(subject_id, sub_num, months, session) %>%
+  distinct(subject_id, sub_num, months, session, order) %>%
   arrange(subject_id, sub_num, months, session) %>%
   mutate(administration_id = seq(0, length(.$session) - 1))
 
@@ -381,21 +406,37 @@ d_tidy_semifinal <- d_tidy %>%
 d_trial_ids <- d_tidy_semifinal %>%
   distinct(
     sub_num, session, months,
+    tr_num,
     prescreen_notes, trial_type_id
   ) %>%
   # the prescreen notes are not attached to all rows of a trial (sub_num x session x months x trial_type_id), so we fix this
-  group_by(sub_num, session, months, trial_type_id) %>%
+  group_by(sub_num, session, months, trial_type_id, tr_num) %>%
   summarize(prescreen_notes = first(na.omit(prescreen_notes)), .groups = "drop") %>%
   mutate(excluded = !is.na(prescreen_notes)) |>
   rename(exclusion_reason = prescreen_notes) |>
-  group_by(sub_num, session, months) %>%
-  mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
-  ungroup() %>%
+  
+  ## v_2024
+  ## Trial order was previously handled like this:
+  # group_by(sub_num, session, months) %>%
+  # mutate(trial_order = cumsum(trial_type_id != lag(trial_type_id, default = first(trial_type_id)))) %>%
+  ## but given that some trials are repeated, maybe we should go with a
+  ## more straightforward method based on the tr_num?
+  ## it could also be:
+  # group_by(sub, months, session) %>% 
+  # arrange(tr_num) %>% 
+  # mutate(trial_order = c(0:n())) %>% 
+  # ungroup()
+  
+  ungroup() %>% 
+  rename(trial_order = "tr_num") %>% 
+  arrange(sub_num, months, session, trial_order) %>% 
   mutate(trial_id = 0:(n() - 1)) %>%
   distinct()
 
 # join
 d_tidy_semifinal <- d_tidy_semifinal %>%
+  # also rename tr_num here  v_2024
+  rename(trial_order = "tr_num") %>% 
   left_join(d_trial_ids)
 
 # add some more variables to match schema
@@ -446,8 +487,8 @@ cdi_data_cleaned <- cdi_data |>
     ws_prod_30_percentile = `WS30prodp Word Production 30m %tile`
   ) |>
   mutate(
-    wg_prod_18_age = wg_comp_18_age,
-    lab_subject_id = as.character(lab_subject_id)
+    wg_prod_18_age = wg_comp_18_age#,
+    # lab_subject_id = as.character(lab_subject_id)
   ) |>
   pivot_longer(
     cols = -lab_subject_id,
@@ -574,6 +615,6 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload = FALSE
+  upload = T
 )
-  
+    
