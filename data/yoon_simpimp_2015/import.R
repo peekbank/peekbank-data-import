@@ -27,7 +27,7 @@ generate_aois <- function(x, y, target_side,
     )
   )
 }
-#
+
 eyetracking_path <- here(data_path, "eyetracking")
 
 # note these two sets of data don't actually seem to cleanly line up with the expt split
@@ -43,8 +43,12 @@ stimulus_mapping <- read_csv(here(data_path, "stimuli_mapping.csv")) |> clean_na
 
 
 combined_data <- data_ex_1 |>
-  bind_rows(data_ex_2) |> 
-  inner_join(exclusion_data)
+  bind_rows(data_ex_2) |>
+  inner_join(exclusion_data, by = "subid")
+
+if (nrow(combined_data) == 0) {
+  stop("Exclusion data join produced zero rows - check that subid columns match")
+}
 
 # add trial index based on change in stimulus
 combined_data_index <- combined_data |>
@@ -52,10 +56,14 @@ combined_data_index <- combined_data |>
   mutate(
     change = stimulus != lag(stimulus, default = first(stimulus)), # Identify changes
     trial_index = cumsum(change) # Create a running index
-  ) |> 
+  ) |>
   ungroup() |>
-  select(-change) |> 
-  inner_join(order_data)
+  select(-change) |>
+  inner_join(order_data, by = "stimulus")
+
+if (any(is.na(combined_data_index$trial_type))) {
+  stop("Order data join failed - some trials lack trial_type (unmatched stimuli)")
+}
 
 # prep stimulus stuff
 
@@ -69,7 +77,7 @@ stimulus <- stimulus_mapping |>
          distractor_stimulus_image_path=ifelse(dist_pos=="R",
                                      str_c("stimuli/",right_image),
                                      str_c("stimuli/", left_image)),
-         # 2 missing images
+         # exlude 2 missing images from the path column
          target_stimulus_image_path = ifelse(target_stimulus_image_path %in% c("stimuli/L2.048_left.png", "stimuli/L2.048_right.png"),NA,target_stimulus_image_path),
          distractor_stimulus_image_path = ifelse(distractor_stimulus_image_path %in% c("stimuli/L2.048_left.png", "stimuli/L2.048_right.png"),NA,distractor_stimulus_image_path),
          target_stimulus_label_original=target,
@@ -77,13 +85,20 @@ stimulus <- stimulus_mapping |>
          target_stimulus_novelty="familiar",
          target_image_description=target_image,
          target_image_description_source="Peekbank discretion",
-         distractor_stimulus_label_original=NA,
-         distractor_stimulus_label_english=NA,
+         distractor_stimulus_label_original=case_when(
+           str_detect(distractor_image, "-") ~ NA_character_,
+           distractor_image == "bike" ~ "bicycle",
+           TRUE ~ distractor_image
+         ),
+         distractor_stimulus_label_english=case_when(
+           str_detect(distractor_image, "-") ~ NA_character_,
+           distractor_image == "bike" ~ "bicycle",
+           TRUE ~ distractor_image
+         ),
          distractor_stimulus_novelty="familiar",
          distractor_image_description=distractor_image,
          distractor_image_description_source="Peekbank discretion",
          full_phrase=carrier_phrase) |> select(-order, -stimulus)
-
 
 
 draft_data <- combined_data_index |> left_join(stimulus) |> 
@@ -99,8 +114,8 @@ draft_data <- combined_data_index |> left_join(stimulus) |>
       trial_type == "inf" ~ "inference"
     ),
     vanilla_trial = trial_type=="cs", # cs trials are vanilla, others are not
-    excluded = keep_drop == "drop", # note there are also trial level exclusions which are applied later
-    exclusion_reason = ifelse(keep_drop == "drop", "participant level some reason", NA)
+    excluded = keep_drop == "drop",
+    exclusion_reason = ifelse(keep_drop == "drop", "unspecified participant level exclusion", NA)
   ) |>
   mutate(
     age_units = "years",
@@ -150,9 +165,7 @@ draft_data <- combined_data_index |> left_join(stimulus) |>
     expt,
     trial_index
   ) %>%
-  # optional
   mutate(
-    # fill out all of these if you have xy data
     l_x_max = 840,
     l_x_min = 0,
     l_y_max = 1000,
@@ -180,34 +193,16 @@ draft_data <- combined_data_index |> left_join(stimulus) |>
     r_x_max, r_x_min, r_y_max, r_y_min
   ))
 
-# trials are included if >50% of time points are valid
-trial_include <- draft_data |>
-  group_by(subject_id, stimulus) |>
-  summarize(missing_pct = sum(!aoi %in% c("target", "distractor")) / n()) |>
-  filter(missing_pct < .5) |>
-  mutate(good_trial = T)
-
-# subjects are included if >50% of trial (8+) are valid
-sub_include <- trial_include |>
-  group_by(subject_id) |>
-  tally() |>
-  filter(n > 7) |>
-  mutate(good_subject = T)
-
 wide.table <- draft_data |>
-  left_join(trial_include) |>
-  left_join(sub_include) |>
   mutate(
     exclusion_reason = case_when(
       !is.na(exclusion_reason) ~ exclusion_reason,
       is.na(age) ~ "out of age range",
-      is.na(good_trial) ~ "trial has too little valid looking",
-      is.na(good_subject) ~ "participant has too few valid trials",
       T ~ NA
     ),
     excluded = ifelse(is.na(exclusion_reason), F, T)
   ) |>
-  select(-stimulus, -good_trial, -good_subject)
+  select(-stimulus, -expt)
 
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
@@ -220,4 +215,4 @@ dataset_list <- digest.dataset(
   normalize = T
 )
 
-write_and_validate_list(dataset_list, cdi_expected = FALSE, upload = F)
+write_and_validate_list(dataset_list, cdi_expected = FALSE, upload = FALSE)

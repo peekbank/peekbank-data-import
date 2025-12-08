@@ -71,6 +71,13 @@ Study 2:
 * 4 yos - 31 reported, 33 in data
 * 5 yos -  0 reported, 25 in data
 
+
+Target labels: In control-double trials, the target image shows two objects (e.g., "dog-cat"), but the `target_stimulus_label` uses the spoken word (e.g., "dog"). The `target_image_description` field captures the full compound (e.g., "dog-cat").
+
+Distractor labels: In inference trials, the distractor image shows two objects (e.g., "orange-apple"), so no single label applies. For control-single and control-double trials, distractors show a single object with a clear label. The import uses the `distractor_image` column as the label when it contains no hyphen (simple object), and NA when it contains a hyphen (compound object). One exception: "bike" in image labels is mapped to "bicycle" to match the spoken word used for targets. 
+
+It could be debated if the control-single trials count as "vanilla" -- the carrier phrases are atypical, but they are otherwise normal. Decision has been made to label them as vanilla (discussed twice and decided for this version twice).
+
 5. Importing ambiguity
 
-It is unclear if the control-single trials count as "vanilla" -- the carrier phrases are atypical, but they are otherwise normal. Decision has been made to label them as vanilla. 
+none
