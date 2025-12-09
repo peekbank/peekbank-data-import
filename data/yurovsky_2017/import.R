@@ -23,7 +23,7 @@ data.tidy <- bind_rows(sal_data, nonsal_data, balanced_data) %>%
   rename(
     sex = gender,
     lab_age = age,
-    condition = trial.type,
+    trial_category = trial.type,
     lab_subject_id = subj,
   ) %>%
   mutate(
@@ -32,12 +32,12 @@ data.tidy <- bind_rows(sal_data, nonsal_data, balanced_data) %>%
     ),
     t_sec = (time.step - 1) / sample_rate, # 0 is the point of disambiguation
     t_ms = t_sec * 1000,
-    condition = factor(condition,
+    trial_category = factor(trial_category,
       labels = c("Learning", "Familiar", "Novel", "ME")
     ),
     sex = factor(sex, labels = c("male", "female"))
   ) %>%
-  filter(lab_age >= 1, condition != "Learning") %>%
+  filter(lab_age >= 1, trial_category != "Learning") %>%
   clean_names()
 
 ## Experiment design from internal communication (excluding learning trials)
@@ -105,16 +105,23 @@ design.nonsal.df <- design |>
   ))
 
 design.tidy <- rbind(design.bal.df, design.sal.df, design.nonsal.df) |>
-  rename(condition = trial_type) %>%
-  mutate(condition = if_else(condition == "new", "Novel",
-    if_else(condition == "me", "ME",
-      "Familiar"
-    )
-  )) |>
-  mutate(lab_trial_id = paste(exp, condition, sep = "_"))
+  mutate(
+    # 3-level join key to match data.tidy
+    trial_category = case_when(
+      trial_type == "easy" ~ "Familiar",
+      trial_type == "new" ~ "Novel",
+      trial_type == "me" ~ "ME"
+    ),
+    # 7-level condition: Familiar stays as-is, others get experiment suffix
+    condition = if_else(trial_category == "Familiar",
+                        "Familiar",
+                        paste0(trial_category, "_", exp))
+  ) |>
+  mutate(lab_trial_id = paste(exp, trial_category, sep = "_"))
 
 data.full <- data.tidy %>%
-  left_join(design.tidy) %>%
+  left_join(design.tidy, by = c("exp", "trial_category", "trial_num")) %>%
+  select(-trial_category) %>%
   mutate(
     target_side = ifelse(target_side == 1, "left", "right"),
     target_image = ifelse(target_side == "right", right_image, left_image),
