@@ -13,14 +13,14 @@ options(dplyr.summarise.inform = FALSE)
 # override of peekbankr get_raw_data that relies on broken osfr
 source(here("helper_functions", "osf.R"))
 
-init <- function(dataset_name) {
+init <- function(dataset_name, osf_address = "pr6wu") {
   path <- here("data", dataset_name)
   data_path <- here(path, "raw_data")
 
   if (length(list.files(data_path)) == 0) {
     get_raw_data_fixed(
       lab_dataset_id = dataset_name,
-      osf_address = "pr6wu"
+      osf_address = osf_address
     )
   }
 

@@ -10,26 +10,30 @@ for (package in c("httr", "jsonlite", "glue", "utils", "here", "dplyr")) {
 get_raw_data_fixed <- function(lab_dataset_id, osf_address = "pr6wu") {
   # drop in replacement for the get_raw_data function of peekbankr (renamed for now)
 
+  # auth header for private repos (optional - public repos work without token)
+  auth <- if (file.exists(here("osf_token.txt")))
+    add_headers(Authorization = glue("Bearer {trimws(readLines(here('osf_token.txt'), n = 1, warn = FALSE))}"))
+
   page <- jsonlite::fromJSON(
     rawToChar(
       GET(glue(
         "https://api.osf.io/v2/nodes/{osf_address}/files/osfstorage?filter[name]={lab_dataset_id}"
-      ))$content
+      ), auth)$content
     )
   )
 
   raw_data <- jsonlite::fromJSON(rawToChar(
     GET(glue(
       "{page$data$relationships$files$links$related$href}?filter[name]=raw_data"
-    ))$content
+    ), auth)$content
   ))
 
   print(glue("\nDownloading {lab_dataset_id}\n"))
 
   zip_path <- here("data", lab_dataset_id, "raw_data.zip")
+  zip_url <- glue("https://files.osf.io/v1/resources/{osf_address}/providers/osfstorage/{raw_data$data$id}/?zip=")
 
-  glue::glue("https://files.osf.io/v1/resources/{osf_address}/providers/osfstorage/{raw_data$data$id}/?zip=") %>%
-    curl::curl_download(zip_path, quiet = FALSE)
+  GET(zip_url, auth, write_disk(zip_path, overwrite = TRUE), progress())
 
   utils::unzip(
     zip_path,
