@@ -49,38 +49,6 @@ data <- data %>%
     )
   )
 
-# 300ms interpolation: fill NA gaps where surrounding AOI is the same Left/Right
-# this mirrors the approach of the provided data, but does so AFTER
-# introducing an "other" AOI
-# TODO: Wait decision if we want to reconstruct this from the og paper or leave it
-interpolate_aoi <- function(df) {
-  df %>%
-    mutate(
-      is_na = is.na(AOI),
-      run_id = cumsum(is_na != lag(is_na, default = TRUE)),
-      aoi_before = AOI,
-      aoi_after = AOI
-    ) %>%
-    fill(aoi_before, .direction = "down") %>%
-    fill(aoi_after, .direction = "up") %>%
-    group_by(run_id) %>%
-    mutate(
-      fillable = is_na &
-        n() <= INTERPOLATION_FRAMES &
-        !is.na(aoi_before) & !is.na(aoi_after) &
-        aoi_before == aoi_after &
-        aoi_before %in% c("Left", "Right", "other")
-    ) %>%
-    ungroup() %>%
-    mutate(AOI = if_else(fillable, aoi_before, AOI)) %>%
-    select(-is_na, -run_id, -aoi_before, -aoi_after, -fillable)
-}
-
-data <- data %>%
-  arrange(Sub.Num, Tr.Num, Time) %>%
-  group_by(Sub.Num, Tr.Num) %>%
-  group_modify(\(x, ...) interpolate_aoi(x)) %>%
-  ungroup()
 
 wide.table <- data %>%
   inner_join(demo, by = join_by(Sub.Num == `Sub Num`)) %>% 

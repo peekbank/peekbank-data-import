@@ -36,7 +36,5 @@ We reconstructed the four conditions found in the paper. This approach resulted 
 
 5. **Importing ambiguity.**
 
-AOI interpolation: The original study applied 300ms gap-filling (18 frames at 60Hz) to fill in missing frames. Right now, we are reconstructing this step after the step in which we introduce the "other" category. This point is still up for debate.
-
 The AOI regions are currently estimated based on the existing data. We are still waiting for the authors to get back to us to provide the actual reagionset.
 
