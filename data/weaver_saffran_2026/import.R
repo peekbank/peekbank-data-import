@@ -24,14 +24,13 @@ data <- data %>%
     "A180real" ~ "A180", .default = Sub.Num
   ))
 
-# AOI bounding boxes (empirically determined from coordinate data for now)
-# TODO: Wait for the authors to get back to us with the actual coords
-L_X_MIN <- 140
-L_X_MAX <- 640
-R_X_MIN <- 1280
-R_X_MAX <- 1780
-Y_MIN <- 390
-Y_MAX <- 890
+# AOI bounding boxes (from communication with authors)
+L_X_MIN <- 125
+L_X_MAX <- 625
+R_X_MIN <- 1295
+R_X_MAX <- 1795
+Y_MIN <- 541
+Y_MAX <- 1041
 
 
 INTERPOLATION_FRAMES <- 18  # 300ms at 60Hz

@@ -35,6 +35,3 @@ We reconstructed the four conditions found in the paper. This approach resulted 
 
 
 5. **Importing ambiguity.**
-
-The AOI regions are currently estimated based on the existing data. We are still waiting for the authors to get back to us to provide the actual reagionset.
-
