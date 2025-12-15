@@ -13,6 +13,7 @@ How do infants become word meaning experts? This registered report investigated 
 
 - condition: Images were either of typical (e.g. robin) or atypical (e.g. heron) category exemplars.
 - Both typical and atypical trials are treated as vanilla because the general design follows a canonical LWL structure (non-informative carrier phrases, familiar words, typical event timing)
+- the data was collected on Lookit/ Children Helping Science, so there are many trials with timing issues. Here, we rely on the time correction steps and the trial/ participant exclusions in the original paper, since these are well-documented in the open data from the study. However, there are some residual unusual (shorter and longer) trial times for a small set of trials.
 
 4. **Importing decisions.**
 - vanilla trials: we decided to keep atypical trials as vanilla. This also fits with the fact that there were no differences for typical vs. atypical trials in the original study.

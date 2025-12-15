@@ -53,7 +53,7 @@ wide.table <- data %>%
     ), 
     session_num = session,
     sample_rate = 30,
-    tracker = "webcam",
+    tracker = "peyecoder",
     coding_method = "manual gaze coding",
     TEMP_audio = str_extract(audio, "^[^_]+"),
     full_phrase = case_when(
@@ -64,7 +64,7 @@ wide.table <- data %>%
       .default = NA
     ),
     full_phrase_language = "eng",
-    point_of_disambiguation = 2650, # according to paper
+    point_of_disambiguation = 0, # time is now normalized
     target_stimulus_label_original = target_category,
     target_stimulus_label_english = target_category,
     target_stimulus_novelty = "familiar",
@@ -90,7 +90,9 @@ dataset_list <- digest.dataset(
     lab_dataset_id = NA,
     cite = "Weaver, H., Zettersten, M., & Saffran, J. (2024). Becoming word meaning experts: Infants’ processing of familiar words in the context of typical and atypical exemplars. Child Development, 95(5), e352-e372.",
     shortcite = "Weaver et al. 2024",
-    wide.table = wide.table
+    wide.table = wide.table,
+    rezero = FALSE,
+    normalize = FALSE, #data is already normalized
 )
 
 write_and_validate_list(dataset_list, cdi_expected = FALSE, upload=F)
