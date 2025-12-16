@@ -33,13 +33,6 @@ d_processed <- d_filtered %>%
   remove_repeat_headers(idx_var = "Months") %>%
   clean_names()
 
-# remove excluded trials
-# unique(d_processed$prescreen_notes)
-# [1] NA  "Inattentive" "Child Talking" "Parent Interfering"
-# Because the schema change on Hackathon fall 2022, we are including excluded trials
-# and including notes on why trials were excluded in the paper in trials table
-# d_processed <- d_processed %>%
-#   filter(is.na(prescreen_notes))
 
 # Relabel time bins --------------------------------------------------
 old_names <- colnames(d_processed)
@@ -65,8 +58,6 @@ last_t_idx <- colnames(d_processed) %>% dplyr::last() # this returns a string
 d_tidy <- d_processed %>%
   tidyr::gather(t, aoi, first_t_idx:last_t_idx) # but gather() still works
 
-# recode 0, 1, ., - as distracter, target, other, NA [check in about this]
-# this leaves NA as NA
 d_tidy <- d_tidy %>%
   rename(aoi_old = aoi) %>%
   mutate(aoi = case_when(
@@ -118,13 +109,13 @@ color_carrier_phrases <- all_orders_cleaned %>%
   filter(target_word %in% colors) %>%
   mutate(carrier_try = str_split_fixed(SoundStimulus, "_", 3)[, 2]) %>%
   mutate(carrier_try = factor(carrier_try, levels = c("Find", "Where", "Look"), labels = c("Find the", "Where is the", "Look at the"))) %>%
-  mutate(full_phrase = paste0(carrier_try, " ", target_word, " one", ifelse(carrier_try == "Where is the","?","!"))) %>%
+  mutate(full_phrase = paste0(carrier_try, " ", target_word, " one", ifelse(carrier_try == "Where is the", "?", "!"))) %>%
   select(target_word, target_image, carrier_try, full_phrase, SoundStimulus) %>%
   distinct(target_word, target_image, carrier_try, full_phrase, SoundStimulus)
 
 # ## Load noun carrier phrases from .csv
 all_carrier_phrases <- read_csv(here("data", dataset_name, "raw_data", "carrier_phrases.csv")) %>% # only has nouns
-  mutate(target_word = lab_stimulus_id, target_image = lab_stimulus_id, full_phrase = paste0(carrier_phrase, " ", lab_stimulus_id, ifelse(carrier_phrase == "Where's the","?","!"))) %>%
+  mutate(target_word = lab_stimulus_id, target_image = lab_stimulus_id, full_phrase = paste0(carrier_phrase, " ", lab_stimulus_id, ifelse(carrier_phrase == "Where's the", "?", "!"))) %>%
   select(target_word, target_image, full_phrase) %>%
   full_join(color_carrier_phrases) %>%
   mutate(target_word = tolower(target_word), target_image = tolower(target_image))
