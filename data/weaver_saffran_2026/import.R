@@ -11,8 +11,10 @@ cdi <- read_csv(file.path(data_path, "Data", "cdi_percentiles.csv"), show_col_ty
 vocab <- read_csv(file.path(data_path, "Data", "deidentified_vocabulary_survey.csv"), show_col_types = FALSE)
 
 vocab_long <- vocab %>%
-  select(subject_id = `subject_id...9`,
-         apple, ball, crayon, flower, glasses, peas, sock, toothbrush) %>%
+  select(
+    subject_id = `subject_id...9`,
+    apple, ball, crayon, flower, glasses, peas, sock, toothbrush
+  ) %>%
   pivot_longer(-subject_id, names_to = "word", values_to = "status") %>%
   mutate(comprehends = status %in% c("understands", "understands AND says"))
 
@@ -21,7 +23,8 @@ data <- data %>%
   mutate(Sub.Num = case_match(Sub.Num,
     "A115_real" ~ "A115", "a128" ~ "A128", "A150real" ~ "A150",
     "A159RE" ~ "A159", "A161real" ~ "A161", "A166r" ~ "A166",
-    "A180real" ~ "A180", .default = Sub.Num
+    "A180real" ~ "A180",
+    .default = Sub.Num
   ))
 
 # AOI bounding boxes (from communication with authors)
@@ -33,7 +36,7 @@ Y_MIN <- 541
 Y_MAX <- 1041
 
 
-INTERPOLATION_FRAMES <- 18  # 300ms at 60Hz
+INTERPOLATION_FRAMES <- 18 # 300ms at 60Hz
 
 # recompute AOI from coordinates, now with "other" AOI
 data <- data %>%
@@ -50,7 +53,7 @@ data <- data %>%
 
 
 wide.table <- data %>%
-  inner_join(demo, by = join_by(Sub.Num == `Sub Num`)) %>% 
+  inner_join(demo, by = join_by(Sub.Num == `Sub Num`)) %>%
   mutate(
     subject_id = Sub.Num,
     sex = Sex,
