@@ -343,7 +343,7 @@ trial_types <- d_tidy_final %>%
   mutate(
     full_phrase_language = "eng",
     trial_type_aux_data = NA
-  ) # all trials are vanilla
+  ) 
 
 
 ##### DATASETS TABLE ####
