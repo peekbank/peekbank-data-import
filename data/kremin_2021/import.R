@@ -125,7 +125,7 @@ mtl_wide.table <- mtl_data_cleaned |>
     point_of_disambiguation = 3000,
     target_side = ifelse(location == "L", "left", "right"),
     # condition
-    vanilla_trial = 0,
+    vanilla_trial = str_detect(trial_type, "Single"),
     excluded = keeper == 0,
     exclusion_reason = exclusion,
     session_num = 1,
@@ -257,7 +257,7 @@ pct_wide.table <- pct_data_cleaned |>
     point_of_disambiguation = 3100,
     target_side = ifelse(target_side == "l", "left", "right"),
     condition = tolower(trial_type),
-    vanilla_trial = 0,
+    vanilla_trial = str_detect(trial_type, "Single"),
     excluded = keeper == "N",
     exclusion_reason = reason,
     session_num = 1,

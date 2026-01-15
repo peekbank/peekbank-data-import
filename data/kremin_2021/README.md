@@ -43,12 +43,9 @@ Age was calculated from years, months, and days using the formula: years * 365.2
 
 Monitor size for the Montreal data was set as 1920x1200 based on the Tobii export.
 
-We decided that the data reflect non-vanilla trials, although the "single"
-condition trials (e.g., "Can you see the good cow?") could be construed as 
-"vanilla" in the sense that the carrier phrase is unlikely to bias the results.
-(This would also be true for the "filler" condition trials should we decide 
-to include these data).
-The data may be worth further analysis despite their non-vanilla status.
+(vanilla-ness update Jan 2026): We have decided that uninformative adjectives are vanilla for our purposes. 
+The language switch are non-vanilla because of the language switch, but the "single" language trials 
+(e.g., "Can you see the good cow?") have now been deemed vanilla. 
 
 child-level exclusions are recorded, but trial level are not
 
