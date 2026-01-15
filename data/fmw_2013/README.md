@@ -21,6 +21,9 @@ CDIs and LWL were collected at 18 and 24 months. For LWL, two overlapping sets o
 - Participant (20136) had an accidental double coding of a video, where session 2's data (TL2-2A) was likely the session 1 video coded again. We removed that participant from the data.
 
 
+- Vanillaness (as of Jan 2026): 
+Vanilla: vanilla-noun, familiar, U-prime-noun (unrelated prime), and Uninf-Adj-Noun are vanilla (Uninf is "red car" when both target and distractor are red)
+Non-vanilla: Inf-Adj-Adj (blue car when the target but not the distractor is blue), R-prime-verb (eat the cookie)
 5. **Importing ambiguity.**
 
 - What is the right point of disambiguation for trials with informative verbs or adjectives? Current decision is to always make the target noun onset the point of disambiguation.

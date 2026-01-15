@@ -287,7 +287,7 @@ d_processed <- bind_rows(temp_1_18, temp_1_24, temp_2_18, temp_2_24) %>%
   select(-word_onset, -gap, -target_rt_sec, -dis_rt_sec, -shifts, -orig_resp)
 
 # filter out wrongly coded video
-d_processed <- d_processed %>% filter(!(sub_num == "20136" & order== "TL2-2A"))
+d_processed <- d_processed %>% filter(!(sub_num == "20136" & order == "TL2-2A"))
 
 # make tidy
 d_tidy <- d_processed %>%
@@ -460,25 +460,27 @@ d_tidy_semifinal <- d_tidy_semifinal %>%
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
-
-  mutate(dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
-         #lab_trial_id = paste(target_label,target_image,distractor_image, sep = "-"),
-         lab_trial_id = NA,
-         aoi_region_set_id = NA, # not applicable
-         monitor_size_x = NA, # unknown---not in paper
-         monitor_size_y = NA, # unknown---not in paper
-         lab_age_units = "months",
-         age = as.numeric(months), # months 
-         point_of_disambiguation = 0, #data is re-centered to zero based on critonset in datawiz (and adjustment to noun onset above)
-         tracker = "video_camera",
-         sample_rate = sampling_rate_hz) %>% 
-  rename(lab_subject_id = sub_num,
-         lab_age = months,
-         full_phrase=sound_stimulus
+  mutate(
+    dataset_id = 0, # dataset id is always zero indexed since there's only one dataset
+    # lab_trial_id = paste(target_label,target_image,distractor_image, sep = "-"),
+    lab_trial_id = NA,
+    aoi_region_set_id = NA, # not applicable
+    monitor_size_x = NA, # unknown---not in paper
+    monitor_size_y = NA, # unknown---not in paper
+    lab_age_units = "months",
+    age = as.numeric(months), # months
+    point_of_disambiguation = 0, # data is re-centered to zero based on critonset in datawiz (and adjustment to noun onset above)
+    tracker = "video_camera",
+    sample_rate = sampling_rate_hz
+  ) %>%
+  rename(
+    lab_subject_id = sub_num,
+    lab_age = months,
+    full_phrase = sound_stimulus
   )
 
-#add cdi data
-#999 seem to be NA values, convert now to avoid later issues
+# add cdi data
+# 999 seem to be NA values, convert now to avoid later issues
 cdi_data[cdi_data == 999] <- NA
 
 # cdi_responses:
@@ -519,7 +521,7 @@ cdi_to_json <- cdi_processed |>
   nest(subject_aux_data = -lab_subject_id) |>
   mutate(subject_aux_data = sapply(subject_aux_data, jsonlite::toJSON)) |>
   # hacky way to transform the top level list with one object into a top level object - but simplest way to integrate into the existing code
-  mutate(subject_aux_data = gsub('^.|.$', '', as.character(subject_aux_data)))
+  mutate(subject_aux_data = gsub("^.|.$", "", as.character(subject_aux_data)))
 
 
 ##### AOI TABLE ####
@@ -595,7 +597,7 @@ trial_types <- d_tidy_final %>%
   mutate(
     trial_type_aux_data = NA,
     vanilla_trial = case_when(
-      condition %in% c("U-Prime-Noun", "Vanilla-Noun", "familiar") ~ TRUE,
+      condition %in% c("U-Prime-Noun", "Vanilla-Noun", "familiar", "Uninf-Adj-Noun") ~ TRUE,
       TRUE ~ FALSE
     )
   ) %>%
