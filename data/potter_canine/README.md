@@ -53,7 +53,7 @@ For information about the sentence frame manipulation, see the trial orders in t
         - “0.5” ~ “other” (child is fixating the center of the screen)
         - “.” ~ “missing” (This entry means a shift/ “off” in the language of iCoder. This was coded as “missing” because it can mean multiple things, including that gaze was not codable)
         - “-” ~ “missing” (This entry means “away” in the language of iCoder. In practice, this can also correspond to multiple looking situations; e.g., child is turned away from the screen; very long blinks. All of these situations should correspond to the situation “missing”)
-- trials with low-frequency label-object pairing are treated as vanilla.
 
+vanillaness decision Jan 2026: this is all vanilla, even if the carrier phrases are more complicated, it's still neutral. (ditto harder vocab targets)
 5. **Importing ambiguity.** 
 - note the ambiguity with respect to the distractor_id choice.

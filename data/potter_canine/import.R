@@ -29,7 +29,7 @@ d_raw_1 <- read_delim(fs::path(read_path, "Canine.n36.raw.txt"),
   relocate(administration_num, study, .after = `Sub Num`)
 
 d_raw_2 <- read_delim(fs::path(read_path, "canine2_rawLookingTimeData.n34.txt"),
-                      delim = "\t"
+  delim = "\t"
 ) %>%
   mutate(administration_num = 0) %>%
   mutate(study = 2) %>%
@@ -108,7 +108,7 @@ d_tidy_1 <- d_processed_1 %>%
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
 d_filtered_2 <- d_raw_2 %>%
-  select_if(~ sum(!is.na(.)) > 0) 
+  select_if(~ sum(!is.na(.)) > 0)
 
 # Create clean column headers --------------------------------------------------
 d_processed_2 <- d_filtered_2 %>%
@@ -204,7 +204,7 @@ d_tidy <- d_tidy %>%
 
 # create stimulus table
 stimulus_table <- d_tidy %>%
-  distinct(study,target_image, image_stimulus_name,full_image_path,target_label, lab_stimulus_id, target_label_condition) %>%
+  distinct(study, target_image, image_stimulus_name, full_image_path, target_label, lab_stimulus_id, target_label_condition) %>%
   filter(!is.na(target_image)) %>%
   mutate(
     dataset_id = 0,
@@ -219,11 +219,11 @@ stimulus_table <- d_tidy %>%
 
 ## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distractor image
 d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(stimulus_id,study, target_image,target_label_condition), by = c("study","target_image", "target_label_condition")) %>%
+  left_join(stimulus_table %>% select(stimulus_id, study, target_image, target_label_condition), by = c("study", "target_image", "target_label_condition")) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
   # decision: join in on condition of the target, so choose the low or high distractor label accordingly for uniqueness
-  left_join(stimulus_table %>% select(stimulus_id,study, target_image, target_label_condition,original_stimulus_label), by = c("study","distractor_image" = "target_image", "target_label_condition")) %>%
+  left_join(stimulus_table %>% select(stimulus_id, study, target_image, target_label_condition, original_stimulus_label), by = c("study", "distractor_image" = "target_image", "target_label_condition")) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
@@ -312,12 +312,15 @@ cdi_raw2 <- read.csv(here(read_path, "canine2_subjectMeans.csv")) %>%
 cdi_data <- cdi_raw1 %>%
   rbind(cdi_raw2) %>%
   filter(!is.na(cdi)) %>%
-  mutate(percentile = NA,
-         rawscore = as.numeric(cdi),
-         instrument_type = "ws",
-         measure = "comp",
-         language="English",
-         subject_id = lab_subject_id) |> select(-lab_subject_id)
+  mutate(
+    percentile = NA,
+    rawscore = as.numeric(cdi),
+    instrument_type = "ws",
+    measure = "comp",
+    language = "English",
+    subject_id = lab_subject_id
+  ) |>
+  select(-lab_subject_id)
 
 subjects <- subjects %>%
   digest.subject_aux_data(cdi = cdi_data)
@@ -343,7 +346,7 @@ administrations <- d_tidy_final %>%
 
 ##### STIMULUS TABLE ####
 stimuli <- stimulus_table %>%
-  select(-study,-target_label, -target_image, -target_label_condition,-image_stimulus_name,-full_image_path) %>%
+  select(-study, -target_label, -target_image, -target_label_condition, -image_stimulus_name, -full_image_path) %>%
   mutate(stimulus_aux_data = NA)
 
 #### TRIALS TABLE ####
@@ -372,7 +375,7 @@ trials <- d_tidy_final %>%
 trial_types <- d_tidy_final %>%
   mutate(
     trial_type_aux_data = NA,
-    vanilla_trial = ifelse(condition == "Common-High" | condition == "Common-Low", TRUE, FALSE)
+    vanilla_trial = TRUE,
   ) %>%
   distinct(
     trial_type_id,
@@ -414,5 +417,5 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload=F
+  upload = T
 )
