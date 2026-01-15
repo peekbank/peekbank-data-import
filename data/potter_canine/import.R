@@ -5,6 +5,7 @@ library(janitor)
 library(readxl)
 
 source(here("helper_functions", "common.R"))
+source(here("helper_functions", "idless_draft.R"))
 dataset_name <- "potter_canine"
 read_path <- init(dataset_name)
 
@@ -317,7 +318,7 @@ cdi_data <- cdi_raw1 %>%
     rawscore = as.numeric(cdi),
     instrument_type = "ws",
     measure = "comp",
-    language = "English",
+    language = "English (American)",
     subject_id = lab_subject_id
   ) |>
   select(-lab_subject_id)
@@ -417,5 +418,5 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload = T
+  upload = F
 )
