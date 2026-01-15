@@ -63,7 +63,7 @@ vanilla:
 
 
 non-vanilla:
-* medial
+* medial (always on a novel object, we can't tell if phrase mentions the novel object or not as we don't have phrases)
 * R-primeVerb (filtered out)
 * UR-primeVerb (filtered out)
 * R-primeNoun
