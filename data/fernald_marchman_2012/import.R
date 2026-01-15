@@ -27,7 +27,8 @@ d_processed_18 <- d_raw_18 %>%
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
     truncation_point = truncation_point_calc(.),
     sampling_rate = sampling_rate_ms
-  ) |> mutate(age_group = 18) 
+  ) |>
+  mutate(age_group = 18)
 
 # 24-month-olds
 d_raw_24 <- read_delim(fs::path(read_path, "TL2-24ABAlltrialstoMF.txt"),
@@ -42,7 +43,8 @@ d_processed_24 <- d_raw_24 %>%
     post_dis_names = extract_col_types(.)[["post_dis_names"]],
     truncation_point = truncation_point_calc(.),
     sampling_rate = sampling_rate_ms
-  ) |> mutate(age_group = 24)
+  ) |>
+  mutate(age_group = 24)
 
 # 30-month-olds
 d_raw_30 <- read_delim(fs::path(read_path, "TL230ABoriginalichartsn1-121toMF.txt"),
@@ -86,7 +88,8 @@ d_processed_30_part_2 <- d_raw_30 |>
   mutate(across(everything(), as.character))
 
 d_processed_30 <- d_processed_30_part_1 |>
-  bind_rows(d_processed_30_part_2) |> mutate(age_group = 30)
+  bind_rows(d_processed_30_part_2) |>
+  mutate(age_group = 30)
 
 
 
@@ -94,7 +97,6 @@ d_processed_30 <- d_processed_30_part_1 |>
 # agglomerate
 
 d_processed <- d_processed_18 |>
-  
   # this is a very hacky fix for some of the columns being logicals
   # so force everything to chars and sort it out later
   mutate(across(everything(), as.character)) |>
@@ -116,15 +118,15 @@ d_processed <- d_processed %>%
     months = as.numeric(months),
     sub_num = as.numeric(sub_num),
     tr_num = as.numeric(tr_num)
-  ) 
+  )
 
 ## v2024
-## There was a problem with trial orders. The original datasets were not arranged 
+## There was a problem with trial orders. The original datasets were not arranged
 ## by trial order (tr_num) and that could be one of the causes of
 ## repeated trials in the final tidy dataset
 ## So here I order d_processed by subject, months, session, and trial order
-d_processed <- d_processed %>% 
-  arrange(sub_num, months, session, tr_num) 
+d_processed <- d_processed %>%
+  arrange(sub_num, months, session, tr_num)
 
 # some row pairs in the raw data refer to the same trial, coded with 2 different
 # word onsets to target either the verb or the noun of the phrase
@@ -137,7 +139,7 @@ d_processed <- d_processed %>%
     # of UR-primeVerb + UR-primeNoun. However, one of the two has a later onset and
     # is therefore likely referring to R-primeNoun (data entry typo)
     condition = case_when(
-      months >= 28 & 
+      months >= 28 &
         sub_num %in% c("10002", "10003", "10007") &
         session == "A" &
         condition == "UR-primeVerb" &
@@ -149,52 +151,73 @@ d_processed <- d_processed %>%
     # 10002, 10003, and 10007 have pairs of fully identical rows for session A, R-primeVerb
     # The offset is 0, so it is unlikely these are acutally primeNoun - we remove them for consistency
     !(months >= 28 &
-        sub_num %in% c("10002", "10003", "10007") &
-        session == "A" &
-        (condition == "R-primeVerb" |
-           (condition == "UR-primeVerb" & word_onset == 0))
+      sub_num %in% c("10002", "10003", "10007") &
+      session == "A" &
+      (condition == "R-primeVerb" |
+        (condition == "UR-primeVerb" & word_onset == 0))
     ) &
       # 10038 has no doubling at all across both session A and B,
       # only using (U)R-primeVerb. No offset. We also assume that this is only
       # verb data and remove it
       !(months >= 28 &
-          sub_num == "10038" &
-          grepl("([Vv]erb)", condition))
+        sub_num == "10038" &
+        grepl("([Vv]erb)", condition))
   ) %>%
   # the remaining pairings have a valid primeNoun, so we can filter out the verb rows
   filter(!(months >= 28 & grepl("([Vv]erb)", condition)))
 
+phrases_24 <- read_tsv(here(read_path, "visit B.txt")) |>
+  bind_rows(read_tsv(here(read_path, "visitA.txt"))) |>
+  filter(!is.na(Name)) |>
+  # filter(Used == "yes") |>
+  mutate(target_side = ifelse(`Target Side` == "R", "l", "r")) |>
+  select(
+    order = Name, tr_num = `Trial #`, phrase = `Order 1`, r_image = `Left Image`,
+    l_image = `Right Image`, target_side, condition_phrase = Condition
+  )
+
+phrases_30 <- read_tsv(here(read_path, "TL2-30A.txt")) |>
+  bind_rows(read_tsv(here(read_path, "TL2-30B.txt"))) |>
+  mutate(target_side = ifelse(`target side` == "R", "l", "r")) |>
+  # filter(used == "yes") |>
+  select(
+    order = name, tr_num = `trial number`, phrase = `sound stimulus`,
+    r_image = `left image`, l_image = `right image`,
+    condition_phrase = condition, target_side
+  ) |>
+  filter(!is.na(phrase)) |>
+  filter(condition_phrase != "UR-primeVerb", condition_phrase != "R-primeVerb")
 
 
-
-phrasedata_24_30 <- read_csv(here(read_path, "manually_compiled_trial_info_2430.csv")) %>% 
-  mutate(across(everything(), as.character)) %>%
-  select(age_group, session, trialnum, phrase) %>%    # This is to avoid a column called "...5" v_2024
-  ## put numeric variables as numeric v_2024
-  mutate(trialnum = as.numeric(trialnum)
-         # ,
-         # age_group = as.numeric(age_group)
-         )
+phrasedata_24_30 <- phrases_24 |> bind_rows(phrases_30)
 
 # add carrier phrases
-d_processed <- d_processed %>%
-  left_join(phrasedata_24_30, by = join_by(session, age_group, tr_num == trialnum)) %>% 
-  # according to TL2-18mEnglish.sound measure.xls
+d_processed_with_phrases <- d_processed %>%
+  mutate(r_image = str_trim(r_image)) |>
+  mutate(order = case_when(
+    order == "TL2-30As" ~ "TL2-30A", # maybe a typo??
+    order == "TL2-30Bs" ~ "TL2-30B", # maybe a typo in original
+    order == "TL2-24ASO-F0" ~ "TL2-24ANO", # this is an order in the 30 mo age group, but appears to match this list
+    T ~ order
+  )) |>
+  left_join(phrasedata_24_30) %>%
+  # according to TL2-18mEnglish.sound measure.xls -- "for VC order" tab
   mutate(phrase = case_when(
     age_group == "18" & target_image == "baby" ~ "Where's the baby? Can you see it?",
-    age_group == "18" & target_image == "car" ~ "Where's the car? Can you see it?",
+    age_group == "18" & target_image == "car" ~ "Where's the car? Can you find it?",
     age_group == "18" & target_image == "doggy" ~ "Where's the doggy? Can you see it?",
-    age_group == "18" & target_image == "book" ~ "Where's the book? Can you see it?",
-    age_group == "18" & target_image == "birdy" ~ "Where's the birdie? Can you find it?",
-    age_group == "18" & target_image == "kitty" ~ "Where's the baby? Can you find it?",
+    age_group == "18" & target_image == "book" ~ "Where's the book? Can you find it?",
+    age_group == "18" & target_image == "birdy" ~ "See the birdie? Can you find it?",
+    age_group == "18" & target_image == "kitty" ~ "See the kitty? Can you find it?",
     age_group == "18" & target_image == "shoe" ~ "Look at the shoe. Do you like it?",
     age_group == "18" & target_image == "ball" ~ "Look at the ball. Do you like it?",
     T ~ phrase
   ))
 
 # Convert to long format --------------------------------------------------
-d_tidy <- d_processed %>%
+d_tidy <- d_processed_with_phrases %>%
   pivot_longer(names_to = "t", cols = matches("^\\d|^-"), values_to = "aoi")
+
 
 # recode 0, 1, ., - as distracter, target, other, NA [check in about this]
 # this leaves NA as NA
@@ -216,7 +239,6 @@ d_tidy <- d_tidy %>%
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
 
 d_tidy <- d_tidy %>%
-
   select(
     -gap,
     -word_onset,
@@ -245,9 +267,11 @@ d_tidy <- d_tidy %>%
   ))
 
 # to rejoin the stimulus linking later
-d_tidy <- d_tidy %>% 
-  mutate(target_image = paste0(target_image, "_", age_group), 
-         distractor_image = paste0(distractor_image, "_", age_group))
+d_tidy <- d_tidy %>%
+  mutate(
+    target_image = paste0(target_image, "_", age_group),
+    distractor_image = paste0(distractor_image, "_", age_group)
+  )
 
 # create stimulus table
 stimulus_table_link <- d_tidy %>%
@@ -388,8 +412,17 @@ d_trial_type_ids <- d_tidy %>%
   ) |>
   mutate(
     full_phrase = phrase,
-    vanilla_trial = condition %in% c("familiar", "Vanilla", "UnrelPrime-Noun", "UR-primeNoun", "Familiar-Medial"),
-    vanilla_trial = ifelse(grepl("deebo|manju|tempo", full_phrase), FALSE, vanilla_trial),
+    vanilla_trial = case_when(
+      condition %in% c("familiar", "Vanilla", "UnrelPrime-Noun", "UR-primeNoun") ~ T,
+      condition %in% c("R-primeNoun", "Relprime-Verb", "RelPrime-Verb") ~ F,
+      str_detect(condition, "Size") ~ F,
+      str_detect(condition, "Color") ~ F,
+      str_detect(condition, "Adj") ~ F,
+      str_detect(phrase, "deebo") ~ F,
+      str_detect(phrase, "tempo") ~ F,
+      str_detect(phrase, "manju") ~ F,
+      condition %in% c("Familiar-Medial", "medial") ~ T, # if there isn't deebo, then it's an "over there" familiar medial
+    ),
     trial_type_aux_data = NA,
     lab_trial_id = NA
   ) %>%
@@ -414,7 +447,6 @@ d_trial_ids <- d_tidy_semifinal %>%
   summarize(prescreen_notes = first(na.omit(prescreen_notes)), .groups = "drop") %>%
   mutate(excluded = !is.na(prescreen_notes)) |>
   rename(exclusion_reason = prescreen_notes) |>
-  
   ## v_2024
   ## Trial order was previously handled like this:
   # group_by(sub_num, session, months) %>%
@@ -422,21 +454,21 @@ d_trial_ids <- d_tidy_semifinal %>%
   ## but given that some trials are repeated, maybe we should go with a
   ## more straightforward method based on the tr_num?
   ## it could also be:
-  # group_by(sub, months, session) %>% 
-  # arrange(tr_num) %>% 
-  # mutate(trial_order = c(0:n())) %>% 
+  # group_by(sub, months, session) %>%
+  # arrange(tr_num) %>%
+  # mutate(trial_order = c(0:n())) %>%
   # ungroup()
-  
-  ungroup() %>% 
-  rename(trial_order = "tr_num") %>% 
-  arrange(sub_num, months, session, trial_order) %>% 
+
+  ungroup() %>%
+  rename(trial_order = "tr_num") %>%
+  arrange(sub_num, months, session, trial_order) %>%
   mutate(trial_id = 0:(n() - 1)) %>%
   distinct()
 
 # join
 d_tidy_semifinal <- d_tidy_semifinal %>%
   # also rename tr_num here  v_2024
-  rename(trial_order = "tr_num") %>% 
+  rename(trial_order = "tr_num") %>%
   left_join(d_trial_ids)
 
 # add some more variables to match schema
@@ -487,7 +519,7 @@ cdi_data_cleaned <- cdi_data |>
     ws_prod_30_percentile = `WS30prodp Word Production 30m %tile`
   ) |>
   mutate(
-    wg_prod_18_age = wg_comp_18_age#,
+    wg_prod_18_age = wg_comp_18_age # ,
     # lab_subject_id = as.character(lab_subject_id)
   ) |>
   pivot_longer(
@@ -617,4 +649,3 @@ write_and_validate(
   aoi_timepoints,
   upload = F
 )
-    

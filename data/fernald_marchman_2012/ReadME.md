@@ -48,10 +48,10 @@ vanilla:
 * Vanilla
 * UnrelPrime-Noun
 * UR-primeNoun
-* Familiar-Medial
+* Familiar-Medial / medial -- sometimes! these are distinguished based on whether the full phrase contains "on the deebo"(non-vanilla) or "over there" (vanilla)
 
 non-vanilla:
-* medial
+* Familar-Medial / medial
 * AdjSize
 * Adjective 
 * AdjColor
@@ -67,6 +67,7 @@ non-vanilla:
 * FerretRetention
 * FerretVerbComp 
                   
+(all of the adjectives are contrastive, so non-vanilla)
 
 Right now, the Points of Disambiguation for non-vanilla trials have not been fully 
 checked - so the timings of these trials could be inconsistent. TODO, 
