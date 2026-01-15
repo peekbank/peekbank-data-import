@@ -18,8 +18,9 @@ Children learn from their environments and their caregivers. To capitalize on le
 
 -   Vanilla trials:
 
-    Both neutral and filler trials are treated as vanilla because they do not contain any facilitating aspect.
-
+    (vanillaness decision Jan 2026): All trials are vanilla because presence or absence of facilitory coarticulation sounds "normal" and is 
+    within the range that other vanilla trials have (many datasets don't report splicing or not approach). 
+    
 4.  **Importing decisions. (unfinished)**
 
 Sex is not reported in original data for each subject

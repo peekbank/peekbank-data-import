@@ -52,7 +52,7 @@ subjects_table <- subjects %>%
   filter(is.na(Exclude)) %>%
   mutate(
     subject_id = seq(0, nrow(.) - 1, 1),
-    sex = "unspecified",                 
+    sex = "unspecified",
     native_language = "eng"
   ) %>%
   select(lab_subject_id, lab_age, rawscore = cdi, subject_id, sex, native_language) %>%
@@ -130,14 +130,14 @@ find_full_phrase <- function(file_name) {
   stringList <- str_split(file_name, "_")
   phrase_parts <- unlist(lapply(stringList[[1]], find_phrase_part))
   new_phrase <- paste(phrase_parts, collapse = "")
-  
+
   # Add question mark or exclamation mark based on whether it's a question
   if (startsWith(new_phrase, "Wheres ")) {
     new_phrase <- paste0(new_phrase, "?")
   } else {
     new_phrase <- paste0(new_phrase, "!")
   }
-  
+
   return(new_phrase)
 }
 
@@ -197,7 +197,7 @@ mega_trials <- temp_trials %>% left_join(trials_table)
 trials_types_table <- trials_table %>%
   distinct(condition, full_phrase, target_id, distractor_id, target_side) %>%
   mutate(
-    vanilla_trial = ifelse(condition == "facilitating", FALSE, TRUE),
+    vanilla_trial = TRUE,
     trial_type_id = seq(0, nrow(.) - 1)
   )
 
@@ -381,5 +381,5 @@ write_and_validate(
   aoi_region_sets = aoi_region_sets_table,
   xy_timepoints = xy_timepoints_table,
   aoi_timepoints = aoi_timepoints_table,
-  upload = T
+  upload = F
 )
