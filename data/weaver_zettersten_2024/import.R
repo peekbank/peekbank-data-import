@@ -11,6 +11,9 @@ data <- read.csv(file.path(data_folder, "CATegories_exp2_processed_data_with_exc
 stimulus_info <- read.csv(file.path(data_folder,"animal_ratings_stimuli_full.csv")) %>% 
   mutate(image = gsub(".jpg", "", image_experiment_name))
 
+#exclude ~300 rows (for three trials) where audio is missing - these appear to be trials that ended prior to audio onset (CAT_260) or that ended early for some other reason (CAT_308)
+data <- filter(data,!is.na(audio))
+
 wide.table <- data %>%
   mutate(target_side = (c(
     "left" = "left",
@@ -89,7 +92,7 @@ dataset_list <- digest.dataset(
     dataset_name = dataset_name,
     lab_dataset_id = NA,
     cite = "Weaver, H., Zettersten, M., & Saffran, J. (2024). Becoming word meaning experts: Infants’ processing of familiar words in the context of typical and atypical exemplars. Child Development, 95(5), e352-e372.",
-    shortcite = "Weaver et al. 2024",
+    shortcite = "Weaver et al. (2024)",
     wide.table = wide.table,
     rezero = FALSE,
     normalize = FALSE, #data is already normalized
