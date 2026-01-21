@@ -349,8 +349,7 @@ dataset <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
-  cite = "Pomper, R., & Saffran, J. R. (2018). More than distractors: Familiar objects influence toddlers' semantic representations in novel word learning. XXI Biennial
-International Congress of Infant Studies. Philadelphia, PA (poster).",
+  cite = "Pomper, R., & Saffran, J. R. (2018). More than distractors: Familiar objects influence toddlers' semantic representations in novel word learning. XXI Biennial International Congress of Infant Studies. Philadelphia, PA (poster).",
   shortcite = "Pomper & Saffran (2018)",
   dataset_aux_data = NA
 )
