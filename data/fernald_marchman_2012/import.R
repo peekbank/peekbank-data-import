@@ -414,14 +414,13 @@ d_trial_type_ids <- d_tidy %>%
     full_phrase = phrase,
     vanilla_trial = case_when(
       condition %in% c("familiar", "Vanilla", "UnrelPrime-Noun", "UR-primeNoun") ~ T,
-      condition %in% c("R-primeNoun", "Relprime-Verb", "RelPrime-Verb") ~ F,
+      condition %in% c("R-primeNoun", "Relprime-Verb", "RelPrime-Verb", "Familiar-Medial", "medial") ~ F,
       str_detect(condition, "Size") ~ F,
       str_detect(condition, "Color") ~ F,
       str_detect(condition, "Adj") ~ F,
       str_detect(phrase, "deebo") ~ F,
       str_detect(phrase, "tempo") ~ F,
       str_detect(phrase, "manju") ~ F,
-      condition %in% c("Familiar-Medial", "medial") ~ T, # if there isn't deebo, then it's an "over there" familiar medial
     ),
     trial_type_aux_data = NA,
     lab_trial_id = NA

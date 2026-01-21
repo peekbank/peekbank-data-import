@@ -48,10 +48,9 @@ vanilla:
 * Vanilla
 * UnrelPrime-Noun
 * UR-primeNoun
-* Familiar-Medial / medial -- sometimes! these are distinguished based on whether the full phrase contains "on the deebo"(non-vanilla) or "over there" (vanilla)
 
 non-vanilla:
-* Familar-Medial / medial
+* Familar-Medial / medial -- contains a novel object that the named entity is on top of (this is true whether the phrase has "on the deebo" or "over there")
 * AdjSize
 * Adjective 
 * AdjColor
