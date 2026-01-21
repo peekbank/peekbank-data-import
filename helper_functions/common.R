@@ -219,13 +219,14 @@ write_and_validate <- function(
     # adapted from
     # https://github.com/mzettersten/peekbank-vignettes/blob/main/peekbank_items/peekbank_item_vignette.Rmd
 
-    aoi_data_joined <- aoi_timepoints %>%
-      right_join(administrations, by = join_by(administration_id)) %>%
-      right_join(subjects, by = join_by(subject_id)) %>%
-      right_join(trials, by = join_by(trial_id)) %>%
-      right_join(trial_types, by = join_by(dataset_id, trial_type_id)) %>%
-      mutate(stimulus_id = target_id) %>% # just joining in the target properties. Add a second join here if the distractor info is needed too
-      right_join(stimuli, by = join_by(dataset_id, stimulus_id))
+    # build lookup tables
+    trial_info <- trials %>%
+      left_join(trial_types %>% select(trial_type_id, target_id, condition), by = join_by(trial_type_id)) %>%
+      left_join(stimuli %>% select(stimulus_id, english_stimulus_label), by = c("target_id" = "stimulus_id")) %>%
+      select(trial_id, target_id, english_stimulus_label, excluded, condition)
+
+    admin_subj <- administrations %>%
+      select(administration_id, subject_id)
 
     #### PARAMETERS TO SET ####
     # critical window dimensions roughly consistent with e.g., Swingley & Aslin, 2002
@@ -239,35 +240,40 @@ write_and_validate <- function(
     min_baseline <- 500
 
 
-    by_trial_means <- aoi_data_joined %>%
+    # Aggregate, then join metadata
+    by_trial_means <- aoi_timepoints %>%
       # window of analysis
       filter(t_norm >= t_min, t_norm <= t_max) %>%
-      rename(target_label = english_stimulus_label) %>%
-      group_by(subject_id, trial_id, target_label) %>%
+      group_by(administration_id, trial_id) %>%
       summarise(
         prop_target_looking = sum(aoi == "target", na.rm = TRUE) /
           (sum(aoi == "target", na.rm = TRUE) +
             sum(aoi == "distractor", na.rm = TRUE)),
-        prop_missing = mean(aoi %in% c("missing", "other"), na.rm = TRUE)
-      ) # %>%
-    # remove trials with insufficient looking to target or distractor
-    # filter(prop_missing<=max_prop_missing)
+        prop_missing = mean(aoi %in% c("missing", "other"), na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
+      left_join(admin_subj, by = join_by(administration_id)) %>%
+      left_join(trial_info %>% select(trial_id, english_stimulus_label), by = join_by(trial_id)) %>%
+      rename(target_label = english_stimulus_label)
 
     # compute baseline looking (for baseline-corrected means)
-    by_trial_baseline <- aoi_data_joined %>%
+    by_trial_baseline <- aoi_timepoints %>%
       # window of analysis
       filter(t_norm >= baseline_window[1], t_norm <= baseline_window[2]) %>%
       # bin ages (can adjust size of age bins here)
-      rename(target_label = english_stimulus_label) %>%
-      group_by(subject_id, trial_id, target_label) %>%
+      group_by(administration_id, trial_id) %>%
       summarise(
         baseline_n = n(),
         baseline_ms = baseline_n * 25,
         baseline_looking = sum(aoi == "target", na.rm = TRUE) /
           (sum(aoi == "target", na.rm = TRUE) +
             sum(aoi == "distractor", na.rm = TRUE)),
-        prop_baseline_missing = mean(aoi %in% c("missing", "other"), na.rm = TRUE)
-      ) # %>%
+        prop_baseline_missing = mean(aoi %in% c("missing", "other"), na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
+      left_join(admin_subj, by = join_by(administration_id)) %>%
+      left_join(trial_info %>% select(trial_id, english_stimulus_label), by = join_by(trial_id)) %>%
+      rename(target_label = english_stimulus_label)
     # remove trials with insufficient looking to target or distractor
     # filter(prop_baseline_missing<=max_prop_missing& baseline_ms>=500)
 
@@ -281,7 +287,8 @@ write_and_validate <- function(
       summarise(
         trial_num = n(),
         avg_target_looking = mean(prop_target_looking, na.rm = TRUE),
-        avg_corrected_target_looking = mean(corrected_target_looking, na.rm = TRUE)
+        avg_corrected_target_looking = mean(corrected_target_looking, na.rm = TRUE),
+        .groups = "drop"
       )
 
     by_subj_means <- by_trial_target_means %>%
@@ -289,57 +296,55 @@ write_and_validate <- function(
       summarise(
         trial_num = n(),
         avg_target_looking = mean(prop_target_looking, na.rm = TRUE),
-        avg_corrected_target_looking = mean(corrected_target_looking, na.rm = TRUE)
+        avg_corrected_target_looking = mean(corrected_target_looking, na.rm = TRUE),
+        .groups = "drop"
       )
-
 
     by_item_means <- by_subj_item_means %>%
       group_by(target_label) %>%
       summarise(
         subj_n = n(),
         target_looking = mean(avg_target_looking, na.rm = TRUE),
-        corrected_looking = mean(avg_corrected_target_looking, na.rm = TRUE)
+        corrected_looking = mean(avg_corrected_target_looking, na.rm = TRUE),
+        .groups = "drop"
       )
+
+    rm(by_trial_means, by_trial_baseline, by_trial_target_means)
+    gc(verbose = FALSE)
 
     # show a timecourse plot for the looking data
 
-    distractor_stimuli_data <- stimuli
-    colnames(distractor_stimuli_data) <- paste("distractor_", colnames(stimuli), sep = "")
+    excluded_trial_ids <- trials %>% filter(excluded) %>% pull(trial_id)
 
-    # join to full dataset
-    full_data <- aoi_timepoints %>%
-      left_join(administrations, by = join_by(administration_id)) %>%
-      left_join(trials, by = join_by(trial_id)) %>%
-      left_join(trial_types, by = join_by(dataset_id, trial_type_id)) %>%
-      left_join(stimuli, by = c("target_id" = "stimulus_id", "dataset_id")) %>%
-      left_join(distractor_stimuli_data %>% select(-distractor_dataset_id), by = c("distractor_id" = "distractor_stimulus_id"))
-
-    # mutate aoi
-    full_data <- full_data %>%
-      filter(!excluded) %>% 
+    ##### summarize by subject (really: administrations) ####
+    summarize_by_subj <- aoi_timepoints %>%
+      filter(!(trial_id %in% excluded_trial_ids)) %>%
       mutate(aoi_new = case_when(
         aoi == "target" ~ 1,
         aoi == "distractor" ~ 0,
-        aoi == "missing" ~ NaN
+        TRUE ~ NA_real_
       )) %>%
-      mutate(aoi_new = ifelse(is.nan(aoi_new), NA, aoi_new))
-
-    ##### summarize by subject (really: administrations) ####
-    summarize_by_subj <- full_data %>%
       group_by(administration_id, t_norm) %>%
-      summarize(N = sum(!is.na(aoi_new)), mean_accuracy = mean(aoi_new, na.rm = TRUE))
+      summarize(
+        N = sum(!is.na(aoi_new)),
+        mean_accuracy = mean(aoi_new, na.rm = TRUE),
+        .groups = "drop"
+      )
 
     #### summarize across subjects ####
+    n_administrations <- n_distinct(administrations$administration_id)
+
     summarize_across_subj <- summarize_by_subj %>%
       group_by(t_norm) %>%
       summarize(
         N = sum(!is.na(mean_accuracy)),
         accuracy = mean(mean_accuracy, na.rm = TRUE),
-        sd_accuracy = sd(mean_accuracy, na.rm = TRUE)
+        sd_accuracy = sd(mean_accuracy, na.rm = TRUE),
+        .groups = "drop"
       )
 
     # plot (remove data points where not a lot of subjects contributed, to avoid discontinuities in the slope)
-    suppressMessages(plot(ggplot(filter(summarize_across_subj, N > length(unique(full_data$administration_id)) / 3), aes(t_norm, accuracy)) +
+    suppressMessages(plot(ggplot(filter(summarize_across_subj, N > n_administrations / 3), aes(t_norm, accuracy)) +
       geom_line(data = filter(summarize_by_subj, N > 10), aes(y = mean_accuracy, color = as.factor(administration_id), group = as.factor(administration_id)), alpha = 0.2) +
       geom_line() +
       geom_smooth(method = "gam", se = FALSE) +
@@ -352,32 +357,52 @@ write_and_validate <- function(
 
     #### by condition plotting (only if applicable) ####
 
-    ##### summarize by subject by condition ####
-    summarize_by_subj_by_condition <- full_data %>%
+    trial_conditions <- trial_info %>%
       filter(!is.na(condition)) %>%
-      group_by(administration_id, condition, t_norm) %>%
-      summarize(N = sum(!is.na(aoi_new)), mean_accuracy = mean(aoi_new, na.rm = TRUE))
+      select(trial_id, condition)
 
-    #### summarize across subjects ####
-    summarize_across_subj_by_condition <- summarize_by_subj_by_condition %>%
-      group_by(condition, t_norm) %>%
-      summarize(
-        N = sum(!is.na(mean_accuracy)),
-        accuracy = mean(mean_accuracy, na.rm = TRUE),
-        sd_accuracy = sd(mean_accuracy, na.rm = TRUE),
-        se_accuracy = sd_accuracy / sqrt(N)
-      )
+    if (nrow(trial_conditions) > 0) {
+      ##### summarize by subject by condition ####
+      summarize_by_subj_by_condition <- aoi_timepoints %>%
+        filter(!(trial_id %in% excluded_trial_ids)) %>%
+        inner_join(trial_conditions, by = join_by(trial_id)) %>%
+        mutate(aoi_new = case_when(
+          aoi == "target" ~ 1,
+          aoi == "distractor" ~ 0,
+          TRUE ~ NA_real_
+        )) %>%
+        group_by(administration_id, condition, t_norm) %>%
+        summarize(
+          N = sum(!is.na(aoi_new)),
+          mean_accuracy = mean(aoi_new, na.rm = TRUE),
+          .groups = "drop"
+        )
 
-    if (length(na.omit(unique(summarize_across_subj_by_condition$condition)) >= 2)) {
-      suppressMessages(plot(ggplot(filter(summarize_across_subj_by_condition, t_norm > -500 & t_norm <= 3500), aes(x = t_norm, y = accuracy, color = condition, group = condition)) +
-        geom_smooth(data = filter(summarize_by_subj_by_condition, t_norm > -500 & t_norm <= 3500), aes(y = mean_accuracy), method = "gam") +
-        geom_errorbar(aes(ymin = accuracy - se_accuracy, ymax = accuracy + se_accuracy), width = 0) +
-        geom_point() +
-        geom_vline(xintercept = 0) +
-        geom_vline(xintercept = 300, linetype = "dotted") +
-        geom_hline(yintercept = 0.5, linetype = "dashed")))
+      #### summarize across subjects ####
+      summarize_across_subj_by_condition <- summarize_by_subj_by_condition %>%
+        group_by(condition, t_norm) %>%
+        summarize(
+          N = sum(!is.na(mean_accuracy)),
+          accuracy = mean(mean_accuracy, na.rm = TRUE),
+          sd_accuracy = sd(mean_accuracy, na.rm = TRUE),
+          se_accuracy = sd_accuracy / sqrt(N),
+          .groups = "drop"
+        )
 
-      print("Plotted proportional target looking timecourse for multiple conditions.")
+      if (length(na.omit(unique(summarize_across_subj_by_condition$condition))) >= 2) {
+        suppressMessages(plot(ggplot(filter(summarize_across_subj_by_condition, t_norm > -500 & t_norm <= 3500), aes(x = t_norm, y = accuracy, color = condition, group = condition)) +
+          geom_smooth(data = filter(summarize_by_subj_by_condition, t_norm > -500 & t_norm <= 3500), aes(y = mean_accuracy), method = "gam") +
+          geom_errorbar(aes(ymin = accuracy - se_accuracy, ymax = accuracy + se_accuracy), width = 0) +
+          geom_point() +
+          geom_vline(xintercept = 0) +
+          geom_vline(xintercept = 300, linetype = "dotted") +
+          geom_hline(yintercept = 0.5, linetype = "dashed")))
+
+        print("Plotted proportional target looking timecourse for multiple conditions.")
+      }
+
+      rm(summarize_by_subj_by_condition, summarize_across_subj_by_condition)
+      gc(verbose = FALSE)
     }
 
     suppressMessages(plot(ggplot(by_subj_means, aes(avg_target_looking)) +
@@ -397,6 +422,11 @@ write_and_validate <- function(
       xlab("Target Label") +
       ylab("Proportion Target Looking")))
     print("Plotted proportional target looking information on a per-item-level.")
+
+    rm(trial_info, admin_subj, excluded_trial_ids, trial_conditions,
+       summarize_by_subj, summarize_across_subj, n_administrations,
+       by_subj_means, by_subj_item_means, by_item_means)
+    gc(verbose = FALSE)
   }
   
   if(upload){
