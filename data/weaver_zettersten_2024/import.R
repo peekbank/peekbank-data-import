@@ -42,7 +42,7 @@ wide.table <- data %>%
       .default = NA),
     condition = condition,
     trial_name = "",
-    trial_index = trial,
+    trial_index = trial_number,
     # decision: infants recognized the atypical words robustly according to paper, so they get "vanilla trial" and "familiar" ratings
     vanilla_trial = TRUE,
     excluded = trial_exclusion == 1 | exclude_participant == 1,
