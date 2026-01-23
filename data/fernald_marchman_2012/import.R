@@ -46,6 +46,7 @@ d_processed_24 <- d_raw_24 %>%
   ) |>
   mutate(age_group = 24)
 
+
 # 30-month-olds
 d_raw_30 <- read_delim(fs::path(read_path, "TL230ABoriginalichartsn1-121toMF.txt"),
   delim = "\t"
@@ -63,7 +64,8 @@ d_processed_30_part_1 <- d_raw_30 |>
     truncation_point = truncation_point_calc(.),
     sampling_rate = sampling_rate_ms
   ) |>
-  mutate(across(everything(), as.character))
+  mutate(across(everything(), as.character)) |>
+  filter(crit_on_set > 0)
 
 d_processed_30_part_2 <- d_raw_30 |>
   filter(!is.na(Shifts)) |>
@@ -85,7 +87,8 @@ d_processed_30_part_2 <- d_raw_30 |>
     truncation_point = truncation_point_calc(.),
     sampling_rate = sampling_rate_ms
   ) |>
-  mutate(across(everything(), as.character))
+  mutate(across(everything(), as.character)) |>
+  filter(word_onset > 0)
 
 d_processed_30 <- d_processed_30_part_1 |>
   bind_rows(d_processed_30_part_2) |>
@@ -234,7 +237,16 @@ d_tidy <- d_tidy %>%
     is.na(aoi_old) ~ "missing",
     TRUE ~ "missing"
   )) %>%
-  mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
+  mutate(
+    t = case_when(
+      age_group == "24" & str_detect(cond_orig, "Verb") ~ as.numeric(t) - 850, # recenter at noun onset rather than verb for the RelPrime-Verb conditions (only an issue here)
+      T ~ as.numeric(t)
+    ),
+    condition = case_when(
+      age_group == "24" & str_detect(cond_orig, "Verb") ~ "RelPrime-Noun",
+      T ~ condition
+    )
+  ) # ensure time is an integer/ numeric
 
 # Clean up column names and add stimulus information based on existing columnns  ----------------------------------------
 
@@ -414,7 +426,7 @@ d_trial_type_ids <- d_tidy %>%
     full_phrase = phrase,
     vanilla_trial = case_when(
       condition %in% c("familiar", "Vanilla", "UnrelPrime-Noun", "UR-primeNoun") ~ T,
-      condition %in% c("R-primeNoun", "Relprime-Verb", "RelPrime-Verb", "Familiar-Medial", "medial") ~ F,
+      condition %in% c("R-primeNoun", "RelPrime-Noun", "Familiar-Medial", "medial") ~ F,
       str_detect(condition, "Size") ~ F,
       str_detect(condition, "Color") ~ F,
       str_detect(condition, "Adj") ~ F,
@@ -646,5 +658,5 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload = F
+  upload = T
 )

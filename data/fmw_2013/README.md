@@ -24,6 +24,8 @@ CDIs and LWL were collected at 18 and 24 months. For LWL, two overlapping sets o
 - Vanillaness (as of Jan 2026): 
 Vanilla: vanilla-noun, familiar, U-prime-noun (unrelated prime), and Uninf-Adj-Noun are vanilla (Uninf is "red car" when both target and distractor are red)
 Non-vanilla: Inf-Adj-Adj (blue car when the target but not the distractor is blue), R-prime-verb (eat the cookie)
+
+Note that even though they are called "R-prime-verb" the trial has been rezeroed to when the noun starts (in the import script)
 5. **Importing ambiguity.**
 
 - What is the right point of disambiguation for trials with informative verbs or adjectives? Current decision is to always make the target noun onset the point of disambiguation.

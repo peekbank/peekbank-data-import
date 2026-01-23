@@ -35,11 +35,12 @@ there are non-vanilla trials at 24 and 30 (the LWL at 24 and 30 is not reported 
 For the manju and tempo trials, some were exposure where the object was on a 
 background and some were tests where they were not on the background.
 
-IMPORTANT: for related/unrelated prime noun/verb trials, the trials are
+IMPORTANT: for related/unrelated prime noun/verb trials, 
+* in the 30 month data, the trials are
 represented in the raw data TWICE - once centered on the onset of the verb and
 once centered on the onset of the noun. We only keep the trial representation
 centered on the onset of the noun.
-
+* in the 24 month data, the unrelated is at the noun (good), and the related is apparently only at the verb (bad). We re-center the related verb trials to have disambiguation on the noun (and relabel the condition to clarify). 
 
 Decisions on what conditions constitute vanilla trials:
 
@@ -56,8 +57,7 @@ non-vanilla:
 * AdjColor
 * AdjAbsSize
 * AbsSize
-* RelPrime-Verb
-* Relprime-Verb
+* RelPrime-Noun (note that in the 24mo, what were originally RelPrime-Verb trials before we recentered for noun onset )
 * R-primeNoun
 * Novel-Test       
 * FerretExposure
@@ -72,12 +72,6 @@ Right now, the Points of Disambiguation for non-vanilla trials have not been ful
 checked - so the timings of these trials could be inconsistent. TODO, 
 if we ever find a use for these non vanilla trials 
 In v_2024 this was not solved because we are focusing only on vanilla trials
-
-Carrier phrases:
-The file manually_compiled_trial_info_2430.csv in the raw data was manually put
-together by peekbank members based on the data in TL2-30A.txt, TL2-30B.txt, 
-visit B.txt, visitA.txt. 
-The resulting file is used to look up the carrier phrases for 24mo and 30mo.
 
 IMAGES:
 Some images were mirrored depending on left/right positioning - image labels L 
