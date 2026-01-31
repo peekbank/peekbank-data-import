@@ -17,6 +17,8 @@ How do infants become word meaning experts? This registered report investigated 
 
 4. **Importing decisions.**
 - vanilla trials: we decided to keep atypical trials as vanilla. This also fits with the fact that there were no differences for typical vs. atypical trials in the original study.
+- removed a tiny set of trials (3 total) where an audio file reference was missing (either these trials ended early and one is unexplained)
+- used the column "time_normalized_corrected" in the original data as the normalized time column. This column also accounted for lags in audio timing
 
 5. **Importing ambiguity.**
 
