@@ -8,7 +8,7 @@ read_path <- init(dataset_name)
 
 
 sampling_rate_hz <- 30
-sampling_rate_ms <- 33
+sampling_rate_ms <- 1000/30
 participant_file_name <- "SalientME_Participants_deID.xlsx"
 data_file_name <- "SME_Final.txt"
 
@@ -45,7 +45,8 @@ pre_dis_names_clean <- seq(
   from = -length(pre_dis_names) * sampling_rate_ms,
   to = -sampling_rate_ms,
   by = sampling_rate_ms
-)
+) %>%
+  round(,0) #rounding here to be more consistent with how times are coded post onset
 
 post_dis_names_clean <- post_dis_names %>% str_remove("f")
 
@@ -89,7 +90,6 @@ d_tidy <- d_tidy %>%
     target_side == "right" ~ left_image,
     TRUE ~ right_image
   ))
-
 
 order_read_path <- here("data", dataset_name, "raw_data", "orders")
 order_files <- list.files(path = order_read_path, pattern = "xlsx", full.names = FALSE)
