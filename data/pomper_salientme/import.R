@@ -292,9 +292,14 @@ d_tidy_semifinal <- d_tidy %>%
   left_join(d_trial_ids)
 
 exclusions_raw <- readxl::read_excel(here(read_path, participant_file_name), sheet = "Excluded")
+# decision: we treat all participants who appeared in the exclusions tab as participants who were ultimately excluded. This matches the N reported in the main article (N=36). 
+#("Include" column is only a partial guide because this would have likely been filled out after sessions, but prior to data cleaning/ processing, 
+# so other participants in the excluded tab likely were excluded for data-related reasons)
 exclusions_external <- exclusions_raw %>%
-  filter(`Include?` != "Yes") %>%
   select(`Sub Num`, Reason) %>%
+  #it looks like  the participant_id column accidentally got shifted by one column for the last seven rows, such that the ethnicity response ("White") appears in the Reason column
+  #here, we just mark the reason as "unknown"
+  mutate(Reason = ifelse(str_detect(Reason, "White"), "unknown", Reason)) %>%
   rename(lab_subject_id = `Sub Num`, exclusion_reason = Reason) %>%
   mutate(excluded = TRUE, lab_subject_id = as.character(lab_subject_id))
 
@@ -315,10 +320,10 @@ d_tidy_final <- d_tidy_semifinal %>%
   ) %>%
   mutate(t = as.numeric(t)) %>%
   left_join(exclusions_external) %>%
+  #prescreen notes all indicate reasons for exclusion, so we treat these trials as excluded
   mutate(
     exclusion_reason = ifelse(is.na(exclusion_reason), prescreen_notes, exclusion_reason),
-    excluded = ifelse(is.na(exclusion_reason), FALSE, TRUE),
-    excluded = replace_na(excluded, FALSE)
+    excluded = ifelse(is.na(exclusion_reason), FALSE, TRUE)
   )
 
 
@@ -409,8 +414,8 @@ dataset <- tibble(
   dataset_id = 0,
   dataset_name = "pomper_salientme",
   lab_dataset_id = dataset_name,
-  cite = "Pomper, R., & Saffran, J. R. (2018). Familiar object salience affects novel word learning. Child Development, 90(2), e246-e262. doi:10.1111/cdev.13053.",
-  shortcite = "Pomper & Saffran (2018)",
+  cite = "Pomper, R., & Saffran, J. R. (2019). Familiar object salience affects novel word learning. Child Development, 90(2), e246-e262. doi:10.1111/cdev.13053",
+  shortcite = "Pomper & Saffran (2019)",
   dataset_aux_data = NA
 )
 
