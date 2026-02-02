@@ -298,8 +298,8 @@ exclusions_raw <- readxl::read_excel(here(read_path, participant_file_name), she
 exclusions_external <- exclusions_raw %>%
   select(`Sub Num`, Reason) %>%
   #it looks like  the participant_id column accidentally got shifted by one column for the last seven rows, such that the ethnicity response ("White") appears in the Reason column
-  #here, we just mark the reason as "unknown"
-  mutate(Reason = ifelse(str_detect(Reason, "White"), "unknown", Reason)) %>%
+  #here, we just mark the reason as "unspecified participant-level exclusion"
+  mutate(Reason = ifelse(str_detect(Reason, "White"), "unspecified participant-level exclusion", Reason)) %>%
   rename(lab_subject_id = `Sub Num`, exclusion_reason = Reason) %>%
   mutate(excluded = TRUE, lab_subject_id = as.character(lab_subject_id))
 
