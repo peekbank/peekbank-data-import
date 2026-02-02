@@ -8,7 +8,6 @@ Children use the presence of familiar objects with known names to identify the c
 
 3. **Original study info.**
 
-
 Stimuli:
 - 4 visually distinct novel objects matched in visual salience
   - Novel words: "sprock", "jang" , "pifo", "tever"
@@ -18,7 +17,7 @@ Stimuli:
 
 Structure:
 - Looking-while-listening task with (frame-by-frame) video-coded eye-tracking
-- 1 warmup trial (fireworks images)
+- 1 warm-up trial (fireworks images)
 - Referent selection phase (24 trials total):
   - 12 trials where a novel object was labeled (3 trials per novel object)
   - 12 trials where a familiar object was labeled (novel object as distractor)
@@ -51,9 +50,7 @@ Conditions:
 - The paper randomized which label went with which novel image across participants ("The assignment of novel words to novel objects was counterbalanced across children") - thus we have stimuli that have the same image but different labels.
   - This is the reason why we have that many trials types
   - It appears they did not do a full 4x4 counterbalancing here, but only creates 8 of the possible 16 pairings
-  - Also, all of the novel items appear as  both target and distractors, so the randomized labels dont cause problems as distractor-only items.
-
-
+  - Also, all of the novel items appear as both target and distractors, so the randomized labels don't cause problems as distractor-only items.
 
 5. **Importing ambiguity.**
 
