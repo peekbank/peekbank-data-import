@@ -50,9 +50,12 @@ Conditions:
 - The paper randomized which label went with which novel image across participants ("The assignment of novel words to novel objects was counterbalanced across children") - thus we have stimuli that have the same image but different labels.
   - This is the reason why we have that many trials types
   - It appears they did not do a full 4x4 counterbalancing here, but only creates 8 of the possible 16 pairings
-  - Also, all of the novel items appear as both target and distractors, so the randomized labels don't cause problems as distractor-only items.
+  - Also, all of the novel items appear as both target and distractors, so the randomized labels don't cause problems as distractor-only items (i.e. there is always an unambiguous label for the novel items appearing in distractor position for a given order).
+  - We treat all participants who appear in the "excluded" tab as being excluded, which fits with the original N reported in the paper (N=36).
+  - We exclude trials with text in the "prescreen_notes" column. All notes indicate an exclusion reason (e.g., "Inattentive" or "Parent Interfering")
 
 5. **Importing ambiguity.**
 
-- The dataset contains 44 participants while the published paper reports N = 36 (maybe some piloting data).
+- For the Participants_deID file, it looks like there's an error in the last seven rows (affecting participants: 155, 113, 116, 121, 127, 129, 139) such that the columns from "Reason" onwards got shifted to the left by one, such that the exclusion reason got deleted (or exlcusion happened at a later data cleaning stage). 
+- We have data from 44 participants, 36 appear in the main participant spreadsheet, and 8 appear in the excluded tab. There are however 16 further participants listed in the excluded tab for whom we do not have raw data.
 - A comment stated that the screen had a 140cm diagonal - feels unlikely?
