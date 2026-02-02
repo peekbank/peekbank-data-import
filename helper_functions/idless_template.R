@@ -95,8 +95,8 @@ cdi_data <- tibble(
   age = NA
 )
 
-dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>% 
-  digest.subject_cdi_data(cdi_data)
+dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
+  digest.subject_aux_data(cdi = cdi_data)
 
 ## 5. Write and Validate the Data
 
