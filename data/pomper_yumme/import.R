@@ -1,6 +1,5 @@
 # import Pomper YummME data for Peekbank
-# George Kachergis
-# 3/22/2022
+
 ## libraries
 library(here)
 library(janitor)
@@ -23,22 +22,24 @@ remove_repeat_headers <- function(d, idx_var) {
   d[d[, idx_var] != idx_var, ]
 }
 
-
-
 #### Pomper YumME v4 ####
 
 # read raw icoder files
 d_raw <- read_delim(fs::path(read_path, "YumME_v4_DataCombined_Raw_n37.txt"),
   delim = "\t"
-)
-
-# yzd
+) %>%
+  #remove column with just row numbers
+  select(-`...1`)
 
 #### Pomper YumME v5 ####
-
+#in icoder format
 d_raw_2 <- read_delim(fs::path(read_path, "YumME_v5_n32.txt"),
   delim = "\t"
 )
+#fix an odd column naming typo
+d_raw_2 <- d_raw_2 %>%
+  rename(`F3767`=`F3767...166`) %>%
+  rename(`F7367`=`F3767...274`)
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
@@ -63,8 +64,7 @@ d_processed <- d_processed %>%
 
 # a vector with all the old names
 old_names <- colnames(d_processed)
-# the names with letters (function is select anything that's not x followed by a
-# double or f followed by a double?)
+#all of the columns that are not indicating a timepoint
 metadata_names <- old_names[!str_detect(old_names, "x\\d|f\\d")]
 
 # the numbers preceded by x: prior to target word onset
