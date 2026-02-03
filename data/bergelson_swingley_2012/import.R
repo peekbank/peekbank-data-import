@@ -7,7 +7,7 @@ data_path <- init(dataset_name)
 
 SAMPLING_RATE <- 50
 
-data <- read_delim(file.path(data_path, 'flickr1_119_june2011.txt'), delim = " ", quote = "\"") %>%
+data <- read_delim(file.path(data_path, "flickr1_119_june2011.txt"), delim = " ", quote = "\"") %>%
   arrange(SubjectNumber, TrialNumber, TimeBin)
 
 wide.table <- data %>%
@@ -16,26 +16,26 @@ wide.table <- data %>%
     SubjectNumber, Sex, Age_days, TimeBin, KETtime, gaze, carrier, target,
     TargetSide, TrialType, TrialNumber, SpecificPic, dist1, dist2, dist3, Age_months, newsplit
   ) %>%
-  mutate (
+  mutate(
     subject_id = SubjectNumber,
     sex = Sex,
-    native_language = 'eng',
+    native_language = "eng",
     age = Age_days,
-    age_units = 'days',
-    t = KETtime * 1000/SAMPLING_RATE,
+    age_units = "days",
+    t = KETtime * 1000 / SAMPLING_RATE,
     aoi = case_when(
-      gaze == 'T' ~ 'target',
-      gaze %in% c('D1', 'D2', 'D3') ~ 'distractor',
-      .default = 'other' 
+      gaze == "T" ~ "target",
+      gaze %in% c("D1", "D2", "D3") ~ "distractor",
+      .default = "other"
     ),
     full_phrase = case_when(
-      carrier == 'where' ~ paste0("Where's the ", target,"?"),
-      carrier == 'look' ~ paste0("Look at the ", target,"!"),
-      carrier == 'can' ~ paste0("Can you find the ", target,"?"),
-      carrier == 'do' ~ paste0("Do you see the ", target,"?"),
+      carrier == "where" ~ paste0("Where's the ", target, "?"),
+      carrier == "look" ~ paste0("Look at the ", target, "!"),
+      carrier == "can" ~ paste0("Can you find the ", target, "?"),
+      carrier == "do" ~ paste0("Do you see the ", target, "?"),
       .default = "ERROR, SHOULD NOT HAPPEN"
     ),
-    full_phrase_language = 'eng',
+    full_phrase_language = "eng",
     point_of_disambiguation = 0,
     condition = TrialType,
     target_side = ifelse(condition == "sidebyside", TargetSide, "ERROR SIDEBYSIDE NOT FILTERED"),
@@ -45,11 +45,11 @@ wide.table <- data %>%
     trial_index = TrialNumber,
     session_num = 1,
     sample_rate = SAMPLING_RATE,
-    tracker = 'Eyelink CL',
-    coding_method = 'preprocessed eyetracking',
+    tracker = "Eyelink CL",
+    coding_method = "preprocessed eyetracking",
     target_stimulus_label_original = target,
     target_stimulus_label_english = target_stimulus_label_original,
-    target_stimulus_novelty = 'familiar',
+    target_stimulus_novelty = "familiar",
     target_stimulus_image_path = NA,
     target_stimulus_name = case_when(
       str_starts(word(SpecificPic, 1, sep = "_"), target) ~ word(SpecificPic, 1, sep = "_"),
@@ -57,29 +57,35 @@ wide.table <- data %>%
       .default = NA_character_
     ),
     target_image_description = target_stimulus_name,
-    target_image_description_source = 'image path',
+    target_image_description_source = "image path",
     distractor_stimulus_label_original = case_when(
       condition == "sidebyside" ~ dist1,
       .default = paste(dist1, dist2, dist3, sep = "-")
     ),
     distractor_stimulus_label_english = distractor_stimulus_label_original,
-    distractor_stimulus_novelty = 'familiar',
+    distractor_stimulus_novelty = "familiar",
     distractor_stimulus_image_path = NA,
     distractor_stimulus_name = case_when(
       str_starts(word(SpecificPic, 1, sep = "_"), dist1) ~ word(SpecificPic, 1, sep = "_"),
       str_starts(word(SpecificPic, 2, sep = "_"), dist1) ~ word(SpecificPic, 2, sep = "_"),
       .default = NA_character_
     ),
+    distractor_image_description_source = "image path",
+    ## see readme for explanation, but fixing what we believe is error in distractor stimulus
+    ## when the target is hair1 on the left
+    distractor_stimulus_name = case_when(
+      target_stimulus_name == "hair1" ~ "banana1",
+      T ~ distractor_stimulus_name
+    ),
     distractor_image_description = distractor_stimulus_name,
-    distractor_image_description_source = 'image path',
     ## uncomment this to make the validation graphs
     ## reproduce the paper's plot
-    #condition = ifelse(is.na(newsplit),"eighteen_twenty", newsplit)
-)
+    # condition = ifelse(is.na(newsplit), "eighteen_twenty", newsplit)
+  )
 
 
 ## uncomment to check age bucket splits
-#data %>%
+# data %>%
 #  distinct(SubjectNumber, Age_months, Sex, newsplit) %>%
 #  mutate(age_group = ifelse(is.na(newsplit), "eighteen_twenty", newsplit)) %>%
 #  group_by(age_group) %>%
@@ -98,9 +104,9 @@ dataset_list <- digest.dataset(
   cite = "Bergelson, E., & Swingley, D. (2012). At 6–9 months, human infants know the meanings of many common nouns. PNAS, 109(9), 3253-3258.",
   shortcite = "Bergelson & Swingley, 2012",
   wide.table = wide.table,
-  rezero=FALSE,
-  normalize=FALSE,
-  resample=TRUE
+  rezero = FALSE,
+  normalize = FALSE,
+  resample = TRUE
 )
 
 

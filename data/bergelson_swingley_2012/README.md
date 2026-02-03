@@ -62,6 +62,14 @@ were excluded before we got the data.
 We don't import the scene trials, as they don't feature a binary forced choice
 and are thus not transformable into the peekbank format.
 
+We think there was a typo/data import error in the Picture names which we have normalized.
+In particular, for all put one combination of target-stimulus + left-right position, 
+there is only one distractor image and at least 22 subjects see it. 
+And each target/distractor image is always paired with the same counterpart. 
+However, for target "hair1" when it is on the Left, 
+there is a different number banana as the distractor for each Subject (except two have the same). 
+Our best guess is this is an error (possibly from a spreadsheet editor propogating labels incorrectly).
+We believe that when "hair1" was the target it was always paired with "banana1".
 
 5.  **Importing ambiguity.**
 
