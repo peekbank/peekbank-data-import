@@ -13,37 +13,26 @@ read_path <- init(dataset_name)
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000 / 30
 
-# phrase from paper: e.g. "Find the pifo" <- 12 familiar, 4 novel words
-# but for an additional 12 familiar trials, "Where's the cat?"
-# so which is it??
-
 #### read in data ####
 remove_repeat_headers <- function(d, idx_var) {
   d[d[, idx_var] != idx_var, ]
 }
 
-#### Pomper YumME v4 ####
-
-# read raw icoder files
-d_raw <- read_delim(fs::path(read_path, "YumME_v4_DataCombined_Raw_n37.txt"),
-  delim = "\t"
-) %>%
-  #remove column with just row numbers
-  select(-`...1`)
-
 #### Pomper YumME v5 ####
+#starting with v5 data because this was the first dataset imported
+
 #in icoder format
-d_raw_2 <- read_delim(fs::path(read_path, "YumME_v5_n32.txt"),
+d_raw <- read_delim(fs::path(read_path, "YumME_v5_n32.txt"),
   delim = "\t"
 )
 #fix an odd column naming typo
-d_raw_2 <- d_raw_2 %>%
+d_raw <- d_raw %>%
   rename(`F3767`=`F3767...166`) %>%
   rename(`F7367`=`F3767...274`)
 
 # remove any column with all NAs (these are columns
 # where there were variable names but no eye tracking data)
-d_processed <- d_raw_2 %>%
+d_processed <- d_raw %>%
   select_if(~ sum(!is.na(.)) > 0) %>%
   remove_repeat_headers(idx_var = "Months") %>%
   clean_names()
@@ -89,15 +78,13 @@ colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_c
 # get idx of first time series
 first_t_idx <- length(metadata_names) + 1
 last_t_idx <- length(colnames(d_processed))
-d_tidy <- d_processed %>%
+d_processed_long <- d_processed %>%
   pivot_longer(all_of(first_t_idx:last_t_idx),
     names_to = "t",
     values_to = "aoi"
-  )
-
-# recode 0, 1, ., - as distractor, target, other, NA
-# this leaves NA as NA
-d_tidy <- d_tidy %>%
+  ) %>%
+  # recode 0, 1, ., - as distractor, target, other, NA
+  # this leaves NA as NA
   rename(aoi_old = aoi) %>%
   mutate(aoi = case_when(
     aoi_old == "0" ~ "distractor",
@@ -110,7 +97,7 @@ d_tidy <- d_tidy %>%
   mutate(t = as.numeric(t)) # ensure time is an integer/ numeric
 
 # Clean up column names and add stimulus information based on existing columns  ----------------------------------------
-d_tidy <- d_tidy %>%
+d_tidy_prelim <- d_processed_long %>%
   filter(!is.na(sub_num)) %>%
   # left-right is from the coder's perspective - flip to participant's perspective
   mutate(target_side = factor(target_side, levels = c("l", "r"), labels = c("right", "left"))) %>%
@@ -126,80 +113,111 @@ d_tidy <- d_tidy %>%
   mutate(distractor_image = case_when(
     target_side == "right" ~ left_image,
     TRUE ~ right_image
-  )) %>%
+  ),
+  dataset_id = 0) %>%
+  #capitalize image names (necessary for joining in orders below and for creating the full stimulus image path)
   mutate(
-    target_label = target_image,
-    distractor_label = distractor_image,
-    # see paper: sometimes "Where's the", sometimes "Find the _", audio files have an attention getter phrase afterwards. 
-    # leaving this empty for now until we figure out the pomper phrases
-    full_phrase = NA,
-    dataset_id = 0
+    left_image = str_to_title(left_image),
+    right_image = str_to_title(right_image),
+    target_image = str_to_title(target_image),
+    distractor_image = str_to_title(distractor_image)
+  ) %>%
+  mutate(
+    order = as.numeric(order),
+    tr_num = as.numeric(tr_num)
   )
-# image_description, image_description_source,
 
-#### write out tables ####
+# read in order information (this helps us get the rest of the missing meta information)
+# read in all order files in the trial_lists/v5 folder
+trial_list_files <- fs::dir_ls(fs::path(read_path, "trial_lists", "v5"), glob = "*.csv")
+#read and combine into one csv and add the file name as a column using map
+trial_lists <- purrr::map_dfr(trial_list_files, read_csv, .id = "source_file") %>%
+  #remove file path
+  mutate(source_file = fs::path_file(source_file)) %>%
+  #extract order number from file name and store number only
+  mutate(order = as.numeric(str_extract(source_file, "(?<=Order_)\\d+"))) %>%
+  janitor::clean_names() %>%
+  #remove filler
+  filter(condition!="Filler") %>%
+  #remove teaching trials
+  filter(condition!="Teaching")
+
+# add full phrase information (based on a metadata file created by hand with the help of the original audio files)
+stimulus_carrier_phrase_mapping <- read.csv(fs::path(read_path,"stimulus_carrier_phrase_mapping_v5.csv")) 
+# add full_phrase info
+expanded_trial_list_info <- trial_lists %>%
+  left_join(stimulus_carrier_phrase_mapping) %>%
+  #all trials are non-vanilla (pair novel object with familiar object)
+  mutate(
+    vanilla_trial = FALSE) %>%
+  rename(distractor_image = distracter_image, tr_num = trial_id) %>%
+  #extract the target label from the audio file (first element in audio file name, e.g. nage_find_wow or blocks_cool)
+  mutate(
+    target_label = str_extract(audio, "^[^_]+")
+  )
+
+# add target label and distractor label
+#first, create a unique mapping of images to labels
+# we need
+image_label_mapping <- expanded_trial_list_info %>%
+  distinct(order,target_image, target_label) %>%
+  rename(image=target_image,label=target_label)
+
+#use image_label_mapping to add distractor label
+expanded_trial_list_info <- expanded_trial_list_info %>%
+  left_join(image_label_mapping, by,
+            by = c("order", "distractor_image" = "image")) %>%
+  rename(distractor_label = label) %>%
+  #all of the remaining distractor_labels that are NA are familiar objects, so use the image name for that
+  mutate(distractor_label = if_else(is.na(distractor_label), tolower(distractor_image), distractor_label))
+
+compact_trial_list_info <- expanded_trial_list_info %>%
+  #select only needed columns
+  select(order,tr_num,condition, target_image, distractor_image,target_label,distractor_label, full_phrase, vanilla_trial)
+
+#join into d_tidy
+#this helps us get the full phrase
+d_tidy <- d_tidy_prelim %>%
+  left_join(compact_trial_list_info)
+
 
 # create stimulus table
-# only some of the labels showed up, is that a mistake before this?
+#pivot longer for image and label from both target and distractor columns
+#add additional stimulus information to flesh out stimulus table
 stimulus_table <- d_tidy %>%
-  distinct(target_image, distractor_image) %>%
-  pivot_longer(cols = c(target_image, distractor_image), names_to = "image_type", values_to = "stimulus_image_path") %>%
-  distinct(stimulus_image_path) %>%
-  mutate(
-    # assume "black" in table means empty target/distractor, based on interpretation of data
-    original_stimulus_label = if_else(stimulus_image_path == "black", "empty", stimulus_image_path),
-    english_stimulus_label = original_stimulus_label,
-    stimulus_image_path = if_else(
-      original_stimulus_label == "empty",
-      NA_character_,
-      paste0("stimuli/v5/images/", str_to_title(original_stimulus_label), ".jpg")
-    )
+  select(target_image,distractor_image,target_label,distractor_label) %>%
+  pivot_longer(
+    cols = c(target_image, distractor_image, target_label, distractor_label),
+    names_to = c("type",".value"),
+    names_pattern = "(.*)_(.*)"
   ) %>%
+  select(-type) %>%
+  distinct() %>%
   mutate(
-    stimulus_novelty = case_when(str_detect(original_stimulus_label, "novel") ~ "novel", TRUE ~ "familiar"),
-    stimulus_id = seq(0, nrow(.) - 1),
-    image_description_source = "experiment documentation",
-    image_description = case_when(
-      str_detect(original_stimulus_label, "novel") ~ "unfamiliar object",
-      TRUE ~ original_stimulus_label
-    ),
-    lab_stimulus_id = original_stimulus_label,
-    dataset_id = 0
-  )
-
-# FixMe original_stimulus_label:
-# spoken labels for novel words: sprock, jang, pifo, tever.
-# but which correspond to novel1, novel2, novel3, and novel4?
-# update: Martin got trial_lists.zip, which has 2 sets of 8 trial list files (v4 and v5), from which
-# we *can* extract the correspondence between each novel object (1-4) and the four novel words...but will be a pain,
-# and not clear that it's of interest to anyone
-# leave as novel1-4 for now
-
-## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on the "target labels"
-# put all targets and distractors together as stimulus labels (each has unique row)
-
-d_tidy <- d_tidy %>%
-  mutate(
-    target_image = case_when(
-      target_image == "black" ~ "empty",
-      TRUE ~ target_image
-    ),
-    target_label = target_image,
-    distractor_image = case_when(
-      distractor_image == "black" ~ "empty",
-      TRUE ~ distractor_image
-    )
-  )
-
-d_tidy <- d_tidy %>%
-  left_join(stimulus_table %>% select(stimulus_id, original_stimulus_label),
-    by = c("target_image" = "original_stimulus_label")
+    original_stimulus_label = label,
+    english_stimulus_label = label,
+    stimulus_image_path = paste0("stimuli/v5/images/", image,".jpg"),
+    lab_stimulus_id = paste0(image, "_", label)
   ) %>%
+  mutate(dataset_id = 0) %>%
+  mutate(stimulus_id = 0:(n() - 1)) %>%
+  mutate(image_description = case_when(
+    image == "novel1" ~ "purple-green pie-like unfamiliar object",
+    image == "novel2" ~ "pink-green-yellow sandwich-like unfamiliar object",
+    image == "novel3" ~ "blue-purple-yellow pie-slice-like unfamiliar object",
+    image == "novel4" ~ "blue-red macaron-like object",
+    TRUE ~ english_stimulus_label
+  )) %>%
+  mutate(image_description_source = "experiment documentation") %>%
+  mutate(stimulus_novelty = case_when(str_detect(image, "Novel") ~ "novel", TRUE ~ "familiar"))
+
+## add target_id  and distractor_id to d_tidy by re-joining with stimulus table on distractor image;
+d_tidy <- d_tidy %>%
+  left_join(select(stimulus_table, image, label, stimulus_id), by = c("target_image" = "image", "target_label" = "label")) %>%
   mutate(target_id = stimulus_id) %>%
   select(-stimulus_id) %>%
-  left_join(stimulus_table %>% select(stimulus_id, original_stimulus_label),
-    by = c("distractor_image" = "original_stimulus_label")
-  ) %>%
+  # only join in image, label, and id for matching to distractor
+  left_join(select(stimulus_table, image, label, stimulus_id), by = c("distractor_image" = "image", "distractor_label" = "label")) %>%
   mutate(distractor_id = stimulus_id) %>%
   select(-stimulus_id)
 
@@ -219,17 +237,16 @@ d_administration_ids <- d_tidy %>%
 # create zero-indexed ids for trials
 d_trial_ids <- d_tidy %>%
   distinct(
-    tr_num, # full_phrase,
+    tr_num, full_phrase,
     target_id, distractor_id, target_side, sub_num
   ) %>%
   mutate(trial_id = seq(0, length(.$tr_num) - 1))
 
 # create zero-indexed ids for trial_types
-# where is data for full phrase?
 d_trial_type_ids <- d_tidy %>%
   distinct(
     condition,
-    # full_phrase,
+    full_phrase,
     target_id, distractor_id, target_side
   ) %>%
   mutate(trial_type_id = seq(0, length(target_id) - 1))
@@ -239,7 +256,6 @@ d_tidy_semifinal <- d_tidy %>%
   left_join(d_administration_ids) %>%
   left_join(d_trial_type_ids) %>%
   left_join(d_trial_ids)
-
 
 # add some more variables to match schema
 d_tidy_final <- d_tidy_semifinal %>%
@@ -260,6 +276,15 @@ d_tidy_final <- d_tidy_semifinal %>%
     lab_age = months,
     t_norm = t
   )
+
+#### Pomper YumME v4 ####
+
+# read raw icoder files
+d4_raw <- read_delim(fs::path(read_path, "YumME_v4_DataCombined_Raw_n37.txt"),
+                    delim = "\t"
+) %>%
+  #remove column with just row numbers
+  select(-`...1`)
 
 
 ##### AOI TABLE ####
@@ -299,9 +324,18 @@ administrations <- d_tidy_final %>%
 
 ##### STIMULUS TABLE ####
 stimuli <- stimulus_table %>%
+  select(
+    stimulus_id,
+    original_stimulus_label,
+    english_stimulus_label,
+    stimulus_novelty,
+    stimulus_image_path,
+    image_description,
+    image_description_source,
+    lab_stimulus_id,
+    dataset_id
+  ) %>%
   mutate(stimulus_aux_data = NA)
-
-# GK good to here 3/22/22
 
 ##### TRIAL TYPES TABLE ####
 trial_types <- d_tidy_final %>%
@@ -315,24 +349,23 @@ trial_types <- d_tidy_final %>%
     aoi_region_set_id,
     dataset_id,
     target_id,
-    distractor_id
+    distractor_id,
+    vanilla_trial
   ) %>%
-  mutate(full_phrase_language = "eng", vanilla_trial = TRUE, trial_type_aux_data = NA)
-
-# FixMe: full_phrase missing
+  mutate(full_phrase_language = "eng", trial_type_aux_data = NA)
 
 ##### TRIALS TABLE ####
 
 PARTICIPANT_FILR_NAME <- "YumME_Participants_deID.xlsx"
 exclusions <- readxl::read_excel(here(read_path, PARTICIPANT_FILR_NAME), sheet = "Pilot4") %>%
-  select(`Sub Num`, `Include?`) %>%
+  select(`Sub Num`, `Include?`,Comments) %>%
   rbind(
     readxl::read_excel(here(read_path, PARTICIPANT_FILR_NAME), sheet = "Pilot 5") %>%
-      select(`Sub Num`, `Include?`)
+      select(`Sub Num`, `Include?`,Comments)
   ) %>%
   filter(tolower(`Include?`) != "yes" & tolower(`Include?`) != "y") %>%
-  select(lab_subject_id = `Sub Num`) %>%
-  mutate(excluded = TRUE, exclusion_reason = NA)
+  select(lab_subject_id = `Sub Num`,exclusion_reason=Comments) %>%
+  mutate(excluded = TRUE)
 
 
 trials <- d_tidy_final %>%
@@ -353,9 +386,6 @@ dataset <- tibble(
   shortcite = "Pomper & Saffran (2018)",
   dataset_aux_data = NA
 )
-
-
-remainder <- unique(aoi_timepoints$t_norm %% 1000 / 40)
 
 write_and_validate(
   dataset_name = dataset_name,
