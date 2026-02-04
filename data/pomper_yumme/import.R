@@ -158,7 +158,6 @@ expanded_trial_list_info <- trial_lists %>%
 
 # add target label and distractor label
 #first, create a unique mapping of images to labels
-# we need
 image_label_mapping <- expanded_trial_list_info %>%
   distinct(order,target_image, target_label) %>%
   rename(image=target_image,label=target_label)
@@ -278,13 +277,83 @@ d_tidy_final <- d_tidy_semifinal %>%
   )
 
 #### Pomper YumME v4 ####
+#different file formats for v4 so we need to process these a bit differently (extracting all meta info from orders, matching subject num to orders via participant spreadsheet)
 
 # read raw icoder files
 d4_raw <- read_delim(fs::path(read_path, "YumME_v4_DataCombined_Raw_n37.txt"),
                     delim = "\t"
 ) %>%
   #remove column with just row numbers
-  select(-`...1`)
+  select(-`...1`) %>%
+  janitor::clean_names() %>%
+  mutate(sub_num=as.character(sub_num))
+
+#read in participant info
+d4_participants <- readxl::read_excel(here(read_path, "YumME_Participants_deID.xlsx"), sheet = "Pilot4") %>%
+  janitor::clean_names() %>%
+  rename(order=lwl_protocol) %>%
+  rename(age = age_not_adjusted_in_mo) %>%
+  select(order,sub_num,age)
+
+#join into d4_raw
+d4_raw_participants <- d4_raw %>%
+  left_join(d4_participants)
+
+# read in order information
+# read in all order files in the trial_lists/v4 folder
+d4_trial_list_files <- fs::dir_ls(fs::path(read_path, "trial_lists", "v4"), glob = "*.csv")
+#read and combine into one csv and add the file name as a column using map
+d4_trial_lists <- purrr::map_dfr(d4_trial_list_files, read_csv, .id = "source_file") %>%
+  #remove file path
+  mutate(source_file = fs::path_file(source_file)) %>%
+  mutate(order = str_remove(str_remove(source_file, "YumME_Order_"),".csv")) %>%
+  janitor::clean_names() %>%
+  filter(condition!="end") %>%
+  rename(tr_num=trial_id, distractor_image=distracter_image) %>%
+  mutate(target_side = case_when(
+    target_object_pos == "bottomRight" ~ "right",
+    target_object_pos == "bottomLeft" ~ "left",
+  ))
+
+# add full phrase information (based on a metadata file created by hand with the help of the original audio files)
+d4_stimulus_carrier_phrase_mapping <- read.csv(fs::path(read_path,"stimulus_carrier_phrase_mapping_v4.csv")) 
+# add full_phrase info
+d4_expanded_trial_list_info <- d4_trial_lists %>%
+  left_join(d4_stimulus_carrier_phrase_mapping) %>%
+  #all trials are non-vanilla (pair novel object with familiar object)
+  mutate(
+    vanilla_trial = FALSE) %>%
+  rename(distractor_image = distracter_image, tr_num = trial_id) %>%
+  #extract the target label from the audio file (first element in audio file name, e.g. nage_find_wow or blocks_cool)
+  mutate(
+    target_label = str_extract(audio, "^[^_]+")
+  )
+
+# add target label and distractor label
+#first, create a unique mapping of images to labels
+image_label_mapping <- expanded_trial_list_info %>%
+  distinct(order,target_image, target_label) %>%
+  rename(image=target_image,label=target_label)
+
+#use image_label_mapping to add distractor label
+expanded_trial_list_info <- expanded_trial_list_info %>%
+  left_join(image_label_mapping, by,
+            by = c("order", "distractor_image" = "image")) %>%
+  rename(distractor_label = label) %>%
+  #all of the remaining distractor_labels that are NA are familiar objects, so use the image name for that
+  mutate(distractor_label = if_else(is.na(distractor_label), tolower(distractor_image), distractor_label))
+
+compact_trial_list_info <- expanded_trial_list_info %>%
+  #select only needed columns
+  select(order,tr_num,condition, target_image, distractor_image,target_label,distractor_label, full_phrase, vanilla_trial)
+
+
+#select relevant columns
+d4_compact_trial_info <- d4_trial_lists %>%
+  select(order,tr_num,condition, target_image, distractor_image,audio,target_side)
+#join into d4_raw_participants
+d4_tidy_prelim <- d4_raw_participants %>%
+  left_join(d4_compact_trial_info)
 
 
 ##### AOI TABLE ####
