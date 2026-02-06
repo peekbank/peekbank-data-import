@@ -220,10 +220,10 @@ d5_stimulus_table <- d5_tidy %>%
   ) %>%
   mutate(dataset_id = 0) %>%
   mutate(image_description = case_when(
-    image == "novel1" ~ "purple-green pie-like unfamiliar object",
-    image == "novel2" ~ "pink-green-yellow sandwich-like unfamiliar object",
-    image == "novel3" ~ "blue-purple-yellow pie-slice-like unfamiliar object",
-    image == "novel4" ~ "blue-red macaron-like object",
+    image == "Novel1" ~ "purple-green pie-like unfamiliar object",
+    image == "Novel2" ~ "pink-green-yellow sandwich-like unfamiliar object",
+    image == "Novel3" ~ "blue-purple-yellow pie-slice-like unfamiliar object",
+    image == "Novel4" ~ "blue-red macaron-like object",
     TRUE ~ english_stimulus_label
   )) %>%
   mutate(image_description_source = "experiment documentation") %>%
@@ -548,5 +548,5 @@ write_and_validate(
   aoi_region_sets = NA,
   xy_timepoints = NA,
   aoi_timepoints,
-  upload=F
+  upload=FALSE
 )
