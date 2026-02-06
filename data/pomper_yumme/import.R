@@ -365,6 +365,7 @@ d4_stimulus_table <- d4_tidy %>%
   mutate(image_description = case_when(
     image == "Novel1" ~ "blue-red macaron-like object",
     image == "Novel2" ~ "pink-green-yellow sandwich-like unfamiliar object",
+    english_stimulus_label %in% c("read","wear","kick","eat") ~ tolower(image),
     TRUE ~ english_stimulus_label
   )) %>%
   mutate(image_description_source = "experiment documentation") %>%
