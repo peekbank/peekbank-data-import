@@ -1,36 +1,103 @@
 ## 1. Initial Setup
 library(here)
+library(readxl)
+library(janitor)
 
 source(here("helper_functions", "idless_draft.R"))
 source(here("helper_functions", "common.R"))
 dataset_name <- "pomper_dimy"
 data_path <- init(dataset_name)
 
-#read in data
 # read in eyetracking data
-pilot1_data <- read_tsv(here(paste("data/", dataset_name, "/raw_data/DimY_v1_GazeData_n36.txt", sep = ""))) %>%
+pilot1_data <- read_tsv(here("data", dataset_name, "raw_data","DimY_v1_GazeData_n36.txt")) %>%
   mutate(study = "pilot1") %>%
+  #selecting core columns
   select(
     TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
     Condition, TargetImage, TargetObjectPos, DistracterImage, DistracterObjectPos, Audio
   )
 
-pilot2_data <- read_tsv(here(paste("data/", dataset_name, "/raw_data/DimY_v2_GazeData_n47.txt", sep = ""))) %>%
+pilot2_data <- read_tsv(here("data", dataset_name, "raw_data","DimY_v2_GazeData_n47.txt")) %>%
   mutate(study = "pilot2") %>%
+  #selecting core columns
   select(
     TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
     Condition, TargetImage, TargetObjectPos, DistracterImage, DistracterObjectPos, Audio
   )
-study_data <- rbind(pilot1_data, pilot2_data)
+data <- rbind(pilot1_data, pilot2_data)
 
-### AOI Region Sets Table###
-aoi_region_sets <- tibble(
-  aoi_region_set_id = 0,
-  l_x_max = 700, l_x_min = 50,
-  l_y_max = 553, l_y_min = 25,
-  r_x_max = 1870, r_x_min = 1220,
-  r_y_max = 553, r_y_min = 25
-)
+#flip y-axis
+data <- data %>%
+  mutate(GazePointYMean=1080-GazePointYMean)
+
+# AOI bounding boxes (from inspecting the original psychopy script for presenting the stimuli)
+L_X_MIN <- 50
+L_X_MAX <- 700
+R_X_MIN <-  1220
+R_X_MAX <- 1870
+Y_MIN <- 25
+Y_MAX <- 553
+
+# compute AOI from coordinates
+data <- data %>%
+  mutate(
+    AOI = case_when(
+      is.na(GazePointXMean) | is.na(GazePointYMean) ~ NA_character_,
+      GazePointXMean >= L_X_MIN & GazePointXMean <= L_X_MAX &
+        GazePointYMean >= Y_MIN & GazePointYMean <= Y_MAX ~ "Left",
+      GazePointXMean >= R_X_MIN & GazePointXMean <= R_X_MAX &
+        GazePointYMean >= Y_MIN & GazePointYMean <= Y_MAX ~ "Right",
+      TRUE ~ "other"
+    )
+  )
+
+# read in participant data
+participant_file_path <- here("data", dataset_name, "raw_data","DimY_deID.xlsx")
+combined_participants <- readxl::excel_sheets(participant_file_path) %>%
+  set_names() %>%
+  map_df(~ read_excel(participant_file_path, sheet = .x,col_types = "text"), .id = "sheet_name") %>%
+  filter(sheet_name != "Excluded") %>%
+  clean_names()
+
+# prepare demographic info
+participant_demographics <- combined_participants %>%
+  mutate(subjCode = sub_num) %>%
+  mutate(sex = case_when(
+    gender == "M" ~ "male",
+    gender == "F" ~ "female"
+  )) %>%
+  mutate(
+    excluded = case_when(
+      include %in% c("no","N") ~ TRUE,
+      TRUE ~ FALSE
+    ),
+    exclusion_reason = case_when(
+      excluded ~ paste0("participant exclusion: ",comments)
+    )
+  ) %>%
+  rename(exp_version = sheet_name,order = lwl_protocol) %>%
+  select(
+    exp_version,
+    subjCode,
+    order,
+    sex,
+    age_in_mo,
+    excluded,
+    exclusion_reason
+  )
+
+
+
+
+sample_rate_ms <- 1000 / 60
+sample_rate_hertz <- 60
+point_of_disam <- 2930
+dataset_id <- 0
+monitor_size_x <- 1920
+monitor_size_y <- 1080
+tracker <- "Tobii"
+sample_rate <- "60"
+coding_method <- "eyetracking"
 
 ## 2. Creating the wide.table
 # Populate your wide table from the raw data here
@@ -38,7 +105,7 @@ aoi_region_sets <- tibble(
 wide.table <- tibble(
   subject_id = NA,
   sex = NA,
-  native_language = NA,
+  native_language = "eng",
   age = NA,
   age_units = NA,
   t = NA,
@@ -71,18 +138,18 @@ wide.table <- tibble(
   # optional 
   mutate(
     # fill out all of these if you have xy data
-    l_x_max = NA,
-    l_x_min = NA,
-    l_y_max = NA,
-    l_y_min = NA,
-    r_x_max = NA,
-    r_x_min = NA,
-    r_y_max = NA,
-    r_y_min = NA,
-    x = NA,
-    y = NA,
-    monitor_size_x = NA,
-    monitor_size_y = NA,
+    l_x_min = L_X_MIN,
+    l_x_max = L_X_MAX,
+    l_y_min = Y_MIN,
+    l_y_max = Y_MAX,
+    r_x_min = R_X_MIN,
+    r_x_max = R_X_MAX,
+    r_y_min = Y_MIN,
+    r_y_max = Y_MAX,
+    x = GazePointXMean,
+    y = GazePointYMean,
+    monitor_size_x = 1920,
+    monitor_size_y = 1080,
     # if two subsequent trials can have the same stimuli combination,
     # use this to indicate the trial order within an administration
     trial_index = NA,
@@ -98,8 +165,8 @@ wide.table <- tibble(
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
   lab_dataset_id = NA,
-  cite = "TODO",
-  shortcite = "TODO",
+  cite = "Pomper, R., & Saffran, J. (unpublished). Unpublished 'Dimy' study: Do infants learn to associate diminutive forms with animates?",
+  shortcite = "Pomper & Saffran (unpublished)",
   wide.table = wide.table,
   rezero=TRUE,
   normalize=TRUE,

@@ -2,7 +2,7 @@
 
 1. **Reference.**
 
-Contributors: Ron Pomper
+Pomper, R., & Saffran, J. (unpublished). Unpublished "Dimy" study: Do infants learn to associate diminutive forms with animates?
 
 2. **Abstract.**
 
@@ -19,13 +19,18 @@ Condition info:
 
 There are two datasets available (pilot1 and pilot2). There are some small differences in the trial lists, but these are basically very similar studies at two different age ranges (pilot1: ~14-16 months; pilot2: ~17-19 months).
 
+There appears to be a CDI data file available (short form), in the file DimY_cdi_deID.csv.
+
 
 4. **Importing decisions.**
 
-- There are raw by-participant trial lists (zipped data folder) and raw eyetracking data (zipped eyetrackingData folder) available, but we choose to import the somewhat cleaned up gaze data from the original author. Raw data kept on OSF in case ever useful for validating the import.
+- There are raw by-participant trial lists (zipped data folder), raw eyetracking data (zipped eyetrackingData folder), and trial lists available, but we choose to import the somewhat cleaned up gaze data from the original author. Raw data kept on OSF in case ever useful for validating the import.
 - Tobii x/y coordinates start from top left, so need to compute y-coordinate as SCREEN_SIZE - tobii_y_coordinate (i.e. flip the y-axis) to get bottom-right origin.
 - AOI Regions computed using aoi_info_dimy.txt and validated against raw eyetracking data (main density of eyetracking data lies within AOI regions)
 - The full phrases are included from the "pomper_dimy_full_phrases.csv" file, which is compiled by hand based on listening to the original audio stimuli (on OSF).
+- approximate point of disambiguation (2930 ms) based on inspecting the auditory stimuli (sometimes onset seems 10ish ms earlier or later, but seems pretty close to right)
+- applied exclusions based on comments in participant demographics, only excluded those participants with an explicit "no" decision (these rows are also greyed out)
+- we treat all animal/vehicle trials as non-vanilla and novel (novel words, unfamiliar objects); all fam(-y/+y) and intro trials are treated as vanilla
 
 5. **Importing ambiguity.**
 
