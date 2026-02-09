@@ -23,6 +23,15 @@ pilot2_data <- read_tsv(here(paste("data/", dataset_name, "/raw_data/DimY_v2_Gaz
   )
 study_data <- rbind(pilot1_data, pilot2_data)
 
+### AOI Region Sets Table###
+aoi_region_sets <- tibble(
+  aoi_region_set_id = 0,
+  l_x_max = 700, l_x_min = 50,
+  l_y_max = 553, l_y_min = 25,
+  r_x_max = 1870, r_x_min = 1220,
+  r_y_max = 553, r_y_min = 25
+)
+
 ## 2. Creating the wide.table
 # Populate your wide table from the raw data here
 
