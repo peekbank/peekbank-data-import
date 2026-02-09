@@ -19,7 +19,7 @@ Condition info:
 
 There are two datasets available (pilot1 and pilot2). There are some small differences in the trial lists, but these are basically very similar studies at two different age ranges (pilot1: ~14-16 months; pilot2: ~17-19 months).
 
-There appears to be a CDI data file available (short form), in the file DimY_cdi_deID.csv.
+There appears to be a CDI data file available (short form), in the file DimY_cdi_deID.csv, but it looks messy and has not been imported (but could be in the future). 
 
 
 4. **Importing decisions.**
@@ -33,6 +33,7 @@ There appears to be a CDI data file available (short form), in the file DimY_cdi
 - we compute trial-wise point of disambiguation by accounting for when the audio onset trigger is recorded for each trial. This should lead to a more precise estimate of point of disambiguation sensitive to small variation in audio timing onset / presentation lags (MZ: this is based on some familiarity with the underlying psychopy scripts and how eyetracking data was recorded).
 - data for a small set of participants is quite sparse and/or appears to be low quality (this also tends to track with the comments in the participant demographics, e.g. "bad calibration"). We retain this data, with the exception of one participant with almost no valid AOI samples (7 total), namely the participant with the subject code "217".
 
+- there are many trial types (near identical to each other) because the audio onsets were slightly different in different trials in different administrations
 5. **Importing ambiguity.**
 
 - the point of disambiguation within audio stimuli was determined to be roughly 2930 ms based on inspecting the actual onsets within the auditory stimuli (communication with the original authors suggested 2950 ms, but this seems a little late relative to actual files). This seems to vary a tad across trials (sometimes onset seems 10ish ms earlier or later, but seems pretty close to right).
