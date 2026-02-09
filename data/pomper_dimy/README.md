@@ -28,9 +28,10 @@ There appears to be a CDI data file available (short form), in the file DimY_cdi
 - Tobii x/y coordinates start from top left, so need to compute y-coordinate as SCREEN_SIZE - tobii_y_coordinate (i.e. flip the y-axis) to get bottom-right origin.
 - AOI Regions computed using aoi_info_dimy.txt and validated against raw eyetracking data (main density of eyetracking data lies within AOI regions)
 - The full phrases are included from the "pomper_dimy_full_phrases.csv" file, which is compiled by hand based on listening to the original audio stimuli (on OSF).
-- approximate point of disambiguation (2930 ms) based on inspecting the auditory stimuli (sometimes onset seems 10ish ms earlier or later, but seems pretty close to right)
 - applied exclusions based on comments in participant demographics, only excluded those participants with an explicit "no" decision (these rows are also greyed out)
 - we treat all animal/vehicle trials as non-vanilla and novel (novel words, unfamiliar objects); all fam(-y/+y) and intro trials are treated as vanilla
+- we compute trial-wise point of disambiguation by accounting for when the audio onset trigger is recorded for each trial. This should lead to a more precise estimate of point of disambiguation sensitive to small variation in audio timing onset / presentation lags (MZ: this is based on some familiarity with the underlying psychopy scripts and how eyetracking data was recorded)
 
 5. **Importing ambiguity.**
 
+- the point of disambiguation within audio stimuli was determined to be roughly 2930 ms based on inspecting the actual onsets within the auditory stimuli (communication with the original authors suggested 2950 ms, but this seems a little late relative to actual files). This seems to vary a tad across trials (sometimes onset seems 10ish ms earlier or later, but seems pretty close to right).

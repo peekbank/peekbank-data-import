@@ -13,7 +13,7 @@ pilot1_data <- read_tsv(here("data", dataset_name, "raw_data","DimY_v1_GazeData_
   mutate(study = "pilot1") %>%
   #selecting core columns
   select(
-    TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
+    TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, Event, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
     Condition, TargetImage, TargetObjectPos, DistracterImage, DistracterObjectPos, Audio
   )
 
@@ -21,15 +21,36 @@ pilot2_data <- read_tsv(here("data", dataset_name, "raw_data","DimY_v2_GazeData_
   mutate(study = "pilot2") %>%
   #selecting core columns
   select(
-    TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
+    TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, Event, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
     Condition, TargetImage, TargetObjectPos, DistracterImage, DistracterObjectPos, Audio
   )
 data <- rbind(pilot1_data, pilot2_data)
+
+#filter final screen
+data <- data %>%
+  filter(Condition != "end")
 
 #flip y-axis
 data <- data %>%
   mutate(GazePointYMean=1080-GazePointYMean)
 
+# get the time associated with the audio onset for each trial
+audio_onsets <- data %>%
+  group_by(subjCode, OverallTrialNum,Condition) %>%
+  #get first instance where Event changes from NA to "audioOnset"
+  filter(Event == "audioOnset") %>%
+  summarize(
+    audio_onset_time = first(TimeStamp)
+  )
+
+#join back into data and compute trial-wise point of disambiguation factoring in the audio onset time
+POINT_OF_DISAMBIGUATION_WITHIN_AUDIO <- 2930 # in ms, based on inspecting audio files
+data <- data %>%
+  left_join(audio_onsets) %>%
+  mutate(
+    point_of_disambiguation = audio_onset_time + POINT_OF_DISAMBIGUATION_WITHIN_AUDIO,
+  )
+  
 # AOI bounding boxes (from inspecting the original psychopy script for presenting the stimuli)
 L_X_MIN <- 50
 L_X_MAX <- 700
