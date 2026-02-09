@@ -13,7 +13,7 @@ pilot1_data <- read_tsv(here("data", dataset_name, "raw_data","DimY_v1_GazeData_
   mutate(study = "pilot1") %>%
   #selecting core columns
   select(
-    TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, Event, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
+    TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, Event, subjCode, Order, TrialNumber,
     Condition, TargetImage, TargetObjectPos, DistracterImage, DistracterObjectPos, Audio
   )
 
@@ -21,22 +21,25 @@ pilot2_data <- read_tsv(here("data", dataset_name, "raw_data","DimY_v2_GazeData_
   mutate(study = "pilot2") %>%
   #selecting core columns
   select(
-    TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, Event, OverallTrialNum, subjCode, Order, TrialNumber, trialType, trialID,
+    TimeStamp, GazePointXMean, GazePointYMean, Accuracy, LookAOI, Event, subjCode, Order, TrialNumber,
     Condition, TargetImage, TargetObjectPos, DistracterImage, DistracterObjectPos, Audio
   )
 data <- rbind(pilot1_data, pilot2_data)
 
-#filter final screen
+## General Cleanup
+#fix up a few general issues with the original data
 data <- data %>%
-  filter(Condition != "end")
+  #filter final screen
+  filter(Condition != "end") %>%
+  #flip y-axis 
+  mutate(GazePointYMean=1080-GazePointYMean) %>%
+  #fix a few participant numbers that break the pattern
+  mutate(subjCode = str_remove(subjCode,"DimY_")) 
 
-#flip y-axis
-data <- data %>%
-  mutate(GazePointYMean=1080-GazePointYMean)
-
+## Audio Onsets & POD
 # get the time associated with the audio onset for each trial
 audio_onsets <- data %>%
-  group_by(subjCode, OverallTrialNum,Condition) %>%
+  group_by(subjCode, TrialNumber,Condition) %>%
   #get first instance where Event changes from NA to "audioOnset"
   filter(Event == "audioOnset") %>%
   summarize(
@@ -51,6 +54,7 @@ data <- data %>%
     point_of_disambiguation = audio_onset_time + POINT_OF_DISAMBIGUATION_WITHIN_AUDIO,
   )
   
+## AOI
 # AOI bounding boxes (from inspecting the original psychopy script for presenting the stimuli)
 L_X_MIN <- 50
 L_X_MAX <- 700
@@ -72,6 +76,16 @@ data <- data %>%
     )
   )
 
+#read in full phrases
+#metadata file compiled from audio files
+full_phrases <- read_csv(here("data", dataset_name, "raw_data","pomper_dimy_full_phrases.csv")) %>%
+  mutate(Audio = str_remove(audio,".wav")) %>%
+  select(-audio)
+#join into main data
+data <- data %>%
+  left_join(full_phrases)
+
+## Participant Demographics
 # read in participant data
 participant_file_path <- here("data", dataset_name, "raw_data","DimY_deID.xlsx")
 combined_participants <- readxl::excel_sheets(participant_file_path) %>%
@@ -107,42 +121,39 @@ participant_demographics <- combined_participants %>%
     exclusion_reason
   )
 
+#check for missing participant data
+setdiff(unique(data$subjCode),unique(participant_demographics$subjCode)) #all participants in eyetracking data appear in demographics
+setdiff(unique(participant_demographics$subjCode),unique(data$subjCode)) #participants here all are marked as being not included or as having an eyetracker issue in the demographics file
 
-
-
-sample_rate_ms <- 1000 / 60
-sample_rate_hertz <- 60
-point_of_disam <- 2930
-dataset_id <- 0
-monitor_size_x <- 1920
-monitor_size_y <- 1080
-tracker <- "Tobii"
-sample_rate <- "60"
-coding_method <- "eyetracking"
+# join into main data table
+data <- data %>%
+  left_join(participant_demographics)
 
 ## 2. Creating the wide.table
-# Populate your wide table from the raw data here
 
 wide.table <- tibble(
-  subject_id = NA,
-  sex = NA,
+  subject_id = subjCode,
+  sex = sex,
   native_language = "eng",
-  age = NA,
-  age_units = NA,
-  t = NA,
+  age = age_in_mo,
+  age_units = "months",
+  t = TimeStamp,
   aoi = NA,
-  full_phrase = NA,
-  full_phrase_language = NA,
-  point_of_disambiguation = NA,
-  target_side = NA,
-  condition = NA,
+  full_phrase = full_phrase,
+  full_phrase_language = "eng",
+  point_of_disambiguation = point_of_disambiguation,
+  target_side = case_when(
+    TargetObjectPos == "bottomLeft" ~ "left",
+    TargetObjectPos == "bottomRight" ~ "right"
+  ),
+  condition = Condition,
   vanilla_trial = NA,
-  excluded = NA,
-  exclusion_reason = NA,
-  session_num = NA,
-  sample_rate = NA,
-  tracker = NA,
-  coding_method = NA,
+  excluded = excluded,
+  exclusion_reason = exclusion_reason,
+  session_num = 1,
+  sample_rate = 60,
+  tracker = "Tobii",
+  coding_method = "eyetracking",
   target_stimulus_label_original = NA,
   target_stimulus_label_english = NA,
   target_stimulus_novelty = NA,
@@ -198,19 +209,18 @@ dataset_list <- digest.dataset(
 # Add any aux data here - mind that fields like "subject_id" now refer to peekbank internal ids
 # (the external id is now lab_subject_id)
 
-# if you don't have cdi data in your dataset, you can delete this section
-cdi_data <- tibble(
-  subject_id = NA, # this is still referring to the lab subject id
-  instrument_type = NA,
-  language = NA,
-  measure = NA,
-  rawscore = NA,
-  percentile = NA, # can be NA
-  age = NA
-)
-
-dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>% 
-  digest.subject_cdi_data(cdi_data)
+# cdi_data <- tibble(
+#   subject_id = NA, # this is still referring to the lab subject id
+#   instrument_type = NA,
+#   language = NA,
+#   measure = NA,
+#   rawscore = NA,
+#   percentile = NA, # can be NA
+#   age = NA
+# )
+# 
+# dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>% 
+#   digest.subject_cdi_data(cdi_data)
 
 ## 5. Write and Validate the Data
 
