@@ -34,7 +34,29 @@ data <- data %>%
   #flip y-axis 
   mutate(GazePointYMean=1080-GazePointYMean) %>%
   #fix a few participant numbers that break the pattern
-  mutate(subjCode = str_remove(subjCode,"DimY_")) 
+  mutate(subjCode = str_remove(subjCode,"DimY_")) %>%
+  #fix some truncated image names
+  mutate(TargetImage = case_when(
+    TargetImage == "velo" ~ "velo taxi",
+    TargetImage == "dune" ~ "dune buggy",
+    TargetImage == "mars" ~ "mars rover",
+    TargetImage == "vespa" ~ "vespa truck",
+    TargetImage == "pedi" ~ "pedi cab",
+    TargetImage == "golf" ~ "golf cart",
+    TRUE ~ TargetImage
+  ),
+  DistracterImage = case_when(
+    DistracterImage == "velo" ~ "velo taxi",
+    DistracterImage == "dune" ~ "dune buggy",
+    DistracterImage == "mars" ~ "mars rover",
+    DistracterImage == "vespa" ~ "vespa truck",
+    DistracterImage == "pedi" ~ "pedi cab",
+    DistracterImage == "golf" ~ "golf cart",
+    TRUE ~ DistracterImage
+  ),
+  ) %>%
+  #extract target label from audio name (first element before "_")
+  mutate(target_label = str_extract(Audio,"^[^_]+"))
 
 ## Audio Onsets & POD
 # get the time associated with the audio onset for each trial
@@ -69,14 +91,20 @@ data <- data %>%
     AOI = case_when(
       is.na(GazePointXMean) | is.na(GazePointYMean) ~ NA_character_,
       GazePointXMean >= L_X_MIN & GazePointXMean <= L_X_MAX &
-        GazePointYMean >= Y_MIN & GazePointYMean <= Y_MAX ~ "Left",
+        GazePointYMean >= Y_MIN & GazePointYMean <= Y_MAX ~ "bottomLeft",
       GazePointXMean >= R_X_MIN & GazePointXMean <= R_X_MAX &
-        GazePointYMean >= Y_MIN & GazePointYMean <= Y_MAX ~ "Right",
+        GazePointYMean >= Y_MIN & GazePointYMean <= Y_MAX ~ "bottomRight",
       TRUE ~ "other"
     )
   )
 
-#read in full phrases
+##remove participant with almost no valid data
+#some of the data for some participants is very limited;
+#we remove one participant in particular who has virtually no valid data
+data <- data %>%
+  filter(subjCode !="217")
+
+##read in full phrases
 #metadata file compiled from audio files
 full_phrases <- read_csv(here("data", dataset_name, "raw_data","pomper_dimy_full_phrases.csv")) %>%
   mutate(Audio = str_remove(audio,".wav")) %>%
@@ -111,12 +139,13 @@ participant_demographics <- combined_participants %>%
     )
   ) %>%
   rename(exp_version = sheet_name,order = lwl_protocol) %>%
+  mutate(age_not_adjusted = as.numeric(as.character(age_not_adjusted))) %>%
   select(
     exp_version,
     subjCode,
     order,
     sex,
-    age_in_mo,
+    age_not_adjusted,
     excluded,
     exclusion_reason
   )
@@ -131,14 +160,20 @@ data <- data %>%
 
 ## 2. Creating the wide.table
 
-wide.table <- tibble(
+wide.table <- data %>%
+  mutate(
   subject_id = subjCode,
   sex = sex,
   native_language = "eng",
-  age = age_in_mo,
+  age = age_not_adjusted,
   age_units = "months",
   t = TimeStamp,
-  aoi = NA,
+  aoi = case_when(
+    is.na(AOI) ~ "missing",
+    AOI == "other" ~ "other",
+    AOI == TargetObjectPos ~ "target",
+    AOI == DistracterObjectPos ~ "distractor"
+  ),
   full_phrase = full_phrase,
   full_phrase_language = "eng",
   point_of_disambiguation = point_of_disambiguation,
@@ -147,27 +182,26 @@ wide.table <- tibble(
     TargetObjectPos == "bottomRight" ~ "right"
   ),
   condition = Condition,
-  vanilla_trial = NA,
+  vanilla_trial = ifelse(Condition %in% c("vehicle","animal"),FALSE,TRUE),
   excluded = excluded,
   exclusion_reason = exclusion_reason,
   session_num = 1,
   sample_rate = 60,
   tracker = "Tobii",
   coding_method = "eyetracking",
-  target_stimulus_label_original = NA,
-  target_stimulus_label_english = NA,
-  target_stimulus_novelty = NA,
-  target_stimulus_image_path = NA,
-  target_image_description = NA,
-  target_image_description_source = NA,
-  distractor_stimulus_label_original = NA,
-  distractor_stimulus_label_english = NA,
-  distractor_stimulus_novelty = NA,
-  distractor_stimulus_image_path = NA,
-  distractor_image_description = NA,
-  distractor_image_description_source = NA
+  target_stimulus_label_original = target_label,
+  target_stimulus_label_english = target_label,
+  target_stimulus_novelty = ifelse(Condition %in% c("vehicle","animal"),"novel","familiar"),
+  target_stimulus_image_path = glue("stimuli/images/{TargetImage}.jpg"),
+  target_image_description = gsub("[0-9]+", "", TargetImage),
+  target_image_description_source = "image path",
+  distractor_stimulus_label_original = gsub("[0-9]+", "", DistracterImage),
+  distractor_stimulus_label_english = gsub("[0-9]+", "", DistracterImage),
+  distractor_stimulus_novelty = ifelse(Condition %in% c("vehicle","animal"),"novel","familiar"),
+  distractor_stimulus_image_path = glue("stimuli/images/{DistracterImage}.jpg"),
+  distractor_image_description = gsub("[0-9]+", "", DistracterImage),
+  distractor_image_description_source = "image path"
 ) %>%
-  # optional 
   mutate(
     # fill out all of these if you have xy data
     l_x_min = L_X_MIN,
@@ -184,19 +218,19 @@ wide.table <- tibble(
     monitor_size_y = 1080,
     # if two subsequent trials can have the same stimuli combination,
     # use this to indicate the trial order within an administration
-    trial_index = NA,
+    trial_index = TrialNumber,
     # lab specific name for trials
-    trial_name = NA,
+    #trial_name = NA,
     # lab specific names for stimuli
-    target_stimulus_name = NA, 
-    distractor_stimulus_name = NA
+    #target_stimulus_name = NA, 
+    #distractor_stimulus_name = NA
   )
 
 ## 3. Digest the wide.table
 
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
-  lab_dataset_id = NA,
+  lab_dataset_id = DimY,
   cite = "Pomper, R., & Saffran, J. (unpublished). Unpublished 'Dimy' study: Do infants learn to associate diminutive forms with animates?",
   shortcite = "Pomper & Saffran (unpublished)",
   wide.table = wide.table,
