@@ -2,7 +2,7 @@
 
 1. **Reference.**
 
-Pomper, R., & Saffran, J. (unpublished). Unpublished "Dimy" study: Do infants learn to associate diminutive forms with animates?
+Pomper, R., & Saffran, J. R. (unpublished). Unpublished "Dimy" study: Do infants learn to associate diminutive forms with animates?
 
 2. **Abstract.**
 
