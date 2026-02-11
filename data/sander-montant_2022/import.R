@@ -175,7 +175,7 @@ exclusions <- demog_data |>
   select(-exclusions)
 
 lang_exposures <- et_data_joined |> 
-  mutate(subject_id = glue("{StudioProjectName}_{study_id}")) |> 
+  mutate(subject_id = as.character(glue("{StudioProjectName}_{study_id}"))) |>
   select(subject_id, eng_exp, fre_exp) |> 
   distinct() |> 
   pivot_longer(ends_with("_exp"), names_to = "language", values_to = "exposure") |> 
