@@ -484,9 +484,9 @@ d_tidy <- d_tidy %>%
 trial_types_table <- trial_type_ids %>%
   separate(condition, c("voice_gender", "db_level"), sep = "_", remove = FALSE) |>
   mutate(
-    vanilla_trial = ifelse(db_level == "0db", TRUE, FALSE),
-    # Double onset, so everything is nothing vanilla. line above this is kept if we ever go back on that decision.
     vanilla_trial = FALSE,
+    # Double onset, so everything is nothing vanilla. line below this is kept if we ever go back on that decision.
+    #vanilla_trial = ifelse(db_level == "0db", TRUE, FALSE),
     full_phrase_language = "eng",
     trial_type_aux_data = NA,
     point_of_disambiguation = point_of_disambiguation,
