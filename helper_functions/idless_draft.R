@@ -315,7 +315,14 @@ digest.dataset <- function(
     mutate(trial_type_id = cur_group_id() - 1) %>%
     ungroup() %>%
     group_by(administration_id) %>%
-    mutate(trial_order = consecutive_id(trial_type_id, trial_index)) %>%
+    # When trial_index is provided, use it directly (order-independent grouping).
+    # Otherwise, fall back to consecutive_id which infers trial boundaries
+    # from trial_type changes (order-dependent, requires rows in temporal order).
+    mutate(trial_order = if (all(is.na(trial_index))) {
+      consecutive_id(trial_type_id)
+    } else {
+      trial_index
+    }) %>%
     ungroup() %>%
     group_by(administration_id, trial_type_id, trial_order) %>%
     mutate(trial_id = cur_group_id() - 1) %>%
