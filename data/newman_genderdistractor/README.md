@@ -39,7 +39,6 @@ because they are not of interest to peekbank (and don't fit the schema).
 The import therefore replaces the original trial ordering (trial_order_num) with a new one
 (trial_order) that has no gaps in numbering, and only goes up to 15 instead of 19
 
-
 start frames is marked as 68 which is what is reported in the paper for target word start.
 
 4 children have CDI data, many (but not all) of the other children have language measures
