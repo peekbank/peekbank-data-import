@@ -34,6 +34,8 @@ We observe that the fraction looking to ball and cat are both lower than we migh
 expect (naively and in comparison to other targets). I don't think this is an error
 but it could be a combination of few trials/kids (especially for cat) and maybe image salience/preference?
 
+We marked this as non-vanilla due to a triple onset of the target word.
+
 5. Importing ambiguity
 
 There are some (~30) frames in this dataset which have two conflicting look. We resolve

@@ -229,7 +229,7 @@ trials_tidy <- raw_trials_data %>%
       target_side == "right" ~ image_left,
       TRUE ~ "ambig"
     ),
-    vanilla_trial = condition == "Full",
+    vanilla_trial = FALSE,
   ) %>%
   filter(target_side != "ambig")
 
