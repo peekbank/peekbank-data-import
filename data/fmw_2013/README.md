@@ -11,6 +11,14 @@ This research revealed both similarities and striking differences in early langu
 3. **Original study info.**
 CDIs and LWL were collected at 18 and 24 months. For LWL, two overlapping sets of targets were used for the different age groups. The dataset indicates different carrier phrases (not reflected in the paper). Looking behaviour was recorded on video and coded offline frame-by-frame by a trained blind coder. 
 
+There are more participants in this dataset than were reported in the paper:
+* the default seems to have been two sessions around 18 months and 1 session around 24 months
+* 33 subjects had 3 administrations (all 2 sessions around 18 months,  and 1 session around 24 months)
+* 33 subjects had 2 administrations (19 with one at 18ish and 1 at 24 ish, 14 with 2 at roughly the same time)
+14 subjects had just 1 administration (12 at 18mo, 2 at 24 mo)
+
+We assume that the 48 kids reported in the paper are probably a subset of the 33+19 with data at both ~18mo and ~24 mo. 
+
 4. **Importing decisions.**
 
 - Data were re-zeroed based on "crit_on_set" (onset of critical period) variable.

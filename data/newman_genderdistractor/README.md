@@ -21,7 +21,9 @@ Same as expt 1, except that *pilot testing* indicated 5db was too hard, so it wa
 as well. 
 
 The raw data makes it look like there's 5db and 0db for 30months and 10db and 5db
-for 16 months. 
+for 16 months. While 0db is not mentioned in the paper, the file folder names explicitly say "0 db SNR", and so 
+we assume from context that 0db refers to the SNR (aka how much quieter the distractor voice was than the main speaker), 
+meaning that 0db would be an equally loud distractor. 
 
 4. Importing decisions:
 

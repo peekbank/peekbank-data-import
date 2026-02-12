@@ -17,7 +17,7 @@ are excluded. Test trials involve novel objects with counterbalanced novel names
 (tever, jang, pifo, sprock) so the same visual object gets different names across
 orders, and some novel object images (novel4-blue, novel2-green) are never taught. We would need 
 additional study info to properly import the trials. As they are low utility, we exclude test trials for now.
-
+(trials labelled as filler and end appear to be attention-getters rather than trials per se based on the associated image file names)
 * Condition coding: `fam_color` are trials with color word labels (CX orders), and `fam_noun` are trials with object noun labels (NX orders)
 
 * We mark the color trials non-vanilla, only noun trials are vanilla.

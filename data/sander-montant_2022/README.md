@@ -38,5 +38,19 @@ Stimuli and trial properties in trial_info were coded off of the image/trial nam
 
 There is no full_phrase data available. However, by looking at other datasets from that lab and asking people who worked with them, we conclude that the full phrases don't hurt the vanilla status of the trials (e.g. double word onset)
 
+Construction of trial_info file:
+(for schott)
+* trial info was reconstructed from the pre-prints/papers and from the available files
+according to AOI_maker.xlsx the files with names like Cmisp_n2o2_cooC_e4T24.avi the "C" or "M" after "coo" refers to C=correct pronounciation and M=mispronunciation
+according to 4_other_exploratory_analyses (https://osf.io/2m345/files/g6p8a) the "coo" are three letter abbreviations for the target names (mapping included)
+* mispronunciations and cognate/non-cognateness as well come from Table 2 of https://osf.io/preprints/osf/hgdvq_v1
+* not sure where the distractor-target pairings came from, but probably in https://osf.io/n9uv4/ (note that this is access denied, sad)
+
+(for unpublished, looking at bh17):
+* files with mixed or "sw" (for switch) are mixed
+* ones with Fr or Eng (or unmarked) are single
+* (other facts probably come from looking at the raw stimuli files in bh17?)
+* note that trials about dog on teebo (or whatever) are listed in trial_info, but not included in the imported trials
+
 ## Importing ambiguity
 None other than those reported above.
