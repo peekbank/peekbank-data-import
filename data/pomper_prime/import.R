@@ -6,6 +6,32 @@ dataset_name <- "pomper_prime"
 data_path <- init(dataset_name)
 
 
+order_files <- list.files(here(data_path, "trial_orders"),
+  full.names = TRUE, pattern = "\\.csv$"
+)
+trial_orders <- bind_rows(lapply(order_files, function(file) {
+  order_name <- sub("^Prime_Order_(.*)\\.csv$", "\\1", basename(file))
+  read_csv(file, show_col_types = FALSE) %>%
+    mutate(Order = order_name)
+})) %>%
+  # only including fam for now, test trials would need a closer look
+  filter(Condition == "Fam") %>%
+  select(Order, trialID, Audio)
+
+# carrier phrases for constructing full_phrase for NOUN trials
+# (claimed to be same objects/stimuli as pomper_saffran_2016)
+carrier_phrases_noun <- read_csv(
+  here(data_path, "copied_from_pomper_saffran_2016_carrier_phrases.csv"),
+  show_col_types = FALSE
+)
+
+# carrier verb mapping for COLOR trial audio filenames
+carrier_verb_to_phrase_color <- c(
+  "where" = "Where's the",
+  "look" = "Look at the",
+  "find" = "Find the"
+)
+
 ### 1. DATASET TABLE
 dataset <- tibble(
   dataset_id = 0,
@@ -38,7 +64,6 @@ subjects <- demo %>%
 
 data_raw <- read.delim(here(data_path, "Prime_CombinedData_Interpolated_n98.txt"))
 
-# misc: istracked -> eyetracker used && data here
 
 exclusion_data <- demo %>%
   rename(lab_subject_id = `Sub Num`) %>%
@@ -49,7 +74,6 @@ exclusion_data <- demo %>%
   select(lab_subject_id, excluded, exclusion_reason)
 
 data <- data_raw %>%
-  filter(Condition == "Fam") %>% # according to Martin, we only care about these
   select(
     lab_subject_id = `Sub.Num`,
     target = Target,
@@ -57,11 +81,34 @@ data <- data_raw %>%
     target_side = Target.Side,
     trial_order = Tr.Num,
     t_norm = Time, # time already normalized - just use 0 for pod in the trial types table
-    condition = Condition,
+    Order,
     Accuracy,
     tracker = Source
   ) %>%
+  inner_join(trial_orders, by = c("Order", "trial_order" = "trialID")) %>%
+  left_join(carrier_phrases_noun, by = c("target" = "lab_stimulus_id")) %>%
   mutate(
+    condition = ifelse(str_starts(Order, "C"), "fam_color", "fam_noun"),
+    vanilla_trial = condition == "fam_noun",
+    # Parse audio filename:
+    # color trials are 3-part (color_carrier_ending),
+    # noun trials are 2-part (noun_ending)
+    audio_parts = str_split(Audio, "_"),
+    ending = map_chr(audio_parts, function(x) x[length(x)]),
+    color_label = ifelse(condition == "fam_color", map_chr(audio_parts, 1), NA_character_),
+    carrier_verb = ifelse(condition == "fam_color", map_chr(audio_parts, 2), NA_character_),
+    full_phrase = case_when(
+      condition == "fam_color" ~ paste0(
+        carrier_verb_to_phrase_color[carrier_verb], " ", color_label, " one",
+        ifelse(carrier_verb == "where", "?", "!"),
+        " ", str_to_title(ending), "!"
+      ),
+      condition == "fam_noun" ~ paste0(
+        trimws(carrier_phrase), " ", target,
+        ifelse(trimws(carrier_phrase) == "Where's the", "?", "!"),
+        " ", str_to_title(ending), "!"
+      )
+    ),
     trial_order = trial_order - 1,
     lab_trial_id = NA,
     point_of_disambiguation = 0, # times already normalized, info on pod not included in data
@@ -73,9 +120,9 @@ data <- data_raw %>%
       TRUE ~ "other"
     )
   ) %>%
-  select(-Accuracy) %>%
-  left_join(subjects %>% select(lab_subject_id), by = join_by(lab_subject_id)) %>%
-  group_by(target, target_side, distractor, condition) %>%
+  select(-Accuracy, -Order, -Audio, -audio_parts,
+    -color_label, -carrier_verb, -ending, -carrier_phrase) %>%
+  group_by(target, target_side, distractor, condition, full_phrase, vanilla_trial) %>%
   mutate(trial_type_id = cur_group_id() - 1) %>%
   ungroup() %>%
   group_by(lab_subject_id, trial_order) %>%
@@ -167,18 +214,16 @@ stimuli <- data %>%
 ### 5. Trial Types Table
 
 trial_types <- data %>%
-  distinct(target, target_side, distractor, condition, lab_trial_id, trial_type_id, point_of_disambiguation) %>%
+  distinct(target, target_side, distractor, condition, full_phrase, vanilla_trial,
+    lab_trial_id, trial_type_id, point_of_disambiguation) %>%
   mutate(
-    full_phrase = NA,
     target_side = case_when(
       target_side == "l" ~ "left",
       target_side == "r" ~ "right",
     ),
-    condition = condition,
     full_phrase_language = "eng",
     aoi_region_set_id = 0,
     dataset_id = 0,
-    vanilla_trial = TRUE,
     trial_type_aux_data = NA
   ) %>%
   left_join(stimuli, by = c("distractor" = "image_description")) %>%

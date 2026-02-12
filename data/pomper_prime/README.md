@@ -10,14 +10,20 @@ Pomper, R. & Saffran, J. R. (unpublished). Unpublished "Prime" study: Modulating
 
 ## Importing decisions
 
-* there is not associated CDI data
+* There is no associated CDI data.
 
-* decision to only import the familiar trials and not the teaching or test trials. 
-We may want to revisit this. 
+* Only "Fam" trials are imported. Teaching, test, filler, and end trials
+are excluded. Test trials involve novel objects with counterbalanced novel names
+(tever, jang, pifo, sprock) so the same visual object gets different names across
+orders, and some novel object images (novel4-blue, novel2-green) are never taught. We would need 
+additional study info to properly import the trials. As they are low utility, we exclude test trials for now.
 
-* vanilla should be only object noun trials, color word trials non-vanilla
+* Condition coding: `fam_color` are trials with color word labels (CX orders), and `fam_noun` are trials with object noun labels (NX orders)
 
-## Importing ambiguity
+* We mark the color trials non-vanilla, only noun trials are vanilla.
 
-Audio files (in osf) contain the phrases, but we don't know which phrase maps to 
-which trial, as all combinations are present. Thus full phrase has been left blank.
+## Importing Ambiguity
+
+* Target stimulus labels are the object name, never color words. Color trial
+phrases use "one" as the noun (e.g., "the orange one") rather than the object name.
+(this info is not present in this dataset, but pomper_saffran_2016 uses the same stimuli, making this the best guess)
