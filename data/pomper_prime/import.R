@@ -19,9 +19,8 @@ trial_orders <- bind_rows(lapply(order_files, function(file) {
   select(Order, trialID, Audio)
 
 # carrier phrases for constructing full_phrase for NOUN trials
-# (claimed to be same objects/stimuli as pomper_saffran_2016)
 carrier_phrases_noun <- read_csv(
-  here(data_path, "copied_from_pomper_saffran_2016_carrier_phrases.csv"),
+  here("data", dataset_name, "carrier_phrases.csv"),
   show_col_types = FALSE
 )
 
@@ -30,6 +29,13 @@ carrier_verb_to_phrase_color <- c(
   "where" = "Where's the",
   "look" = "Look at the",
   "find" = "Find the"
+)
+
+# ending exclamation mapping (from audio filenames to actual spoken phrases)
+ending_to_phrase <- c(
+  "cool" = "That's cool!",
+  "wow" = "Wow!",
+  "check" = "Check that out!"
 )
 
 ### 1. DATASET TABLE
@@ -97,16 +103,19 @@ data <- data_raw %>%
     ending = map_chr(audio_parts, function(x) x[length(x)]),
     color_label = ifelse(condition == "fam_color", map_chr(audio_parts, 1), NA_character_),
     carrier_verb = ifelse(condition == "fam_color", map_chr(audio_parts, 2), NA_character_),
+    # For color trials, the spoken target is the color word, not the object
+    target_image = target,
+    target = ifelse(condition == "fam_color", color_label, target),
     full_phrase = case_when(
       condition == "fam_color" ~ paste0(
         carrier_verb_to_phrase_color[carrier_verb], " ", color_label, " one",
         ifelse(carrier_verb == "where", "?", "!"),
-        " ", str_to_title(ending), "!"
+        " ", ending_to_phrase[ending]
       ),
       condition == "fam_noun" ~ paste0(
         trimws(carrier_phrase), " ", target,
         ifelse(trimws(carrier_phrase) == "Where's the", "?", "!"),
-        " ", str_to_title(ending), "!"
+        " ", ending_to_phrase[ending]
       )
     ),
     trial_order = trial_order - 1,
@@ -121,8 +130,8 @@ data <- data_raw %>%
     )
   ) %>%
   select(-Accuracy, -Order, -Audio, -audio_parts,
-    -color_label, -carrier_verb, -ending, -carrier_phrase) %>%
-  group_by(target, target_side, distractor, condition, full_phrase, vanilla_trial) %>%
+    -carrier_verb, -ending, -carrier_phrase) %>%
+  group_by(target, target_image, target_side, distractor, condition, full_phrase, vanilla_trial) %>%
   mutate(trial_type_id = cur_group_id() - 1) %>%
   ungroup() %>%
   group_by(lab_subject_id, trial_order) %>%
@@ -186,24 +195,26 @@ data <- data %>% left_join(
 ### 4. STIMULI TABLE
 
 stimuli <- data %>%
-  distinct(distractor, target) %>%
+  distinct(distractor, target, target_image) %>%
   pivot_longer(
     cols = c(distractor, target),
     names_to = "kind",
     values_to = "image"
   ) %>%
-  select(-kind) %>%
+  mutate(image_file = ifelse(kind == "target", target_image, image)) %>%
+  select(-kind, -target_image) %>%
+  distinct() %>%
   mutate(
     original_stimulus_label = image,
     english_stimulus_label = image,
     stimulus_novelty = "familiar",
-    lab_stimulus_id = NA,
-    stimulus_image_path = paste0("stimuli/images/", image, ".jpg"),
+    lab_stimulus_id = image_file,
+    stimulus_image_path = paste0("stimuli/images/", image_file, ".jpg"),
     image_description = image,
     image_description_source = "image path",
     dataset_id = 0
   ) %>%
-  select(-c(image)) %>%
+  select(-c(image, image_file)) %>%
   distinct() %>%
   mutate(
     stimulus_id = 0:(n() - 1),
@@ -214,7 +225,7 @@ stimuli <- data %>%
 ### 5. Trial Types Table
 
 trial_types <- data %>%
-  distinct(target, target_side, distractor, condition, full_phrase, vanilla_trial,
+  distinct(target, target_image, target_side, distractor, condition, full_phrase, vanilla_trial,
     lab_trial_id, trial_type_id, point_of_disambiguation) %>%
   mutate(
     target_side = case_when(
@@ -226,9 +237,11 @@ trial_types <- data %>%
     dataset_id = 0,
     trial_type_aux_data = NA
   ) %>%
-  left_join(stimuli, by = c("distractor" = "image_description")) %>%
+  left_join(stimuli %>% select(image_description, stimulus_id),
+    by = c("distractor" = "image_description")) %>%
   rename(distractor_id = stimulus_id) %>%
-  left_join(stimuli, by = c("target" = "image_description")) %>%
+  left_join(stimuli %>% select(image_description, lab_stimulus_id, stimulus_id),
+    by = c("target" = "image_description", "target_image" = "lab_stimulus_id")) %>%
   rename(target_id = stimulus_id) %>%
   select(
     trial_type_id, full_phrase, full_phrase_language, point_of_disambiguation,

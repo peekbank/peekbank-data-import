@@ -22,8 +22,9 @@ additional study info to properly import the trials. As they are low utility, we
 
 * We mark the color trials non-vanilla, only noun trials are vanilla.
 
-## Importing Ambiguity
+* Target stimulus labels for color trials use the color word (e.g., "orange") since that is what the child hears. The stimulus image path still points to the object image (e.g., slide.jpg).
+Color trial phrases use "one" as the noun (e.g., "the orange one") rather than the object name.
 
-* Target stimulus labels are the object name, never color words. Color trial
-phrases use "one" as the noun (e.g., "the orange one") rather than the object name.
-(this info is not present in this dataset, but pomper_saffran_2016 uses the same stimuli, making this the best guess)
+* Carrier phrases for noun trials (`carrier_phrases.csv`) were determined by listening to the raw audio files.
+
+## Importing Ambiguity
