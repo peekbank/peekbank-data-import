@@ -218,7 +218,7 @@ trials <- d_fin %>%
     trial_type_id
   ) %>%
   rename(trial_order = trial_no) %>%
-  mutate(trial_aux_data = NA, excluded = NA, exclusion_reason = NA)
+  mutate(trial_aux_data = NA, excluded = FALSE, exclusion_reason = NA)
 
 
 ##### TRIAL TYPES TABLE ####

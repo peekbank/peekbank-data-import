@@ -94,6 +94,7 @@ wide.table.nalts <-
     distractor_stimulus_image_path,
     distractor_image_description,
     distractor_image_description_source,
+    trial_index,
     bad_trial
   ) %>%
   left_join(demographics, by = "subject_id")
