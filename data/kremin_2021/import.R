@@ -124,7 +124,7 @@ mtl_wide.table <- mtl_data_cleaned |>
     # full_phrase_language
     point_of_disambiguation = 3000,
     target_side = ifelse(location == "L", "left", "right"),
-    # condition
+    condition = tolower(trial_type),
     vanilla_trial = str_detect(trial_type, "Single"),
     excluded = keeper == 0,
     exclusion_reason = exclusion,
