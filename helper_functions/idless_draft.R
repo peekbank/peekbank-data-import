@@ -407,8 +407,9 @@ digest.dataset <- function(
   aoi_region_sets <- NA
 
 
-  if (!is.na(data$l_x_max[[1]])) {
+  if (any(!is.na(data$l_x_max))) {
     aoi_region_sets <- data %>%
+      filter(!is.na(l_x_max)) %>%
       distinct(
         l_x_max,
         l_x_min,
@@ -422,6 +423,7 @@ digest.dataset <- function(
       )
 
     xy_timepoints <- data %>%
+      filter(!is.na(l_x_max)) %>%
       {
         if (rezero) peekbankr::ds.rezero_times(.) else rename(., t_zeroed = t)
       } %>%
@@ -439,6 +441,13 @@ digest.dataset <- function(
         trial_id,
         administration_id
       )
+
+    # set aoi_region_set_id to NA for trial_types that had no AOI region data
+    na_region_ids <- data %>%
+      filter(is.na(l_x_max)) %>%
+      distinct(aoi_region_set_id) %>%
+      pull(aoi_region_set_id)
+    trial_types$aoi_region_set_id[trial_types$aoi_region_set_id %in% na_region_ids] <- NA
   } else {
     trial_types$aoi_region_set_id <- NA
   }
