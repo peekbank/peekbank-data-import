@@ -17,13 +17,13 @@ These studies are listed as follows (with updated citations), along with importi
 - Byers-Heinlein et al. ([2022](https://osf.io/preprints/psyarxiv/298cz), **NOT** imported): On 36-month-olds. Key manipulation is code-mixing in familiar + novel noun. Excluded because original paper has Eng-Fra and Eng-Spa data, and only the former were included in this paper.
 
 Thus, we only imported two of the component five datasets. 
-BH17 was already import, and we will import Kremlin23 and BH22 separately.
+BH17 was already imported, and we will import Kremin 2023 and BH22 separately.
 
 The data were collected with a Tobii T60-XL eyetracker using a 60Hz sampling rate.
 All studies were conducted in a mix of English and French on English-French bilinguals.
 
 ## Importing decisions
-Stimuli images are imported only for the for the unpub dataset (as with BH17).
+Stimuli images are imported only for the unpub dataset (as with BH17).
 Stimuli are in principle available for S+22, but the OSF is still private.
 
 We included importing decisions from the [processing script](https://osf.io/2ysab), including the renaming of projects and media names, as well as one participant relabelling.
