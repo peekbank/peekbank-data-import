@@ -207,20 +207,17 @@ subjects_data <- all_subjects_data %>%
 
 
 #### (6) aoi_region_sets ####
-# hard-coded aois
-## NB: AOI coordinates are hard-coded for this experiment.
-# Link to relevant file is here: hhttps://github.com/langcog/tablet/blob/master/eye_tracking/MATLAB/CONSTANTS_TAB_COMP.m
-# it's the same for every stimulus
+# Hard-coded AOIs adapted from original MATLAB constants (see README.md for details)
 aoi_info <- tibble(
   aoi_region_set_id = 0,
   l_x_min = 0,
   l_x_max = 533,
-  l_y_min = 300,
-  l_y_max = 700,
+  l_y_min = 400,
+  l_y_max = 900,
   r_x_min = 1067,
-  r_x_max = 1800,
-  r_y_min = 300,
-  r_y_max = 700
+  r_x_max = 1600,
+  r_y_min = 400,
+  r_y_max = 900
 )
 
 #### (7) xy_timepoints ####

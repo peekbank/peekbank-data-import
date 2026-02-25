@@ -17,6 +17,16 @@ The trials included (a) familiar-word trials (two familiar objects), (b) mutual 
 
 ## Importing decisions
 
+### AOI region sets
+The AOI coordinates are hard-coded, based on the original MATLAB analysis script:
+https://github.com/langcog/tablet/blob/44edf4c4a96d73d88b5440eba9e1347ee0033881/eye_tracking/MATLAB/CONSTANTS_TAB_COMP.m#L34
+
+The original values (in screen coordinates, top-left origin) were:
+- Left AOI: `[0 533 300 700]`
+- Right AOI: `[1067 1800 300 700]`
+
+The y-values were flipped to match the Peekbank coordinate origin, and `r_x_max` was clamped from 1800 to 1600 (likely a typo in the Matlab script). The lower y-bound was also extended from 500 to 400 to capture legitimate the activity below the original boundary.
+
 
 ## Importing ambiguity
 Some participants were not recorded in the demographics.
