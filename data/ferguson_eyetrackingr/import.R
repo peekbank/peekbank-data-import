@@ -52,7 +52,7 @@ d_tidy <- proc_data %>%
   mutate(
     condition = "familiar",
     lab_trial_id = original_stimulus_label,
-    aoi_region_set_id = 0,
+    aoi_region_set_id = NA,
     t_norm = t - 15500, # point of disambiguation
     aoi = case_when( # convert based on whether the target was animate
       target_animacy & aoi_old == "Inanimate" ~ "distractor",
@@ -144,7 +144,7 @@ administrations <- d_tidy %>%
     monitor_size_y = 1080,
     sample_rate = 60, # Hz
     tracker = "Tobii T60XL", # from paper
-    coding_method = "eyetracking",
+    coding_method = "preprocessed eyetracking",
     administration_aux_data = NA
   )
 
@@ -219,23 +219,25 @@ trials <- d_tidy_final %>%
   )
 
 ### 7. AOI REGION SETS TABLE (from ancat-aoi.txt provided by Brock)
-aoi_region_sets <- tibble(
-  aoi_region_set_id = 0,
-  l_x_max = 861,
-  l_x_min = 50,
-  l_y_max = 960, # bottom (origin is top left)
-  l_y_min = 247, # top
-  r_x_max = 1870,
-  r_x_min = 1059,
-  r_y_max = 960,
-  r_y_min = 247
-)
+# raw data does not include x/y locations, just AOI hits.
+# aoi_region_sets <- tibble(
+#   aoi_region_set_id = 0,
+#   l_x_max = 861,
+#   l_x_min = 50,
+#   l_y_max = 960, # bottom (origin is top left)
+#   l_y_min = 247, # top
+#   r_x_max = 1870,
+#   r_x_min = 1059,
+#   r_y_max = 960,
+#   r_y_min = 247
+# )
 
-### 8. XY TABLE - raw data does not include x/y locations, just AOI
-xy_timepoints <- d_tidy_final %>%
-  mutate(x = NA, y = NA) %>%
-  select(x, y, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
-  peekbankr::ds.resample_times(table_type = "xy_timepoints")
+### 8. XY TABLE
+# Removed: raw data does not include x/y locations, just AOI hits.
+# xy_timepoints <- d_tidy_final %>%
+#   mutate(x = NA, y = NA) %>%
+#   select(x, y, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
+#   peekbankr::ds.resample_times(table_type = "xy_timepoints")
 
 
 ### 9. AOI TIMEPOINTS TABLE
@@ -253,8 +255,6 @@ write_and_validate(
   administrations,
   trial_types,
   trials,
-  aoi_region_sets,
-  xy_timepoints,
-  aoi_timepoints,
+  aoi_timepoints = aoi_timepoints,
   upload = F
 )
