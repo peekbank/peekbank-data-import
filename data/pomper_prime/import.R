@@ -44,7 +44,7 @@ dataset <- tibble(
   lab_dataset_id = 0,
   dataset_name = dataset_name,
   shortcite = "Pomper & Saffran (unpublished)",
-  cite = "",
+  cite = 'Pomper, R. & Saffran, J. R. (unpublished). Unpublished "Prime" study: Modulating attention to different features of objects during word learning.',
   dataset_aux_data = NA
 )
 
