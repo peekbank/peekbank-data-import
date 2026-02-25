@@ -104,6 +104,11 @@ all_orders_cleaned <- all_orders %>%
 
 ## Get color carrier phrases from audio file
 colors <- c("orange", "red", "yellow", "white", "black", "brown", "blue", "green")
+ending_to_phrase <- c(
+  "cool" = "That's cool!",
+  "wow" = "Wow!",
+  "check" = "Check that out!"
+)
 color_carrier_phrases <- all_orders_cleaned %>%
   mutate(target_word = tolower(str_split_fixed(SoundStimulus, "_", 2)[, 1])) %>%
   filter(target_word %in% colors) %>%
@@ -154,7 +159,12 @@ noun_sound_stimuli <- all_orders_cleaned %>%
 all_carrier_phrases <- all_carrier_phrases %>%
   left_join(noun_sound_stimuli, by = "target_word") %>%
   mutate(SoundStimulus = if_else(is.na(SoundStimulus), SoundStimulus_noun, SoundStimulus)) %>%
-  select(-SoundStimulus_noun)
+  select(-SoundStimulus_noun) %>%
+  mutate(
+    ending = str_remove(str_extract(SoundStimulus, "[^_]+$"), "\\d+$"),
+    full_phrase = paste0(full_phrase, " ", ending_to_phrase[ending])
+  ) %>%
+  select(-ending)
 
 
 ## join in carrier phrases with counterbalancing orders

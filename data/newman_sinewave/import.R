@@ -205,10 +205,19 @@ trials_tidy <- raw_trials_data %>%
   group_by(trial_group) %>%
   mutate(trial_order_num = seq(0, 15)) %>%
   ungroup() %>%
-  rename(
-    full_phrase = audio,
-    target_side = correct_answer
+  rename(target_side = correct_answer) %>%
+  mutate(
+    target_word_from_audio = str_remove_all(str_remove(audio, "^Look at the "), "!"),
+    full_phrase = case_when(
+      audio != "Look at that!" ~ paste0(
+        "Look at the ", target_word_from_audio, "! ",
+        "Can you find the ", target_word_from_audio, "? ",
+        "See the ", target_word_from_audio, "?"
+      ),
+      TRUE ~ audio
+    )
   ) %>%
+  select(-target_word_from_audio, -audio) %>%
   mutate(
     # there are some trials where any look is correct - label these so we can drop them for peekbank
     target_side = case_when(

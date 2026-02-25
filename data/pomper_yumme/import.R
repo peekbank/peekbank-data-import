@@ -12,6 +12,11 @@ read_path <- init(dataset_name)
 ## constants
 sampling_rate_hz <- 30
 sampling_rate_ms <- 1000 / 30
+ending_to_phrase <- c(
+  "cool" = "That's cool!",
+  "wow" = "Wow!",
+  "check" = "Check that out!"
+)
 
 #function for removing repeating headers in icoder data
 remove_repeat_headers <- function(d, idx_var) {
@@ -135,7 +140,14 @@ d5_trial_lists <- purrr::map_dfr(d5_trial_list_files, read_csv, .id = "source_fi
   filter(condition!="Teaching")
 
 # add full phrase information (based on a metadata file created by hand with the help of the original audio files)
-d5_stimulus_carrier_phrase_mapping <- read.csv(fs::path(read_path,"stimulus_carrier_phrase_mapping_v5.csv")) 
+d5_stimulus_carrier_phrase_mapping <- read.csv(fs::path(read_path,"stimulus_carrier_phrase_mapping_v5.csv")) %>%
+  mutate(
+    ending = str_extract(audio, "[^_]+$"),
+    full_phrase = ifelse(ending %in% names(ending_to_phrase),
+      paste0(full_phrase, " ", ending_to_phrase[ending]),
+      full_phrase)
+  ) %>%
+  select(-ending)
 # add full_phrase info
 d5_expanded_trial_list_info <- d5_trial_lists %>%
   left_join(d5_stimulus_carrier_phrase_mapping) %>%
@@ -279,7 +291,14 @@ d4_trial_lists <- purrr::map_dfr(d4_trial_list_files, read_csv, .id = "source_fi
   )
 
 # add full phrase information (based on a metadata file created by hand with the help of the original audio files)
-d4_stimulus_carrier_phrase_mapping <- read.csv(fs::path(read_path,"stimulus_carrier_phrase_mapping_v4.csv")) 
+d4_stimulus_carrier_phrase_mapping <- read.csv(fs::path(read_path,"stimulus_carrier_phrase_mapping_v4.csv")) %>%
+  mutate(
+    ending = str_extract(audio, "[^_]+$"),
+    full_phrase = ifelse(ending %in% names(ending_to_phrase),
+      paste0(full_phrase, " ", ending_to_phrase[ending]),
+      full_phrase)
+  ) %>%
+  select(-ending)
 # add full_phrase info
 d4_expanded_trial_list_info <- d4_trial_lists %>%
   left_join(d4_stimulus_carrier_phrase_mapping) %>%

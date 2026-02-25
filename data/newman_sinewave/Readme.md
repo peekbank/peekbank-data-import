@@ -34,7 +34,10 @@ We observe that the fraction looking to ball and cat are both lower than we migh
 expect (naively and in comparison to other targets). I don't think this is an error
 but it could be a combination of few trials/kids (especially for cat) and maybe image salience/preference?
 
-We marked this as non-vanilla due to a triple onset of the target word.
+We marked this as non-vanilla due to a triple onset of the target word
+(e.g. "Look at the cat! Can you find the cat? See the cat?").
+The audio column in the trial order file only contains the first phrase (e.g. "Look at the cat!"),
+so we reconstructed the full phrase from the paper.
 
 5. Importing ambiguity
 

@@ -107,9 +107,18 @@ data <- data %>%
 
 ## read in full phrases
 # metadata file compiled from audio files
+ending_to_phrase <- c(
+  "cool" = "That's cool!",
+  "wow" = "Wow!",
+  "check" = "Check that out!"
+)
 full_phrases <- read_csv(here("data", dataset_name, "raw_data", "pomper_dimy_full_phrases.csv")) %>%
-  mutate(Audio = str_remove(audio, ".wav")) %>%
-  select(-audio)
+  mutate(
+    Audio = str_remove(audio, ".wav"),
+    ending = str_extract(Audio, "[^_]+$"),
+    full_phrase = paste0(full_phrase, " ", ending_to_phrase[ending])
+  ) %>%
+  select(-audio, -ending)
 # join into main data
 data <- data %>%
   left_join(full_phrases)
