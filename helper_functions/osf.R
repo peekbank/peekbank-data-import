@@ -97,10 +97,30 @@ upload_osf <- function(lab_dataset_id, osf_address = "pr6wu") {
     )
   )[1]$data$links$upload
 
-  for (f in list.files(DATASET_PROCESSED_PATH)) {
-    print(glue("Uploading {f}"))
-    PUT(glue("{upload_link}&name={f}"), body = upload_file(here(DATASET_PROCESSED_PATH, f)), add_headers(Authorization = glue("Bearer {osf_token}")))
+  local_files <- list.files(DATASET_PROCESSED_PATH)
+  auth <- add_headers(Authorization = glue("Bearer {osf_token}"))
+
+  upload_files <- function(files) {
+    for (f in files) {
+      print(glue("Uploading {f}"))
+      PUT(glue("{upload_link}&name={f}"), body = upload_file(here(DATASET_PROCESSED_PATH, f)), auth)
+    }
   }
 
-  print("Done")
+  upload_files(local_files)
+
+  for (attempt in 1:3) {
+    Sys.sleep(2)
+    remote <- jsonlite::fromJSON(rawToChar(
+      GET(glue("{data$relationships$files$links$related$href}?filter[name]=processed_data"), auth)$content
+    ))$data
+    remote_files <- jsonlite::fromJSON(rawToChar(
+      GET(remote$relationships$files$links$related$href, auth)$content
+    ))$data
+    missing <- setdiff(local_files, if (length(remote_files) > 0) remote_files$attributes$name else character(0))
+    if (length(missing) == 0) { print("Upload verified."); return(invisible(NULL)) }
+    warning(glue("Retry {attempt}/3: missing {paste(missing, collapse=', ')}"))
+    upload_files(missing)
+  }
+  stop(glue("Upload failed after retries. Missing: {paste(missing, collapse=', ')}"))
 }
