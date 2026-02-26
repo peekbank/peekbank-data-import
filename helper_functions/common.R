@@ -314,7 +314,7 @@ write_and_validate <- function(
 
     # show a timecourse plot for the looking data
 
-    excluded_trial_ids <- trials %>% filter(excluded) %>% pull(trial_id)
+    excluded_trial_ids <- trials %>% filter(as.logical(excluded)) %>% pull(trial_id)
 
     ##### summarize by subject (really: administrations) ####
     summarize_by_subj <- aoi_timepoints %>%
@@ -422,6 +422,86 @@ write_and_validate <- function(
       xlab("Target Label") +
       ylab("Proportion Target Looking")))
     print("Plotted proportional target looking information on a per-item-level.")
+
+    # XY gaze plot: colors from aoi_timepoints (not bounding box geometry),
+    # so mismatches between boxes and AOI classifications are visible
+    has_xy <- is.data.frame(xy_timepoints) && nrow(xy_timepoints) > 0 &&
+      any(!is.na(xy_timepoints$x))
+    has_aoi_boxes <- is.data.frame(aoi_region_sets) && nrow(aoi_region_sets) > 0 &&
+      any(!is.na(aoi_region_sets$l_x_min))
+
+    if (has_xy) {
+      # map aoi (target/distractor) + target_side -> screen side for coloring
+      xy_joined <- xy_timepoints %>%
+        filter(!is.na(x)) %>%
+        left_join(aoi_timepoints %>% select(trial_id, administration_id, t_norm, aoi),
+                  by = join_by(trial_id, administration_id, t_norm)) %>%
+        left_join(trials %>% select(trial_id, trial_type_id), by = join_by(trial_id)) %>%
+        left_join(trial_types %>% select(trial_type_id, target_side), by = join_by(trial_type_id)) %>%
+        mutate(
+          gaze_label = case_when(
+            aoi == "target" & target_side == "left" ~ "left_target",
+            aoi == "distractor" & target_side == "left" ~ "right_distractor",
+            aoi == "target" & target_side == "right" ~ "right_target",
+            aoi == "distractor" & target_side == "right" ~ "left_distractor",
+            TRUE ~ "none"
+          )
+        )
+
+      # subsample to keep plotting fast
+      xy_sample <- xy_joined %>%
+        slice_sample(n = min(50000, nrow(xy_joined)))
+
+      monitor_x <- max(c(administrations$monitor_size_x), na.rm = TRUE)
+      monitor_y <- max(c(administrations$monitor_size_y), na.rm = TRUE)
+      x_limit <- if (is.finite(monitor_x) && monitor_x > 0) monitor_x else NA
+      y_limit <- if (is.finite(monitor_y) && monitor_y > 0) monitor_y else NA
+
+      p <- ggplot() +
+        geom_point(data = xy_sample,
+                   aes(x = x, y = y, color = gaze_label),
+                   alpha = 0.3, size = 0.5) +
+        scale_color_manual(values = c(
+          "left_target" = "darkblue", "left_distractor" = "lightblue",
+          "right_target" = "red", "right_distractor" = "orange",
+          "none" = "green"
+        )) +
+        guides(color = guide_legend(override.aes = list(alpha = 1, size = 2))) +
+        coord_fixed() +
+        theme_bw() +
+        labs(x = "X", y = "Y", color = "Gaze")
+
+      if (has_aoi_boxes) {
+        # reshape l_x_min/l_x_max/... columns into one row per box for geom_rect
+        aoi_boxes <- aoi_region_sets %>%
+          tidyr::pivot_longer(cols = everything() & !aoi_region_set_id,
+                              names_to = c("side", "axis", "bound"),
+                              names_pattern = "(l|r)_(x|y)_(min|max)") %>%
+          tidyr::pivot_wider(names_from = c(axis, bound), values_from = value) %>%
+          mutate(side_label = ifelse(side == "l", "left", "right"))
+
+        aoi_x_max <- max(c(aoi_region_sets$l_x_max, aoi_region_sets$r_x_max), na.rm = TRUE)
+        aoi_y_max <- max(c(aoi_region_sets$l_y_max, aoi_region_sets$r_y_max), na.rm = TRUE)
+        x_limit <- if (!is.na(x_limit)) max(x_limit, aoi_x_max) else NA
+        y_limit <- if (!is.na(y_limit)) max(y_limit, aoi_y_max) else NA
+
+        p <- p + geom_rect(data = aoi_boxes,
+                           aes(xmin = x_min, xmax = x_max, ymin = y_min, ymax = y_max),
+                           fill = NA, color = "black", linewidth = 0.8)
+      }
+
+      if (!is.na(x_limit) && !is.na(y_limit)) {
+        p <- p + scale_x_continuous(limits = c(0, x_limit)) +
+          scale_y_continuous(limits = c(0, y_limit))
+      }
+
+      suppressMessages(suppressWarnings(plot(p)))
+      print("Plotted XY gaze coordinates.")
+
+      rm(xy_sample, xy_joined, p)
+      if (has_aoi_boxes) rm(aoi_boxes)
+      gc(verbose = FALSE)
+    }
 
     rm(trial_info, admin_subj, excluded_trial_ids, trial_conditions,
        summarize_by_subj, summarize_across_subj, n_administrations,
