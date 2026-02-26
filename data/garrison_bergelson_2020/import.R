@@ -232,19 +232,17 @@ trials <- trials_pre_exclude |>
   select(-lab_subject_id, -lowdata_short)
 
 ### 7. AOI REGION SETS TABLE
-# recall screen is 1280 x 1024
-# we could probably logic this out, we get these as locations: (320, 512) (960, 512)
-# but I am putting NA because we actually already have the AOIs provided
+# Screen is 1280x1024, images 500x500 with 50 pixels aoi buffer in each direction, centers at (320, 512) and (960, 512).
 aoi_region_sets <- tibble(
   aoi_region_set_id = 0,
-  l_x_max = NA,
-  l_x_min = NA,
-  l_y_max = NA,
-  l_y_min = NA,
-  r_x_max = NA,
-  r_x_min = NA,
-  r_y_max = NA,
-  r_y_min = NA
+  l_x_min = 20,
+  l_x_max = 620,
+  l_y_min = 212,
+  l_y_max = 812,
+  r_x_min = 660,
+  r_x_max = 1260,
+  r_y_min = 212,
+  r_y_max = 812
 )
 
 ### 8. XY TABLE

@@ -299,30 +299,20 @@ trials <- d %>%
   )
 
 ### 7. AOI REGION SETS TABLE
-
-# not reported afaik, but due to the amount of data present, this code
-# was able to extract the borders from the fixation data:
-
-# aoi_approx <- fixations %>% filter(OnScreen & (OnTarget | OnDistractor)) %>% select(x, y, OnTarget, target_side)
-#
-# left_aoi <- aoi_approx %>%
-#  filter((OnTarget & target_side == 'left') | (!OnTarget & target_side == 'right')) %>%
-#  summarise(min_x = min(x), max_x = max(x), min_y = min(y), max_y = max(y))
-#
-# right_aoi <- aoi_approx %>%
-#  filter((OnTarget & target_side == 'right') | (!OnTarget & target_side == 'left')) %>%
-#  summarise(min_x = min(x), max_x = max(x), min_y = min(y), max_y = max(y))
-
+# Not reported in the paper. Derived from the full range (min/max) of
+# xy gaze coordinates classified as target/distractor by the raw data.
+# Note: the raw OnTarget/OnDistractor flags are only active during a specific
+# time window, so some gaze samples within AOI bounds are classified as "other".
 aoi_region_sets <- tibble(
   aoi_region_set_id = 0,
-  l_x_max = 700,
   l_x_min = 0,
-  l_y_max = 900,
+  l_x_max = 700,
   l_y_min = 0,
-  r_x_max = 1600,
+  l_y_max = 900,
   r_x_min = 900,
-  r_y_max = 900,
-  r_y_min = 0
+  r_x_max = 1600,
+  r_y_min = 0,
+  r_y_max = 900
 )
 
 
