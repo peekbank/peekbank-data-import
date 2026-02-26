@@ -41,7 +41,9 @@ Importing decision to only import the positive trials from experiment 2. This in
 
 Following paper, point of disambiguation in all materials is on start of noun. (ex: in the boy who has [no] *a*pples, pod is start of apples. )
 
-The AOI region sets has a note that (for l_x_min and r_x_min = x_max / 2 + 200 according to old code - this is most likely an error". Leaving but flagging. 
+AOI boxes use a 400px dead zone in the center of the screen (left: 0–640, right: 1040–1680 on a 1680px screen), matching the paper's analysis: "excluding a 400 pixel zone in the middle of the two targets."
+
+
 5. **Importing ambiguity.**
 
 none 

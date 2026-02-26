@@ -382,12 +382,12 @@ administration_data <- participant_id_table %>%
 
 aoi_region_sets <- tibble(
   aoi_region_set_id = 0,
-  l_x_max = x_max / 2 + 200, # according to old code - this is most likely an error
+  l_x_max = x_max / 2 - 200, # 400px dead zone in center, per paper
   l_x_min = 0,
-  l_y_max = y_max, # bottom (origin is top left)
-  l_y_min = 0, # top
+  l_y_max = y_max,
+  l_y_min = 0,
   r_x_max = x_max,
-  r_x_min = x_max / 2 + 200, # according to old code - this is most likely an error
+  r_x_min = x_max / 2 + 200, # 400px dead zone in center, per paper
   r_y_max = y_max,
   r_y_min = 0
 )
