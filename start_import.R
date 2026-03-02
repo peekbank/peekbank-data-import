@@ -40,4 +40,9 @@ readLines(import_script_path) %>%
   gsub(pattern = "DATASET_NAME", replace = dataset_name, .) %>% 
   writeLines(., con=import_script_path)
 
+fs::file_copy(
+  here("helper_functions", "readme_template.md"),
+  here("data", dataset_name, "README.md")
+)
+
 cat(paste0("Created import template, open ",paste0("./data/",dataset_name,"/import.R"), " to get started!\n\n"))
