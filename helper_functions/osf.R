@@ -75,16 +75,18 @@ upload_osf <- function(lab_dataset_id, osf_address = "pr6wu") {
     )
   )$data
 
-  existing_processed_data <- jsonlite::fromJSON(rawToChar(
-    GET(glue(
-      "{data$relationships$files$links$related$href}?filter[name]=processed_data"
-    ))$content
-  ))$data
-
-  if (length(existing_processed_data) > 0) {
-    print("Existing processed_data folder found, deleting...")
-    invisible(DELETE(existing_processed_data$links$delete, add_headers(Authorization = glue("Bearer {osf_token}"))))
+  delete_existing <- function(name) {
+    existing <- jsonlite::fromJSON(rawToChar(
+      GET(glue("{data$relationships$files$links$related$href}?filter[name]={name}"))$content
+    ))$data
+    if (length(existing) > 0) {
+      print(glue("Existing {name} found, deleting..."))
+      invisible(DELETE(existing$links$delete, add_headers(Authorization = glue("Bearer {osf_token}"))))
+    }
   }
+
+  delete_existing("processed_data")
+  delete_existing("README.md")
 
   print("Uploading processed_data...")
 
@@ -109,6 +111,16 @@ upload_osf <- function(lab_dataset_id, osf_address = "pr6wu") {
 
   upload_files(local_files)
 
+  readme_path <- here(DATASET_PATH, "README.md")
+  has_readme <- file.exists(readme_path)
+  upload_readme <- function() {
+    print("Uploading README.md...")
+    dataset_upload_link <- gsub("kind=folder", "kind=file", data$links$new_folder)
+    PUT(glue("{dataset_upload_link}&name=README.md"), body = upload_file(readme_path), auth)
+  }
+  if (has_readme) upload_readme()
+  closeAllConnections()
+
   for (attempt in 1:3) {
     Sys.sleep(2)
     remote <- jsonlite::fromJSON(rawToChar(
@@ -118,9 +130,14 @@ upload_osf <- function(lab_dataset_id, osf_address = "pr6wu") {
       GET(remote$relationships$files$links$related$href, auth)$content
     ))$data
     missing <- setdiff(local_files, if (length(remote_files) > 0) remote_files$attributes$name else character(0))
-    if (length(missing) == 0) { print("Upload verified."); return(invisible(NULL)) }
-    warning(glue("Retry {attempt}/3: missing {paste(missing, collapse=', ')}"))
-    upload_files(missing)
+
+    readme_missing <- has_readme && !"README.md" %in% jsonlite::fromJSON(rawToChar(
+      GET(data$relationships$files$links$related$href, auth)$content
+    ))$data$attributes$name
+
+    if (length(missing) == 0 && !readme_missing) { print("Upload verified."); return(invisible(NULL)) }
+    if (length(missing) > 0) { warning(glue("Retry {attempt}/3: missing {paste(missing, collapse=', ')}")); upload_files(missing) }
+    if (readme_missing) { warning(glue("Retry {attempt}/3: missing README.md")); upload_readme() }
   }
-  stop(glue("Upload failed after retries. Missing: {paste(missing, collapse=', ')}"))
+  stop(glue("Upload failed after retries. Missing: {paste(c(missing, if (readme_missing) 'README.md'), collapse=', ')}"))
 }
