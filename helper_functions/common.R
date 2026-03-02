@@ -27,6 +27,14 @@ init <- function(dataset_name, osf_address = "pr6wu") {
   return(data_path)
 }
 
+validate_dataset <- function(dataset_name, output_path, cdi_expected) {
+  errors <- peekbankr::ds.validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected)
+  if (!file.exists(here("data", dataset_name, "README.md"))) {
+    errors <- c(errors, "Missing README.md in dataset folder")
+  }
+  errors
+}
+
 write_and_validate_list <- function(dataset_list, cdi_expected, upload=FALSE){
   write_and_validate(
     dataset_name = dataset_list[["datasets"]]$dataset_name,
@@ -99,7 +107,7 @@ write_and_validate <- function(
 
   # run validator
   cat("\n\n------ Validating... ------\n\n")
-  errors <- peekbankr::ds.validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected)
+  errors <- validate_dataset(dataset_name, output_path, cdi_expected)
   if (is.null(errors)) {
     print("Dataset fully passed the validation!")
   } else {

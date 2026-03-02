@@ -4,6 +4,7 @@ library(dplyr)
 library(tidyr)
 
 source(here("helper_functions", "osf.R"))
+source(here("helper_functions", "common.R"))
 
 
 # returns a list of all datasets that are in the active pipeline
@@ -59,10 +60,7 @@ validate_all <- function() {
 
       tryCatch(
         {
-          errors <- peekbankr::ds.validate_for_db_import(
-            dir_csv = output_path,
-            cdi_expected = cdi_expected
-          )
+          errors <- validate_dataset(dataset, output_path, cdi_expected)
 
           error_string <- paste(errors, collapse = " ")
           ifelse(!is.null(errors), glue("{dataset}: {error_string}"), "")
