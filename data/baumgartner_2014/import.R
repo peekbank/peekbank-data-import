@@ -279,7 +279,8 @@ cdi_data <- demo %>%
     instrument_type = "wgshort", # according to Baumgartner
     language = "English (American)",
     rawscore = as.numeric(rawscore) # "NA introduced by coercion" is wanted here
-  )
+  ) %>% 
+  distinct()
 
 subjects <- d_tidy_final %>%
   distinct(subject_id, lab_subject_id, sex) %>%
