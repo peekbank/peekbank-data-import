@@ -23,7 +23,7 @@ eaf_to_log <- readr::read_csv(fs::path(read_path, "metadata", "log-eaf-correspon
 # drop any log files without a corr .txt
 
 part_trial_conv <- eaf_to_log %>%
-  filter(across(everything(), ~ !is.na(.))) %>%
+  filter(if_all(everything(), ~ !is.na(.))) %>%
   mutate(file = gsub("\\.eaf", "\\.txt", eaf.filename)) %>%
   merge(
     participant_coder_table %>% filter(!(is.na(primary_coder))),
