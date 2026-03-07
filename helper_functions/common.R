@@ -177,6 +177,37 @@ write_and_validate <- function(
     
     hist(trial_durations$trial_duration)
 
+    # AOI distribution
+    cat("\n------ AOI Distribution ------\n")
+    aoi_counts <- table(aoi_timepoints$aoi)
+    aoi_pcts <- round(prop.table(aoi_counts) * 100, 1)
+    for (label in names(aoi_counts)) {
+      print(paste0(label, ": ", aoi_counts[[label]], " (", aoi_pcts[[label]], "%)"))
+    }
+
+    # XY timepoints NA summary
+    if (length(xy_timepoints) != 1 || !is.na(xy_timepoints)) {
+      cat("\n------ XY Timepoints NA Summary ------\n")
+      n_xy <- nrow(xy_timepoints)
+      n_both_na <- sum(is.na(xy_timepoints$x) & is.na(xy_timepoints$y))
+      n_partial_na <- sum(xor(is.na(xy_timepoints$x), is.na(xy_timepoints$y)))
+      n_both_present <- sum(!is.na(xy_timepoints$x) & !is.na(xy_timepoints$y))
+      print(paste0("Both present: ", n_both_present, " (", round(n_both_present / n_xy * 100, 1), "%)"))
+      print(paste0("One NA: ", n_partial_na, " (", round(n_partial_na / n_xy * 100, 1), "%)"))
+      print(paste0("Both NA: ", n_both_na, " (", round(n_both_na / n_xy * 100, 1), "%)"))
+
+      if (any(!is.na(administrations$monitor_size_x) & !is.na(administrations$monitor_size_y))) {
+        xy_with_mon <- xy_timepoints %>%
+          left_join(administrations %>% select(administration_id, monitor_size_x, monitor_size_y),
+                    by = join_by(administration_id))
+        n_offscreen <- sum(!is.na(xy_with_mon$x) & !is.na(xy_with_mon$y) &
+                           !is.na(xy_with_mon$monitor_size_x) &
+                           (xy_with_mon$x < 0 | xy_with_mon$x > xy_with_mon$monitor_size_x |
+                            xy_with_mon$y < 0 | xy_with_mon$y > xy_with_mon$monitor_size_y))
+        print(paste0("Off-screen: ", n_offscreen, " / ", n_xy, " (", round(n_offscreen / n_xy * 100, 1), "%)"))
+      }
+    }
+
     # CDI data
     if (cdi_expected) {
       # a bit hacky, but the unpacking function works best with data read in
