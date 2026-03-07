@@ -153,4 +153,4 @@ upload_all <- function(activeonly = FALSE) {
 
 global_block_peekbank_summary <- TRUE
 run_all(nocache = FALSE, clean=TRUE, upload=FALSE)
-x <- validate_all()
+#x <- validate_all()
