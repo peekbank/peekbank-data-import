@@ -40,17 +40,18 @@ validate_all <- function() {
   
   datasets <- list_all(activeonly = TRUE)
 
+  registry_path <- here("cdi_registry.csv")
+  cdi_registry <- if (file.exists(registry_path)) read.csv(registry_path, stringsAsFactors = FALSE) else data.frame(dataset_name = character(), cdi_expected = logical())
+
   failed_validations <- datasets %>%
     lapply(\(dataset){
       print(glue("Validating {dataset}"))
 
-      if (file.exists(here("data", dataset, "cdi_indicated.txt"))) {
-        cdi_expected <- TRUE
-      } else if (file.exists(here("data", dataset, "no_cdi_indicated.txt"))) {
-        cdi_expected <- FALSE
-      } else {
-        return(glue("{dataset}: no cdi indicator found - be sure to use the write_and_valiate function in the script"))
+      registry_row <- cdi_registry[cdi_registry$dataset_name == dataset, ]
+      if (nrow(registry_row) == 0) {
+        return(glue("{dataset}: no cdi indicator found - be sure to use the write_and_validate function in the script"))
       }
+      cdi_expected <- registry_row$cdi_expected
 
       # only validate if processed_data is present
       output_path <- here("data", dataset, "processed_data")
@@ -152,4 +153,4 @@ upload_all <- function(activeonly = FALSE) {
 
 global_block_peekbank_summary <- TRUE
 run_all(nocache = FALSE, clean=TRUE, upload=FALSE)
-# x <- validate_all()
+x <- validate_all()
