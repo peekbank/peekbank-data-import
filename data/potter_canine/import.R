@@ -270,8 +270,8 @@ d_tidy_final <- d_tidy_semifinal %>%
     dataset_id = 0,
     lab_trial_id = paste(target_label, target_image, distractor_image, sep = "-"),
     aoi_region_set_id = NA,
-    monitor_size_x = NA, # unknown TO DO
-    monitor_size_y = NA, # unknown TO DO
+    monitor_size_x = NA,
+    monitor_size_y = NA,
     lab_age_units = "months",
     age = as.numeric(months),
     point_of_disambiguation = 0, # data is re-centered to zero based on critonset in datawiz
