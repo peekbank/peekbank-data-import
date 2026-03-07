@@ -146,8 +146,6 @@ digest.dataset <- function(
 
   gc()
 
-  # TODO Validate the values (how much validation do we want to put in here?)
-
   # Determine whether AOI can be auto-computed from XY + region data
   xy_region_cols <- c("x", "y", "l_x_max", "l_x_min", "l_y_max", "l_y_min",
                       "r_x_max", "r_x_min", "r_y_max", "r_y_min")
