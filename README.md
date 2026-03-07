@@ -30,13 +30,36 @@ peekbank-data-import
 
 ## Prerequisites for running/creating imports
 
-The `peekbankr` package needed to work with this repo are not on CRAN, so you need to it via GitHub:
+### Installing R dependencies
 
-```
-remotes::install_github("peekbank/peekbankr")
+This project uses [renv](https://rstudio.github.io/renv/) to manage R package dependencies. All required packages (including `peekbankr` from GitHub) are pinned in `renv.lock`.
+
+To set up your environment:
+
+1. Open the project in RStudio (renv activates automatically via `.Rprofile`)
+2. Install all dependencies from the lockfile:
+```r
+renv::restore()
 ```
 
-You can install other packages that are needed as you go using `install.packages()` (renv has issues installing some of our dependecies, so this process is manual for now).
+#### Adding or updating packages
+
+If you need a new package for an import script:
+```r
+install.packages("new_package")  # or renv::install("user/repo") for GitHub packages
+renv::snapshot()                 # update renv.lock — commit the updated lockfile
+```
+
+#### Updating peekbankr (put here for convenience)
+
+`peekbankr` is also pinned to a specific git commit in `renv.lock`. After making changes to the [peekbankr repo](https://github.com/peekbank/peekbankr), run the following to pull the latest version:
+```r
+renv::install("peekbank/peekbankr")
+renv::snapshot()
+```
+Then commit the updated `renv.lock`.
+
+### OSF authentication (for uploading data)
 
 If you want to upload data directly to osf using this pipeline, you need to authenticate with osf.
 

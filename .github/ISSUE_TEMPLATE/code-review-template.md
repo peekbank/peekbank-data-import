@@ -12,11 +12,10 @@ assignees: ''
 Code Review Checklist:
 
 - [ ] Git pull this repo to get the latest version
-- [ ] Update your [peekbankr](https://github.com/langcog/peekbankr) to the latest version
-    - [ ] Be sure to restart your R Session to apply these updates
+- [ ] Run `renv::restore()` to sync your packages with the lockfile
 - [ ] Get the latest version of the dataset from osf (delete your raw_data, so that the script automatically downloads the data)
 - [ ] Run the import script
-- [ ] Does it run into issues due to missing libraries? - re-add them if necessary (also to the general renv once we have that)
+- [ ] Does it run into issues due to missing libraries? If so, install them and run `renv::snapshot()` to update `renv.lock`
 - [ ] Does the validator run without issues? If not, complain to Adrian or fix the listed issues if you feel like it
 
 Common issues to check:
