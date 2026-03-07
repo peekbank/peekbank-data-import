@@ -73,21 +73,12 @@ write_and_validate <- function(
   output_path <- here(basepath, "processed_data")
   dir.create(here(output_path), showWarnings = FALSE)
 
-  # generate these so the global validator can check if the cdi was saved correctly
-  cdi_expected_file <- here(basepath, "cdi_indicated.txt")
-  no_cdi_expected_file <- here(basepath, "no_cdi_indicated.txt")
-
-  if (file.exists(cdi_expected_file)) file.remove(cdi_expected_file)
-  if (file.exists(no_cdi_expected_file)) file.remove(no_cdi_expected_file)
-
-  cat(
-    "this file is auto generated and is needed when validating all datasets at once. It is gitignored. Please do not delete it.",
-    file = ifelse(
-      cdi_expected,
-      cdi_expected_file,
-      no_cdi_expected_file
-    )
-  )
+  # register cdi_expected so the global validator can check without re-running imports
+  registry_path <- here("cdi_registry.csv")
+  registry <- if (file.exists(registry_path)) read.csv(registry_path, stringsAsFactors = FALSE) else data.frame(dataset_name = character(), cdi_expected = logical())
+  registry <- registry[registry$dataset_name != dataset_name, ]
+  registry <- rbind(registry, data.frame(dataset_name = dataset_name, cdi_expected = cdi_expected))
+  write.csv(registry, registry_path, row.names = FALSE)
 
   write_csv(dataset, file = here(output_path, "datasets.csv"))
   write_csv(subjects, file = here(output_path, "subjects.csv"))

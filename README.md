@@ -8,6 +8,7 @@ This repo contains the first part of the peekbank pipeline: A collection of `imp
 peekbank-data-import
 │   ...
 │   start_import.R - cli tool to create import template
+│   cdi_registry.csv - auto-generated, tracks which datasets expect CDI data (gitignored)
 └───data
 │   │   ...
 │   └───[DATASET_NAME] - one folder per dataset to import
@@ -15,7 +16,7 @@ peekbank-data-import
 │       │   processed_data/ - stores processed output of import
 │       │   import.R - script to turn raw data into processed_data
 │       │   README.md - info and import decisions for the dataset
-│       │   [no_]cdi_indicated.txt - auto-generated file for pipeline
+│       │
 │       └───legacy
 │           └───import_legacy.R - used to regression test the idless import helper
 │   

@@ -9,8 +9,7 @@ raw_data
 processed_data
 *.zip
 *.curltmp
-cdi_indicated.txt
-no_cdi_indicated.txt
+cdi_registry.csv
 data/fmw_2013/temp_figures
 CLAUDE.md
 .lintr
