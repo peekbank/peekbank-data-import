@@ -2,6 +2,29 @@ library(peekbankr)
 library(tidyverse)
 library(stringr)
 
+generate_aois <- function(x, y, target_side,
+                          l_x_max, l_x_min, l_y_max, l_y_min,
+                          r_x_max, r_x_min, r_y_max, r_y_min,
+                          monitor_size_x = NA, monitor_size_y = NA) {
+  mon_x <- ifelse(is.na(monitor_size_x), Inf, monitor_size_x)
+  mon_y <- ifelse(is.na(monitor_size_y), Inf, monitor_size_y)
+
+  ifelse(target_side == "left",
+    case_when(
+      x <= l_x_max & x >= l_x_min & y <= l_y_max & y >= l_y_min ~ "target",
+      x <= r_x_max & x >= r_x_min & y <= r_y_max & y >= r_y_min ~ "distractor",
+      is.na(x) | is.na(y) | x > mon_x | x < 0 | y > mon_y | y < 0 ~ "missing",
+      .default = "other"
+    ),
+    case_when(
+      x <= l_x_max & x >= l_x_min & y <= l_y_max & y >= l_y_min ~ "distractor",
+      x <= r_x_max & x >= r_x_min & y <= r_y_max & y >= r_y_min ~ "target",
+      is.na(x) | is.na(y) | x > mon_x | x < 0 | y > mon_y | y < 0 ~ "missing",
+      .default = "other"
+    )
+  )
+}
+
 # important note: the digest function will not take aux data as input.
 # Rather, it will output empty aux data columns that can be populated manually
 digest.dataset <- function(
@@ -12,7 +35,8 @@ digest.dataset <- function(
     wide.table,
     rezero = TRUE,
     normalize = TRUE,
-    resample = TRUE) {
+    resample = TRUE,
+    use_aoi_column = FALSE) {
   # Ensure tibble class once at the start - all dplyr operations preserve class
   wide.table <- wide.table %>% ungroup() %>% as_tibble()
 
@@ -23,7 +47,6 @@ digest.dataset <- function(
     "age",
     "age_units",
     "t",
-    "aoi",
     "full_phrase",
     "full_phrase_language",
     "point_of_disambiguation",
@@ -51,6 +74,8 @@ digest.dataset <- function(
   )
 
   optional_cols <- c(
+    # aoi is optional when XY + region data is provided, as it will be auto-computed
+    "aoi",
     # trial order is not 100% determined by the trial type changing, as there could be
     # 2 successive trials with the same trial type (though a very small portion of datasets should have this issue)
     # We should offer to optionally include "trial_index" in the big table to explicitly
@@ -122,6 +147,37 @@ digest.dataset <- function(
   gc()
 
   # TODO Validate the values (how much validation do we want to put in here?)
+
+  # Determine whether AOI can be auto-computed from XY + region data
+  xy_region_cols <- c("x", "y", "l_x_max", "l_x_min", "l_y_max", "l_y_min",
+                      "r_x_max", "r_x_min", "r_y_max", "r_y_min")
+  has_xy_regions <- all(xy_region_cols %in% colnames(data)) &&
+    any(!is.na(data$x)) && any(!is.na(data$l_x_max))
+
+  if (!has_xy_regions) {
+    # No XY + region data, aoi column is required
+    if (!"aoi" %in% colnames(data) || all(is.na(data$aoi))) {
+      stop("No XY + region data available and no 'aoi' column found in wide.table. Please provide XY coordinates + region columns or an 'aoi' column.")
+    }
+  } else {
+    if ("aoi" %in% colnames(data) && any(!is.na(data$aoi))) {
+      if (use_aoi_column) {
+        warning("Pre-computed 'aoi' column is being used, but XY + region data is available. Only use this behavior for comparing the computed aois and set use_aoi_column to FALSE for the actual data to be uploaded.")
+      } else {
+        warning("Pre-computed 'aoi' column found but will be ignored; AOI is being computed from XY + region data.")
+      }
+    }
+    if (!use_aoi_column) {
+      data$aoi <- generate_aois(
+        data$x, data$y, data$target_side,
+        data$l_x_max, data$l_x_min, data$l_y_max, data$l_y_min,
+        data$r_x_max, data$r_x_min, data$r_y_max, data$r_y_min,
+        data$monitor_size_x, data$monitor_size_y
+      )
+    } else if (!"aoi" %in% colnames(data) || all(is.na(data$aoi))) {
+      stop("use_aoi_column = TRUE but no 'aoi' column found in wide.table")
+    }
+  }
 
   data <- data %>%
     mutate(

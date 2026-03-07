@@ -16,7 +16,7 @@ wide.table <- tibble(
   age = NA,
   age_units = NA,
   t = NA,
-  aoi = NA,
+  aoi = NA, # optional when XY + region data is provided (will be auto-computed)
   full_phrase = NA,
   full_phrase_language = NA,
   point_of_disambiguation = NA,
@@ -78,6 +78,7 @@ dataset_list <- digest.dataset(
   rezero=TRUE,
   normalize=TRUE,
   resample=TRUE
+  # use_aoi_column=TRUE  # for sanity checking purposes: set to TRUE to use a pre-computed aoi column instead of auto-computing from XY + region data
 )
 
 ## 4. Aux Data

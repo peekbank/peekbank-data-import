@@ -7,27 +7,6 @@ dataset_name <- "yoon_simpimp_2015"
 data_path <- init(dataset_name)
 
 
-generate_aois <- function(x, y, target_side,
-                          l_x_max, l_x_min, l_y_max, l_y_min,
-                          r_x_max, r_x_min, r_y_max, r_y_min,
-                          monitor_size_x = 1e6,
-                          monitor_size_y = 1e6) {
-  ifelse(target_side == "left",
-    case_when( # left target
-      x <= l_x_max & x >= l_x_min & y <= l_y_max & y >= l_y_min ~ "target",
-      x <= r_x_max & x >= r_x_min & y <= r_y_max & y >= r_y_min ~ "distractor",
-      is.na(x) | is.na(y) | x > monitor_size_x | x < 0 | y > monitor_size_y | y < 0 ~ "missing",
-      .default = "other"
-    ),
-    case_when( # right target
-      x <= l_x_max & x >= l_x_min & y <= l_y_max & y >= l_y_min ~ "distractor",
-      x <= r_x_max & x >= r_x_min & y <= r_y_max & y >= r_y_min ~ "target",
-      is.na(x) | is.na(y) | x > monitor_size_x | x < 0 | y > monitor_size_y | y < 0 ~ "missing",
-      .default = "other"
-    )
-  )
-}
-
 eyetracking_path <- here(data_path, "eyetracking")
 
 # note these two sets of data don't actually seem to cleanly line up with the expt split
@@ -186,12 +165,7 @@ draft_data <- combined_data_index |> left_join(stimulus) |>
     # lab specific names for stimuli
     target_stimulus_name = NA,
     distractor_stimulus_name = NA
-  ) |>
-  mutate(aoi = generate_aois(
-    x, y, target_side,
-    l_x_max, l_x_min, l_y_max, l_y_min,
-    r_x_max, r_x_min, r_y_max, r_y_min
-  ))
+  )
 
 wide.table <- draft_data |>
   mutate(
@@ -215,4 +189,4 @@ dataset_list <- digest.dataset(
   normalize = T
 )
 
-write_and_validate_list(dataset_list, cdi_expected = FALSE, upload = FALSE)
+write_and_validate_list(dataset_list, cdi_expected = FALSE, upload = F)
