@@ -1,0 +1,5 @@
+services:
+  import:
+    build: .
+    volumes:
+      - ./data:/project/data

@@ -28,7 +28,36 @@ peekbank-data-import
     │   osf.R - custom osfr replacements
 ```
 
-## Prerequisites for running/creating imports
+## Prerequisites
+
+### OSF authentication (for uploading data)
+
+If you want to upload data directly to OSF using this pipeline, you need to authenticate with OSF.
+
+1. Go to the [OSF token settings page](https://accounts.osf.io/login?service=https%3A%2F%2Fosf.io%2Fsettings%2Ftokens%2F)
+2. Generate a token, name it anything you like, and make sure to give it `osf.full_write` and `osf.full_read`
+3. Create a file called `osf_token.txt` in the root of the repository and paste your token into it
+
+## Option 1: Running with Docker
+
+Install [Docker](https://docs.docker.com/get-started/get-docker/). Build the image once (rebuilding whenever the code changes),
+
+```bash
+docker compose build
+```
+
+then use the `pbi` wrapper script:
+
+```bash
+./pbi pipeline                    # run all imports
+./pbi pipeline --down             # redownload all raw data
+./pbi pipeline --resume           # keep previous processed_data
+./pbi pipeline --up               # upload results to OSF
+./pbi import adams_marchman_2018  # run a single dataset
+./pbi import adams_marchman_2018 --down --up  # redownload + upload
+```
+
+## Option 2 (best when developing): Running locally
 
 ### Installing R dependencies
 
@@ -59,21 +88,18 @@ renv::snapshot()
 ```
 Then commit the updated `renv.lock`.
 
-### OSF authentication (for uploading data)
-
-If you want to upload data directly to osf using this pipeline, you need to authenticate with osf.
-
-1. Go to the [OSF token settings page](https://accounts.osf.io/login?service=https%3A%2F%2Fosf.io%2Fsettings%2Ftokens%2F)
-2. Generate a token, name it anything you like, and make sure to give it `osf.full_write` and `osf.full_read`
-3. Create a file called `osf_token.txt` in the root of the repository and paste you token into it
-
-Having done that, you can now set a `upload=TRUE` flag when calling `write_and_validate` to automatically upload the processed files after successful validation.
-
-## Running the existing import scripts
+### Running imports
 
 You can (re-)run singular import scripts inside their respective folders. It will automatically download the specific dataset from OSF, run the import, run validation and (if the flag at the bottom is set) upload the processed data to OSF.
 
-To run and validate the entirety of the import scripts (& download/upload all data), you can run the `run_all()` function in `pipeline.R`. It has parameters to control various aspects of the process (e.g. should all data be re-downloaded, should previous processed data be wiped, should the data be uploaded).
+To run the full pipeline, source `pipeline.R` and call `run_all()`. You can also uncomment the call at the bottom of `pipeline.R` and run the file directly.
+```r
+source("helper_functions/pipeline.R")
+run_all(nocache = FALSE, clean = TRUE, upload = FALSE)
+```
+- `nocache=TRUE`: redownload all raw data from OSF
+- `clean=TRUE`: delete previous processed_data before running
+- `upload=TRUE`: upload results to OSF after validation passes
 
 ## Creating a new import script
 

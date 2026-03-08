@@ -81,7 +81,7 @@ validate_all <- function() {
 
 # nocache: download all data again, even if it already exists
 # clean: remove all previous process_data, even if the current import script does not execute
-run_all <- function(nocache = FALSE, clean = TRUE, upload = FALSE) {
+run_all <- function(nocache = FALSE, clean = TRUE, upload = FALSE, subprocess = FALSE) {
   datasets <- list_all(activeonly = TRUE)
   download_all(overwrite = nocache, activeonly = TRUE)
 
@@ -105,16 +105,35 @@ run_all <- function(nocache = FALSE, clean = TRUE, upload = FALSE) {
       import_script <- here("data", dataset, "import.R")
       tryCatch(
         {
-          # Loaded packages might bleed through, but for these validation-runs this
-          # should be fine, as we aren't using highly specified package versions
-          env <- new.env(parent = .GlobalEnv)
-          env$external_block_peekbank_separate_upload <- TRUE
-          # Override source() in this environment to default sourcing into parent frame
-          # This makes nested source() calls share the same environment
-          env$source <- function(file, local = parent.frame(), ...) {
-            base::source(file, local = local, ...)
+          if (subprocess) {
+            # Run in a separate R process to fully reclaim memory between imports
+            callr::r(
+              function(script) {
+                global_block_peekbank_summary <- TRUE
+                external_block_peekbank_separate_upload <- TRUE
+                # Override source() so nested source() calls share the same environment
+                source <- function(file, local = parent.frame(), ...) {
+                  base::source(file, local = local, ...)
+                }
+                source(script, local = TRUE)
+              },
+              args = list(script = import_script),
+              show = TRUE
+            )
+          } else {
+            # Loaded packages might bleed through, but for these validation-runs this
+            # should be fine, as we aren't using highly specified package versions
+            env <- new.env(parent = .GlobalEnv)
+            env$external_block_peekbank_separate_upload <- TRUE
+            # Override source() in this environment to default sourcing into parent frame
+            # This makes nested source() calls share the same environment
+            env$source <- function(file, local = parent.frame(), ...) {
+              base::source(file, local = local, ...)
+            }
+            source(import_script, local = env)
+            rm(env)
           }
-          source(import_script, local = env)
+          gc(verbose = FALSE)
           return("")
         },
         error = \(e) {
@@ -152,5 +171,5 @@ upload_all <- function(activeonly = FALSE) {
 }
 
 global_block_peekbank_summary <- TRUE
-run_all(nocache = FALSE, clean=TRUE, upload=FALSE)
-#x <- validate_all()
+# run_all(nocache = FALSE, clean=TRUE, upload=FALSE)
+# validate_all()

@@ -1,0 +1,14 @@
+**/raw_data/
+**/processed_data/
+renv/library/
+renv/staging/
+renv/.cache/
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+osf_token.txt
+cdi_registry.csv
+Rplots.pdf
+*.zip
+*.curltmp
