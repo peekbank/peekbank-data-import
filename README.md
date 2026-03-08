@@ -40,7 +40,7 @@ If you want to upload data directly to OSF using this pipeline, you need to auth
 
 ## Option 1: Running with Docker
 
-Install [Docker](https://docs.docker.com/get-started/get-docker/). Build the image once (rebuilding whenever the code changes),
+Install [Docker](https://docs.docker.com/get-started/get-docker/). Build the image once (and rebuild whenever the code changes),
 
 ```bash
 docker compose build
@@ -53,6 +53,7 @@ then use the `pbi` wrapper script:
 ./pbi pipeline --down             # redownload all raw data
 ./pbi pipeline --resume           # keep previous processed_data
 ./pbi pipeline --up               # upload results to OSF
+./pbi pipeline --no-subprocess    # run all imports in a single R process
 ./pbi import adams_marchman_2018  # run a single dataset
 ./pbi import adams_marchman_2018 --down --up  # redownload + upload
 ```
