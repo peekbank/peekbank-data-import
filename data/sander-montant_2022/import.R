@@ -137,11 +137,17 @@ et_data_fixed <- et_data |>
     !str_detect(StudioProjectName, "Mix-"),
     !str_detect(MediaName, "[Aa]ttention"),
     !str_detect(MediaName, "[Gg]etter"),
-    !is.na(MediaName)
+    !is.na(MediaName),
+    is.na(StudioEvent) | StudioEvent == "" # filter out MovieStart/MovieEnd event rows
   ) |>
   mutate(StudioProjectName = str_replace(StudioProjectName, "_", "-")) |>
   group_by(RecordingName) |>
-  mutate(trial_number = consecutive_id(MediaName))
+  mutate(trial_number = consecutive_id(MediaName)) |>
+  ungroup()
+
+# deduplicate remaining same-timestamp rows (both have NA gaze, so order is irrelevant)
+et_data_fixed <- et_data_fixed |>
+  distinct(RecordingName, trial_number, RecordingTimestamp, .keep_all = TRUE)
 
 et_data_joined <- et_data_fixed |>
   ungroup() |>

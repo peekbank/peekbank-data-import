@@ -67,5 +67,15 @@ We excluded trials that are length 0. We exclude children without age informatio
 
 We do not have the image stimuli, although we might be able to in the future. 
 
+Two raw data files have incorrect, colliding subject IDs in their `## Subject:` header fields.
+The `## Converted from:` lines in the file headers confirm the correct subject IDs.
+
+- `2013_04_05_142-eye_data Samples_fixed.txt`: header says subject `2013_04_05_141`,
+  but was converted from `2013_04_05_142-eye_data.idf`. Correct subject is 142.
+- `2013_04_23_237-eye_data Samples_fixed.txt`: header says subject `2013_04_23_242`,
+  but was converted from `2013_04_23_237-eye_data.idf`. Correct subject is 237.
+
+All four subjects (141, 142, 237, 242) appear in the demographics file as distinct
+individuals, so we correct this mixup in the import script.
+
 5. Importing ambiguity
-no known ambiguities

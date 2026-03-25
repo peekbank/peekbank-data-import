@@ -18,5 +18,7 @@ Parents were given a list of 26 options, and provided 12, this was then selected
 aoi regions were not recalculated; trial-level exclusions and looking regions taken from processed  data (post garrison's processing script)
 
 image_description in stimuli collapses some labels, but collapsing with ad-hoc
+
 5. Importing ambiguity
-none?
+
+The raw Eyelink 1000+ data contains overlapping fixation segments in 17 trials, where two fixation events cover the same timestamps with different XY coordinates. We deduplicate by keeping the first row per timestamp within each trial (as found in the raw data). The affected rows make up <0.1% of the total data.

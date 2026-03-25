@@ -254,6 +254,8 @@ read_trial_data <- function(file_name) {
         aoi_target_hit_1, aoi_target_hit
       )
     ) %>%
+    # filter out MovieStart/MovieEnd event rows that can share a timestamp with gaze samples
+    filter(is.na(stim_onset_offset) | stim_onset_offset == "") %>%
     select(
       stimlist, lab_subject_id, stimulus, timestamp, gaze_type,
       gaze_duration, aoi_distractor_hit, aoi_target_hit

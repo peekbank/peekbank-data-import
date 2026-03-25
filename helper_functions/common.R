@@ -13,6 +13,83 @@ options(dplyr.summarise.inform = FALSE)
 # override of peekbankr get_raw_data that relies on broken osfr
 source(here("helper_functions", "osf.R"))
 
+report_duplicate_timepoints <- function(data, time_col, trial_cols,
+                                        xy_cols = NULL, aoi_col = NULL) {
+  group_cols <- c(trial_cols, time_col)
+
+  dupes <- data %>%
+    group_by(across(all_of(group_cols))) %>%
+    filter(n() > 1) %>%
+    ungroup()
+
+  n_pairs <- nrow(dupes) / 2
+  if (n_pairs == 0) {
+    cat("No duplicate timepoints found.\n")
+    return(invisible(NULL))
+  }
+
+  max_group <- dupes %>%
+    count(across(all_of(group_cols))) %>%
+    pull(n) %>%
+    max()
+
+  dupe_summary <- dupes %>%
+    group_by(across(all_of(group_cols))) %>%
+    summarise(
+      n = n(),
+      is_exact = nrow(distinct(pick(everything()))) == 1,
+      .groups = "drop"
+    )
+
+  pct <- round(nrow(dupes) / nrow(data) * 100, 3)
+  cat("Duplicate timepoint groups:", nrow(dupe_summary), "\n")
+  cat("Duplicate rows:", nrow(dupes), "/", nrow(data),
+      paste0("(", pct, "%)"), "\n")
+  cat("Max rows per timepoint:", max_group, "\n")
+  cat("Exact duplicate groups:", sum(dupe_summary$is_exact), "\n")
+  cat("Divergent groups:", sum(!dupe_summary$is_exact), "\n")
+
+  result <- list(
+    dupes = dupes,
+    summary = dupe_summary
+  )
+
+  if (!is.null(aoi_col) && aoi_col %in% names(data)) {
+    aoi_summary <- dupes %>%
+      group_by(across(all_of(group_cols))) %>%
+      summarise(
+        aoi_divergent = n_distinct(.data[[aoi_col]]) > 1 |
+          (any(is.na(.data[[aoi_col]])) & any(!is.na(.data[[aoi_col]]))),
+        aoi_conflict = all(!is.na(.data[[aoi_col]])) & n_distinct(.data[[aoi_col]]) > 1,
+        .groups = "drop"
+      )
+    cat("Divergent AOI groups (different values or one NA):", sum(aoi_summary$aoi_divergent), "\n")
+    cat("True AOI conflicts (both non-NA, different label):", sum(aoi_summary$aoi_conflict), "\n")
+    result$aoi_summary <- aoi_summary
+  }
+
+  if (!is.null(xy_cols) && all(xy_cols %in% names(data))) {
+    coord_diffs <- dupes %>%
+      group_by(across(all_of(group_cols))) %>%
+      filter(nrow(distinct(pick(everything()))) > 1) %>%
+      filter(all(!is.na(.data[[xy_cols[1]]])) & all(!is.na(.data[[xy_cols[2]]]))) %>%
+      filter(n() == 2) %>%
+      summarise(
+        dx = abs(diff(.data[[xy_cols[1]]])),
+        dy = abs(diff(.data[[xy_cols[2]]])),
+        .groups = "drop"
+      )
+    if (nrow(coord_diffs) > 0) {
+      cat("Both-valid divergent groups:", nrow(coord_diffs), "\n")
+      cat("Median coordinate diff - ", xy_cols[1], ": ", median(coord_diffs$dx),
+          " ", xy_cols[2], ": ", median(coord_diffs$dy), "\n", sep = "")
+    }
+    result$coord_diffs <- coord_diffs
+  }
+
+  invisible(result)
+}
+
 init <- function(dataset_name, osf_address = "pr6wu") {
   path <- here("data", dataset_name)
   data_path <- here(path, "raw_data")

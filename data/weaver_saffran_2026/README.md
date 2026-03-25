@@ -35,3 +35,5 @@ We reconstructed the four conditions found in the paper. This approach resulted 
 
 
 5. **Importing ambiguity.**
+
+Duplicate timestamps: The raw data contains 9557 duplicate timestamp pairs (always exactly 2 per affected timestamp, spread sporadically across all subjects and trials), likely a preprocessing/time-binning artifact from the authors' pipeline. Of these, 5298 are exact copies; the remaining 4259 differ in gaze (mean) coordinates (`GazePointXMean`/`GazePointYMean`). Among divergent pairs where both rows have valid coordinates (2280 pairs), the median difference is only around 16px for X and 15px for Y; 7 pairs have coordinates far enough apart to land in opposite AOIs (Left vs Right). We deduplicate by keeping the row with valid gaze data when available; when both have valid coordinates, the first is kept. Uncomment the `report_duplicate_timepoints()` call in `import.R` to reproduce these numbers.

@@ -141,9 +141,19 @@ d_fin <- d_semi %>%
 
 
 ##### AOI TABLE ####
+
+# Uncomment to check duplicate timepoints in the raw data
+#duplicates <- report_duplicate_timepoints(
+#  d_fin %>% rename(t_norm = time_since_word_onset),
+#  time_col = "t_norm",
+#  trial_cols = c("trial_id", "administration_id"),
+#  aoi_col = "aoi"
+#)
+
 aoi_timepoints <- d_fin %>%
   rename(t_norm = time_since_word_onset) %>% # original data centered at point of disambiguation
   select(t_norm, aoi, trial_id, administration_id, lab_subject_id) %>%
+  distinct(t_norm, trial_id, administration_id, .keep_all = TRUE) %>% # remove duplicate timepoints (subject 252, trial 39 has duplicated/conflicting timepoints in raw data)
   # resample timepoints
   peekbankr::ds.resample_times(table_type = "aoi_timepoints") %>%
   mutate(aoi_timepoint_id = seq(0, nrow(.) - 1))

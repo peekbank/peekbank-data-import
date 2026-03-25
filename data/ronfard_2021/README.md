@@ -17,4 +17,4 @@ Note that exclusions happened prior to raw data submission by the contributor; t
 Distractor structure and AOIs were manually recoded based on the author's information. **Note that stimuli table has image paths but images are not present on OSF.**
 
 5. **Importing ambiguity.**
-Currently none.
+- Subject 252, trial_no 39 has duplicate rows in the raw CSV: every timestamp from t=300ms onward appears twice (101 rows instead of the expected ~55). Of the 46 duplicate pairs, 20 are exact duplicates (identical eyegaze/accuracy), while 26 have conflicting gaze codes (e.g., "R"/accuracy=1 vs "L"/accuracy=0 at the same timestamp). This appears to be a data entry/export error. The import script deduplicates by keeping the first occurrence of each timepoint per trial.

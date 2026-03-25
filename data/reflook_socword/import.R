@@ -92,8 +92,19 @@ stimuli.data <- process_smi_stimuli(trial_file_path) %>%
   rename(english_stimulus_label = stimulus_label)
 
 ## create timepoint data so we have a list of participants for whom we actually have data
-timepoint.data <- lapply(all_file_paths, process_smi_eyetracking_file) %>%
+timepoint.data <- Map(function(fp) {
+  result <- process_smi_eyetracking_file(fp)
+  result$source_file <- basename(fp)
+  result
+}, all_file_paths) %>%
   bind_rows() %>%
+  # Fix known subject ID mismatches in raw data file headers:
+  mutate(lab_subject_id = case_when(
+    source_file == "2013_04_05_142-eye_data Samples_fixed.txt" ~ "2013_04_05_142",
+    source_file == "2013_04_23_237-eye_data Samples_fixed.txt" ~ "2013_04_23_237",
+    TRUE ~ lab_subject_id
+  )) %>%
+  select(-source_file) %>%
   mutate(xy_timepoint_id = seq(0, length(lab_subject_id) - 1)) %>%
   mutate(trial_order = trial_type_id + 1) %>%
   group_by(lab_subject_id, trial_type_id) %>%

@@ -71,4 +71,4 @@ Experiment 2b includes older (24-28 month) kids tested on verbs.
 
 5. Importing ambiguity
 
-All issues are described in “Importing decisions” above.
+The raw Eyelink 1000+ data contains overlapping fixation segments in 30 trials across both sub-datasets (VNA and NALTS), where two fixation events cover the same timestamps with different XY coordinates. We deduplicate by keeping the first row per timestamp within each trial (as found in the raw data). The affected rows make up <0.1% of the total data.

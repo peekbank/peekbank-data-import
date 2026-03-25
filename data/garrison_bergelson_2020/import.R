@@ -13,6 +13,30 @@ data_path <- init(dataset_name)
 # this is their end of processing with excluded trials tagged but present
 d_low <- readRDS(here(data_path, "eyetracking/yoursmy_test_taglowdata.Rds"))
 
+# Uncomment to get report on magnitude of duplicate timestamps:
+#duplicates <- report_duplicate_timepoints(d_low, time_col = "Time",
+#  trial_cols = c("SubjectNumber", "Trial"),
+#  xy_cols = c("CURRENT_FIX_X", "CURRENT_FIX_Y"), aoi_col = "gaze")
+#
+## every point where time goes backwards within a trial (overlapping fixation segments)
+#overlap_context <- if (!is.null(duplicates)) {
+#  d_low %>%
+#    group_by(SubjectNumber, Trial) %>%
+#    mutate(row = row_number(), t_diff = Time - lag(Time)) %>%
+#    filter(any(t_diff < 0, na.rm = TRUE)) %>%
+#    filter(row >= max(1, which(t_diff < 0) - 2) & row <= which(t_diff < 0) + 2) %>%
+#    ungroup() %>%
+#    select(SubjectNumber, Trial, row, Time, CURRENT_FIX_X, CURRENT_FIX_Y, gaze)
+#}
+
+# as the raw data has some overlapping fixation segments with duplicate timestamps per trial,
+# we keep the first row per timepoint to ensure increasing t for resampling
+d_low <- d_low %>%
+  group_by(SubjectNumber, Trial) %>%
+  arrange(Time) %>%
+  distinct(Time, .keep_all = TRUE) %>%
+  ungroup()
+
 ################## TABLE SETUP ##################
 
 ### 1. DATASET TABLE

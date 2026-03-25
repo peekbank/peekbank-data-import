@@ -208,6 +208,32 @@ wide.table <-
     )
   )
 
+
+
+# Uncomment to get report on magnitude of duplicate timestamps:
+#duplicates <- report_duplicate_timepoints(wide.table, time_col = "t",
+#  trial_cols = c("subject_id", "trial_index"),
+#  xy_cols = c("x", "y"), aoi_col = "aoi")
+#
+## every point where time goes backwards within a trial (overlapping fixation segments)
+#overlap_context <- if (!is.null(duplicates)) {
+#  wide.table %>%
+#    group_by(subject_id, trial_index) %>%
+#    mutate(row = row_number(), t_diff = t - lag(t)) %>%
+#    filter(any(t_diff < 0, na.rm = TRUE)) %>%
+#    filter(row >= max(1, which(t_diff < 0) - 2) & row <= which(t_diff < 0) + 2) %>%
+#    ungroup() %>%
+#    select(subject_id, trial_index, row, t, x, y, aoi)
+#}
+
+# as the raw data has some overlapping fixation segments with duplicate timestamps per trial,
+# we keep the first row per timepoint to ensure increasing t for resampling
+wide.table <- wide.table %>%
+  group_by(subject_id, trial_index) %>%
+  arrange(t) %>%
+  distinct(t, .keep_all = TRUE) %>%
+  ungroup()
+
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
   lab_dataset_id = "VNA",

@@ -27,6 +27,17 @@ data <- data %>%
     .default = Sub.Num
   ))
 
+# The raw data contains duplicate rows at the same (Sub.Num, Tr.Num, Time).
+# See README for details and uncomment below to verify:
+#duplicates <- report_duplicate_timepoints(data, time_col = "Time",
+#   trial_cols = c("Sub.Num", "Tr.Num"),
+#   xy_cols = c("GazePointXMean", "GazePointYMean"), aoi_col = "AOI")
+
+# Deduplicate: prefer rows with valid gaze data over NA
+data <- data %>%
+  arrange(Sub.Num, Tr.Num, Time, is.na(GazePointXMean)) %>%
+  distinct(Sub.Num, Tr.Num, Time, .keep_all = TRUE)
+
 # AOI bounding boxes (from communication with authors)
 L_X_MIN <- 125
 L_X_MAX <- 625

@@ -26,6 +26,23 @@ pilot2_data <- read_tsv(here("data", dataset_name, "raw_data", "DimY_v2_GazeData
   )
 data <- rbind(pilot1_data, pilot2_data)
 
+## Timestamp Cleanup
+# Some duplicate and non-monotonic timestamps exist in the raw data,
+# likely small tracker sampling artifacts. Uncomment to check
+#report_duplicate_timepoints(data, time_col = "TimeStamp",
+#  trial_cols = c("subjCode", "TrialNumber"),
+#  xy_cols = c("GazePointXMean", "GazePointYMean"))
+#non_monotonic <- data %>%
+#  group_by(subjCode, TrialNumber) %>%
+#  mutate(dt = TimeStamp - lag(TimeStamp)) %>%
+#  filter(dt <= 0 | lead(dt) <= 0 | lag(dt) <= 0, !is.na(dt)) %>%
+#  ungroup() %>%
+#  select(subjCode, TrialNumber, TimeStamp, dt)
+
+data <- data %>%
+  arrange(subjCode, TrialNumber, TimeStamp) %>%
+  distinct(subjCode, TrialNumber, TimeStamp, .keep_all = TRUE)
+
 ## General Cleanup
 # fix up a few general issues with the original data
 data <- data %>%

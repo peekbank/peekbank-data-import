@@ -38,3 +38,4 @@ There appears to be a CDI data file available (short form), in the file DimY_cdi
 
 - the point of disambiguation within audio stimuli was determined to be roughly 2930 ms based on inspecting the actual onsets within the auditory stimuli (communication with the original authors suggested 2950 ms, but this seems a little late relative to actual files). This seems to vary a tad across trials (sometimes onset seems 10ish ms earlier or later, but seems pretty close to right).
 - half of the novel/unfamiliar animals are never named/ appear only in distractor position. For these items, we mark the stimulus_novelty as "novel" and make their stimulus label identical to the image name (for lack of a better obvious alternative label)
+- the raw data contains some duplicate and slightly non-increasing timestamp entries, likely small tracker sampling artifacts. These are removed during import (see the diagnostic output in the Timestamp Cleanup section of import.R).

@@ -107,21 +107,15 @@ all.data <- bind_rows(mclapply(files, function(f) {
   ## set up some timing variables
   # Mark trial change
   data$stim.change <- c(diff(as.numeric(as.factor(data$trial))) != 0, 0)
-  # count time from start of trial to end of experiment
-  data$t <- (data$Time - data$Time[1]) / (1000)
 
   # count time from beginning to end of each trial
-  data$dt <- c(diff(data$t), 0)
-  t <- 0
-  data$t.stim <- mapply(function(x, y) {
-    if (x) {
-      t <<- 0
-      return(t)
-    } else {
-      t <<- t + y
-      return(t)
-    }
-  }, data$stim.change, data$dt)
+  # shift stim.change forward by one so it marks trial starts, then cumsum to get group IDs
+  data <- data %>%
+    mutate(trial_group = cumsum(c(0, head(stim.change, -1)))) %>%
+    group_by(trial_group) %>%
+    mutate(t.stim = (Time - first(Time)) / 1000) %>%
+    ungroup() %>%
+    select(-trial_group)
 
   # Find test trials only (no fillers, practice trials, etc.)
   data <- data[grepl("item", data$trial), ]
@@ -156,7 +150,7 @@ all.data <- bind_rows(mclapply(files, function(f) {
     onsets <- read.csv(paste0(exp_info_path, "/timing_exp2.csv"))
   }
 
-  data <- merge(data, onsets, sort = FALSE, all.x = T) %>%
+  data <- left_join(data, onsets, by = "item") %>%
     mutate(noun_onset = noun_onset * 1000)
 
   # t.target centers timing around onset of the target noun
