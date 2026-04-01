@@ -1,4 +1,5 @@
 library(here)
+library(glue)
 
 source(here("helper_functions", "common.R"))
 dataset_name <- "luchkina_waxman_2024"
@@ -7,10 +8,10 @@ data_path <- init(dataset_name)
 ### 1. DATASET TABLE
 dataset <- tibble(
   dataset_id = 0,
-  lab_dataset_id = 0,
+  lab_dataset_id = dataset_name,
   dataset_name = dataset_name,
   shortcite = "Luchkina, E., & Waxman, S. (2024)",
-  cite = "Luchkina, E., & Waxman, S. (2024). Fifteen-month-olds represent never-seen objects and learn their names. PloS One",
+  cite = "Luchkina, E., & Waxman, S. R. (2021). Semantic priming supports infants\u2019 ability to learn names of unseen objects. PloS one, 16(1), e0244968.",
   dataset_aux_data = NA
 )
 
@@ -32,13 +33,12 @@ data <- data_raw %>%
   mutate(
     age = lab_age / (365.25 / 12),
     excluded = excluded. != "Include",
-    aoi <- replace_na("missing"),
     sex = case_when(
       gender == "M" ~ "male",
       gender == "F" ~ "female",
-      TRUE ~ NA,
+      TRUE ~ "unspecified",
     ),
-    t_norm = time_ms - point_of_disambiguation, # normalize
+    t_norm = time_ms, # no normalization, matching idless (normalize=FALSE, rezero=FALSE)
     exclusion_reason = ifelse(excluded, excluded., NA),
     aoi_timepoint_id = 0:(n() - 1)
   ) %>%
@@ -71,7 +71,7 @@ subjects <- data %>%
   mutate(subject_aux_data = as.character(pmap(
     list(age, comp, prod),
     function(age, comp, prod) {
-      if (is.na(prod) && is.na(prod)) {
+      if (is.na(comp) && is.na(prod)) {
         return(NA)
       }
       jsonlite::toJSON(list(cdi_responses = list(
@@ -92,32 +92,42 @@ administrations <- data %>%
     lab_age_units = "days",
     monitor_size_x = NA,
     monitor_size_y = NA,
-    sample_rate = NA,
+    sample_rate = 30,
     administration_aux_data = NA
   )
 
 
 ### 4. STIMULI TABLE
-stimuli <- data %>%
-  distinct(target, distractor) %>%
-  pivot_longer(
-    cols = c(target, distractor),
-    names_to = "kind",
-    values_to = "image"
-  ) %>%
-  select(-kind) %>%
-  distinct() %>%
+
+target_stimuli <- data %>%
+  distinct(target) %>%
   mutate(
-    original_stimulus_label = image,
-    english_stimulus_label = image,
+    original_stimulus_label = target,
+    english_stimulus_label = target,
     stimulus_novelty = "familiar",
     lab_stimulus_id = NA,
-    stimulus_image_path = image,
-    image_description = image,
+    stimulus_image_path = glue("images/target/{target}.jpg"),
+    image_description = target,
     image_description_source = "image path",
     dataset_id = 0
   ) %>%
-  select(-image) %>%
+  select(-target)
+
+distractor_stimuli <- data %>%
+  distinct(distractor) %>%
+  mutate(
+    original_stimulus_label = distractor,
+    english_stimulus_label = distractor,
+    stimulus_novelty = "familiar",
+    lab_stimulus_id = NA,
+    stimulus_image_path = glue("images/distractor/{distractor}.jpg"),
+    image_description = distractor,
+    image_description_source = "image path",
+    dataset_id = 0
+  ) %>%
+  select(-distractor)
+
+stimuli <- bind_rows(target_stimuli, distractor_stimuli) %>%
   distinct() %>%
   mutate(
     stimulus_id = 0:(n() - 1),
@@ -127,23 +137,36 @@ stimuli <- data %>%
 
 ### 5. Trial Types Table
 
-stimuli_ids <- stimuli %>% select(stimulus_id, original_stimulus_label)
+target_stimuli_ids <- stimuli %>%
+  filter(str_starts(stimulus_image_path, "images/target/")) %>%
+  select(stimulus_id, original_stimulus_label)
+
+distractor_stimuli_ids <- stimuli %>%
+  filter(str_starts(stimulus_image_path, "images/distractor/")) %>%
+  select(stimulus_id, original_stimulus_label)
 
 trial_types <- data %>%
   distinct(target, distractor, target_side, point_of_disambiguation, full_phrase, trial_type_id) %>%
   mutate(
     full_phrase_language = "eng",
-    aoi_region_set_id = 0,
+    aoi_region_set_id = NA,
     dataset_id = 0,
     condition = NA,
     lab_trial_id = NA,
     vanilla_trial = FALSE, # double onset of target word with delay in between
-    trial_type_aux_data = NA
+    trial_type_aux_data = NA,
+    target_side = tolower(target_side),
+    target_side = case_when(
+      target_side == "left" ~ "left",
+      target_side == "l" ~ "left",
+      target_side == "right" ~ "right",
+      target_side == "r" ~ "right",
+      .default = "ERROR"
+    )
   ) %>%
-  # the rejoining of the stimulus table could be moved up to the big table, could simplify the code for future streamlining
-  left_join(stimuli_ids, by = c("distractor" = "original_stimulus_label")) %>%
+  left_join(distractor_stimuli_ids, by = c("distractor" = "original_stimulus_label")) %>%
   rename(distractor_id = stimulus_id) %>%
-  left_join(stimuli_ids, by = c("target" = "original_stimulus_label")) %>%
+  left_join(target_stimuli_ids, by = c("target" = "original_stimulus_label")) %>%
   rename(target_id = stimulus_id) %>%
   select(-distractor, -target)
 
@@ -157,7 +180,8 @@ trials <- data %>%
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- data %>%
   select(aoi, t_norm, point_of_disambiguation, administration_id, trial_id) %>%
-  peekbankr::ds.resample_times(table_type = "aoi_timepoints")
+  peekbankr::ds.resample_times(table_type = "aoi_timepoints") %>%
+  mutate(aoi = ifelse(!is.na(aoi), aoi, "missing"))
 
 
 write_and_validate(
