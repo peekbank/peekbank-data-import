@@ -12,10 +12,21 @@ There were 3 habituation conditions:
   1) Labels (single exemplar of novel object and single token of novel label)
   2) Colors (7 exemplars of novel object - varying in color - and single token of novel label)
   3) Speakers (single exemplar of novel object and 7 tokens of novel label - varying in speaker).
-Infants then tested in looking while listening paradigm on novel words and familiar words (e.g., baby, doggy, ball). Audio on test trials was presented as "[Target_label]! [Frame][Target_label]? (e.g., Baby! Where's the baby?). 
+Infants then tested in looking while listening paradigm on novel words and familiar words (e.g., baby, doggy, ball). Audio on test trials was presented as "[Target_label]! [Carrier][Target_label]? (e.g., Baby! Where's the baby?). 
 
 4. Importing decisions
-(tried to make comments in code)
+
+- Target side and stimulus identity taken from order files, not the icoder data, as the icoder data had flipped L/R stim info.
+
+- All trials marked non-vanilla. All imported trials have double onset ("[Target]! [Carrier][Target]?"), so they're not standard single-onset LWL. Novel trials are additionally non-vanilla by nature.
+
+- point_of_disambiguation = 0 because the raw data is already re-centered to target onset (critonset) via datawiz.
+
+- CDI instrument type is "wgshort"  as per Baumgartner.
+
+- Condition for familiar trials is just "familiar"; for novel trials it's "[habituation_condition]_novel" (e.g., "Colors_novel", "Labels_novel", "Speakers_novel").
+
+- stimulus_image_path uses .png for novel stimuli (lif/neem) and .jpg for familiar stimuli, with "kitty" remapped to "cat" to match the image filename.
 
 5. Importing ambiguity
 no known ambiguities

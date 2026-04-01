@@ -6,12 +6,6 @@ library(readxl)
 
 # NOTES: used Adams Marchman import script as starting point/reference
 
-# ------- PROCEDURE: ---------
-# infants were habituated to 2 novel object/label pairs (e.g,. FribbleA/"lif", FribbleB/"neem").
-# there were 3 habituation conditions: 1) Labels (single exemplar of novel object and single token of novel label); 2) Colors (7 exemplars of novel object - varying in color - and single token of novel label); 3) Speakers (single exemplar of novel object and 7 tokens of novel label - varying in speaker).
-# infants then tested in looking while listening paradigm on novel words and familiar words (e.g., baby, doggy, ball).
-# audio on test trials was presented as "[Target_label]! [Frame][Target_label]? (e.g., Baby! Where's the baby?).
-
 source(here("helper_functions", "common.R"))
 dataset_name <- "baumgartner_2014"
 read_path <- init(dataset_name)
@@ -94,7 +88,7 @@ colnames(d_processed) <- c(metadata_names, pre_dis_names_clean, post_dis_names_c
 d_merged <- merge(x = orders, y = d_processed, by = c("subject", "trial", "test_condition", "target_image"))
 
 
-# remove unneeded columns (e.g., flipped R/L stim info from icoder data; keep correct R/L stim info from order df)
+# remove icoder L/R stim info (flipped); keep correct info from order files
 d_merged <- d_merged %>%
   select(-l_image, -r_image, -target_side) %>%
   rename(stimulus_novelty = test_condition)
@@ -151,10 +145,7 @@ levels(d_tidy$exclusion_reason) <- c(NA, "< 50% looking on trial", "no looking 1
 
 d_tidy <- d_tidy %>%
   mutate(
-    vanilla_trial = case_when(
-      stimulus_novelty == "novel" ~ FALSE,
-      TRUE ~ FALSE # since we have double onset, we should consider all trials non vanilla
-    ),
+    vanilla_trial = FALSE, # double onset on all trials, see README
     condition = ifelse(stimulus_novelty=="familiar", "familiar", paste(study_condition, stimulus_novelty, sep = "_"))
   )
 
@@ -210,8 +201,6 @@ d_administration_ids <- d_tidy %>%
 
 # create zero-indexed ids for trial_types
 d_trial_type_ids <- d_tidy %>%
-  # order just flips the target side, so redundant with the combination of target_id, distractor_id, target_side
-  # potentially make distinct based on condition if that is relevant to the study design
   distinct(condition, target_id, distractor_id, target_label, target_side, frame) %>%
   mutate(
     frame_new = case_when(
