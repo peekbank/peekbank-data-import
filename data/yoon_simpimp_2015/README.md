@@ -1,9 +1,9 @@
-#Yoon and Frank 2015 README
+# yoon_simpimp_2015
 
-1. Reference
+## 1. Reference
 Yoon, E. J., Wu, Y. C., & Frank, M. C. (2015). Children's Online Processing of Ad-Hoc Implicatures. In CogSci.
 
-2. Abstract
+## 2. Abstract
 Language comprehenders routinely make pragmatic inferences
 that go beyond the literal meanings of utterances. If A said “I
 ate some of the cookies,” B should infer that A ate some but
@@ -24,7 +24,7 @@ sufficient contextual support, preschool children are capable
 of making online pragmatic inferences.
 
 
-3. Original study info
+## 3. Original study info
 There are two experiments, that according to the paper differ only in the prosody of the target word in the inference condition. 
 
 Paper says children 2-5 for expt 1 and 3-4 for expt 2 (although some kids outside that age range are present in the datafiles, and a wider range of ages is present for expt 2) There are adult controls, which we filter out of the data. 
@@ -44,7 +44,7 @@ Control-single is plate with apple, plate with orange for phrases like "Elmo's p
 Control-double is plate with apple & orange versus plate with apple for phrases like "Elmo's plate has an orange". 
 
 
-4. Importing decisions
+## 4. Importing decisions
 The raw SMI files were available and the available processed files did not have full information. The processing scripts available did not run, but we rewrote equivalent pre-processing. (Note that the old_data / new_data split in raw files is not quite parallel to expt 1 / expt 2)
 
 Less a decision and more a warning -- the stimulus file names for initial and anticipatory are the same, so one has to only use the onset for the anticipatory. 
@@ -78,6 +78,6 @@ Distractor labels: In inference trials, the distractor image shows two objects (
 
 It could be debated if the control-single trials count as "vanilla" -- the carrier phrases are atypical, but they are otherwise normal. Decision has been made to label them as vanilla (discussed twice and decided for this version twice).
 
-5. Importing ambiguity
+## 5. Importing ambiguity
 
 none

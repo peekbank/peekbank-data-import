@@ -1,14 +1,14 @@
-potter_canine readme
+# potter_canine
 
-1. **Reference**
+## 1. Reference
 Potter, C. E., & Lew-Williams, C. (2024). Frequent vs. infrequent words shape toddlers’ real-time sentence comprehension. Journal of Child Language. 2024;51(6):1478-1488.
 
 Contributors: Christine Potter, Casey Lew-Williams
 
-2. **Paper abstract**
+## 2. Abstract
 We examined how noun frequency and the typicality of surrounding linguistic context contribute to children’s real-time comprehension. Monolingual English-learning toddlers viewed pairs of pictures while hearing sentences with typical or atypical sentence frames (Look at the… vs. Examine the…), followed by nouns that were higher- or lower-frequency labels for a referent (horse vs. pony). Toddlers showed no significant differences in comprehension of nouns in typical and atypical sentence frames. However, they were less accurate in recognizing lower-frequency nouns, particularly among toddlers with smaller vocabularies. We conclude that toddlers can recognize nouns in diverse sentence contexts, but their representations develop gradually.
 
-3. **Original study info**
+## 3. Original study info
 
 There are data from two studies:
 1. Canine1: Canine.n36.raw.txt
@@ -42,7 +42,7 @@ sheep - lamb
 For information about the sentence frame manipulation, see the trial orders in the "orders" folder under raw_data.
 
 
-4. **Importing decisions.** 
+## 4. Importing decisions
 - original_stimulus_label for distractor stimuli always the condition (in trial_types), so if the target was in the high-frequency condition, than the distractor chosen from the stimulus table was the high-frequency label-object pairing.
 - truncate columns at the timepoint 3600, since trials were rarely coded after this point
 - left/ right locations were reversed to reflect the participant's perspective, because iCoder files encode left/ right from the perspective of the coder (who has a frontal view of the infant)
@@ -55,5 +55,5 @@ For information about the sentence frame manipulation, see the trial orders in t
         - “-” ~ “missing” (This entry means “away” in the language of iCoder. In practice, this can also correspond to multiple looking situations; e.g., child is turned away from the screen; very long blinks. All of these situations should correspond to the situation “missing”)
 
 vanillaness decision Jan 2026: this is all vanilla, even if the carrier phrases are more complicated, it's still neutral. (ditto harder vocab targets)
-5. **Importing ambiguity.** 
+## 5. Importing ambiguity
 - note the ambiguity with respect to the distractor_id choice.

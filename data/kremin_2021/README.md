@@ -1,9 +1,9 @@
-# kremin_2021 dataset
+# kremin_2021
 
-## Reference
+## 1. Reference
 Kremin, L. V., Jardak, A., Lew-Williams, C., & Byers-Heinlein, K. (2023). Bilingual children’s comprehension of code-switching at an uninformative adjective. Language Development Research 3(1), 249–276.
 
-## Abstract
+## 2. Abstract
 Bilingual children regularly hear sentences that contain words from both languages,
 also known as code-switching. Investigating how bilinguals process code-switching 
 is important for understanding bilingual language acquisition, because young 
@@ -22,7 +22,7 @@ sentences with a code-switch at an uninformative adjective phrase, relative to
 single-language sentences. We conclude that functional information conveyed by 
 a code-switch may contribute to bilingual children’s sentence processing.
 
-## Original study info
+## 3. Original study info
 Participants were 36-month-old to 48-month-old bilinguals (Eng-Fre from Montreal, 
 and Eng-Spa from Princeton).
 The key manipulation was code-mixing in prenominal adjectives before the target noun
@@ -36,7 +36,7 @@ Note that the data only include "single" and "mixed" conditions; there are also
 other "filler" trials that were not in the data (although the filler data for the 
 Eng-Fra subset can be found in Sander-Montant et al. ([2022](osf.io/2m345/))).
 
-## Importing decisions
+## 4. Importing decisions
 
 We included importing decisions from the [processing script](https://osf.io/ug7t3/files/github/01_load.R), including the rectification of AOIs and the removal of duplicated header rows.
 Age was calculated from years, months, and days using the formula: years * 365.2425 + months * (365.2425/12) + days.
@@ -52,5 +52,5 @@ child-level exclusions are recorded, but trial level are not
 this paper does not report CDI data, although the CDI data at  https://osf.io/mxksz/ 
 may be for the Fr-Eng kids is this sample (but we don't have subject id's lined up)
 
-## Importing ambiguity
+## 5. Importing ambiguity
 None other than those reported above.

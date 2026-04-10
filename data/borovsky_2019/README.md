@@ -1,10 +1,10 @@
-# Borovsky readme
+# borovsky_2019
 
-1. Reference 
+## 1. Reference
 
 Borovsky, A., & Peters, R. E. (2019). Vocabulary size and structure affects real-time lexical recognition in 18-month-olds. PloS one, 14(7), e0219290.
 
-2. Abstract
+## 2. Abstract
 
 The mature lexicon encodes semantic relations between words, and these connections
 can alternately facilitate and interfere with language processing. We explore the 
@@ -26,7 +26,7 @@ strong and weak activation from nearby and distant semantic neighbors. We also
 consider further directions for developmental change in these patterns. 
 
 
-3. Original study info
+## 3. Original study info
 
 79 18-20 month olds participated.
 
@@ -41,7 +41,7 @@ for 4000ms post disambiguation.
 Each child saw 24 trials -- each target twice, once with a related distractor and once with
 an unrelated distractor. 
 
-4. Importing decisions
+## 4. Importing decisions
 
 Classifying trials in both conditions as vanilla. Semantic relatedness is whether the 
 distractor item is from the same super-ordinate category as the target 
@@ -59,5 +59,5 @@ We have data only from a fairly short trial duration (max 1700 ms).
 Given that this is the length of the range of the analysis discussed in the paper
 (300 - 2000 ms), we are assuming this data is that time window. 
 
-5. Importing ambiguities
+## 5. Importing ambiguity
 none

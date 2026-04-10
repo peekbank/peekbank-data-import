@@ -1,9 +1,9 @@
-# Newman sinewave  Readme
+# newman_sinewave
 
-1. Reference
+## 1. Reference
 Newman, R. S., Chatterjee, M., Morini, G., & Remez, R. E. (2015). Toddlers' comprehension of degraded signals: Noise-vocoded versus sine-wave analogs. The Journal of the Acoustical Society of America, 138(3), EL311-EL317.
 
-2. Abstract
+## 2. Abstract
 Recent findings suggest that development changes the ability to comprehend 
 degraded speech. Preschool children showed greater difficulties perceiving 
 noise-vocoded speech (a signal that integrates amplitude over broad frequency 
@@ -15,7 +15,7 @@ This suggests that children's identification performance depends critically
 on the degree of degradation and that their success in recognizing unfamiliar
 speech encodings is encouraging overall.
 
-3. Original study info
+## 3. Original study info
 Participants: 24 27-month-olds 
 Practice trials were cat/dog, critical trials were keys/blocks and car/ball
 
@@ -26,7 +26,7 @@ Each child did 16 trials
 * 4 in the sine-wave analog condition, 
 * 2 baseline nondegraded trials that did not name the objects (not included here)
 
-4. Importing decisions
+## 4. Importing decisions
 
 We do not have the data for children who were excluded. 
 
@@ -39,7 +39,7 @@ We marked this as non-vanilla due to a triple onset of the target word
 The audio column in the trial order file only contains the first phrase (e.g. "Look at the cat!"),
 so we reconstructed the full phrase from the paper.
 
-5. Importing ambiguity
+## 5. Importing ambiguity
 
 There are some (~30) frames in this dataset which have two conflicting look. We resolve
 these by just taking the preceding look for these conflicts.

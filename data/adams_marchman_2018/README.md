@@ -1,6 +1,6 @@
-# adams-marchman readme
+# adams_marchman_2018
 
-1. Reference
+## 1. Reference
 
 Adams, K. A., Marchman, V. A., Loi, E. C., Ashland, M. D., Fernald, A., & Feldman, H. M. (2018). Caregiver talk and medical risk as predictors of language outcomes in full term and preterm toddlers. Child Development, 89(5), 1674-1690. https://doi.org/10.1111/cdev.12818
 
@@ -8,7 +8,7 @@ See also Virginia A. Marchman, Melanie D. Ashland, Elizabeth C. Loi, Katherine A
 
 Both papers report on subsets of the data from this large, longitudinal dataset. 
 
-2. Abstract
+## 2. Abstract
 
 This study examined associations between caregiver talk and language skills in full term (FT) and preterm
 (PT) children (n = 97). All-day recordings of caregiver–child interactions revealed striking similarities in
@@ -19,7 +19,7 @@ there was no evidence that birth status or medical risk moderated the effects of
 highlight the role of caregiver talk in shaping language outcomes in FT and PT children and offer insights into
 links between neurodevelopmental risk and caregiver–child engagement.
 
-3. Original study info
+## 3. Original study info
 
 The dataset we have contains 69 unique subject ids, with up to 12 admins/child, 
 corresponding roughly to 
@@ -34,7 +34,7 @@ corresponding roughly to
 
 
 
-4. Importing decisions
+## 4. Importing decisions
 
 Notes: import_outdated is written using the legacy variant and does not target the
 entirety of the dataset (so not equivalent for regression testing purposes) 

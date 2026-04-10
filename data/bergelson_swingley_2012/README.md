@@ -1,7 +1,9 @@
-1. **Reference.**
+# bergelson_swingley_2012
+
+## 1. Reference
 Bergelson, E., & Swingley, D. (2012). At 6–9 months, human infants know the meanings of many common nouns. PNAS, 109(9), 3253-3258.
 
-2.  **Abstract.**
+## 2. Abstract
 It is widely accepted that infants begin learning
 their native language not by learning words, but by discovering
 features of the speech signal: consonants, vowels, and combinations
@@ -25,7 +27,7 @@ word meanings suggests a perspective in which learning vocabulary
 and learning the sound structure of spoken language go hand in hand
 as language acquisition begins.
 
-3.  **Original study info.**
+## 3. Original study info
 
 6-9-mo-olds (n = 33, M = 7.45 mo, R = 5.99–10.00 mo; 19 female)
 10-13-mo-olds (n = 30, M = 12.13 mo, SD = 1.08 mo; 18 females)
@@ -50,7 +52,7 @@ phrase to the infant (1.5-2 seconds). Afterwards, the infant's gaze was captured
 using an Eyelink CL eye-tracker at 500Hz. The paper analyzed data from 367-3500ms
 after target onset.
 
-4.  **Importing decisions.**
+## 4. Importing decisions
 
 The carrier phrase and word were spoken by the parent in this study - they were
 instructed in a standardized way, so we don't count this against vanilla status.
@@ -71,7 +73,7 @@ there is a different number banana as the distractor for each Subject (except tw
 Our best guess is this is an error (possibly from a spreadsheet editor propogating labels incorrectly).
 We believe that when "hair1" was the target it was always paired with "banana1".
 
-5.  **Importing ambiguity.**
+## 5. Importing ambiguity
 
 CDI: Both "cdi_reg" and "cdi_old" in the data are mapped to Words &
 Gestures since all subjects were infants 6-20 months

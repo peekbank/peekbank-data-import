@@ -1,9 +1,11 @@
-1. Reference
+# moore_bergelson_2022_verb
+
+## 1. Reference
 
 Moore, C., & Bergelson, E. (2022). Examining the roles of regularity and lexical class in 18–26-month-olds’ representations of how words sound. Journal of Memory and Language, 126, 104337.
 https://doi.org/10.1016/j.jml.2022.104337
 
-2. Abstract
+## 2. Abstract
 
 By around 12 months, infants have well-specified phonetic representations for the
 nouns they understand, for instance looking less at a car upon hearing ‘cur’ than 
@@ -20,7 +22,7 @@ Finally, in Experiment 2b we find a mispronunciation effect and no regularity ef
 in 26-month-olds. The interlocking roles of lexical class and regularity for 
 wordform representations and early word learning are discussed.
 
-3. Original study info
+## 3. Original study info
 
 This dataset currently contains data from Experiments 1,  2a,  and 2b.
 
@@ -34,7 +36,7 @@ Experiment 2b includes older (24-28 month) kids tested on verbs.
 
 32 test trials (2 repeats of ) correct v incorrect x 8 words
 
-4. Importing decisions
+## 4. Importing decisions
 
     # Stimuli
 
@@ -69,6 +71,6 @@ Experiment 2b includes older (24-28 month) kids tested on verbs.
 
     even though the location of the stimuli is given in pixels, the paper makes it clear that the screen was split in two halfs for the eyetracking and the aois were counted that way
 
-5. Importing ambiguity
+## 5. Importing ambiguity
 
 The raw Eyelink 1000+ data contains overlapping fixation segments in 30 trials across both sub-datasets (VNA and NALTS), where two fixation events cover the same timestamps with different XY coordinates. We deduplicate by keeping the first row per timestamp within each trial (as found in the raw data). The affected rows make up <0.1% of the total data.

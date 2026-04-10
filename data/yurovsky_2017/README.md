@@ -1,9 +1,9 @@
-# yurovsky 2017 readme
+# yurovsky_2017
 
-1. **Reference.**
+## 1. Reference
 Yurovsky, D., & Frank, M. C. (2017). Beyond naïve cue combination: Salience and social cues in early word learning. Developmental Science, 20(2), e12349.
 
-2. **Abstract.**
+## 2. Abstract
 Children learn their earliest words through social interaction, but it is unknown how much they rely on social information. Some
 theories argue that word learning is fundamentally social from its outset, with even the youngest infants understanding intentions
 and using them to infer a social partner’s target of reference. In contrast, other theories argue that early word learning is largely
@@ -16,7 +16,7 @@ gather and deploy this information is constrained by domain-general cognitive pr
 use of social cues emerge not from learning the predictive power of social cues, but from the gradual development of attention,
 memory, and speed of information processing.
 
-3. **Original study info.**
+## 3. Original study info
 
 expt 1: 269 total kids (122 excluded), novel objects are balanced for salience
 
@@ -31,7 +31,7 @@ Salient condition = more salient is target; NonSalient = less salient is target
 Salient: 117 children (52 exclusions)
 NonSalient: 126 children (71 exclusions) 
 
-4. **Importing decisions.**
+## 4. Importing decisions
 Looking at number of subjects/expt, it seems this is approximately post exclusion data. 
 
 Design information was transcribed from an experiment run file. This corresponds with the "salient" condition
@@ -43,6 +43,6 @@ For "balanced", modi meant spoon and dax meant star (names of toys) and order wa
 Trial order was the same for all children in an experiment. 
 
 We were given preprocessed data already tagged with aoi. In the provided data, disambiguation is 1 second in. 
-5. **Importing ambiguity.**
+## 5. Importing ambiguity
 Trial order and left/right presentation of some images is not certain 
 because we had to pull from a running order plus memory of differences between experiments. 

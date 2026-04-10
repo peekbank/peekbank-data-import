@@ -1,9 +1,9 @@
-# Luchkina Waxman README
+# luchkina_waxman_2024
 
-1. Reference
+## 1. Reference
 Luchkina, E., & Waxman, S. R. (2021). Semantic priming supports infants’ ability to learn names of unseen objects. PloS one, 16(1), e0244968.
 
-2. Abstract
+## 2. Abstract
 
 Human language permits us to call to mind representations of objects, events, and ideas
 that we cannot witness directly, enabling us to learn about the world far beyond our imme-
@@ -27,14 +27,14 @@ findings suggest that the capacity to establish a representation of a novel noun
 in the absence of any visible referent and use this representation later to identify a candi-
 date referent object emerges between 12 and 15 months.
 
-3. Original study info
+## 3. Original study info
 
 This data is from the "vocabulary test" of Experiment 2. 
 Children had been trained over a preceding week on the names of these 12 objects. 
 
 Subjects were 67 12 month olds 
 
-4. Importing decisions 
+## 4. Importing decisions
 
 These trials were classified as non-vanilla given the double onset of the target nouns. 
 For phrases like "Look, a dog! Where is the dog?" the POD was set to the start of the first time 
@@ -47,5 +47,5 @@ Fixed issues:
 subject 55 is missing CDI data
 subject 5 has duplicate (exactly the same) CDI data
 
-5. Importing ambiguities
+## 5. Importing ambiguity
 none

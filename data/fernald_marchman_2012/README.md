@@ -1,13 +1,13 @@
-# Fernald and Marchman 2012 ReadME
+# fernald_marchman_2012
 
-1. Reference
+## 1. Reference
 Fernald, A., & Marchman, V. A. (2012). Individual differences in lexical processing at 18 months predict vocabulary growth in typically developing and late‐talking toddlers. Child development, 83(1), 203-222.  https://doi.org/10.1111/j.1467-8624.2011.01692.x
 
 
-2. Abstract
+## 2. Abstract
 Using online measures of familiar word recognition in the looking-while-listening procedure, this prospective longitudinal study revealed robust links between processing efficiency and vocabulary growth from 18 to 30 months in children classified as typically developing (n = 46) and as “late talkers” (n = 36) at 18 months. Those late talkers who were more efficient in word recognition at 18 months were also more likely to “bloom,” showing more accelerated vocabulary growth over the following year, compared with late talkers less efficient in early speech processing. Such findings support the emerging view that early differences in processing efficiency evident in infancy have cascading consequences for later learning and may be continuous with individual differences in language proficiency observed in older children and adults.
 
-3. Original study info
+## 3. Original study info
 "Participants were 82 children (41 female), recruited from families with 15- to 17-month-old infants identified through birth records. ...
 
 Parents were sent a questionnaire asking about demographic information, language use at home, health history, and family history of language disorders. Parents also completed a MB-CDI: Words and Gestures (Fenson et al., 2006). ...
@@ -26,7 +26,7 @@ Stimuli. Speech stimuli for each session consisted of 32 simple sentences ending
 
 recorded by a female native speaker of English. "
 
-4. Importing decisions
+## 4. Importing decisions
 
 NOTES: 
 the dataset has LWL data longitudinally on 18 / 24 / 30 mo (same kids),
@@ -117,7 +117,7 @@ which has repeated trials because two orders were administered (TL2-1, TL2-2).
 For the moment, I solved this by adding "order" as a grouping factor for administrations.
 (i.e. this subject has two administrations in the same session)
 
-5. Importing ambiguity
+## 5. Importing ambiguity
 
 Point of disambiguation is tricky for verb and adjective trials - should this be 
 the first informative moment (e.g. when an informative verb was mentioned) or at the onset of the noun?

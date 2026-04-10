@@ -1,9 +1,9 @@
-# ferguson eyetrackingr readme
+# ferguson_eyetrackingr
 
-1. **Reference.**
+## 1. Reference
 Ferguson, B., Graf, E., & Waxman, S. R. (2014). Infants use known verbs to learn novel nouns: Evidence from 15-and 19-month-olds. Cognition, 131(1), 139-146.
 
-2. **Abstract.**
+## 2. Abstract
 
 Fluent speakers’ representations of verbs include semantic knowledge about the nouns
 that can serve as their arguments. These ‘‘selectional restrictions’’ of a verb can in principle
@@ -17,7 +17,7 @@ the subject of an animacy-neutral construction (e.g., The dax is right here). Re
 that by 19 months, infants use their representations of known verbs to inform the meaning
 of a novel noun that appears as its argument.
 
-3. **Original study info.**
+## 3. Original study info
 
 30 19-month olds and 29 15 month olds were in the final sample. 
 
@@ -37,7 +37,7 @@ Each infant does 6 familiar trials *then* 6 unfamiliar trials.
 
 Except that according to eyetrackingr documentation, this is on 19 and 24 months...and only the familiar trials. 
 
-4. **Importing decisions.**
+## 4. Importing decisions
 
 I think this is the familiar data from 28 of the 30 19(ish) month olds.
 We do not have data from subjects who were excluded, or from other age groups, or for the unfamiliar trials.
@@ -54,6 +54,6 @@ full AOI XY-coordinates are taken from ancat-aoi.txt
 
 Decision that we will only import data during the "test" phase when the images are back on screen.
 
-5. **Importing ambiguity.**
+## 5. Importing ambiguity
 
 In the raw data, some timepoints had an empty value for the "AOI" column. We interpret this as "missing", since the "TrackLoss" columns has TRUE values for all of these. This is ambiguous, since there is also the AOI value "TrackLoss" to indicate missing data. Since the empty field cannot be clearly identified as "other", we use the "TrackLoss" column as our source of truth.

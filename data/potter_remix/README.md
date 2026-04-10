@@ -1,19 +1,19 @@
-# potter_remix README
+# potter_remix
 
-1. **Reference**
+## 1. Reference
 
 Potter, C.E., Fourakis, E., Morin-Lessard, E., Byers-Heinlein, K., & Lew-Williams, C. (2019). Bilingual toddlers’ comprehension of mixed sentences is asymmetrical across their two languages. Developmental Science, 22(4), e12794.
 
-2. **Abstract**
+## 2. Abstract
 
 In bilingual language environments, infants and toddlers listen to two separate languages during the same key years that monolingual children listen to just one and bilinguals rarely learn each of their two languages at the same rate. Learning to understand language requires them to cope with challenges not found in monolingual input, notably the use of two languages within the same utterance (e.g., Do you like the perro? or ¿Te gusta el doggy?). For bilinguals of all ages, switching between two languages can reduce the efficiency in real-time language processing. But language switching is a dynamic phenomenon in bilingual environments, presenting the young learner with many junctures where comprehension can be derailed or even supported. In this study, we tested 20 Spanish-English bilingual toddlers (18- to 30-months) who varied substantially in language dominance. Toddlers' eye movements were monitored as they looked at familiar objects and listened to single-language and mixed-language sentences in both of their languages. We found asymmetrical switch costs when toddlers were tested in their dominant versus non-dominant language, and critically, they benefited from hearing nouns produced in their dominant language, independent of switching. While bilingualism does present unique challenges, our results suggest a united picture of early monolingual and bilingual learning. Just like monolinguals, experience shapes bilingual toddlers' word knowledge, and with more robust representations, toddlers are better able to recognize words in diverse sentences.
 
-3. **Original study info**
+## 3. Original study info
 
 - Four main trial types tested: an english sentence with an english target word (called english_to_english in the script when importing data), an english sentence with a spanish target word (english_to_spanish), a spanish sentence with a spanish target word (spanish_to_spanish), and a spanish sentence with an english target word (spanish_to_english).
 - the main conditions were either "same" (spanish_to_spanish and english_to_english) or "mix" (english_to_spanish and spanish_to_english)
 
-4. **Importing decisions**
+## 4. Importing decisions
     - time columns truncated at 3900 ms (since only missing data after this point)
     - "offs" and "aways" ("." and "-" in the raw data) were coded as missing. Below is an overview of what each coded value represents in iCoder data:
         - “0” ~“distractor” (look to distractor)
@@ -29,7 +29,7 @@ In bilingual language environments, infants and toddlers listen to two separate 
     - distractor_id was matched based on the target label's language (so if the distractor object was a balloon and the target label was in Spanish, the implicit distractor label was determined to be globo)
     - full_phrase_language is set to "multiple" in mixed-language conditions.
 
-5. **Importing ambiguity**
+## 5. Importing ambiguity
     - unknown whether the other components of the order column in the initial import had significance, so they were disregarded (ex. "Mix_e1_wc" vs. "Mix_e2_wc" vs. "Mix_e1" etc.)
     - how to handle distractor_id is unclear (i.e., what label to implicitly assign to distractor)
     - Data included 44 administrations across 44 unique subject IDs, but study makes reference to two separate administrations with 20 total subjects. Matching for demographics, it appears the first integer of the ID tracks the admin #, and the rest of the subject ID is unique to each subject.

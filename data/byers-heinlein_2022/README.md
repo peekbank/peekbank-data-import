@@ -1,12 +1,12 @@
-# byers-heinlein_2022 README
+# byers-heinlein_2022
 
-1. **Reference**
+## 1. Reference
 Byers-Heinlein, K., Jardak, A., Fourakis, E., & Lew-Williams, C. (2022). Effects of language mixing on bilingual children's word learning. Bilingualism, 25(1): 55-69.
 
-2. **Abstract**
+## 2. Abstract
 Language mixing is common in bilingual children’s learning environments. Here, we investigated effects of language mixing on children’s learning of new words. We tested two groups of 3-year-old bilinguals: French–English (Experiment 1) and Spanish–English (Experiment 2). Children were taught two novel words, one in single-language sentences (“Look! Do you see the dog on the teelo?”) and one in mixed-language sentences with a mid-sentence language switch (“Look! Do you see the chien/perro on the walem?”). During the learning phase, children correctly identified novel targets when hearing both single-language and mixed-language sentences. However, at test, French–English bilinguals did not successfully recognize the word encountered in mixed-language sentences. Spanish–English bilinguals failed to recognize either word, which underscores the importance of examining multiple bilingual populations. This research suggests that language mixing may sometimes hinder children’s encoding of novel words that occur downstream, but leaves open several possible underlying mechanisms.
 
-3. **Original study info**
+## 3. Original study info
 Two experiments tested whether language mixing affects 3-year-old bilinguals' novel word learning.
 Children saw pairs of familiar objects (dog, bunny, fish) standing/sitting on novel objects (teelo, walem), one pair on each side of the screen. Sentences named both the familiar and novel object (e.g., "Look! Do you see the dog on the walem?").
 
@@ -17,7 +17,7 @@ Children saw pairs of familiar objects (dog, bunny, fish) standing/sitting on no
 - Condition: "Mixed" (familiar word in the other language) or "Single" (all one language)
 - No trials are vanilla: training trials have 4 objects on screen with both familiar and novel words named; test trials target novel objects
 
-4. **Importing decisions**
+## 4. Importing decisions
 
 - Montreal AOI data was already precomputed in the raw data (boolean hit columns: targetfamiliar, targetnovel, distractorfamiliar, distractornovel), so we use coding_method "preprocessed eyetracking". NJ gaze data was manually coded as T(arget)/D(istractor)/A(way), so coding_method "manual gaze coding". AOI region set coordinates are not available for either experiment.
 
@@ -33,7 +33,7 @@ Children saw pairs of familiar objects (dog, bunny, fish) standing/sitting on no
 
 - Trial data files only contain included participants (keeper=1). Excluded participants (10 Montreal, 5 NJ) have no trial data in the raw CSVs, so all subjects in the import have excluded = FALSE in our data.
 
-5. **Importing ambiguity**
+## 5. Importing ambiguity
 
 - For mixed-language trials, target_stimulus_label_original is the word as actually spoken (i.e., in the non-carrier language). Montreal French translations confirmed from phrase data: dog->chien, bunny->lapin, fish->poisson. For NJ, the paper only explicitly mentions "perro" (dog). We used common Spanish translations: dog->perro, bunny->conejo, fish->pez. The exact Spanish words used in the experiment were not available.
 

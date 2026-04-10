@@ -1,12 +1,14 @@
-1. **Reference.**
+# weaver_saffran_2026
+
+## 1. Reference
 
 Weaver H, Saffran JR. Interrogating Early Word Knowledge: Factors That Influence the Alignment Between Caregiver-Report and Experimental Measures. Dev Sci. 2026 Jan;29(1):e70088. doi: 10.1111/desc.70088. PMID: 41217046.
 
-2. **Abstract.**
+## 2. Abstract
 
 Questions about early word knowledge pervade the literature on both typical and atypical language trajectories. To determine which words an infant knows, researchers have relied on two types of measures—caregiver-report and eye-gaze behavior. When these measures are compared, however, their results frequently fail to converge, making it difficult to ascertain whether a given infant knows a given set of words. What are the reasons for these misalignments in gold-standard tasks that are designed to investigate the same underlying construct, and can convergent validity be improved? The current study was designed to investigate multiple methodological features of caregiver-report and looking-while-listening (LWL) tasks hypothesized to contribute to their alignment. American English-learning infants (18–20 months; N = 52) completed an LWL task assessing their understanding of eight early-acquired words. Caregivers reported their child's knowledge of the same eight words, as well as their confidence in their responses and the amount of time they spend with their child. Overall, caregivers’ reports of word knowledge did not predict infants’ eye-gaze behavior. However, the measures were more likely to be aligned when caregivers reported higher confidence in their responses. Caregivers’ reports about both the target and the distractor word on each trial were related to infants’ eye-gaze behavior, suggesting that LWL tasks capture knowledge about the labels of both objects tested, not just the label of the target object. The results suggest several critical methodological modifications that could be implemented to improve the measurement validity of both caregiver-report and eye-gaze measures of word comprehension.
 
-3. **Original study info.**
+## 3. Original study info
 
 Participants: 52 infants, 18–20 months (M = 18.81), 28 female
 
@@ -17,7 +19,7 @@ Methods:
 - MB-CDI short form + study-specific vocabulary checklist with per-word confidence ratings
 
 
-4. **Importing decisions.**
+## 4. Importing decisions
 
 AOI computation: The original data doesn't feature coded AOI values for "other". Thus, we ignore the AOIs provided by the authors and recomputed AOI from coordinates with an "other" category:
 - If GazePointXMean or GazePointYMean is NA -> "missing"
@@ -34,6 +36,6 @@ It follows that our (included) sample size differs from the one reported in the 
 We reconstructed the four conditions found in the paper. This approach resulted in an uneven number of trial types, as not every wordpair appeared in every constellation (e.g. "ball" was understood by every participant, meaning pairs including it would never appear in the condition "comprehends neither").
 
 
-5. **Importing ambiguity.**
+## 5. Importing ambiguity
 
 Duplicate timestamps: The raw data contains 9557 duplicate timestamp pairs (always exactly 2 per affected timestamp, spread sporadically across all subjects and trials), likely a preprocessing/time-binning artifact from the authors' pipeline. Of these, 5298 are exact copies; the remaining 4259 differ in gaze (mean) coordinates (`GazePointXMean`/`GazePointYMean`). Among divergent pairs where both rows have valid coordinates (2280 pairs), the median difference is only around 16px for X and 15px for Y; 7 pairs have coordinates far enough apart to land in opposite AOIs (Left vs Right). We deduplicate by keeping the row with valid gaze data when available; when both have valid coordinates, the first is kept. Uncomment the `report_duplicate_timepoints()` call in `import.R` to reproduce these numbers.

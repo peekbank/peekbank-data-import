@@ -1,14 +1,14 @@
-# pomper_dimy readme
+# pomper_dimy
 
-1. **Reference.**
+## 1. Reference
 
 Pomper, R., & Saffran, J. R. (unpublished). Unpublished "Dimy" study: Do infants learn to associate diminutive forms with animates?
 
-2. **Abstract.**
+## 2. Abstract
 
 This study investigated whether infants associate diminutive endings ("daxy") with unfamiliar animals (vs. vehicles). The study also includes trials of familiar words with and without diminutive endings. There are two "pilot" studies total (never published) at two different age ranges (~ 15 months and ~ 18 months).
 
-3. **Original study info.**
+## 3. Original study info
 
 Condition info:
 - intro: these are vanilla familiar trials
@@ -22,7 +22,7 @@ There are two datasets available (pilot1 and pilot2). There are some small diffe
 There appears to be a CDI data file available (short form), in the file DimY_cdi_deID.csv, but it looks messy and has not been imported (but could be in the future). 
 
 
-4. **Importing decisions.**
+## 4. Importing decisions
 
 - There are raw by-participant trial lists (zipped data folder), raw eyetracking data (zipped eyetrackingData folder), and trial lists available, but we choose to import the somewhat cleaned up gaze data from the original author. Raw data kept on OSF in case ever useful for validating the import (MZ: I dug out a lot of additional files here from the old lab servers to help triangulate missing information if ever helpful).
 - Tobii x/y coordinates start from top left, so need to compute y-coordinate as SCREEN_SIZE - tobii_y_coordinate (i.e. flip the y-axis) to get bottom-right origin.
@@ -34,7 +34,7 @@ There appears to be a CDI data file available (short form), in the file DimY_cdi
 - data for a small set of participants is quite sparse and/or appears to be low quality (this also tends to track with the comments in the participant demographics, e.g. "bad calibration"). We retain this data, with the exception of one participant with almost no valid AOI samples (7 total), namely the participant with the subject code "217".
 
 - there are many trial types (near identical to each other) because the audio onsets were slightly different in different trials in different administrations
-5. **Importing ambiguity.**
+## 5. Importing ambiguity
 
 - the point of disambiguation within audio stimuli was determined to be roughly 2930 ms based on inspecting the actual onsets within the auditory stimuli (communication with the original authors suggested 2950 ms, but this seems a little late relative to actual files). This seems to vary a tad across trials (sometimes onset seems 10ish ms earlier or later, but seems pretty close to right).
 - half of the novel/unfamiliar animals are never named/ appear only in distractor position. For these items, we mark the stimulus_novelty as "novel" and make their stimulus label identical to the image name (for lack of a better obvious alternative label)

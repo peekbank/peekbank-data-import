@@ -1,13 +1,13 @@
-# Newman and Morini 2017 README
+# newman_genderdistractor
 
-1. Reference
+## 1. Reference
 Newman, R. S., & Morini, G. (2017). Effect of the relationship between target and masker sex on infants' recognition of speech. The Journal of the Acoustical Society of America, 141(2), EL164-EL169.
 
-2. Abstract
+## 2. Abstract
 When faced with multiple people speaking simultaneously, adult listeners use the sex of the talkers as a cue for separating competing streams of speech. As a result, adult listeners show better performance when a target and a background voice differ from one another in sex. Recent research suggests that infants under 1 year do not show this advantage. So when do infants begin to use talker-gender cues for stream segregation? These studies find that 16-month-olds do not show an advantage when the masker and target differ in sex. However, by 30 months, toddlers show the more adult-like pattern of performance.
 
 
-3. Original study info
+## 3. Original study info
 Expt 1 is on 18 30-month toddlers (+3 reported exclusions).
 
 Target stream is a female voice attracting attention to the target object. 
@@ -25,7 +25,7 @@ for 16 months. While 0db is not mentioned in the paper, the file folder names ex
 we assume from context that 0db refers to the SNR (aka how much quieter the distractor voice was than the main speaker), 
 meaning that 0db would be an equally loud distractor. 
 
-4. Importing decisions:
+## 4. Importing decisions
 
 3 participants who had less than the full set of 20 trials in the raw data were dropped
 of issues with trial order coding. However, some other participants seem to only have 
@@ -48,7 +48,7 @@ using LDS instead.
 
 These trials are non-vanilla due to the presence of another speaker voice in audio.
 
-5. Importing ambiguity
+## 5. Importing ambiguity
 
 unclear how to apply exclusions -- paper talks about some fussiness exclusions and 
 one child excluded for a later autism diagnosis. Demographic data has a keep-drop 

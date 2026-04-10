@@ -1,12 +1,12 @@
-# Reflook socword  Readme
+# reflook_socword
 
-1. Reference
+## 1. Reference
 Yurovsky, D., Wade, A., & Frank, M. C. (2013). Online processing of speech and social information in early word learning. In Proceedings of the 35th Annual Meeting of the Cognitive Science Society.
 
 Yurovsky, D., Wade, A., Kraus, A. M., Gengoux, G. W., Antonio, Y., & Frank, M. C. (2017). Developmental changes in the speed of social attention in early word learning. (unpublished)
 (available at https://callab.uchicago.edu/papers/ywkghf-ur.pdf)
 
-2. Abstract
+## 2. Abstract
 
 Although word learning unfolds over days, weeks, and months,
 individual naming events are over in a matter of seconds. To
@@ -39,7 +39,7 @@ route by which increases in social expertise can lead to changes in language lea
 and more generally highlight the dependence of developmental outcomes not on just the
 existence of particular competencies, but on their proficient use in complex contexts.
 
-3. Original study info
+## 3. Original study info
 
 This study is reported in the cogsci paper, and also as expt 3 in an unpublished ms. 
 The unpublished ms includes more children and also describes more trials. (only the first 
@@ -54,7 +54,7 @@ Each child did 8 familiar trials, learning trials (not included here),
 (4 in brief, 4 in extended)  and 4 trials with the two novel objects against each other. 
 
 
-4. Importing decisions
+## 4. Importing decisions
 
 Note that some of the import processing code is in functions in import_helpers.R.
 
@@ -78,4 +78,4 @@ The `## Converted from:` lines in the file headers confirm the correct subject I
 All four subjects (141, 142, 237, 242) appear in the demographics file as distinct
 individuals, so we correct this mixup in the import script.
 
-5. Importing ambiguity
+## 5. Importing ambiguity

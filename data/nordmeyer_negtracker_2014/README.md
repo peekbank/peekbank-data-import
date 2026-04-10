@@ -1,8 +1,8 @@
-# nordmeyer_negtracker readme
+# nordmeyer_negtracker_2014
 
-1. **Reference.**
+## 1. Reference
 Nordmeyer, A. E., Frank, M. C. (2014). The role of context in young children's comprehension of negation. Journal of Memory and Language, 77, 25–39.
-2. **Abstract.**
+## 2. Abstract
 Negation is an important concept in human language, yet little is known about children’s
 ability to comprehend negative sentences. In this paper, we explore how 2–5-year-old chil-
 dren’s comprehension of negation changes depending on the context in which a negative
@@ -17,7 +17,7 @@ noun when the referent of the negative utterance was an alternative object. We a
 the processing of negation in young children is influenced by the cognitive demands of the
 pragmatic context in which the negative utterance occurs.
 
-3. **Original study info.**
+## 3. Original study info
 
 Experiment 1:  This left a total of 79 children whose data was analyzed; 24 two-year-olds, 31 three-year-olds, and
 24 four-year-olds. Each child saw 16 trials, 8 in each of positive and negative condition. During the test phase, 
@@ -30,7 +30,7 @@ The images on the screen were a boy/girl with some other objects and a boy/girl 
 The phrase was "look at the boy who has [no] apples". (or other object)
 
 
-4. **Importing decisions.**
+## 4. Importing decisions
 
 Data from children who were excluded has not been imported 
 (although at least some of it is in raw datafiles). 
@@ -44,6 +44,6 @@ Following paper, point of disambiguation in all materials is on start of noun. (
 AOI boxes use a 400px dead zone in the center of the screen (left: 0–640, right: 1040–1680 on a 1680px screen), matching the paper's analysis: "excluding a 400 pixel zone in the middle of the two targets."
 
 
-5. **Importing ambiguity.**
+## 5. Importing ambiguity
 
 none 

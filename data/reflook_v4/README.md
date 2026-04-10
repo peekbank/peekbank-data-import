@@ -1,9 +1,10 @@
+# reflook_v4
 
-1. **Reference.**
+## 1. Reference
 
 Yurovsky, D., Wade, A., Kraus, A. M., Gengoux, G. W., Hardan, A. Y., Frank, M. C. (2024). Developmental changes in the speed of social attention in early word learning. https://osf.io/preprints/psyarxiv/bcrj2_v1
 
-2. **Abstract.**
+## 2. Abstract
 
 How do children learn words so rapidly? A powerful source of information about a new
 word’s meaning is the set of social cues provided by its speaker (e.g. eye-gaze). Studies of
@@ -19,7 +20,7 @@ route by which increases in social expertise can lead to changes in language lea
 and more generally highlight the dependence of developmental outcomes not on just the
 existence of particular competencies, but on their proficient use in complex contexts.
 
-3. **Original study info.**
+## 3. Original study info
 
 TODO: Clear this up
 
@@ -40,7 +41,7 @@ Conditions:
 - novel: Trials testing learning of novel words "toma" and "fep"
 
 
-4. **Importing decisions.**
+## 4. Importing decisions
 
 - We removed trials from the data that ended before the point of disambiguation.
 - Negative left x-coordinates in AOI definitions are clamped to 0 instead of being treated as errors or
@@ -48,7 +49,7 @@ Conditions:
 - All participants are hardcoded as English native speakers. This assumes the dataset doesn't include the <75% English exposure participants that the paper mentions excluding (there is no exclusion information given by the paper).
 - Only the test trials are included, the learning phases where participants watched videos that featured the stimuli are not included.
 
-5. **Importing ambiguity.**
+## 5. Importing ambiguity
 
 - Exclusion information of a participant level existed in the raw data, but only coded as integers in an "exclude" column. We made the decision to only count 0 as "not excluded" and any other number as "excluded", since 0 was the majority value (approx. 95%)
 - There is more fine grained exclusion info in the paper (e.g. exclude all trials with < 50% usable eye-tracking data), but as per peekbank policy, we did not rebuild those. If you want to closely replicate the papers data, please consider checking out the [original repository](https://github.com/dyurovsky/refword/blob/c511ac840ffc271dc02b42f6fae9a77b2bc55197/R/analyze_reflook.Rmd#L92).
