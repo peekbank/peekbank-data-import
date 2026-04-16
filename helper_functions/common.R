@@ -104,15 +104,21 @@ init <- function(dataset_name, osf_address = "pr6wu") {
   return(data_path)
 }
 
-validate_dataset <- function(dataset_name, output_path, cdi_expected) {
-  errors <- peekbankr::ds.validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected)
-  if (!file.exists(here("data", dataset_name, "README.md"))) {
-    errors <- c(errors, "Missing README.md in dataset folder")
-  }
-  errors
+read_pipeline_registry <- function() {
+  registry_path <- here("pipeline_registry.csv")
+  if (file.exists(registry_path)) read_csv(registry_path, show_col_types = FALSE) else tibble(dataset_name = character(), cdi_expected = logical(), suppress_warnings = character())
 }
 
-write_and_validate_list <- function(dataset_list, cdi_expected, upload=FALSE){
+validate_dataset <- function(dataset_name, output_path, cdi_expected, suppress_warnings = c()) {
+  result <- peekbankr::ds.validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected,
+                                                  suppress_warnings = suppress_warnings)
+  if (!file.exists(here("data", dataset_name, "README.md"))) {
+    result$errors <- c(result$errors, "Missing README.md in dataset folder")
+  }
+  result
+}
+
+write_and_validate_list <- function(dataset_list, cdi_expected, upload=FALSE, suppress_warnings=c()){
   write_and_validate(
     dataset_name = dataset_list[["datasets"]]$dataset_name,
     cdi_expected = cdi_expected,
@@ -125,7 +131,8 @@ write_and_validate_list <- function(dataset_list, cdi_expected, upload=FALSE){
     aoi_region_sets = dataset_list[["aoi_region_sets"]],
     xy_timepoints = dataset_list[["xy_timepoints"]],
     aoi_timepoints = dataset_list[["aoi_timepoints"]],
-    upload=upload
+    upload=upload,
+    suppress_warnings=suppress_warnings
   )
 }
 
@@ -141,7 +148,8 @@ write_and_validate <- function(
     aoi_region_sets = NA,
     xy_timepoints = NA,
     aoi_timepoints,
-    upload = FALSE) {
+    upload = FALSE,
+    suppress_warnings = c()) {
   if (missing(cdi_expected)) {
     stop("Need to specifiy cdi_expected argument of type logical to validator")
   }
@@ -150,12 +158,11 @@ write_and_validate <- function(
   output_path <- here(basepath, "processed_data")
   dir.create(here(output_path), showWarnings = FALSE)
 
-  # register cdi_expected so the global validator can check without re-running imports
-  registry_path <- here("cdi_registry.csv")
-  registry <- if (file.exists(registry_path)) read.csv(registry_path, stringsAsFactors = FALSE) else data.frame(dataset_name = character(), cdi_expected = logical())
+  # register cdi_expected and suppress_warnings so the global validator can check without re-running imports
+  registry <- read_pipeline_registry()
   registry <- registry[registry$dataset_name != dataset_name, ]
-  registry <- rbind(registry, data.frame(dataset_name = dataset_name, cdi_expected = cdi_expected))
-  write.csv(registry, registry_path, row.names = FALSE)
+  registry <- rbind(registry, tibble(dataset_name = dataset_name, cdi_expected = cdi_expected, suppress_warnings = paste(suppress_warnings, collapse = ";")))
+  write_csv(registry, here("pipeline_registry.csv"))
 
   write_csv(dataset, file = here(output_path, "datasets.csv"))
   write_csv(subjects, file = here(output_path, "subjects.csv"))
@@ -175,12 +182,20 @@ write_and_validate <- function(
 
   # run validator
   cat("\n\n------ Validating... ------\n\n")
-  errors <- validate_dataset(dataset_name, output_path, cdi_expected)
-  if (is.null(errors)) {
+  result <- validate_dataset(dataset_name, output_path, cdi_expected, suppress_warnings)
+  has_warnings <- length(result$warnings) > 0
+  has_errors <- length(result$errors) > 0
+  if (has_warnings) {
+    cat("Validation warnings (these block validation; add the warning name to the suppress_warnings argument if expected):\n")
+    for (i in seq_along(result$warnings)) {
+      cat(paste0("  [", names(result$warnings)[i], "] ", result$warnings[i], "\n"))
+    }
+  }
+  if (!has_errors && !has_warnings) {
     print("Dataset fully passed the validation!")
   } else {
     print("Dataset did NOT pass the validation!")
-    print(errors)
+    if (has_errors) print(result$errors)
   }
 
   # a way to stop the prints/plotting when running the scripts centralized
@@ -620,7 +635,7 @@ write_and_validate <- function(
     # a way to stop the prints/plotting when running the scripts centralized
     # a bit hacky, but good enough for now
     if (!exists("external_block_peekbank_separate_upload")) {
-      if(is.null(errors)){
+      if(length(result$errors) == 0 && length(result$warnings) == 0){
         upload_osf(dataset_name)
       }else{
         print("Not uploading dataset as the validation failed")

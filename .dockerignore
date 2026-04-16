@@ -8,7 +8,7 @@ renv/.cache/
 .RData
 .Ruserdata
 osf_token.txt
-cdi_registry.csv
+pipeline_registry.csv
 Rplots.pdf
 *.zip
 *.curltmp

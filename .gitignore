@@ -9,7 +9,7 @@ raw_data
 processed_data
 *.zip
 *.curltmp
-cdi_registry.csv
+pipeline_registry.csv
 data/fmw_2013/temp_figures
 CLAUDE.md
 .lintr

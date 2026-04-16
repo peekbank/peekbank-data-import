@@ -37,21 +37,22 @@ validate_all <- function() {
   # validates all datasets and prints the validation messages
   # returns a list of the validation errors in the following format:
   # "dataset_name: error message"
-  
+
   datasets <- list_all(activeonly = TRUE)
 
-  registry_path <- here("cdi_registry.csv")
-  cdi_registry <- if (file.exists(registry_path)) read.csv(registry_path, stringsAsFactors = FALSE) else data.frame(dataset_name = character(), cdi_expected = logical())
+  pipeline_registry <- read_pipeline_registry()
 
   failed_validations <- datasets %>%
     lapply(\(dataset){
       print(glue("Validating {dataset}"))
 
-      registry_row <- cdi_registry[cdi_registry$dataset_name == dataset, ]
+      registry_row <- pipeline_registry[pipeline_registry$dataset_name == dataset, ]
       if (nrow(registry_row) == 0) {
         return(glue("{dataset}: no cdi indicator found - be sure to use the write_and_validate function in the script"))
       }
       cdi_expected <- registry_row$cdi_expected
+      sw <- registry_row$suppress_warnings
+      suppress_warnings <- if (!is.na(sw) && nzchar(sw)) strsplit(sw, ";")[[1]] else c()
 
       # only validate if processed_data is present
       output_path <- here("data", dataset, "processed_data")
@@ -61,10 +62,22 @@ validate_all <- function() {
 
       tryCatch(
         {
-          errors <- validate_dataset(dataset, output_path, cdi_expected)
+          result <- validate_dataset(dataset, output_path, cdi_expected, suppress_warnings)
 
-          error_string <- paste(errors, collapse = " ")
-          ifelse(!is.null(errors), glue("{dataset}: {error_string}"), "")
+          problems <- c()
+          if (length(result$errors) > 0) {
+            problems <- c(problems, result$errors)
+          }
+          if (length(result$warnings) > 0) {
+            formatted_warnings <- paste0("[", names(result$warnings), "] ", result$warnings)
+            problems <- c(problems, formatted_warnings)
+          }
+
+          if (length(problems) > 0) {
+            glue("{dataset}: {paste(problems, collapse = ' ')}")
+          } else {
+            ""
+          }
         },
         error = \(e) {
           glue("{dataset}: validator threw error, {e}")
@@ -75,7 +88,7 @@ validate_all <- function() {
 
   print("These datasets failed validation:")
   print(failed_validations[failed_validations != ""])
-  
+
   return(failed_validations[failed_validations != ""])
 }
 
