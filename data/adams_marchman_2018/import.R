@@ -321,7 +321,7 @@ dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
 
 gc()
 
-write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = F, suppress_warnings = c("duplicate_cdi"))
+write_and_validate_list(dataset_list, cdi_expected = TRUE, upload = F, suppress_warnings = c("cdi_collision"))
 
 gc()
 
