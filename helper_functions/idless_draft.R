@@ -145,15 +145,28 @@ digest.dataset <- function(
       stop("No XY + region data available and no 'aoi' column found in wide.table. Please provide XY coordinates + region columns or an 'aoi' column.")
     }
   } else {
+    # Only rows that carry region bounds can have their AOI
+    # derived from the geometry, the rest keep their precomputed value.
+    computable <- !is.na(data$l_x_max) & !is.na(data$r_x_max)
+
     if ("aoi" %in% colnames(data) && any(!is.na(data$aoi))) {
       if (use_aoi_column) {
         warning("Pre-computed 'aoi' column is being used, but XY + region data is available. Only use this behavior for comparing the computed aois and set use_aoi_column to FALSE for the actual data to be uploaded.")
-      } else {
+      } else if (all(computable)) {
         warning("Pre-computed 'aoi' column found but will be ignored; AOI is being computed from XY + region data.")
       }
+    } else if (!use_aoi_column && !all(computable)) {
+      stop(sprintf("%d of %d rows have no AOI region bounds and there is no precomputed 'aoi' column to fall back on.", sum(!computable), length(computable)))
     }
     if (!use_aoi_column) {
-      data <- peekbankr::ds.compute_aois(data)
+      if (all(computable)) {
+        data <- peekbankr::ds.compute_aois(data)
+      } else {
+        # as.character() because aoi was factorized above, and assigning a label
+        # that is not already a level would silently produce NA
+        data$aoi <- as.character(data$aoi)
+        data$aoi[computable] <- peekbankr::ds.compute_aois(data[computable, ])$aoi
+      }
     } else if (!"aoi" %in% colnames(data) || all(is.na(data$aoi))) {
       stop("use_aoi_column = TRUE but no 'aoi' column found in wide.table")
     }
