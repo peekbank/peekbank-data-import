@@ -230,7 +230,7 @@ xy.data <- xy.data %>%
 # assign aoi based on aoi_coordinates
 # find correct aoi based on trials
 aoi_timepoints <- xy_merged.data %>%
-  peekbankr::ds.add_aois() %>%
+  peekbankr::ds.compute_aois() %>%
   select(administration_id, trial_id, t, aoi, point_of_disambiguation) %>%
   peekbankr::ds.rezero_times(.) %>%
   peekbankr::ds.normalize_times(.) %>%

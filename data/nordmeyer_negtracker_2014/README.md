@@ -46,4 +46,8 @@ AOI boxes use a 400px dead zone in the center of the screen (left: 0–640, righ
 
 ## 5. Importing ambiguity
 
-none 
+Tracking failures are recorded as the coordinate (0, 0) rather than as missing, and we convert them to NA before computing AOIs.
+Indicators that (0, 0) is a no-data code and not a gaze position:
+- the left and right eye report always report it in unison and never independently
+- (0,0) appears multiple orders of magnitude more often than positionally close values
+- there is no qualitative "missing gaze" data here, indicating 0% missing data if we dont classify it this way (unrealistic) 

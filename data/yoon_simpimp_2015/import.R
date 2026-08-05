@@ -23,7 +23,9 @@ stimulus_mapping <- read_csv(here(data_path, "stimuli_mapping.csv")) |> clean_na
 
 combined_data <- data_ex_1 |>
   bind_rows(data_ex_2) |>
-  inner_join(exclusion_data, by = "subid")
+  inner_join(exclusion_data, by = "subid") |>
+  # (0, 0) is this tracker's no-data code, not a gaze position - see the README
+  mutate(across(c(x, y), ~ if_else(x == 0 & y == 0, NA_real_, .x)))
 
 if (nrow(combined_data) == 0) {
   stop("Exclusion data join produced zero rows - check that subid columns match")

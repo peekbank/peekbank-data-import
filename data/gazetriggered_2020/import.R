@@ -191,6 +191,21 @@ exclusion_data <- tibble(
 # nrow(fixations %>% filter(!is.na(audio2_onset)) %>% distinct(Participant))
 # nrow(d %>% distinct(subject_id)
 
+### 7. AOI REGION SETS TABLE
+# Not reported in the paper: derived from the min/max of the xy coordinates that the raw
+# OnTarget/OnDistractor flags marked as looks.
+aoi_region_sets <- tibble(
+  aoi_region_set_id = 0,
+  l_x_min = 0,
+  l_x_max = 700,
+  l_y_min = 0,
+  l_y_max = 900,
+  r_x_min = 900,
+  r_x_max = 1600,
+  r_y_min = 0,
+  r_y_max = 900
+)
+
 d_pre <- fixations %>%
   filter(!is.na(audio2_onset)) %>% # point of disambiguation missing
   arrange(Participant, Timestamp) %>%
@@ -213,13 +228,11 @@ d_pre <- fixations %>%
     y = y,
     lab_trial_id = NA,
     condition = condition,
-    aoi = case_when(
-      !OnScreen ~ "missing",
-      OnTarget ~ "target",
-      OnDistractor ~ "distractor",
-      TRUE ~ "other"
-    )
+    monitor_size_x = 1600,
+    monitor_size_y = 900
   ) %>%
+  mutate(!!!as.list(aoi_region_sets %>% select(-aoi_region_set_id))) %>%
+  peekbankr::ds.compute_aois() %>%
   left_join(subjects %>% select(subject_id, lab_subject_id), by = join_by(lab_subject_id)) %>%
   # this filter is based in a hist() plot of the resampled t_norm, nearly all data points fall
   # into the -4000 to 3000 range, with very few outliers having earlier t_norms.
@@ -297,24 +310,6 @@ trials <- d %>%
   mutate(
     trial_aux_data = NA
   )
-
-### 7. AOI REGION SETS TABLE
-# Not reported in the paper. Derived from the full range (min/max) of
-# xy gaze coordinates classified as target/distractor by the raw data.
-# Note: the raw OnTarget/OnDistractor flags are only active during a specific
-# time window, so some gaze samples within AOI bounds are classified as "other".
-aoi_region_sets <- tibble(
-  aoi_region_set_id = 0,
-  l_x_min = 0,
-  l_x_max = 700,
-  l_y_min = 0,
-  l_y_max = 900,
-  r_x_min = 900,
-  r_x_max = 1600,
-  r_y_min = 0,
-  r_y_max = 900
-)
-
 
 ### 8. XY TABLE
 xy_timepoints <- d %>%

@@ -417,15 +417,12 @@ trial_types <- d_tidy_final %>%
 #### AOI timepoints Table ####
 aoi_timepoints <- d_tidy_final %>%
   mutate(
-    aoi = case_when(
-      look_target == 1 ~ "target",
-      look_distractor == 1 ~ "distractor",
-      # add on-screen looks not to target or distractor
-      gaze_point_x <= 1920 & gaze_point_x >= 0 & gaze_point_y <= 1200 & gaze_point_y >= 0 ~ "other",
-      TRUE ~ "missing"
-    )
+    x = gaze_point_x,
+    y = gaze_point_y,
+    monitor_size_x = .env$monitor_size_x,
+    monitor_size_y = .env$monitor_size_y
   ) %>%
-  relocate(aoi, .after = look_any) %>%
+  peekbankr::ds.compute_aois() %>%
   select(administration_id, t, aoi, trial_id, point_of_disambiguation) %>%
   peekbankr::ds.rezero_times(.) %>%
   peekbankr::ds.normalize_times(.) %>%

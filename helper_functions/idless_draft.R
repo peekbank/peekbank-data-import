@@ -1,29 +1,9 @@
 library(peekbankr)
 library(tidyverse)
 library(stringr)
+library(here)
 
-generate_aois <- function(x, y, target_side,
-                          l_x_max, l_x_min, l_y_max, l_y_min,
-                          r_x_max, r_x_min, r_y_max, r_y_min,
-                          monitor_size_x = NA, monitor_size_y = NA) {
-  mon_x <- ifelse(is.na(monitor_size_x), Inf, monitor_size_x)
-  mon_y <- ifelse(is.na(monitor_size_y), Inf, monitor_size_y)
-
-  ifelse(target_side == "left",
-    case_when(
-      x <= l_x_max & x >= l_x_min & y <= l_y_max & y >= l_y_min ~ "target",
-      x <= r_x_max & x >= r_x_min & y <= r_y_max & y >= r_y_min ~ "distractor",
-      is.na(x) | is.na(y) | x > mon_x | x < 0 | y > mon_y | y < 0 ~ "missing",
-      .default = "other"
-    ),
-    case_when(
-      x <= l_x_max & x >= l_x_min & y <= l_y_max & y >= l_y_min ~ "distractor",
-      x <= r_x_max & x >= r_x_min & y <= r_y_max & y >= r_y_min ~ "target",
-      is.na(x) | is.na(y) | x > mon_x | x < 0 | y > mon_y | y < 0 ~ "missing",
-      .default = "other"
-    )
-  )
-}
+source(here("helper_functions", "common.R"))
 
 # important note: the digest function will not take aux data as input.
 # Rather, it will output empty aux data columns that can be populated manually
@@ -146,6 +126,13 @@ digest.dataset <- function(
 
   gc()
 
+  data <- data %>%
+    mutate(target_side = case_when(
+      tolower(as.character(target_side)) %in% c("left", "l") ~ "left",
+      tolower(as.character(target_side)) %in% c("right", "r") ~ "right",
+      .default = "ERROR"
+    ))
+
   # Determine whether AOI can be auto-computed from XY + region data
   xy_region_cols <- c("x", "y", "l_x_max", "l_x_min", "l_y_max", "l_y_min",
                       "r_x_max", "r_x_min", "r_y_max", "r_y_min")
@@ -166,12 +153,7 @@ digest.dataset <- function(
       }
     }
     if (!use_aoi_column) {
-      data$aoi <- generate_aois(
-        data$x, data$y, data$target_side,
-        data$l_x_max, data$l_x_min, data$l_y_max, data$l_y_min,
-        data$r_x_max, data$r_x_min, data$r_y_max, data$r_y_min,
-        data$monitor_size_x, data$monitor_size_y
-      )
+      data <- peekbankr::ds.compute_aois(data)
     } else if (!"aoi" %in% colnames(data) || all(is.na(data$aoi))) {
       stop("use_aoi_column = TRUE but no 'aoi' column found in wide.table")
     }
@@ -232,12 +214,21 @@ digest.dataset <- function(
       sample_rate,
       tracker,
       coding_method
-    ) %>%
+    )
+
+  # When ages are given in whole years, we assume the lab rounded down and add 6 months
+  # to land in the middle of the year.
+  years_ages <- administrations %>%
+    filter(lab_age_units == "years", !is.na(lab_age)) %>%
+    pull(lab_age)
+  years_given_full <- length(years_ages) > 0 && all(years_ages - floor(years_ages) == 0)
+
+  administrations <- administrations %>%
     mutate(
       age = case_when(
         lab_age_units == "months" ~ lab_age,
         lab_age_units == "days" ~ lab_age / (365.25 / 12),
-        lab_age_units == "years" ~ 12 * lab_age + ifelse(all(lab_age - floor(lab_age) == 0), 6, 0),
+        lab_age_units == "years" ~ 12 * lab_age + ifelse(years_given_full, 6, 0),
         .default = NA
       ),
       administration_aux_data = NA
@@ -414,17 +405,7 @@ digest.dataset <- function(
       target_id,
       aoi_region_set_id
     ) %>%
-    mutate(
-      target_side = tolower(target_side),
-      target_side = case_when(
-        target_side == "left" ~ "left",
-        target_side == "l" ~ "left",
-        target_side == "right" ~ "right",
-        target_side == "r" ~ "right",
-        .default = "ERROR"
-      ),
-      trial_type_aux_data = NA
-    )
+    mutate(trial_type_aux_data = NA)
 
   trials <- data %>%
     distinct(

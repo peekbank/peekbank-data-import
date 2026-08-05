@@ -84,6 +84,12 @@ all.data <- bind_rows(mclapply(files, function(f) {
   data$x.pos <- rowMeans(data[, c("L.POR.X..px.", "R.POR.X..px.")])
   data$y.pos <- rowMeans(data[, c("L.POR.Y..px.", "R.POR.Y..px.")])
 
+  # (0, 0) is likely this tracker's no-data code, not a gaze position; see the README
+  sentinel <- !is.na(data$x.pos) & !is.na(data$y.pos) &
+    data$x.pos == 0 & data$y.pos == 0
+  data$x.pos[sentinel] <- NA
+  data$y.pos[sentinel] <- NA
+
   # clean up data
   data <- data[, c("Time", "x.pos", "y.pos")]
 
@@ -389,7 +395,9 @@ aoi_region_sets <- tibble(
 # create xy data by merging in administration info and trial type info
 xy_merged_data <- timepoint_data %>%
   mutate(dataset_id = dataset_id) %>%
-  left_join(administration_data %>% select(subject_id, administration_id), by = "subject_id") %>%
+  left_join(administration_data %>%
+              select(subject_id, administration_id, monitor_size_x, monitor_size_y),
+            by = "subject_id") %>%
   left_join(trial_types %>% select(
     trial_type_id,
     aoi_region_set_id,
@@ -418,10 +426,10 @@ xy_data <- xy_merged_data %>%
   select(xy_timepoint_id, x, y, t_norm, administration_id, trial_id)
 
 
-# create aoi data using peekbankr function add_aois()
+
 # rezero, normalize and resample times
 aoi_timepoints_data <- xy_merged_data %>%
-  peekbankr::ds.add_aois(.) %>%
+  peekbankr::ds.compute_aois(.) %>%
   arrange(trial_id, t) %>%
   select(trial_id, administration_id, aoi, t, point_of_disambiguation) %>%
   peekbankr::ds.rezero_times(.) %>%

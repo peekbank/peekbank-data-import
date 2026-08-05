@@ -286,7 +286,7 @@ xy_joined_resampled <- xy_joined %>%
   select(xy_timepoint_id, x, y, t_norm, administration_id, trial_id)
 
 #### (8) aoi_timepoints ####
-aoi_timepoints_data <- peekbankr::ds.add_aois(xy_joined) %>%
+aoi_timepoints_data <- peekbankr::ds.compute_aois(xy_joined) %>%
   rename(t_zeroed = t) %>%
   peekbankr::ds.normalize_times() %>%
   peekbankr::ds.resample_times(table_type = "aoi_timepoints") %>%

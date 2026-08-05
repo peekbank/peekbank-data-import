@@ -47,7 +47,7 @@ Control-double is plate with apple & orange versus plate with apple for phrases 
 ## 4. Importing decisions
 The raw SMI files were available and the available processed files did not have full information. The processing scripts available did not run, but we rewrote equivalent pre-processing. (Note that the old_data / new_data split in raw files is not quite parallel to expt 1 / expt 2)
 
-Less a decision and more a warning -- the stimulus file names for initial and anticipatory are the same, so one has to only use the onset for the anticipatory. 
+Less a decision and more a warning: the stimulus file names for initial and anticipatory are the same, so one has to only use the onset for the anticipatory. 
 
 There are 100 stimuli file names from the (kid only) data. 50 of these seem to be hashes. 32 of these are 2 lists of 16 which align with the image and audio files we have. It looks like the others are duplicates (including onset times) and so we assume that given that all the given information is the same, the actual targets and carrier phrases were as well. 
 
@@ -80,4 +80,7 @@ It could be debated if the control-single trials count as "vanilla" -- the carri
 
 ## 5. Importing ambiguity
 
-none
+Tracking failures are likely recorded as the coordinate (0, 0) rather than as missing, and we convert them to NA before computing AOIs.
+Indicators that (0, 0) is a no-data code and not a gaze position:
+- in many samples one eye reports (0, 0) while the other reports a real position far from that (no real gaze could produce that)
+- (0, 0) appears orders of magnitude more often than nearby coordinates

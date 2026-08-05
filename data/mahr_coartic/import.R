@@ -233,18 +233,14 @@ xy_timepoints_table <- all_timepoints_table %>%
   peekbankr::ds.resample_times("xy_timepoints")
 
 aoi_timepoints <- all_timepoints_table %>%
-  select(GazeByImageAOI, t, point_of_disambiguation, administration_id, trial_id) %>%
   mutate(
-    aoi_timepoint_id = seq(0, nrow(.) - 1),
-    aoi = case_when(
-      GazeByImageAOI == "Target" ~ "target",
-      GazeByImageAOI == "Distractor" ~ "distractor",
-      GazeByImageAOI == "tracked" ~ "other",
-      is.na(GazeByImageAOI) ~ "missing",
-      TRUE ~ "none_of"
-    )
+    !!!as.list(aoi_region_sets %>% select(-aoi_region_set_id)),
+    monitor_size_x = .env$monitor_size_x,
+    monitor_size_y = .env$monitor_size_y
   ) %>%
-  select(-GazeByImageAOI) %>%
+  peekbankr::ds.compute_aois() %>%
+  select(aoi, t, point_of_disambiguation, administration_id, trial_id) %>%
+  mutate(aoi_timepoint_id = seq(0, nrow(.) - 1)) %>%
   peekbankr::ds.rezero_times() %>%
   peekbankr::ds.normalize_times() %>%
   peekbankr::ds.resample_times("aoi_timepoints")

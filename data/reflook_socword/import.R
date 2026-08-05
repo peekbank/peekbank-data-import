@@ -192,7 +192,9 @@ trial_types.data <- process_smi_trial_info(trial_file_path) %>%
 # create xy data
 xy_merged.data <- timepoint.data %>%
   mutate(dataset_id = dataset_id) %>%
-  left_join(administration.data %>% select(subject_id, administration_id), by = "subject_id") %>%
+  left_join(administration.data %>%
+              select(subject_id, administration_id, monitor_size_x, monitor_size_y),
+            by = "subject_id") %>%
   left_join(trial_types.data %>% select(
     trial_type_id,
     aoi_region_set_id,
@@ -211,7 +213,7 @@ xy.data <- xy_merged.data %>%
 
 # create aoi data
 aoi_timepoints.data <- xy_merged.data %>%
-  peekbankr::ds.add_aois(.) %>%
+  peekbankr::ds.compute_aois(.) %>%
   select(trial_id, administration_id, aoi, t, point_of_disambiguation) %>%
   peekbankr::ds.rezero_times(.) %>%
   peekbankr::ds.normalize_times(.) %>%

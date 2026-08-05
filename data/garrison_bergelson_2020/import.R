@@ -294,8 +294,9 @@ xy_timepoints <- timepoints %>%
 
 ### 9. AOI TIMEPOINTS TABLE
 aoi_timepoints <- timepoints %>%
+  mutate(!!!as.list(aoi_region_sets %>% select(-aoi_region_set_id))) %>%
+  peekbankr::ds.compute_aois() %>%
   select(aoi, t, point_of_disambiguation, administration_id, trial_id) %>%
-  mutate(aoi = str_to_lower(ifelse(is.na(aoi), "missing", as.character(aoi)))) %>%
   # not using the rezeroing function because times are already relative to trial onset
   rename(t_zeroed = t) %>%
   peekbankr::ds.normalize_times() %>%
