@@ -161,9 +161,9 @@ run_all <- function(nocache = FALSE, clean = TRUE, upload = FALSE, subprocess = 
   print("These import scripts threw errors:")
   print(error_datasets[error_datasets != ""])
   
-  do_not_upload <- c(error_datasets, invalid_datasets) %>% 
-    .[. != ""] %>%
-    map_chr(~ strsplit(.x, ":", fixed = TRUE)[[1]][1]) %>% 
+  do_not_upload <- c(error_datasets, invalid_datasets) %>%
+    discard(~ .x == "") %>%
+    map_chr(~ strsplit(.x, ":", fixed = TRUE)[[1]][1]) %>%
     unique()
   
   if(upload){

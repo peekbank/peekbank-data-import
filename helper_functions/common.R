@@ -156,6 +156,7 @@ write_and_validate <- function(
 
   basepath <- here("data", dataset_name)
   output_path <- here(basepath, "processed_data")
+  if (dir.exists(output_path)) unlink(output_path, recursive = TRUE)
   dir.create(here(output_path), showWarnings = FALSE)
 
   # register cdi_expected and suppress_warnings so the global validator can check without re-running imports
