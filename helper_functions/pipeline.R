@@ -177,9 +177,16 @@ run_all <- function(nocache = FALSE, clean = TRUE, upload = FALSE, subprocess = 
 }
 
 # currently only used as a standalone function
-upload_all <- function(activeonly = FALSE) {
+upload_all <- function(activeonly = TRUE) {
   list_all(activeonly) %>% purrr::walk(\(dataset){
-    upload_osf(dataset)
+    if (!dir.exists(here("data", dataset, "processed_data"))) {
+      warning(glue("Skipping {dataset}: no processed_data folder"))
+      return(invisible(NULL))
+    }
+    tryCatch(
+      upload_osf(dataset),
+      error = \(e) warning(glue("Upload failed for {dataset}: {e}"))
+    )
   })
 }
 
