@@ -50,7 +50,7 @@ General
 - [ ] Double-check the citation and update it in the dataset table and make sure it’s consistent with the peekbank datasets google sheet: [peekbank datasets](https://docs.google.com/spreadsheets/d/1nGXWRu6_q7ATGrdWrFDuDmb9VoGHCnTO9NLhqhpuN28/edit?usp=sharing)
 - [ ] Are there any TODOs left in the code - resolve/double check
 - [ ] Review readme
-    - [ ] Make sure any TO-DOs or other decision points in the comments of the code are documented in the ReadMe AND removed from the code to prevent ambiguity
+    - [ ] Make sure any TO-DOs or other decision points in the comments of the code are documented in the ReadMe AND removed from the code to prevent ambiguity (code comments about technical oddities in data structure etc. are fine to leave in the code)
 - [ ] Is the dataset still listed in [`helper_functions/pipeline_ignore.txt`](https://github.com/langcog/peekbank-data-import/blob/master/helper_functions/pipeline_ignore.txt)? If the import is finished, remove it so the dataset actually runs in the pipeline
 - [ ] General data sanity-checking (summary output helps here)
     - [ ] are the general numbers (e.g. # of participants, # of stimuli, average trials per administration) in the summary consistent with the paper? aoi_timepoints are hard to gauge, but a super small number is probably bad
