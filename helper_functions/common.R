@@ -12,6 +12,7 @@ options(dplyr.summarise.inform = FALSE)
 
 # override of peekbankr get_raw_data that relies on broken osfr
 source(here("helper_functions", "osf.R"))
+source(here("helper_functions", "redivis.R"))
 
 report_duplicate_timepoints <- function(data, time_col, trial_cols,
                                         xy_cols = NULL, aoi_col = NULL) {
@@ -95,10 +96,7 @@ init <- function(dataset_name, osf_address = "pr6wu") {
   data_path <- here(path, "raw_data")
 
   if (length(list.files(data_path)) == 0) {
-    get_raw_data_fixed(
-      lab_dataset_id = dataset_name,
-      osf_address = osf_address
-    )
+    get_raw_data_redivis(lab_dataset_id = dataset_name)
   }
 
   return(data_path)
@@ -637,7 +635,7 @@ write_and_validate <- function(
     # a bit hacky, but good enough for now
     if (!exists("external_block_peekbank_separate_upload")) {
       if(length(result$errors) == 0 && length(result$warnings) == 0){
-        upload_osf(dataset_name)
+        upload_redivis(dataset_name)
       }else{
         print("Not uploading dataset as the validation failed")
       }
