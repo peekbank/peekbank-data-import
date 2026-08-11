@@ -81,16 +81,14 @@ get_raw_data_redivis <- function(lab_dataset_id, version = "current") {
 
 # stage processed_data + README.md for a dataset into the current draft of
 # peekbank_files (org members only; part of the release process).
-# NOTE: same-named files already in the draft are not replaced automatically;
-# the release runbook clears a dataset's processed_data/ from the draft
-# before re-staging (see migration/upload_files_redivis.py in
-# peekbank-datapage for the bulk equivalent).
+# add_files() REPLACES same-named files in the draft (verified), so
+# re-staging a dataset is idempotent.
 upload_redivis <- function(lab_dataset_id) {
   processed <- here("data", lab_dataset_id, "processed_data")
   if (!dir.exists(processed)) {
     stop(glue("Dataset {lab_dataset_id} has no processed_data folder"))
   }
-  ds <- pb_files_dataset("next")$create_next_version(if_not_exists = TRUE)
+  ds <- pb_files_dataset()$create_next_version(if_not_exists = TRUE)
   tb <- ds$table(PB_FILES_TABLE)
 
   local_files <- list.files(processed, recursive = TRUE)
