@@ -466,7 +466,7 @@ write_and_validate <- function(
 
     # plot (remove data points where not a lot of subjects contributed, to avoid discontinuities in the slope)
     suppressMessages(plot(ggplot(filter(summarize_across_subj, N > n_administrations / 3), aes(t_norm, accuracy)) +
-      geom_line(data = filter(summarize_by_subj, N > 10), aes(y = mean_accuracy, color = as.factor(administration_id), group = as.factor(administration_id)), alpha = 0.2) +
+      geom_line(data = filter(summarize_by_subj, N > 9), aes(y = mean_accuracy, color = as.factor(administration_id), group = as.factor(administration_id)), alpha = 0.2) +
       geom_line() +
       geom_smooth(method = "gam", se = FALSE) +
       geom_vline(xintercept = 0) +
