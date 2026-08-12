@@ -170,7 +170,7 @@ run_all <- function(nocache = FALSE, clean = TRUE, upload = FALSE, subprocess = 
     print("Uploading datasets, skipping failed imports...")
     for(dataset in datasets){
       if(!(dataset %in% do_not_upload)){
-        upload_osf(dataset)
+        upload_redivis(dataset)
       }
     }
   }
@@ -184,7 +184,7 @@ upload_all <- function(activeonly = TRUE) {
       return(invisible(NULL))
     }
     tryCatch(
-      upload_osf(dataset),
+      upload_redivis(dataset),
       error = \(e) warning(glue("Upload failed for {dataset}: {e}"))
     )
   })
