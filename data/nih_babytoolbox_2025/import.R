@@ -164,9 +164,10 @@ wide.table <- data %>%
     ),
     full_phrase_language = if_else(grepl("ES", instrument), "spa", "eng"), # until spanish metadata arrives, this does nothing
     condition = "",
+    #condition = as.character(cut(age, c(-Inf, 11, 15, 19, Inf), labels = c("05-11 mo", "12-15 mo", "16-19 mo", "20-26 mo"))), # temp testing line to check age effects
     vanilla_trial = FALSE, # double onset
     excluded = registrationID %in% failed_calibration,
-    exclusion_reason = if_else(registrationID %in% failed_calibration,
+    exclusion_reason = if_else(excluded,
                                "calibration failed, so the app never classified this session's gaze into areas of interest",
                                NA_character_),
     sample_rate = 60,
@@ -218,6 +219,18 @@ retest_age_offset <- read_csv(file.path(data_path, "SociodemographicQuestionnair
   transmute(final_pin2,
             retest_offset_months = as.numeric(difftime(True, False, units = "days")) / (365.25 / 12))
 
+
+LANG_MEASURES <- c(
+  CDIprod_eng_CSS   = "CDI-CAT Production (change sensitive score)",
+  CDIcomp_eng_CSS   = "CDI-CAT Comprehension (change sensitive score)",
+  MSEL_Rec_CSS      = "Mullen Receptive Language (change sensitive score)",
+  MSEL_Exp_CSS      = "Mullen Expressive Language (change sensitive score)",
+  MSEL_Rec_SS       = "Mullen Receptive Language (age-normed standard score)",
+  MSEL_Exp_SS       = "Mullen Expressive Language (age-normed standard score)",
+  langComposite_CSS = "Baby Toolbox language composite (change sensitive score)",
+  langComposite_SS  = "Baby Toolbox language composite (age-normed standard score)",
+)
+
 lang_measures_data <- norming %>%
   mutate(is_retest = retest == "true") %>%
   arrange(finalPIN2, is_retest, retest != "false") %>%
@@ -225,17 +238,17 @@ lang_measures_data <- norming %>%
   left_join(retest_age_offset, by = c("finalPIN2" = "final_pin2")) %>%
   transmute(subject_id = finalPIN2,
             age = CAMOS + if_else(is_retest, coalesce(retest_offset_months, 0), 0),
-            prod_css = CDIprod_eng_CSS, prod_se = CDIprod_eng_CSS_SE,
-            comp_css = CDIcomp_eng_CSS, comp_se = CDIcomp_eng_CSS_SE) %>%
-  pivot_longer(-c(subject_id, age), names_to = c("measure", ".value"), names_sep = "_") %>%
-  filter(!is.na(css)) %>%
+            across(all_of(names(LANG_MEASURES))),
+            across(any_of(paste0(names(LANG_MEASURES), "_SE")))) %>%
+  rename_with(~paste0(.x, "_value"), all_of(names(LANG_MEASURES))) %>%
+  pivot_longer(-c(subject_id, age), names_to = c("col", ".value"),
+               names_pattern = "(.*)_(value|SE)$") %>%
+  filter(!is.na(value)) %>%
   transmute(subject_id,
-            instrument_type = if_else(measure == "prod",
-                                      "CDI-CAT Production (change sensitive score)",
-                                      "CDI-CAT Comprehension (change sensitive score)"),
+            instrument_type = unname(LANG_MEASURES[col]),
             language = "English (American)",
-            rawscore = css,
-            standard_error = se,
+            rawscore = value,
+            standard_error = SE,
             age)
 
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
