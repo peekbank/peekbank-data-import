@@ -44,17 +44,19 @@ pin_lookup <- data_raw %>%
 
 
 data <- data_raw %>%
-  # Only four of the eventtypes in the testing phase are needed from now on:
+  # Only five of the eventtypes in the testing phase are needed from now on:
   # faceVerticesChanged carries the gaze samples
   # presentedLiveItem marks trial start
   # completedLiveItem marks trial end
   # audioStarted marks the moment the prompt begins
+  # audioCompleted marks the moment it stops
   filter(gazeEngineState == "testing",
          eventName %in% c(
           "faceVerticesChanged",
           "presentedLiveItem",
           "completedLiveItem",
-          "audioStarted"
+          "audioStarted",
+          "audioCompleted"
         )) %>%
   arrange(registrationID, elapsedTime) %>%
   # Trials are marked by presentedLiveItem, so we use that for IDing individual trials
@@ -104,7 +106,20 @@ follows <- data_raw %>%
   filter(eventName == "presentedLiveItem") %>%
   summarise(follows_a_trial = unique(follows_a_trial), .by = itemID)
 
-items <- items %>% inner_join(follows, by = "itemID")
+# How long the app held the playback window open. The value differs slightly in the low ms range each trial+session, so we use a single (median) time
+# per item as to not create a new trial_type entry for every tiny deviation (which would result in a slightly different pod). 
+played <- data %>%
+  filter(eventName %in% c("audioStarted", "audioCompleted")) %>%
+  summarise(played_ms = (elapsedTime[eventName == "audioCompleted"][1] -
+                         elapsedTime[eventName == "audioStarted"][1]) * 1000,
+            .by = c(registrationID, trial_seq, itemID)) %>%
+  summarise(played_ms = median(played_ms, na.rm = TRUE), .by = itemID)
+
+# time discrepancy between audio file length and playback window
+items <- items %>%
+  inner_join(follows, by = "itemID") %>%
+  inner_join(played, by = "itemID") %>%
+  mutate(audio_surplus_ms = played_ms - audio_duration_ms)
 
 # How much longer a prompt takes to start sounding when its trial ran straight after another
 # trial than when an attention-getter or the session opening came first.
@@ -123,7 +138,7 @@ items <- items %>%
 
 
 # How long the images are shown before the prompt starts, measured as the gap between the
-# two events. The value per item differs slightly in the low ms range, so we use a single offset
+# two events. Dame as above, the value per item differs slightly in the low ms range, so we use a single offset
 # for the entire dataset in order to not create a new trial_type entry for every tiny deviation (which would result in a slightly different pod). 
 prompt_delay_ms <- data %>%
   summarise(gap = (elapsedTime[eventName == "audioStarted"][1] -
@@ -228,7 +243,7 @@ LANG_MEASURES <- c(
   MSEL_Rec_SS       = "Mullen Receptive Language (age-normed standard score)",
   MSEL_Exp_SS       = "Mullen Expressive Language (age-normed standard score)",
   langComposite_CSS = "Baby Toolbox language composite (change sensitive score)",
-  langComposite_SS  = "Baby Toolbox language composite (age-normed standard score)",
+  langComposite_SS  = "Baby Toolbox language composite (age-normed standard score)"
 )
 
 lang_measures_data <- norming %>%

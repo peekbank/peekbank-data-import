@@ -1,40 +1,40 @@
-itemID,target_side,target_label,distractor_label,full_phrase,noun_onset_ms,audio_file,audio_surplus_ms
+itemID,target_side,target_label,distractor_label,full_phrase,noun_onset_ms,audio_file,audio_duration_ms
 Apple_Truck_G2,left,Apple,Truck,Do you see the apple?,,58,
-Blanket_Toothbrush_G2,right,Toothbrush,Blanket,Where is the toothbrush?,908.1,33,187.3
-Block_Cow_G2,right,Cow,Block,Do you see the cow?,1052.3,50,195.6
-Book_Nose_G1,right,Nose,Book,Where is the nose?,1034.2,1,76.6
+Blanket_Toothbrush_G2,right,Toothbrush,Blanket,Where is the toothbrush?,908.1,33,1755.6
+Block_Cow_G2,right,Cow,Block,Do you see the cow?,1052.3,50,1639.2
+Book_Nose_G1,right,Nose,Book,Where is the nose?,1034.2,1,1729.4
 Bucket_Deer_G4,right,Deer,Bucket,Where is the deer?,,101,
 Bucket_Muffin_G4,left,Bucket,Muffin,Where is the bucket?,,105,
-Car_Shoe_G1,right,Shoe,Car,Where is the shoe?,807.1,17,193.8
+Car_Shoe_G1,right,Shoe,Car,Where is the shoe?,807.1,17,1495.9
 Cow_Blanket_G2,right,Blanket,Cow,Where is the blanket?,,37,
 Crib_Apple_G2,left,Crib,Apple,Do you see the crib?,,46,
-Cup_Shoe_G1,left,Cup,Shoe,Do you see the cup?,1065.6,14,67.4
-Deer_Pen_G4,right,Pen,Deer,Do you see the pen?,1188.4,98,52.1
-Door_Sock_G1,left,Door,Sock,Do you see the door?,1189,26,193
+Cup_Shoe_G1,left,Cup,Shoe,Do you see the cup?,1065.6,14,1523.1
+Deer_Pen_G4,right,Pen,Deer,Do you see the pen?,1188.4,98,1729.1
+Door_Sock_G1,left,Door,Sock,Do you see the door?,1189,26,1707.1
 Eye_Jar_G3,right,Jar,Eye,Where is the jar?,,85,
-Flower_Eye_G3,right,Eye,Flower,Where is the eye?,906,65,68.7
+Flower_Eye_G3,right,Eye,Flower,Where is the eye?,906,65,1522.9
 Foot_Book_G1,right,Book,Foot,Do you see the book?,,6,
 Foot_Cup_G1,left,Foot,Cup,Do you see the foot?,,10,
 Hand_Crib_G2,left,Hand,Crib,Where is the hand?,,41,
-Hose_Rooster_G5,right,Rooster,Hose,Do you see the rooster?,1193.1,150,189.3
-Jar_Wolf_G3,right,Wolf,Jar,Do you see the wolf?,1273.7,82,184.3
-Jeans_Donkey_G4,right,Donkey,Jeans,Do you see the donkey?,1204.4,114,191.6
+Hose_Rooster_G5,right,Rooster,Hose,Do you see the rooster?,1193.1,150,1964.7
+Jar_Wolf_G3,right,Wolf,Jar,Do you see the wolf?,1273.7,82,1820.6
+Jeans_Donkey_G4,right,Donkey,Jeans,Do you see the donkey?,1204.4,114,1963.4
 Ladder_Melon_G5,left,Ladder,Melon,Do you see the ladder?,,138,
 Lion_Zipper_G4,left,Lion,Zipper,Where is the lion?,,125,
 Melon_Sneaker_G5,left,Melon,Sneaker,Where is the melon?,,141,
-Muffin_Lion_G4,left,Muffin,Lion,Where is the muffin?,843.3,109,68.3
+Muffin_Lion_G4,left,Muffin,Lion,Where is the muffin?,843.3,109,1545.5
 Necklace_Shovel_G3,left,Necklace,Shovel,Where is the necklace?,,89,
 Nose_Car_G1,right,Car,Nose,Where is the car?,,21,
 Pen_Jeans_G4,right,Jeans,Pen,Look at the jeans!,,119,
-Playground_Shoulder_G5,right,Shoulder,Playground,Where is the shoulder?,960,133,75.1
+Playground_Shoulder_G5,right,Shoulder,Playground,Where is the shoulder?,960,133,1749.4
 Rooster_Playground_G5,right,Playground,Rooster,Do you see the playground?,,146,
 Shoulder_Hose_G5,right,Hose,Shoulder,Where is the hose?,,129,
 Shovel_Window_G3,left,Shovel,Window,Do you see the shovel?,,94,
-Sneaker_Tricycle_G5,left,Sneaker,Tricycle,Where is the sneaker?,875.3,153,188.5
-Sock_Door_G1,left,Sock,Door,Where is the sock?,924.4,29,180.8
-Table_Necklace_G3,left,Table,Necklace,Do you see the table?,1118,78,62
+Sneaker_Tricycle_G5,left,Sneaker,Tricycle,Where is the sneaker?,875.3,153,1752.4
+Sock_Door_G1,left,Sock,Door,Where is the sock?,924.4,29,1545.8
+Table_Necklace_G3,left,Table,Necklace,Do you see the table?,1118,78,1869.6
 Toothbrush_Block_G2,right,Block,Toothbrush,Do you see the block?,,54,
-Tricycle_Ladder_G5,left,Tricycle,Ladder,Do you see the tricycle?,876.6,158,163.5
+Tricycle_Ladder_G5,left,Tricycle,Ladder,Do you see the tricycle?,876.6,158,1799.4
 Truck_Hand_G2,left,Truck,Hand,Where is the truck?,,61,
 Window_Table_G3,left,Window,Table,Do you see the window?,,74,
 Wolf_Flower_G3,right,Flower,Wolf,Where is the flower?,,69,
