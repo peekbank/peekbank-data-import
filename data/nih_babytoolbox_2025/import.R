@@ -266,6 +266,40 @@ lang_measures_data <- norming %>%
             standard_error = SE,
             age)
 
+
+# We don't get CDI rawscores, but rather ability scores from an adaptive test
+# These are converted into expected scores and saved as a generic language measure
+CDI_BANKS <- c("CDI-CAT Production (change sensitive score)"    = "eng_production_pruned",
+               "CDI-CAT Comprehension (change sensitive score)" = "eng_comprehension_full")
+
+# Per the methodology paper, the change sensitive score is a linear conversion of the ability estimate,
+# but the paper does not give us the constants.
+# Scores step by exactly 0.091024, every wider gap is a whole multiple of it, and min and max values
+# are 2000 of those steps apart. The most plausible mapping is thus steps of 0.01 theta spanning +/-10
+# assuming the scale ends are symmetric.
+CSS_CENTRE    <- 430      # assumes the scale ends are symmetric: (521.024 + 338.976) / 2
+CSS_PER_THETA <- 9.1024   # from the lattice step: 0.091024 points per 0.01 theta
+
+expected_word_counts <- lang_measures_data %>%
+  # A standard error of 901.1376 is likely marking an estimate
+  # the test could not identify; see README.
+  filter(instrument_type %in% names(CDI_BANKS), standard_error < 900) %>%
+  mutate(bank = unname(CDI_BANKS[instrument_type]),
+         theta = (rawscore - CSS_CENTRE) / CSS_PER_THETA,
+         se_theta = standard_error / CSS_PER_THETA) %>%
+  inner_join(read_csv(here("data", dataset_name, "cdi_cat_item_parameters.csv"),
+                      show_col_types = FALSE),
+             by = "bank", relationship = "many-to-many") %>%
+  mutate(p = plogis(a * theta + d)) %>%
+  summarise(rawscore = sum(p),
+            # rescaled from ability units into words by the slope of the count above
+            standard_error = sum(a * p * (1 - p)) * first(se_theta),
+            .by = c(subject_id, instrument_type, language, age)) %>%
+  mutate(instrument_type = sub("change sensitive score", "model-implied word count",
+                               instrument_type))
+
+lang_measures_data <- bind_rows(lang_measures_data, expected_word_counts)
+
 dataset_list[["subjects"]] <- dataset_list[["subjects"]] %>%
   digest.subject_aux_data(lang_measures = lang_measures_data)
 
