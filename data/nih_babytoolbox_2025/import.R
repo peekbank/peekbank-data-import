@@ -29,16 +29,29 @@ session_start <- data_raw %>%
             .by = registrationID)
 
 
+# We only get one age per child even if they had multiple sessions, so we use the timestamps to capture the
+# age difference between the sessions as well as possible. See README for details.
+entry_filing <- read_csv(file.path(data_path, "SociodemographicQuestionnaire.csv"),
+                         show_col_types = FALSE) %>%
+  filter(instrument_title == "NBT Socio-Demographic", retest == "False") %>%
+  summarise(entry_filed = min(file_date), .by = final_pin2)
+
 pin_lookup <- data_raw %>%
   mutate(userPIN = dataPairs$userPIN) %>%
   filter(!is.na(userPIN)) %>%
   distinct(registrationID, userPIN) %>%
   left_join(session_start, by = "registrationID") %>%
+  left_join(entry_filing, by = c("userPIN" = "final_pin2")) %>%
   mutate(session_num = rank(session_date, ties.method = "first"),
-         # The norming data only gives the age at the first session, so
-         # at a later session the child is older than that by however long has passed
-         age_offset_months = as.numeric(difftime(session_date, min(session_date),
-                                                 units = "days")) / (365.25 / 12),
+         # days by which the entry sitting precedes the earliest LWL session, zero unless the
+         # questionnaire was filed on a strictly earlier day
+         entry_shortfall = coalesce(if_else(as.Date(entry_filed) < as.Date(min(session_date)),
+                                            as.numeric(difftime(min(session_date), entry_filed,
+                                                                units = "days")), 0), 0),
+         # If the norming age belongs to the first session, the retest a session is older than it by
+         # however long has passed since then
+         age_offset_months = (as.numeric(difftime(session_date, min(session_date),
+                                                  units = "days")) + entry_shortfall) / (365.25 / 12),
          .by = userPIN) %>%
   select(registrationID, userPIN, session_num, age_offset_months)
 
