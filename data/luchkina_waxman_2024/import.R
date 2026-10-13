@@ -42,8 +42,8 @@ wide.table <- data_raw %>%
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
   lab_dataset_id = NA,
-  cite = "Luchkina, E., & Waxman, S. R. (2021). Semantic priming supports infants’ ability to learn names of unseen objects. PloS one, 16(1), e0244968.",
-  shortcite = "Luchkina, E., & Waxman, S. (2024)",
+  cite = "Luchkina, E., & Waxman, S. R. (2025). Semantic priming supports infants’ ability to learn names of unseen objects. PLOS ONE, 20(4), e0321775. https://doi.org/10.1371/journal.pone.0321775",
+  shortcite = "Luchkina & Waxman (2025)",
   wide.table = wide.table,
   normalize = FALSE,
   rezero = FALSE

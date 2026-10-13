@@ -1,7 +1,7 @@
 # luchkina_waxman_2024
 
 ## 1. Reference
-Luchkina, E., & Waxman, S. R. (2021). Semantic priming supports infants’ ability to learn names of unseen objects. PloS one, 16(1), e0244968.
+Luchkina, E., & Waxman, S. R. (2025). Semantic priming supports infants’ ability to learn names of unseen objects. PLOS ONE, 20(4), e0321775. https://doi.org/10.1371/journal.pone.0321775
 
 ## 2. Abstract
 
