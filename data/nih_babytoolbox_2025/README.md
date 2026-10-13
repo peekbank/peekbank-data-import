@@ -68,6 +68,9 @@ Point of disambiguation: The app records when each prompt started and finished, 
 recording (author confirmed via mails). We manually measured the target word onset off the audio by manually checking in Praat, saved in the
 the `noun_onset_ms` column of `item_meta_manually_curated.csv` (+ check section 5 and the code for difference between recorded audio playtime and actual file audio duration).
 
+We have onsets for 37 of the 40 English items. The recordings for the remaining three were never shared with us,
+so these items are dropped: `Nose_Car_G1` (21.m4a), `Bucket_Muffin_G4` (105.m4a) and `Zipper_Donkey_G4` (122.m4a).
+
 
 Vanillaness: Each trial names the target twice, so non-vanilla.
 This is not mentioned in the paper directly, but:
@@ -103,12 +106,14 @@ for the native language field. We treat them as as both pointing to the same lan
 POD inaccuracy: the app reports when playback began and ended, but that
 window is always longer than the playback time of the audio file. We need to keep this difference in mind when placing the target word onset relative to the event denoting the audio started playing. There is a pattern that groups these differences into two clusters:
 
-    1. Prompts of trials that do NOT directly follow another trial (start of experiment or attention getter) have an average of 67.2 ms discrepancy between audio duration and recorded playback duration. We don't know wether this time sits before of after the audio playback, so we assume equal padding at the beginning and end to minimise the worst case error of our assumption.
+    1. Prompts of trials that do NOT directly follow another trial (start of experiment or attention getter) have an average of 68.0 ms discrepancy between audio duration and recorded playback duration. We don't know wether this time sits before of after the audio playback, so we assume equal padding at the beginning and end to minimise the worst case error of our assumption.
 
-    2. An additional 119.6 ms discrepancy appears on those prompts whose trial directly followed
+    2. An additional 116.3 ms discrepancy appears on those prompts whose trial directly followed
     another trial. The second audio onset does NOT show this pattern, so we conclude that there is
     likely some playback/buffering lag in the switching of trials, thus leading us to add that delay to the beginning of the time window (shifitng our POD back).
 
+Leading silence: 20 recordings (the second batch we got) start with about 200 ms of silence, the earlier ones directly on speech.
+The logged playback windows match the padded lengths, so we measure onsets from the start of the file.
 
 
 CDI Expected Rawscores: According to the third paper mentioned in Section 3, the CSS scores are a linear transformation from IRT theta scores.

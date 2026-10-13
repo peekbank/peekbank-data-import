@@ -105,8 +105,8 @@ items <- read_csv(here("data", dataset_name, "item_meta_manually_curated.csv"),
 
 # How much time passes between audioStarted and audioCompleted does not perfectly line up with how long
 # the trimmed audio files are (the audio files always decoding shorter than the span in the LWL event data).
-# This discrepancy differs between items, and items who are run directly after another item have a median
-# additional discrepancy of 119.6ms (compared to ones running after attention getters or at session start).
+# This discrepancy differs between items, and items who are run directly after another item have a mean
+# additional discrepancy of 116.3ms (compared to ones running after attention getters or at session start).
 # Whether an item is one or the other is fixed by the running order and thus collapses to one
 # discrepancy value per item, leaving the point of disambiguation constant within a trial type.
 
