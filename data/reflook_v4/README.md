@@ -2,7 +2,7 @@
 
 ## 1. Reference
 
-Yurovsky, D., Wade, A., Kraus, A. M., Gengoux, G. W., Hardan, A. Y., Frank, M. C. (2024). Developmental changes in the speed of social attention in early word learning. https://osf.io/preprints/psyarxiv/bcrj2_v1
+Yurovsky, D., Wade, A., Kraus, A. M., Gengoux, G. W., Hardan, A. Y., Frank, M. C. (2025). Developmental changes in the speed of social attention in early word learning. PsyArXiv. https://doi.org/10.31234/osf.io/bcrj2
 
 ## 2. Abstract
 
