@@ -112,8 +112,9 @@ window is always longer than the playback time of the audio file. We need to kee
     another trial. The second audio onset does NOT show this pattern, so we conclude that there is
     likely some playback/buffering lag in the switching of trials, thus leading us to add that delay to the beginning of the time window (shifitng our POD back).
 
-Leading silence: 20 recordings (the second batch we got) start with about 200 ms of silence, the earlier ones directly on speech.
-The logged playback windows match the padded lengths, so we measure onsets from the start of the file.
+Padded recordings: 20 recordings (the second batch we got) carry about 200 ms of silence before the speech and about 500 ms after it,
+while the earlier ones start and end directly on speech. The logged playback windows for these items are longer by that same amount,
+and the discrepancy described above is the same (within a few ms) for padded and unpadded recordings. Onsets are therefore measured from the start of the file, leading silence included.
 
 
 CDI Expected Rawscores: According to the third paper mentioned in Section 3, the CSS scores are a linear transformation from IRT theta scores.
