@@ -124,7 +124,7 @@ wide.table <- d_tidy %>%
     target_image_description_source = "image path",
     distractor_stimulus_label_original = ifelse(target_side == "left", rimage, limage),
     distractor_stimulus_label_english = distractor_stimulus_label_original,
-    distractor_stimulus_novelty = ifelse(grepl("(^toma)$|(^nonce$)|(^kreeb$)", target_stimulus_label_original), "novel", "familiar"),
+    distractor_stimulus_novelty = ifelse(grepl("(^toma)$|(^nonce$)|(^kreeb$)", distractor_stimulus_label_original), "novel", "familiar"),
     distractor_stimulus_image_path = NA,
     distractor_image_description = distractor_stimulus_label_original,
     distractor_image_description_source = "image path",
