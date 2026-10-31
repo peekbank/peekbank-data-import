@@ -3,7 +3,6 @@
 .RData
 .Ruserdata
 *DS_Store
-osf_token.txt
 */raw_data/*
 raw_data
 processed_data
@@ -15,3 +14,4 @@ CLAUDE.md
 .lintr
 Rplots.pdf
 Untitled.R
+.env

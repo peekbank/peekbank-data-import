@@ -3,7 +3,6 @@ library(janitor)
 library(tidyverse)
 library(readxl)
 library(peekbankr)
-library(osfr)
 library(rjson)
 
 sampling_rate_hz <- 30 # webcam, so likely

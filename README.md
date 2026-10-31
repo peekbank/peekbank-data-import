@@ -12,7 +12,7 @@ peekbank-data-import
 └───data
 │   │   ...
 │   └───[DATASET_NAME] - one folder per dataset to import
-│       │   raw_data/ - stores raw data from osf
+│       │   raw_data/ - stores raw data from Redivis
 │       │   processed_data/ - stores processed output of import
 │       │   import.R - script to turn raw data into processed_data
 │       │   README.md - info and import decisions for the dataset
@@ -25,18 +25,21 @@ peekbank-data-import
     │   pipeline_ignore.txt - list of dataset to skip in pipeline
     │   common.R - helpers to ensure repo structure
     │   idless_draft.R - functions to power idless importing
-    │   osf.R - custom osfr replacements
+    │   redivis.R - download and upload helpers for Redivis
 ```
 
 ## Prerequisites
 
-### OSF authentication (for uploading data)
+### Redivis authentication
 
-If you want to upload data directly to OSF using this pipeline, you need to authenticate with OSF.
+Raw and processed data live in the `datapages.peekbank_files` dataset on Redivis. Downloading raw data needs a Redivis login, and uploading processed data additionally requires write access to the dataset. When you run an import interactively (e.g. in RStudio), R opens a browser login for you to authenticate. For Docker runs or runs where nobody can complete the browser login (e.g. on a server), you need a token. The full pipeline runs that you start from your own R session reuse the browser login.
 
-1. Go to the [OSF token settings page](https://accounts.osf.io/login?service=https%3A%2F%2Fosf.io%2Fsettings%2Ftokens%2F)
-2. Generate a token, name it anything you like, and make sure to give it `osf.full_write` and `osf.full_read`
-3. Create a file called `osf_token.txt` in the root of the repository and paste your token into it
+Steps for setting the token:
+
+1. On Redivis, go to Workspace → Settings → API tokens and create a token. Give it the `data.edit` scope if you want to upload.
+2. Copy `.env.template` to `.env` in the root of the repository and paste the token after `REDIVIS_API_TOKEN=`.
+
+`.env` is gitignored and is picked up both by local R sessions and by the Docker container.
 
 ## Option 1: Running with Docker
 
@@ -52,7 +55,7 @@ then use the `pbi` wrapper script:
 ./pbi pipeline                    # run all imports
 ./pbi pipeline --down             # redownload all raw data
 ./pbi pipeline --resume           # keep previous processed_data
-./pbi pipeline --up               # upload results to OSF
+./pbi pipeline --up               # upload results to Redivis
 ./pbi pipeline --no-subprocess    # run all imports in a single R process
 ./pbi import adams_marchman_2018  # run a single dataset
 ./pbi import adams_marchman_2018 --down --up  # redownload + upload
@@ -91,16 +94,16 @@ Then commit the updated `renv.lock`.
 
 ### Running imports
 
-You can (re-)run singular import scripts inside their respective folders. It will automatically download the specific dataset from OSF, run the import, run validation and (if the flag at the bottom is set) upload the processed data to OSF.
+You can (re-)run singular import scripts inside their respective folders. It will automatically download the specific dataset from Redivis, run the import, run validation and (if the flag at the bottom is set) upload the processed data to Redivis.
 
 To run the full pipeline, source `pipeline.R` and call `run_all()`. You can also uncomment the call at the bottom of `pipeline.R` and run the file directly.
 ```r
 source("helper_functions/pipeline.R")
 run_all(nocache = FALSE, clean = TRUE, upload = FALSE)
 ```
-- `nocache=TRUE`: redownload all raw data from OSF
+- `nocache=TRUE`: redownload all raw data from Redivis
 - `clean=TRUE`: delete previous processed_data before running
-- `upload=TRUE`: upload results to OSF after validation passes
+- `upload=TRUE`: upload results to Redivis after validation passes
 
 ## Creating a new import script
 
@@ -108,11 +111,11 @@ The following steps will get you up and running with creating an import script f
 
 ### Gathering and uploading the raw data
 
-We use an [OSF repository](https://osf.io/pr6wu/) for storing both the raw input data as well as the processed output data. 
+We use the `datapages.peekbank_files` dataset on Redivis for storing both the raw input data as well as the processed output data. Adding files to it requires write access to the dataset.
 
-When starting to import a new dataset, create a folder at the top level of the OSF repository named after the dataset identifier (e.g. `weaver_zettersten_2024`) - if no identifier exists yet, you can refer to the other datasets to get an idea about the format.
+When starting to import a new dataset, pick a dataset identifier (e.g. `weaver_zettersten_2024`). You can refer to the other datasets to get an idea about the format.
 
-Next, create a `raw_data` subdirectory in the OSF folder you just created and put the raw dataset into this folder. Usually, the corresponding paper has a GitHub or OSF repository with pointers to where the data can be found. 
+Each Peekbank dataset has its own folder in `peekbank_files`, named after the dataset identifier. Create the folder in the dataset's draft version and add the raw data to it, with each file named `raw_data/<path within the raw data>` (e.g. `raw_data/trials.csv` in the folder `weaver_zettersten_2024`). The import uploads `processed_data/...` and `README.md` into the same folder later. Usually, the corresponding paper has a GitHub or OSF repository with pointers to where the data can be found. 
 
 ### Generating the import template
 
@@ -135,7 +138,7 @@ Rscript start_import.R --legacy
 
 2. Copy over the `idless_template.R` from `helper_functions/` to the directory you just created and rename it to `import.R` (use `legacy_template.R` if you need to create a legacy import script)
 
-3. If your data is already in a OSF folder names after the dataset, run the `import.R` script up to (&including) the `init()` function call to automatically download it. Otherwise, create a `raw_data` folder within your dataset-specific folder and move your raw data there.
+3. If your data is already on Redivis under the dataset identifier, run the `import.R` script up to (&including) the `init()` function call to automatically download it. Otherwise, create a `raw_data` folder within your dataset-specific folder and move your raw data there.
 
 ## Import Guide
 
@@ -147,7 +150,7 @@ After following the steps above, check out your `import.R`. The template can be 
 
 ### 1. Initial Setup
 
-The first part of the script loads the required libraries/helper functions and downloads the raw dataset from osf (if not already downloaded). If you want to redownload the raw_data, delete the `raw_data/` folder and rerun the `init()` function. Naturally, put the libraries you use at the top.
+The first part of the script loads the required libraries/helper functions and downloads the raw dataset from Redivis (if not already downloaded). If you want to redownload the raw_data, delete the `raw_data/` folder and rerun the `init()` function. Naturally, put the libraries you use at the top.
 
 ### 2. Creating a wide.table
 

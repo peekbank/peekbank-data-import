@@ -10,8 +10,6 @@ for (package in c("tidyverse", "here", "stringr", "peekbankr")) {
 
 options(dplyr.summarise.inform = FALSE)
 
-# override of peekbankr get_raw_data that relies on broken osfr
-source(here("helper_functions", "osf.R"))
 source(here("helper_functions", "redivis.R"))
 
 report_duplicate_timepoints <- function(data, time_col, trial_cols,
@@ -91,12 +89,14 @@ report_duplicate_timepoints <- function(data, time_col, trial_cols,
   invisible(result)
 }
 
-init <- function(dataset_name, osf_address = "pr6wu") {
+init <- function(dataset_name, storage_name = PB_FILES_DATASET) {
   path <- here("data", dataset_name)
   data_path <- here(path, "raw_data")
 
   if (length(list.files(data_path)) == 0) {
-    get_raw_data_redivis(lab_dataset_id = dataset_name)
+    download_raw_data_redivis(dataset_name, storage_name)
+  } else {
+    check_raw_data_redivis(dataset_name, storage_name)
   }
 
   return(data_path)

@@ -1,7 +1,6 @@
 library(here)
 library(tidyverse)
 library(peekbankr)
-library(osfr)
 library(janitor)
 library(stringr)
 library("readxl")

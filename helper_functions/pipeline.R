@@ -3,7 +3,6 @@ library(purrr)
 library(dplyr)
 library(tidyr)
 
-source(here("helper_functions", "osf.R"))
 source(here("helper_functions", "common.R"))
 
 
@@ -28,7 +27,7 @@ download_all <- function(overwrite = FALSE, activeonly = FALSE) {
       unlink(path, recursive = TRUE)
     }
     if (length(list.files(path)) == 0) {
-      get_raw_data_fixed(dataset)
+      download_raw_data_redivis(dataset)
     }
   })
 }

@@ -7,8 +7,8 @@ renv/.cache/
 .Rhistory
 .RData
 .Ruserdata
-osf_token.txt
 pipeline_registry.csv
 Rplots.pdf
 *.zip
 *.curltmp
+.env

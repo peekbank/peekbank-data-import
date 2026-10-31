@@ -5,7 +5,6 @@ library(janitor)
 library(tidyverse)
 library(readxl)
 library(peekbankr)
-library(osfr)
 
 
 source(here("helper_functions", "common.R"))

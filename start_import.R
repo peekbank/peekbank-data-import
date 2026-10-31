@@ -16,12 +16,12 @@ dir.create(here("data", dataset_name))
 
 tryCatch(
   {
-    cat(paste0("Checking osf for dataset: '", dataset_name, "'...\n"))
+    cat(paste0("Checking Redivis for dataset: '", dataset_name, "'...\n"))
     read_path <- init(dataset_name)
     cat(paste0("Saved raw data in ", read_path, "\n\n"))
   },
   error = function(e) {
-    cat("No data downloaded, either the dataset is not on osf or the download failed. \n\n")
+    cat("No data downloaded, either the dataset is not on Redivis or the download failed. \n\n")
   }
 )
 

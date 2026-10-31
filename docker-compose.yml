@@ -1,5 +1,6 @@
 services:
   import:
     build: .
+    env_file: .env
     volumes:
       - ./data:/project/data

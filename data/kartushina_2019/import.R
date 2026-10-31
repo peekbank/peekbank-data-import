@@ -32,14 +32,6 @@ control_path <- fs::path(raw_data_path, "control_trials")
 exp_info_path <- fs::path(raw_data_path, "experiment_info")
 stim_path <- fs::path(raw_data_path, "stimulus_images")
 
-## only download if it's not on your machine
-if (length(list.files(experiment_path)) == 0 & length(list.files(exp_info_path)) == 0) {
-  # check if raw_data_path exists to avoid generating an error in using get_raw_data
-  if (!file.exists(raw_data_path)) {
-    dir.create(raw_data_path)
-  }
-  get_raw_data(lab_dataset_id = dataset_name, path = raw_data_path, osf_address = OSF_ADDRESS)
-}
 
 #### (1) datasets table ####
 df_dataset <- tibble(

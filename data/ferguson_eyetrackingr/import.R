@@ -1,7 +1,6 @@
 library(tidyverse)
 library(here)
 library(peekbankr)
-library(osfr)
 
 source(here("helper_functions", "common.R"))
 dataset_name <- "ferguson_eyetrackingr"

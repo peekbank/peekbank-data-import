@@ -14,15 +14,15 @@ if [ $# -eq 0 ]; then
   echo "Commands:"
   echo "  pipeline [--down] [--resume] [--up] [--no-subprocess]"
   echo "      Run the full import pipeline"
-  echo "        --down        Redownload all raw data from OSF"
+  echo "        --down        Redownload all raw data from Redivis"
   echo "        --resume      Keep previous processed_data"
-  echo "        --up          Upload processed data to OSF"
+  echo "        --up          Upload processed data to Redivis"
   echo "        --no-subprocess  Run all imports in a single R process (uses more memory)"
   echo ""
   echo "  import <dataset> [--down] [--up]"
   echo "      Run a single dataset import"
-  echo "        --down    (Re)download raw data from OSF before importing"
-  echo "        --up      Upload processed data to OSF"
+  echo "        --down    (Re)download raw data from Redivis before importing"
+  echo "        --up      Upload processed data to Redivis"
   exit 0
 fi
 
@@ -56,8 +56,8 @@ case "$CMD" in
     POSTCMDS=""
     for arg in "$@"; do
       case "$arg" in
-        --down) PRECMDS="source('helper_functions/osf.R'); unlink(here::here('data','${DATASET}','raw_data'), recursive=TRUE); get_raw_data_fixed('${DATASET}'); " ;;
-        --up) POSTCMDS="; source('helper_functions/osf.R'); upload_osf('${DATASET}')" ;;
+        --down) PRECMDS="source('helper_functions/redivis.R'); unlink(here::here('data','${DATASET}','raw_data'), recursive=TRUE); download_raw_data_redivis('${DATASET}'); " ;;
+        --up) POSTCMDS="; source('helper_functions/redivis.R'); upload_redivis('${DATASET}')" ;;
       esac
     done
     run "${PRECMDS}source('data/${DATASET}/import.R')${POSTCMDS}"

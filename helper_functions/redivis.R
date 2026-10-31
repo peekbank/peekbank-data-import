@@ -1,118 +1,199 @@
-# Redivis replacements for the OSF helpers (osf.R). Peekbank's raw and
-# processed data files live in the datapages.peekbank_files dataset on
-# Redivis: a single file-index table `files` whose file names are the
-# OSF-relative paths (<dataset>/raw_data/..., <dataset>/processed_data/...,
-# <dataset>/README.md).
+# Peekbank's raw and processed data files live in the datapages.peekbank_files
+# dataset on Redivis, with one file index table (folder) per Peekbank dataset.
 #
-# Downloads use the public released version by default. Uploads stage files
-# into the current *draft* version (organization members only); the draft is
-# released as part of the release process.
+# File names inside a folder are relative to data/<dataset>/: raw_data/...,
+# processed_data/..., README.md.
+#
+# Downloads and the raw_data check read the draft version if one exists and the
+# person running the import has access (editors only), otherwise the released
+# version. Uploads stage files into the draft (editors only).
 
-for (package in c("httr", "glue", "here", "dplyr")) {
-  suppressWarnings(
-    suppressPackageStartupMessages(
-      library(package, character.only = TRUE)
-    )
-  )
-}
+# suppressWarnings hides "package was built under R version ..." notices
+suppressWarnings(suppressPackageStartupMessages({
+  library(glue)
+  library(here)
+}))
 
 PB_FILES_ORG <- "datapages"
 PB_FILES_DATASET <- "peekbank_files:frvk"
-PB_FILES_TABLE <- "files"
-REDIVIS_API <- "https://redivis.com/api/v1"
 
-pb_redivis_token <- function() {
-  token <- Sys.getenv("REDIVIS_API_TOKEN")
-  if (token == "" && file.exists(here(".secrets"))) {
-    line <- grep("^REDIVIS_API_TOKEN=", readLines(here(".secrets")), value = TRUE)
-    if (length(line) > 0) token <- trimws(sub("^REDIVIS_API_TOKEN=", "", line[1]))
+if (file.exists(here(".env"))) readRenviron(here(".env"))
+# Redivis only falls back to browser if not token is set, so we remove empty ones
+if (Sys.getenv("REDIVIS_API_TOKEN") == "") Sys.unsetenv("REDIVIS_API_TOKEN")
+
+# Interactive sessions use the package's browser login when there is no token,
+# and retry once with it when the .env token is rejected or lacks the data.edit
+# scope. Scripts and Docker can't complete a browser login, so they fail right
+# away instead of the package waiting up to 10 minutes for one.
+pb_retry_with_browser_login <- function(f) {
+  if (!interactive() && !redivis:::has_credentials()) {
+    stop("Not logged in to Redivis: set REDIVIS_API_TOKEN in .env (see .env.template)")
   }
-  token
+  tryCatch(f(), redivis_api_error = function(e) {
+
+    token_rejected <- e$status_code %in% 401 ||
+      (e$status_code %in% 403 && grepl("insufficient_scope", conditionMessage(e)))
+
+    if (!interactive() || !token_rejected || Sys.getenv("REDIVIS_API_TOKEN") == "") {
+      stop(e)
+    }
+    
+    message("Redivis token rejected, falling back to browser login")
+    Sys.unsetenv("REDIVIS_API_TOKEN")
+    f()
+  })
 }
 
-pb_files_dataset <- function(version = "current") {
-  ds <- redivis::redivis$organization(PB_FILES_ORG)
-  if (identical(version, "current")) {
-    ds$dataset(PB_FILES_DATASET)
-  } else {
-    ds$dataset(PB_FILES_DATASET, version = version)
-  }
+# The Redivis server warns whenever a table is looked up by name without its
+# reference id (e.g. if we only use "steil_schild" instead of "steil_schild_2021:6wy5").
+# We do want renamed/mismatching folders to fail, so we don't use IDs and swallow the warning instead.
+pb_silence_name_lookup <- function(expr) {
+  withCallingHandlers(expr, warning = function(w) {
+    if (startsWith(conditionMessage(w), "No reference id was provided for the table")) {
+      invokeRestart("muffleWarning")
+    }
+  })
 }
 
-# list files under a name prefix: tibble(file_id, file_name, size)
-pb_list_files <- function(prefix, version = "current") {
-  sql <- glue(
-    "SELECT file_id, file_name, size FROM {PB_FILES_TABLE} ",
-    "WHERE STARTS_WITH(file_name, '{prefix}')"
+# Handle on the Redivis dataset that stores the Peekbank dataset folders, at a
+# version: "current" is the latest release, "next" the draft. Makes no request
+# by itself.
+pb_storage_handle <- function(storage_name = PB_FILES_DATASET, version = "current") {
+  redivis::redivis$organization(PB_FILES_ORG)$dataset(storage_name, version = version)
+}
+
+pb_list_files <- function(lab_dataset_id, version,
+                          storage_name = PB_FILES_DATASET) {
+  pb_silence_name_lookup({
+    tb <- pb_storage_handle(storage_name, version)$table(lab_dataset_id)
+    tb$get()
+    # to_tibble() fails with if Redivis returns a 500 caused by on an empty folder
+    if (tb$properties$numRows == 0) {
+      tibble::tibble(file_id = character(), file_name = character(),
+                     size = numeric(), md5_hash = character())
+    } else {
+      tb$to_tibble()
+    }
+  })
+}
+
+# The raw_data files of one Peekbank dataset, from the draft if the caller can
+# see one, otherwise from the latest release
+pb_list_raw_files <- function(lab_dataset_id, storage_name = PB_FILES_DATASET) {
+  released <- pb_storage_handle(storage_name)
+  released$get()
+  # Redivis only returns nextVersion to editors with the data.edit scope, and
+  # only while a draft exists
+  version <- if (is.null(released$properties$nextVersion)) "current" else "next"
+  print(glue("Listing raw_data for {lab_dataset_id} from {storage_name}:{version}"))
+  files <- pb_list_files(lab_dataset_id, version, storage_name)
+  files[startsWith(files$file_name, "raw_data/"), ]
+}
+
+download_raw_data_redivis <- function(lab_dataset_id,
+                                      storage_name = PB_FILES_DATASET) {
+  pb_retry_with_browser_login(function() {
+    files <- pb_list_raw_files(lab_dataset_id, storage_name)
+    if (nrow(files) == 0) {
+      stop(glue("No raw_data files found for {lab_dataset_id} on Redivis"))
+    }
+    print(glue("Downloading {nrow(files)} raw_data files for {lab_dataset_id}"))
+    purrr::walk2(files$file_id, files$file_name, function(file_id, file_name) {
+      dest <- here("data", lab_dataset_id, file_name)
+      dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
+      # the package's own file helpers build a regex from the file path and
+      # break on names containing parentheses, so download by id instead
+      redivis:::make_request(path = glue("/rawFiles/{file_id}"),
+                             download_path = dest, download_overwrite = TRUE,
+                             parse_response = FALSE)
+    })
+  })
+}
+
+# Warns when the local raw_data differs from what a download would give (using ahshes).
+check_raw_data_redivis <- function(lab_dataset_id,
+                                   storage_name = PB_FILES_DATASET) {
+  remote_files <- tryCatch(
+    pb_retry_with_browser_login(function() pb_list_raw_files(lab_dataset_id, storage_name)),
+    error = function(e) {
+      message(glue("Could not compare raw_data with Redivis: {conditionMessage(e)}"))
+      NULL
+    }
   )
-  pb_files_dataset(version)$query(sql)$to_tibble()
+  if (is.null(remote_files)) {
+    return(invisible(NULL))
+  }
+
+  dataset_path <- here("data", lab_dataset_id)
+  local_files <- file.path("raw_data", list.files(file.path(dataset_path, "raw_data"),
+                                                  recursive = TRUE))
+  # Redivis gives md5 hashes base64-encoded, md5sum() gives them as hex
+  remote_hashes <- setNames(
+    vapply(remote_files$md5_hash,
+           function(h) paste(jsonlite::base64_dec(h), collapse = ""),
+           character(1)),
+    remote_files$file_name
+  )
+  shared <- intersect(local_files, names(remote_hashes))
+  local_hashes <- unname(tools::md5sum(file.path(dataset_path, shared)))
+
+  problems <- list(
+    "content differs" = shared[local_hashes != remote_hashes[shared]],
+    "only on Redivis" = setdiff(names(remote_hashes), local_files),
+    "only local" = setdiff(local_files, names(remote_hashes))
+  )
+  problems <- problems[lengths(problems) > 0]
+  if (length(problems) == 0) {
+    print(glue("raw_data for {lab_dataset_id} matches Redivis"))
+    return(invisible(NULL))
+  }
+
+  details <- vapply(names(problems), function(kind) {
+    files <- problems[[kind]]
+    shown <- paste(head(files, 3), collapse = ", ")
+    if (length(files) > 3) shown <- paste0(shown, ", ...")
+    glue("  {kind} ({length(files)}): {shown}")
+  }, character(1))
+  header <- glue("raw_data for {lab_dataset_id} differs from Redivis. ",
+                 "Delete raw_data/ (or use --down) to redownload.")
+  warning(paste(c(header, details), collapse = "\n"), call. = FALSE, immediate. = TRUE)
 }
 
-# download one file id to an explicit path (with retries + size check)
-pb_download_file <- function(file_id, dest, size = NA, max_retries = 3) {
-  dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
-  auth <- add_headers(Authorization = glue("Bearer {pb_redivis_token()}"))
-  for (attempt in seq_len(max_retries)) {
-    resp <- try(GET(glue("{REDIVIS_API}/rawFiles/{file_id}"), auth,
-                    write_disk(dest, overwrite = TRUE)), silent = TRUE)
-    ok <- !inherits(resp, "try-error") && status_code(resp) == 200 &&
-      (is.na(size) || file.size(dest) == size)
-    if (ok) return(invisible(TRUE))
-    Sys.sleep(2^attempt)
-  }
-  stop(glue("Failed to download file {file_id} -> {dest}"))
-}
-
-get_raw_data_redivis <- function(lab_dataset_id, version = "current") {
-  files <- pb_list_files(glue("{lab_dataset_id}/raw_data/"), version)
-  if (nrow(files) == 0) {
-    stop(glue("No raw_data files found for {lab_dataset_id} in ",
-              "{PB_FILES_ORG}.{PB_FILES_DATASET} ({version})"))
-  }
-  print(glue("Downloading {nrow(files)} raw_data files for {lab_dataset_id} ",
-             "from Redivis"))
-  for (i in seq_len(nrow(files))) {
-    pb_download_file(files$file_id[i],
-                     dest = here("data", files$file_name[i]),
-                     size = files$size[i])
-  }
-  invisible(here("data", lab_dataset_id, "raw_data"))
-}
-
-# stage processed_data + README.md for a dataset into the current draft of
-# peekbank_files (org members only; part of the release process).
-# add_files() REPLACES same-named files in the draft (verified), so
-# re-staging a dataset is idempotent.
+# Stages processed_data/ and README.md into the dataset's folder in the draft of
+# peekbank_files.
 upload_redivis <- function(lab_dataset_id) {
   processed <- here("data", lab_dataset_id, "processed_data")
   if (!dir.exists(processed)) {
-    stop(glue("Dataset {lab_dataset_id} has no processed_data folder"))
+    stop(glue("Dataset {lab_dataset_id} has no local processed_data folder"))
   }
-  ds <- pb_files_dataset()$create_next_version(if_not_exists = TRUE)
-  tb <- ds$table(PB_FILES_TABLE)
-
   local_files <- list.files(processed, recursive = TRUE)
-  specs <- lapply(local_files, function(f) {
-    list(name = glue("{lab_dataset_id}/processed_data/{f}"),
-         path = file.path(processed, f))
+  # add_files() takes one list(name = name on Redivis, path = local path) per file
+  files_to_add <- lapply(local_files, function(f) {
+    list(name = glue("processed_data/{f}"), path = file.path(processed, f))
   })
   readme <- here("data", lab_dataset_id, "README.md")
   if (file.exists(readme)) {
-    specs <- c(specs, list(list(name = glue("{lab_dataset_id}/README.md"),
-                                path = readme)))
+    files_to_add <- c(files_to_add, list(list(name = "README.md", path = readme)))
   }
-  print(glue("Staging {length(specs)} files for {lab_dataset_id} into the ",
-             "peekbank_files draft"))
-  tb$add_files(files = specs, progress = FALSE)
 
-  # verify by listing the draft
-  remote <- pb_list_files(glue("{lab_dataset_id}/"), version = "next")
-  missing <- setdiff(vapply(specs, function(s) s$name, character(1)),
-                     remote$file_name)
-  if (length(missing) > 0) {
-    stop(glue("Upload verification failed; missing: ",
-              "{paste(missing, collapse = ', ')}"))
-  }
+  pb_silence_name_lookup(pb_retry_with_browser_login(function() {
+    tb <- pb_storage_handle()$create_next_version(if_not_exists = TRUE)$table(lab_dataset_id)
+    if (!tb$exists()) {
+      stop(glue("peekbank_files has no folder for {lab_dataset_id}; ",
+                "add its raw data first"))
+    }
+    print(glue("Staging {length(files_to_add)} files for {lab_dataset_id} into the ",
+               "peekbank_files draft"))
+    tb$add_files(files = files_to_add, progress = FALSE)
+
+    remote_files <- pb_list_files(lab_dataset_id, version = "next")
+    missing <- setdiff(vapply(files_to_add, function(f) f$name, character(1)),
+                       remote_files$file_name)
+    if (length(missing) > 0) {
+      stop(glue("Upload verification failed; missing: ",
+                "{paste(missing, collapse = ', ')}"))
+    }
+  }))
   print("Upload verified.")
   invisible(NULL)
 }
