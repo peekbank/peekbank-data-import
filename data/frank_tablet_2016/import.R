@@ -17,7 +17,7 @@ monitor_size_string <- "Calibration Area"
 sample_rate_string <- "Sample Rate"
 
 
-#### Define paths and get data from OSF if necessary ####
+#### Define paths ####
 DATASET_PATH <- here(file.path("data", dataset_name))
 
 full_dataset_path <- file.path(DATASET_PATH, "raw_data/full_dataset")

@@ -13,7 +13,7 @@ Code Review Checklist:
 
 - [ ] Git pull this repo to get the latest version
 - [ ] Run `renv::restore()` to sync your packages with the lockfile
-- [ ] Get the latest version of the dataset from osf (delete your raw_data, so that the script automatically downloads the data)
+- [ ] Get the latest version of the dataset from Redivis (delete your raw_data, so that the script automatically downloads the data)
 - [ ] Run the import script
 - [ ] Does it run into issues due to missing libraries? If so, install them and run `renv::snapshot()` to update `renv.lock`
 - [ ] Does the validator pass? It reports two tiers, both blocking:
@@ -70,4 +70,4 @@ General
         - [ ] Any odd subject-level patterns? 
         - [ ] (if the dataset has xy data) Does the XY gaze scatter plot show any odd patterns?
     - [ ] Any other, large (unexpected) discrepancies between data reported in paper vs. data in the imported dataset?
-- [ ] After checking everything and rerunning the script: set the write_and_validate upload flag to TRUE temporarily to automatically upload the output to [osf](https://osf.io/pr6wu/)
+- [ ] After checking everything and rerunning the script: set the write_and_validate upload flag to TRUE temporarily to automatically upload the output to the `peekbank_files` draft on [Redivis](https://stanford.redivis.com/datasets/frvk-5c922jwkx)
