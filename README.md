@@ -73,7 +73,7 @@ If you specifically know that you want to create a legacy import script (unlikel
 
 ### Writing the import script
 
-The underlying <a href="https://peekbank.github.io/peekbank-website/peekbank/dataschema/" target="_blank">Peekbank data format</a> stores the eyetracking gazepoints and metadata in a set of tables where relationships are expressed through linked IDs. As it can be unwieldy to directly turn your data into this format, we have created a set of templates and functions to streamline the data importing process. The next few paragraphs will go over how to prepare your data for import using these helpers.
+The underlying [Peekbank data format](https://peekbank.github.io/peekbank-website/peekbank/dataschema/) stores the eyetracking gazepoints and metadata in a set of tables where relationships are expressed through linked IDs. As it can be unwieldy to directly turn your data into this format, we have created a set of templates and functions to streamline the data importing process. The next few paragraphs will go over how to prepare your data for import using these helpers.
 
 If you run into issues with the provided methods (e.g. memory limitations, edge cases not sufficiently mapped in our helper functions), you can also manually generate the tables and IDs in a "legacy" import script (create a new template with the command above). We do provide [sparse instructions and help](#import-guide-legacy-method).
 
