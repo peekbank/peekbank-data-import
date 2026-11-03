@@ -281,7 +281,7 @@ d_tidy <- looking_data_tidy %>%
 datasets_table <- tibble(
   dataset_id = dataset_id,
   lab_dataset_id = dataset_name,
-  dataset_name = "newman_sinewave_2015",
+  dataset_name = dataset_name,
   cite = "Newman, R. S., Chatterjee, M., Morini, G., & Remez, R. E. (2015). Toddlers' comprehension of degraded signals: Noise-vocoded versus sine-wave analogs. The Journal of the Acoustical Society of America, 138(3), EL311-EL317.",
   shortcite = "Newman et al. (2015)",
   dataset_aux_data = NA
