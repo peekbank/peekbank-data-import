@@ -183,8 +183,11 @@ upload_redivis <- function(lab_dataset_id) {
     tb <- pb_storage_handle()$create_next_version(if_not_exists = TRUE)$table(PB_PROCESSED_FOLDER)
     print(glue("Staging {length(files_to_add)} files for {lab_dataset_id} into ",
                "{PB_PROCESSED_FOLDER} in the peekbank_files draft"))
-    tb$add_files(files = files_to_add, progress = FALSE)
+    # With more than one worker the redivis client forks R and fails
+    # inside Positron's R session
+    tb$add_files(files = files_to_add, max_parallelization = 1)
 
+    print("Verifying upload...")
     remote_files <- pb_list_files(PB_PROCESSED_FOLDER, version = "next")
     missing <- setdiff(vapply(files_to_add, function(f) f$name, character(1)),
                        remote_files$file_name)
