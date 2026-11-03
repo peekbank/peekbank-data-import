@@ -9,9 +9,16 @@ suppressMessages(library(fs))
 args <- commandArgs(trailingOnly = TRUE)
 cat("Please enter the dataset name: ")
 dataset_name <- readLines(con = "stdin", n = 1)
-cat("Creating folder... \n")
 
 source(here("helper_functions", "common.R"))
+
+# Redivis resolves a table name with or without its leading underscore, so
+# processed_data would also point at the _processed_data folder
+if (dataset_name %in% c(PB_PROCESSED_FOLDER, "processed_data")) {
+  stop(paste0("'", dataset_name, "' is taken by the processed data folder on Redivis, please pick another name"))
+}
+
+cat("Creating folder... \n")
 dir.create(here("data", dataset_name))
 
 tryCatch(
