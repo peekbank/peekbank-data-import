@@ -13,14 +13,7 @@ cd peekbank-data-import
 
 ### Redivis authentication
 
-Raw and processed data live in the [`datapages.peekbank_files`](https://stanford.redivis.com/datasets/frvk-5c922jwkx) dataset on [Redivis](https://redivis.com). Downloading raw data needs a Redivis login, and uploading processed data additionally requires write access to the dataset. When you run an import interactively (e.g. in RStudio), R opens a browser login for you to authenticate. For Docker runs or runs where nobody can complete the browser login (e.g. on a server), you need a token. The full pipeline runs that you start from your own R session reuse the browser login.
-
-Steps for setting the token:
-
-1. On Redivis, go to Workspace → Settings → API tokens and create a token. Give it the `data.edit` scope if you want to upload.
-2. Copy `.env.template` to `.env` in the root of the repository and paste the token after `REDIVIS_API_TOKEN=`.
-
-`.env` is gitignored and is picked up both by local R sessions and by the Docker container.
+Raw and processed data live in the [`datapages.peekbank_files`](https://stanford.redivis.com/datasets/frvk-5c922jwkx) dataset on [Redivis](https://redivis.com). Downloading raw data needs a Redivis login, and uploading processed data additionally requires write access to the dataset. When you run an import from R, it opens a browser login for you to authenticate. Docker and server runs need a token instead (see [Docker](#docker-optional)).
 
 ### Installing R dependencies
 
@@ -41,6 +34,13 @@ Docker is only needed for `./pbi import` and `./pbi pipeline`, which run the imp
 ```bash
 docker compose build
 ```
+
+The container can't open the Redivis browser login, so it needs an API token. The same goes for any run where nobody can complete the login, e.g. on a server.
+
+1. On Redivis, go to Workspace → Settings → API tokens and create a token. Give it the `data.edit` scope if you want to upload.
+2. Copy `.env.template` to `.env` in the root of the repository and paste the token after `REDIVIS_API_TOKEN=`.
+
+`.env` is gitignored. Local R sessions pick it up too and use it instead of the browser login.
 
 ## Adding a new dataset
 
@@ -180,7 +180,7 @@ run_all(nocache = FALSE, clean = TRUE, upload = FALSE)
 
 ### With Docker (best when running the pipeline end to end)
 
-With the image built (see [Docker](#docker-optional)), use the `pbi` wrapper script:
+With the image built and the token set (see [Docker](#docker-optional)), use the `pbi` wrapper script:
 
 ```bash
 ./pbi pipeline                    # run all imports
