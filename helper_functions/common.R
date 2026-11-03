@@ -89,14 +89,14 @@ report_duplicate_timepoints <- function(data, time_col, trial_cols,
   invisible(result)
 }
 
-init <- function(dataset_name, storage_name = PB_FILES_DATASET) {
+init <- function(dataset_name) {
   path <- here("data", dataset_name)
   data_path <- here(path, "raw_data")
 
   if (length(list.files(data_path)) == 0) {
-    download_raw_data_redivis(dataset_name, storage_name)
+    download_raw_data_redivis(dataset_name)
   } else {
-    check_raw_data_redivis(dataset_name, storage_name)
+    check_raw_data_redivis(dataset_name)
   }
 
   return(data_path)

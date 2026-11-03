@@ -4,8 +4,9 @@ library(arrow)
 source(here("helper_functions", "idless_draft.R"))
 source(here("helper_functions", "common.R"))
 dataset_name <- "nih_babytoolbox_2025"
-# raw data may not be shared publicly, so it lives in a private Redivis dataset
-data_path <- init(dataset_name, storage_name = "peekbank_nih_raw:2vqs")
+# raw data may not be shared publicly, so it lives in the private Redivis dataset
+# (see PB_PRIVATE_RAW_DATASET in helper_functions/redivis.R)
+data_path <- init(dataset_name)
 
 
 # A handful of sessions are recorded twice over, every row of them duplicated,

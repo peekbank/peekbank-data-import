@@ -16,6 +16,10 @@ suppressWarnings(suppressPackageStartupMessages({
 PB_FILES_ORG <- "datapages"
 PB_FILES_DATASET <- "peekbank_files:frvk"
 PB_PROCESSED_FOLDER <- "_processed_data"
+# Raw data that may not be shared publicly lives in a private Redivis dataset with
+# the same folder layout. Its folder in peekbank_files holds only the placeholder file.
+PB_PRIVATE_RAW_DATASET <- "peekbank_private_raw:2vqs"
+PB_PRIVATE_PLACEHOLDER <- "raw_data_in_private_repo.txt"
 
 if (file.exists(here(".env"))) readRenviron(here(".env"))
 # Redivis only falls back to browser if not token is set, so we remove empty ones
@@ -81,20 +85,32 @@ pb_list_files <- function(folder, version, storage_name = PB_FILES_DATASET) {
 
 # The raw data files of one Peekbank dataset, from the draft if the caller can
 # see one, otherwise from the latest release
-pb_list_raw_files <- function(lab_dataset_id, storage_name = PB_FILES_DATASET) {
-  released <- pb_storage_handle(storage_name)
-  released$get()
-  # Redivis only returns nextVersion to editors with the data.edit scope, and
-  # only while a draft exists
-  version <- if (is.null(released$properties$nextVersion)) "current" else "next"
-  print(glue("Listing raw data for {lab_dataset_id} from {storage_name}:{version}"))
-  pb_list_files(lab_dataset_id, version, storage_name)
+pb_list_raw_files <- function(lab_dataset_id) {
+  list_from <- function(storage_name) {
+    released <- pb_storage_handle(storage_name)
+    released$get()
+    # Redivis only returns nextVersion to editors with the data.edit scope, and
+    # only while a draft exists
+    version <- if (is.null(released$properties$nextVersion)) "current" else "next"
+    print(glue("Listing raw data for {lab_dataset_id} from {storage_name}:{version}"))
+    pb_list_files(lab_dataset_id, version, storage_name)
+  }
+
+  files <- list_from(PB_FILES_DATASET)
+  if (!identical(files$file_name, PB_PRIVATE_PLACEHOLDER)) {
+    return(files)
+  }
+  # only people the Peekbank team gave access can see the private dataset
+  tryCatch(list_from(PB_PRIVATE_RAW_DATASET), redivis_api_error = function(e) {
+    if (!e$status_code %in% c(403, 404)) stop(e)
+    stop(glue("The raw data of {lab_dataset_id} is in the private Redivis dataset ",
+              "{PB_PRIVATE_RAW_DATASET}. Ask the Peekbank team for access."), call. = FALSE)
+  })
 }
 
-download_raw_data_redivis <- function(lab_dataset_id,
-                                      storage_name = PB_FILES_DATASET) {
+download_raw_data_redivis <- function(lab_dataset_id) {
   pb_silence_known_warnings(pb_retry_with_browser_login(function() {
-    files <- pb_list_raw_files(lab_dataset_id, storage_name)
+    files <- pb_list_raw_files(lab_dataset_id)
     if (nrow(files) == 0) {
       stop(glue("No raw data found for {lab_dataset_id} on Redivis"))
     }
@@ -112,11 +128,10 @@ download_raw_data_redivis <- function(lab_dataset_id,
 }
 
 # Warns when the local raw_data differs from what a download would give (using ahshes).
-check_raw_data_redivis <- function(lab_dataset_id,
-                                   storage_name = PB_FILES_DATASET) {
+check_raw_data_redivis <- function(lab_dataset_id) {
   remote_files <- tryCatch(
     pb_silence_known_warnings(pb_retry_with_browser_login(function() {
-      pb_list_raw_files(lab_dataset_id, storage_name)
+      pb_list_raw_files(lab_dataset_id)
     })),
     error = function(e) {
       message(glue("Could not compare raw_data with Redivis: {conditionMessage(e)}"))
