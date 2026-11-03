@@ -1,6 +1,6 @@
 # a draft of some framework code possibly shared by all future imports
 
-for (package in c("tidyverse", "here", "stringr", "peekbankr")) {
+for (package in c("tidyverse", "here", "stringr", "peekbankr", "jsonlite")) {
   suppressWarnings(
     suppressPackageStartupMessages(
       library(package, character.only = TRUE)
