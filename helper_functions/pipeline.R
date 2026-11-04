@@ -93,6 +93,7 @@ validate_all <- function() {
 
 # nocache: download all data again, even if it already exists
 # clean: remove all previous process_data, even if the current import script does not execute
+# Returns the names of the datasets that failed to import or validate
 run_all <- function(nocache = FALSE, clean = TRUE, upload = FALSE, subprocess = FALSE) {
   datasets <- list_all(activeonly = TRUE)
   download_all(overwrite = nocache, activeonly = TRUE)
@@ -173,6 +174,8 @@ run_all <- function(nocache = FALSE, clean = TRUE, upload = FALSE, subprocess = 
       }
     }
   }
+
+  invisible(do_not_upload)
 }
 
 # currently only used as a standalone function

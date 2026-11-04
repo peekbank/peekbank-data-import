@@ -71,6 +71,15 @@ pb_storage_handle <- function(storage_name = PB_FILES_DATASET, version = "curren
   redivis::redivis$organization(PB_FILES_ORG)$dataset(storage_name, version = version)
 }
 
+# "next" (the draft) if the caller can see one, otherwise "current" (the latest release)
+pb_visible_version <- function(storage_name) {
+  released <- pb_storage_handle(storage_name)
+  released$get()
+  # Redivis only returns nextVersion to editors with the data.edit scope, and
+  # only while a draft exists
+  if (is.null(released$properties$nextVersion)) "current" else "next"
+}
+
 pb_list_files <- function(folder, version, storage_name = PB_FILES_DATASET) {
   tb <- pb_storage_handle(storage_name, version)$table(folder)
   tb$get()
@@ -87,11 +96,7 @@ pb_list_files <- function(folder, version, storage_name = PB_FILES_DATASET) {
 # see one, otherwise from the latest release
 pb_list_raw_files <- function(lab_dataset_id) {
   list_from <- function(storage_name) {
-    released <- pb_storage_handle(storage_name)
-    released$get()
-    # Redivis only returns nextVersion to editors with the data.edit scope, and
-    # only while a draft exists
-    version <- if (is.null(released$properties$nextVersion)) "current" else "next"
+    version <- pb_visible_version(storage_name)
     print(glue("Listing raw data for {lab_dataset_id} from {storage_name}:{version}"))
     pb_list_files(lab_dataset_id, version, storage_name)
   }
@@ -108,6 +113,19 @@ pb_list_raw_files <- function(lab_dataset_id) {
   })
 }
 
+# Downloads a listing from pb_list_files() into dir, keeping each file's path
+pb_download_files <- function(files, dir) {
+  purrr::walk2(files$file_id, files$file_name, function(file_id, file_name) {
+    dest <- file.path(dir, file_name)
+    dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
+    # the package's own file helpers build a regex from the file path and
+    # break on names containing parentheses, so download by id instead
+    redivis:::make_request(path = glue("/rawFiles/{file_id}"),
+                           download_path = dest, download_overwrite = TRUE,
+                           parse_response = FALSE)
+  })
+}
+
 download_raw_data_redivis <- function(lab_dataset_id) {
   pb_silence_known_warnings(pb_retry_with_browser_login(function() {
     files <- pb_list_raw_files(lab_dataset_id)
@@ -115,15 +133,7 @@ download_raw_data_redivis <- function(lab_dataset_id) {
       stop(glue("No raw data found for {lab_dataset_id} on Redivis"))
     }
     print(glue("Downloading {nrow(files)} raw data files for {lab_dataset_id}"))
-    purrr::walk2(files$file_id, files$file_name, function(file_id, file_name) {
-      dest <- here("data", lab_dataset_id, "raw_data", file_name)
-      dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
-      # the package's own file helpers build a regex from the file path and
-      # break on names containing parentheses, so download by id instead
-      redivis:::make_request(path = glue("/rawFiles/{file_id}"),
-                             download_path = dest, download_overwrite = TRUE,
-                             parse_response = FALSE)
-    })
+    pb_download_files(files, here("data", lab_dataset_id, "raw_data"))
   }))
 }
 
