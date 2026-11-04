@@ -287,8 +287,9 @@ wide.table <- et_data_joined |>
     r_x_min = 961,
     r_y_max = 1080,
     r_y_min = 0,
-    x = `GazePointX (ADCSpx)`,
-    y = `GazePointY (ADCSpx)`,
+    # the Tobii export marks an invalid coordinate with the smallest 32-bit integer
+    x = na_if(`GazePointX (ADCSpx)`, -2147483648),
+    y = na_if(`GazePointY (ADCSpx)`, -2147483648),
     monitor_size_x = 1920,
     monitor_size_y = 1080,
     aoi = ifelse(target_side == "left",

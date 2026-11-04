@@ -216,7 +216,7 @@ trial_types.df <- data.full %>%
     point_of_disambiguation = point_of_disambiguation,
     dataset_id = dataset_id,
     full_phrase = NA,
-    aoi_region_set_id = 0,
+    aoi_region_set_id = NA,
     vanilla_trial = condition == "Familiar",
     trial_type_aux_data = NA,
     trial_type_id = seq(0, nrow(.) - 1)

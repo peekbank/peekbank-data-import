@@ -34,6 +34,8 @@ We excluded these as potential errors.
 
 Monitor size was set as 1920x1080 (based on the studies), although note that the Tobii export has 1920x1200.
 
+The Tobii export gives one gaze sample a y coordinate of -2147483648, the smallest 32-bit integer, which marks an invalid value. We set such coordinates to NA. The sample counts as missing either way.
+
 Stimuli and trial properties in trial_info were coded off of the image/trial naming system. 
 
 There is no full_phrase data available. However, by looking at other datasets from that lab and asking people who worked with them, we conclude that the full phrases don't hurt the vanilla status of the trials (e.g. double word onset)

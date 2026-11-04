@@ -233,7 +233,7 @@ trial_types <- data %>%
       target_side == "r" ~ "right",
     ),
     full_phrase_language = "eng",
-    aoi_region_set_id = 0,
+    aoi_region_set_id = NA,
     dataset_id = 0,
     trial_type_aux_data = NA
   ) %>%

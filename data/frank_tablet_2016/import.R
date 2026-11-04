@@ -260,7 +260,7 @@ trials_table <- timepoint_data %>%
   mutate(
     trial_id = row_number() - 1,
     trial_aux_data = NA,
-    excluded = replace_na(excluded, 0)
+    excluded = replace_na(excluded, 0) == 1
   ) # unexclude participants missing from demogs
 
 
