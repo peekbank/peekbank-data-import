@@ -3419,7 +3419,7 @@
     },
     "peekbankr": {
       "Package": "peekbankr",
-      "Version": "0.6.1",
+      "Version": "0.7.0",
       "Source": "GitHub",
       "Type": "Package",
       "Title": "Accessing and Working with Peekbank Data",
@@ -3464,7 +3464,7 @@
       "RemoteUsername": "peekbank",
       "RemoteRepo": "peekbankr",
       "RemoteRef": "master",
-      "RemoteSha": "f3dd0c5f54bd5e9b1344fa3cc9894869b6583b18"
+      "RemoteSha": "ac40d4270fc76f2c24d13759b1b474f6f31b68ec"
     },
     "pillar": {
       "Package": "pillar",
