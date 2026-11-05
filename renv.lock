@@ -3419,7 +3419,7 @@
     },
     "peekbankr": {
       "Package": "peekbankr",
-      "Version": "0.4.3",
+      "Version": "0.6.1",
       "Source": "GitHub",
       "Type": "Package",
       "Title": "Accessing and Working with Peekbank Data",
@@ -3433,6 +3433,9 @@
       "BugReports": "https://github.com/peekbank/peekbankr/issues",
       "Encoding": "UTF-8",
       "Imports": [
+        "R6 (>= 2.5.0)",
+        "DBI (>= 1.1.0)",
+        "dbplyr (>= 2.3.0)",
         "dplyr (>= 1.0.4)",
         "glue (>= 1.4.2)",
         "jsonlite (>= 1.7.2)",
@@ -3441,26 +3444,27 @@
         "rlang (>= 0.4.10)",
         "tidyr (>= 1.1.2)",
         "stringr (>= 1.5.1)",
-        "redivis (>= 0.6.0)"
+        "redivis (>= 0.13.0)"
       ],
       "Suggests": [
         "testthat (>= 3.0.0)",
+        "tibble",
         "knitr",
         "rmarkdown"
       ],
       "Additional_repositories": "https://langcog.r-universe.dev",
+      "Roxygen": "list(markdown = TRUE)",
       "RoxygenNote": "7.3.3",
       "VignetteBuilder": "knitr",
       "Config/testthat/edition": "3",
+      "Author": "Mika Braginsky [aut, cre], Kyle MacDonald [aut], Michael Frank [aut], Linger Xu [aut], Adrian Steffan [aut]",
+      "Maintainer": "Mika Braginsky <mika.br@gmail.com>",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "peekbankr",
       "RemoteUsername": "peekbank",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "bd137ca380f64eca77c9614d9e56cc75c8343260",
-      "NeedsCompilation": "no",
-      "Author": "Mika Braginsky [aut, cre], Kyle MacDonald [aut], Michael Frank [aut], Linger Xu [aut], Adrian Steffan [aut]",
-      "Maintainer": "Mika Braginsky <mika.br@gmail.com>"
+      "RemoteRepo": "peekbankr",
+      "RemoteRef": "master",
+      "RemoteSha": "f3dd0c5f54bd5e9b1344fa3cc9894869b6583b18"
     },
     "pillar": {
       "Package": "pillar",
