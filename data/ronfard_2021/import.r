@@ -165,7 +165,9 @@ aoi_timepoints <- d_fin %>%
 subject_aux_data <- d_tidy %>%
   distinct(subject_id, cditotal, cdipct, luitotal, age_months) %>%
   dplyr::mutate(subject_aux_data = purrr::pmap(list(cditotal, luitotal, cdipct, age_months), function(cditotal, luitotal, cdipct, age_months) {
-    list(
+    # compact() drops the LUI entry of children without a score, which rjson
+    # would write as the string "NA"
+    purrr::compact(list(
       cdi_responses = list(
         list(
           instrument_type = "wsshort",
@@ -176,7 +178,7 @@ subject_aux_data <- d_tidy %>%
           language = "English (American)"
         )
       ),
-      lang_measures = list(
+      lang_measures = if (!is.na(luitotal)) list(
         list(
           instrument_type = "LUI",
           rawscore = luitotal,
@@ -184,7 +186,7 @@ subject_aux_data <- d_tidy %>%
           language = "English (American)"
         )
       )
-    )
+    ))
   })) %>%
   mutate(subject_aux_data = map(subject_aux_data, rjson::toJSON)) %>%
   select(subject_id, subject_aux_data)

@@ -321,7 +321,7 @@ cdi_data <- cdi_raw1 %>%
     language = "English (American)",
     subject_id = lab_subject_id
   ) |>
-  select(-lab_subject_id)
+  select(-lab_subject_id, -cdi)
 
 subjects <- subjects %>%
   digest.subject_aux_data(cdi = cdi_data)

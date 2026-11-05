@@ -152,7 +152,7 @@ wide.table <- bind_rows(d_mtl, d_nj) %>%
 language_measures <- wide.table %>%
   distinct(subject_id, child.dom.lang, population, vocab.dom, vocab.nondom) %>%
   mutate(
-    other_lang = ifelse(population == "Montreal", "French (Quebecois)", "Spanish"),
+    other_lang = ifelse(population == "Montreal", "French (Quebecois)", "Spanish (Mexican)"),
     lang_dom = ifelse(child.dom.lang == "English", "English (American)", other_lang),
     lang_nondom = ifelse(child.dom.lang == "English", other_lang, "English (American)")
   ) %>%

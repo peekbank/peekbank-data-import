@@ -70,7 +70,10 @@ The paper describes both experiments as using the same design, and the join
 is consistent (every NJ target.image for a given trial number appears among 
 sample_order's objects for that same trial number, no mismatches). 
 
-- DVAP vocabulary scores (Libertus 2015) included as language measures.
+- DVAP vocabulary scores (Libertus 2015) included as language measures. The 
+Spanish scores of the New Jersey children are labelled "Spanish (Mexican)", as 
+the language fields use Wordbank's labels and kremin_2021 labels its Spanish 
+DVAP scores the same way.
 
 - Trial data files only contain included participants (keeper=1). Excluded 
 participants (10 Montreal, 5 NJ) have no trial data in the raw CSVs, 

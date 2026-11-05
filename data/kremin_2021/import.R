@@ -330,7 +330,8 @@ pct_dvap <- pct_demog %>%
   select(-study_id)
 
 language_measures <- rbind(mtl_dvap, pct_dvap) %>%
-  mutate(age = age_years / 12, instrument_type = "DVAP") %>%
+  filter(!is.na(rawscore)) %>%
+  mutate(age = age_years * 12, instrument_type = "DVAP") %>%
   select(-age_years)
 
 # Language Exposures

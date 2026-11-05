@@ -163,7 +163,7 @@ lang_exposures_data <- subj_info |>
     cols = c(`English (American)`, `French (Quebecois)`),
     names_to = "language",
     values_to = "exposure"
-  ) |> mutate(subject_id = lab_subject_id)
+  ) |> rename(subject_id = lab_subject_id)
 
 cdi_responses <- subj_info |>
   select(
