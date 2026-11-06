@@ -1,7 +1,9 @@
-library(here)
-library(purrr)
-library(dplyr)
-library(tidyr)
+suppressPackageStartupMessages({
+  library(here)
+  library(purrr)
+  library(dplyr)
+  library(tidyr)
+})
 
 source(here("helper_functions", "common.R"))
 

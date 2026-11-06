@@ -7,7 +7,7 @@
 #   ./pbi release <release-name>             # release the draft
 #   ./pbi rename-release <new-release-name>  # rename the staged release
 
-library(here)
+suppressPackageStartupMessages(library(here))
 source(here("helper_functions", "pipeline.R"))
 
 PB_RELEASE_DATASET <- "peekbank:a3v0"
