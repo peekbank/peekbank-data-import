@@ -18,9 +18,9 @@ for file in *_*.png; do
    
     magick "$file" -crop 2x1@ +repage +adjoin tmp_%d.png
     
-    magick tmp_0.png -crop 67%x50%+33%+250% "${part1}.png"
+    magick tmp_0.png -crop 67%x50%+298+250 "${part1}.png"
     
-    magick tmp_1.png -crop 67%x50%+0+250% "${part2}"
+    magick tmp_1.png -crop 67%x50%+0+250 "${part2}"
     
     rm tmp_*.png
 done
