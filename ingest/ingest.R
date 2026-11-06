@@ -31,6 +31,8 @@ ingest <- function(release, cache = FALSE, dry_run = FALSE) {
     # - the processed data on Redivis (--cache) for testing does not come from a single commit
     # - a dry run (for testing, publishes nothing anyway)
     commit <- if (cache || dry_run) NA_character_ else ingestion_step("Checking the commit", get_verified_commit(datasets))
+    private <- ingestion_step("Finding the datasets with private raw data", private_datasets(datasets))
+    private_version <- ingestion_step("Checking the private raw data", get_private_raw_data_version(private))
     ingestion_step("Downloading or checking the raw data", download_or_check_raw_data(datasets))
     if (cache) {
       ingestion_step("Getting the remotely cached processed data", get_remotely_cached_processed_data(datasets))
@@ -49,11 +51,13 @@ ingest <- function(release, cache = FALSE, dry_run = FALSE) {
     # peekbankr finds a release on Redivis by its name. release_info is staged
     # first and only gets the commit once everything else is staged and checked,
     # so a draft whose build stopped records no commit and cannot be released.
-    info <- tibble(release_name = release, staged_date = Sys.Date(), import_commit = NA_character_)
+    info <- tibble(release_name = release, staged_date = Sys.Date(), import_commit = NA_character_,
+                   private_raw_data_version = private_version)
     ingestion_step("Staging release_info in the draft", stage_release_info(info))
     ingestion_step("Staging the tables in the draft", stage_tables(BUILD_DIR))
-    in_release_public <- ingestion_step("Staging the dataset folders in the draft", stage_dataset_folders(datasets))
-    ingestion_step("Reading the dataset files with peekbankr", check_peekbankr_finds_dataset_files(release, in_release_public))
+    ingestion_step("Staging the dataset files in the draft",
+                   stage_dataset_files(dataset_files(datasets, private, private_version)))
+    ingestion_step("Reading the dataset files with peekbankr", check_peekbankr_finds_dataset_files(release, datasets, private))
     if (cache) {
       print("The test build is staged in the draft on Redivis.")
       return(invisible(NULL))
@@ -472,75 +476,110 @@ stage_tables <- function(dir) {
   print("All tables are staged")
 }
 
-# Each dataset whose raw data is public gets a file table of the same name in
-# the release, holding README.md and its raw data under raw_data/. peekbankr
-# reads stimulus images and READMEs from there, so they are pinned to a release.
-stage_dataset_folders <- function(datasets) {
+# Every dataset's README.md and raw data go into one file table of the release,
+# as <dataset>/README.md and <dataset>/raw_data/<path>. peekbankr reads stimulus
+# images and READMEs from there, so they are pinned to a release. A dataset with
+# private raw data instead gets a note in raw_data/ referring to the version of the
+# private dataset that holds it (so we can at least internally reproduce it).
+DATASET_FILES_TABLE <- "dataset_files"
+
+# The datasets whose folder in peekbank_files only holds the placeholder
+# pointing to the private dataset
+private_datasets <- function(datasets) {
   version <- pb_visible_version(PB_FILES_DATASET)
-  in_release_public <- Filter(function(dataset) !pb_is_private(pb_list_files(dataset, version)), datasets)
-  draft <- pb_storage_handle(PB_RELEASE_DATASET)$create_next_version(if_not_exists = TRUE)
-  # the draft starts with the file tables of the previous release
-  for (redivis_table in draft$list_tables()) {
-    if (isTRUE(redivis_table$properties$isFileIndex) && !redivis_table$name %in% in_release_public) {
-      print(glue("Removing the raw data of {redivis_table$name}, which is not in this release"))
-      redivis_table$delete()
+  Filter(function(dataset) pb_is_private(pb_list_files(dataset, version)), datasets)
+}
+
+# The released version of the private dataset that the build reads raw data
+# from, which release_info records. NA when no dataset has private raw data.
+get_private_raw_data_version <- function(private) {
+  if (length(private) == 0) return(NA_character_)
+  if (pb_visible_version(PB_PRIVATE_RAW_DATASET) == "next") {
+    stop(glue("{PB_PRIVATE_RAW_DATASET} has a draft on Redivis. Release it first, so the ",
+              "release can point at a fixed version of the private raw data."), call. = FALSE)
+  }
+  version <- pb_storage_handle(PB_PRIVATE_RAW_DATASET)$version("current")
+  version$get()
+  version$properties$tag
+}
+
+# The files that go into dataset_files: their name there, local path and md5
+dataset_files <- function(datasets, private, private_version) {
+  note_dir <- tempfile()
+  files <- lapply(datasets, function(dataset) {
+    if (dataset %in% private) {
+      raw <- PB_PRIVATE_PLACEHOLDER
+      raw_paths <- file.path(note_dir, dataset, raw)
+      dir.create(dirname(raw_paths), recursive = TRUE)
+      writeLines(c(glue("The raw data of {dataset} is not public. It is in version {private_version} of the"),
+                   glue("Redivis dataset {PB_FILES_ORG}.{PB_PRIVATE_RAW_DATASET}. Ask the Peekbank team for access.")),
+                 raw_paths)
+    } else {
+      raw <- list.files(here("data", dataset, "raw_data"), recursive = TRUE)
+      raw_paths <- here("data", dataset, "raw_data", raw)
     }
-  }
-  for (dataset in in_release_public) ingestion_step(dataset, stage_dataset_files(draft, dataset))
-  in_release_public
+    names <- file.path(dataset, c("README.md", file.path("raw_data", raw)))
+    paths <- c(here("data", dataset, "README.md"), raw_paths)
+    tibble(dataset = dataset, name = names, path = paths)
+  })
+  bind_rows(files) %>% mutate(md5 = unname(tools::md5sum(path)))
 }
 
-# Reads the draft the way users read a release, to check that peekbankr finds
-# its release name and the stimulus images and READMEs of every dataset
-check_peekbankr_finds_dataset_files <- function(release, in_release_public) {
-  pb <- suppressMessages(peekbankr::peekbank("next"))
-  if (!identical(pb$release, release)) {
-    stop(glue("peekbankr reads the draft as release {pb$release}, not {release}"), call. = FALSE)
-  }
-
-  images <- pb$images(datasets = in_release_public, dir = tempfile())
-  missing <- images$stimulus_image_path[is.na(images$local_image_path)]
-  if (length(missing) > 0) {
-    stop(glue("peekbankr finds no image for {length(missing)} stimuli, e.g. {missing[1]}"),
-         call. = FALSE)
-  }
-  readmes <- pb$readmes(datasets = in_release_public, dir = tempfile())
-  if (is.null(readmes) || anyNA(readmes$readme)) {
-    stop(glue("peekbankr finds no README for ",
-              "{paste(setdiff(in_release_public, readmes$dataset_name[!is.na(readmes$readme)]), collapse = ', ')}"),
-         call. = FALSE)
-  }
-}
-
-# Uploads the (raw/readme) files of a dataset that are not in its file table yet or changed
-stage_dataset_files <- function(draft, dataset) {
-  raw <- list.files(here("data", dataset, "raw_data"), recursive = TRUE)
-  local <- tibble(name = c("README.md", file.path("raw_data", raw)),
-                  path = c(here("data", dataset, "README.md"), here("data", dataset, "raw_data", raw))) %>%
-    mutate(md5 = unname(tools::md5sum(path)))
+# Uploads the files that are not in the draft's dataset_files yet or changed
+stage_dataset_files <- function(files) {
   staged_files <- function() {
-    pb_list_files(dataset, "next", PB_RELEASE_DATASET) %>% mutate(md5 = pb_md5_hex(md5_hash))
+    pb_list_files(DATASET_FILES_TABLE, "next", PB_RELEASE_DATASET) %>% mutate(md5 = pb_md5_hex(md5_hash))
   }
-
-  redivis_table <- draft$table(dataset)
+  draft <- pb_storage_handle(PB_RELEASE_DATASET)$create_next_version(if_not_exists = TRUE)
+  redivis_table <- draft$table(DATASET_FILES_TABLE)
+  # the draft starts with the files of the previous release
   staged <- if (redivis_table$exists()) staged_files() else NULL
-  # the API cannot delete single files, so a file that has to go means a new table
-  if (!is.null(staged) && length(setdiff(staged$file_name, local$name)) > 0) {
+  gone <- setdiff(staged$file_name, files$name)
+  if (length(gone) > 0) {
+    gigabytes <- round(sum(file.size(files$path)) / 1e9, 1)
+    print(glue("{length(gone)} files of the previous release are not in this one, e.g. {gone[1]}. ",
+               "Redivis cannot delete single files, so {DATASET_FILES_TABLE} is created anew and ",
+               "all {nrow(files)} files ({gigabytes} GB) are uploaded again, which takes a while."))
     redivis_table$delete()
     staged <- NULL
   }
   if (is.null(staged)) redivis_table$create(is_file_index = TRUE)
 
-  new <- local[!(paste(local$name, local$md5) %in% paste(staged$file_name, staged$md5)), ]
-  if (nrow(new) == 0) {
-    print(glue("The raw data of {dataset} is staged already"))
-    return(invisible(NULL))
+  new <- files[!(paste(files$name, files$md5) %in% paste(staged$file_name, staged$md5)), ]
+  if (nrow(new) == 0) print("The dataset files are staged already")
+  # one upload per dataset, to show the progress
+  for (dataset in unique(new$dataset)) {
+    upload <- new[new$dataset == dataset, ]
+    print(glue("Staging {nrow(upload)} files of {dataset}"))
+    ingestion_step(dataset, redivis_table$add_files(
+      files = map2(upload$name, upload$path, function(name, path) list(name = name, path = path))))
   }
-  print(glue("Staging {nrow(new)} of {nrow(local)} files of {dataset}"))
-  redivis_table$add_files(files = map2(new$name, new$path, function(name, path) list(name = name, path = path)))
 
   staged <- staged_files()
-  if (!setequal(paste(staged$file_name, staged$md5), paste(local$name, local$md5))) {
+  if (!setequal(paste(staged$file_name, staged$md5), paste(files$name, files$md5))) {
     stop("the files in the draft differ from the local ones after uploading")
+  }
+}
+
+# Reads the draft the way users read a release, to check that peekbankr finds
+# its release name, the README of every dataset and the stimulus images of the
+# datasets with public raw data
+check_peekbankr_finds_dataset_files <- function(release, datasets, private) {
+  pb <- suppressMessages(peekbankr::peekbank("next"))
+  if (!identical(pb$release, release)) {
+    stop(glue("peekbankr reads the draft as release {pb$release}, not {release}"), call. = FALSE)
+  }
+
+  images <- pb$images(datasets = setdiff(datasets, private), dir = tempfile())
+  missing <- images$stimulus_image_path[is.na(images$local_image_path)]
+  if (length(missing) > 0) {
+    stop(glue("peekbankr finds no image for {length(missing)} stimuli, e.g. {missing[1]}"),
+         call. = FALSE)
+  }
+  readmes <- pb$readmes(datasets = datasets, dir = tempfile())
+  if (anyNA(readmes$readme)) {
+    stop(glue("peekbankr finds no README for ",
+              "{paste(readmes$dataset_name[is.na(readmes$readme)], collapse = ', ')}"),
+         call. = FALSE)
   }
 }

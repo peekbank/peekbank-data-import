@@ -27,9 +27,13 @@ The full build reruns every import and records the commit it was built from, whi
 
 `--cache` builds from the processed data in `_processed_data` instead. It is quicker for testing, but `./pbi release` specifically refuses its draft, as we want releases to be linked to a state of the import framework and raw data for reproducibility and the ability to trace errors in releases.
 
-Both stage the release tables in the draft on Redivis, along with a folder for each dataset with public raw data, holding its `README.md` and the raw data under `raw_data/`.
+Both stage the release tables in the draft on Redivis, along with the file table `dataset_files`, which holds every dataset's `README.md` and raw data as `<dataset>/README.md` and `<dataset>/raw_data/<path>`. Redivis can't delete single files, so when a file of the previous release is not part of the new one (a dataset was dropped or renamed, or a raw file removed or renamed), the build creates `dataset_files` anew and uploads all files again, which takes about an hour and a half.
 
 `--dry-run` stops before staging and does not have the fixed commit requirement of the regular ingestion. Use it to test a change to the imports, the helpers or peekbankr before committing it.
+
+## Private raw data
+
+Raw data that may not be shared publicly is in [`peekbank_private_raw`](https://stanford.redivis.com/datasets/2vqs-2cfz9magg) instead. For these datasets, the release holds only the `README.md` and a `raw_data/raw_data_in_private_repo.txt` naming the version of `peekbank_private_raw` with their raw data. `release_info` records that version in `private_raw_data_version`, so the release points at fixed files for (internal) reproducability. That is why the build stops while `peekbank_private_raw` has a draft. To unblock, release the draft of the private data on Redivis first.
 
 ## Releasing
 
