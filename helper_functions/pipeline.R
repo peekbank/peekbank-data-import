@@ -6,18 +6,16 @@ library(tidyr)
 source(here("helper_functions", "common.R"))
 
 
-# returns a list of all datasets that are in the active pipeline
+# returns a list of all datasets that are in the active pipeline, i.e. not
+# waiting for review (see PB_UNREVIEWED_FILE)
 list_all <- function(activeonly = TRUE) {
-  CURRENTLY_IGNORED <- readLines(here("helper_functions", "pipeline_ignore.txt"))
   NOT_DATASETS <- c("generic_import_template")
-
-  ignored_folders <- NOT_DATASETS
-  if (activeonly) {
-    ignored_folders <- c(ignored_folders, CURRENTLY_IGNORED)
-  }
-
   folder_names <- basename(list.dirs(here("data"), recursive = FALSE))
-  return(folder_names[!folder_names %in% ignored_folders])
+  folder_names <- folder_names[!folder_names %in% NOT_DATASETS]
+  if (activeonly) {
+    folder_names <- folder_names[!file.exists(here("data", folder_names, PB_UNREVIEWED_FILE))]
+  }
+  folder_names
 }
 
 download_all <- function(overwrite = FALSE, activeonly = FALSE) {
@@ -39,25 +37,22 @@ validate_all <- function() {
 
   datasets <- list_all(activeonly = TRUE)
 
-  pipeline_registry <- read_pipeline_registry()
-
   failed_validations <- datasets %>%
     lapply(\(dataset){
       print(glue("Validating {dataset}"))
-
-      registry_row <- pipeline_registry[pipeline_registry$dataset_name == dataset, ]
-      if (nrow(registry_row) == 0) {
-        return(glue("{dataset}: no cdi indicator found - be sure to use the write_and_validate function in the script"))
-      }
-      cdi_expected <- registry_row$cdi_expected
-      sw <- registry_row$suppress_warnings
-      suppress_warnings <- if (!is.na(sw) && nzchar(sw)) strsplit(sw, ";")[[1]] else c()
 
       # only validate if processed_data is present
       output_path <- here("data", dataset, "processed_data")
       if (!file.exists(output_path)) {
         return("")
       }
+      settings_path <- file.path(output_path, "validation.json")
+      if (!file.exists(settings_path)) {
+        return(glue("{dataset}: processed_data has no validation.json. Rerun the import, which writes it in write_and_validate()"))
+      }
+      settings <- jsonlite::read_json(settings_path)
+      cdi_expected <- settings$cdi_expected
+      suppress_warnings <- unlist(settings$suppress_warnings)
 
       tryCatch(
         {

@@ -12,6 +12,17 @@ options(dplyr.summarise.inform = FALSE)
 
 source(here("helper_functions", "redivis.R"))
 
+# While a dataset's folder holds this file, the pipeline and releases skip it.
+# ./pbi new creates it during scaffolding, and the person who does the review should delete it when done.
+PB_UNREVIEWED_FILE <- "ignored_by_pipeline_remove_after_review.txt"
+PB_UNREVIEWED_TEXT <- c(
+  "The pipeline and Peekbank releases skip this dataset while this file exists.",
+  "",
+  "Once someone other than the importer has reviewed the import (the import script",
+  "against the paper, the validation summary and the plots), they delete this file",
+  "and commit the deletion. The dataset is then part of the next release."
+)
+
 report_duplicate_timepoints <- function(data, time_col, trial_cols,
                                         xy_cols = NULL, aoi_col = NULL) {
   group_cols <- c(trial_cols, time_col)
@@ -102,11 +113,6 @@ init <- function(dataset_name) {
   return(data_path)
 }
 
-read_pipeline_registry <- function() {
-  registry_path <- here("pipeline_registry.csv")
-  if (file.exists(registry_path)) read_csv(registry_path, show_col_types = FALSE) else tibble(dataset_name = character(), cdi_expected = logical(), suppress_warnings = character())
-}
-
 validate_dataset <- function(dataset_name, output_path, cdi_expected, suppress_warnings = c()) {
   result <- peekbankr::ds.validate_for_db_import(dir_csv = output_path, cdi_expected = cdi_expected,
                                                   suppress_warnings = suppress_warnings)
@@ -157,11 +163,11 @@ write_and_validate <- function(
   if (dir.exists(output_path)) unlink(output_path, recursive = TRUE)
   dir.create(here(output_path), showWarnings = FALSE)
 
-  # register cdi_expected and suppress_warnings so the global validator can check without re-running imports
-  registry <- read_pipeline_registry()
-  registry <- registry[registry$dataset_name != dataset_name, ]
-  registry <- rbind(registry, tibble(dataset_name = dataset_name, cdi_expected = cdi_expected, suppress_warnings = paste(suppress_warnings, collapse = ";")))
-  write_csv(registry, here("pipeline_registry.csv"))
+  # We want validate_all() to be able to check the
+  # processed_data without rerunning the import (e.g. after a --cache build
+  # downloaded it from Redivis), so we save the metadata important for validation in a file we keep with the processed data
+  jsonlite::write_json(list(cdi_expected = cdi_expected, suppress_warnings = I(as.character(suppress_warnings))),
+                       here(output_path, "validation.json"), auto_unbox = TRUE)
 
   write_csv(dataset, file = here(output_path, "datasets.csv"))
   write_csv(subjects, file = here(output_path, "subjects.csv"))
@@ -630,9 +636,10 @@ write_and_validate <- function(
     gc(verbose = FALSE)
   }
   
-  if(upload){
-    # a way to stop the prints/plotting when running the scripts centralized
-    # a bit hacky, but good enough for now
+  # ./pbi import --up sets external_peekbank_upload, which behaves as if the
+  # script said upload = TRUE (regardless of what flag the script set)
+  if(upload || exists("external_peekbank_upload")){
+    # run_all() uploads every dataset at the end, so the scripts it runs should not
     if (!exists("external_block_peekbank_separate_upload")) {
       if(length(result$errors) == 0 && length(result$warnings) == 0){
         upload_redivis(dataset_name)

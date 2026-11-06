@@ -56,4 +56,6 @@ readLines(readme_path) %>%
   gsub(pattern = "DATASET_NAME", replace = dataset_name, .) %>%
   writeLines(., con = readme_path)
 
+writeLines(PB_UNREVIEWED_TEXT, here("data", dataset_name, PB_UNREVIEWED_FILE))
+
 cat(paste0("Created import template, open ",paste0("./data/",dataset_name,"/import.R"), " to get started!\n\n"))

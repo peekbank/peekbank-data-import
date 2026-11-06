@@ -1,4 +1,5 @@
-FROM rocker/r-ver:4.3.2
+# by digest, as a tag can be rebuilt upstream with other system libraries
+FROM rocker/r-ver:4.3.2@sha256:4e32addfc4da3e660f6e0d05ce5e43d3eceb9db58a60b9a142e0dde9a654ead1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4-openssl-dev \
@@ -39,3 +40,6 @@ RUN --mount=type=cache,target=/renv-cache \
 COPY . .
 
 CMD ["Rscript", "-e", "global_block_peekbank_summary <- TRUE; source('helper_functions/pipeline.R')"]
+
+# lets ./pbi remove the images that later builds replaced
+LABEL org.peekbank.image=data-import

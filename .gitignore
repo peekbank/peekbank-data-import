@@ -8,10 +8,12 @@ raw_data
 processed_data
 *.zip
 *.curltmp
-pipeline_registry.csv
 data/fmw_2013/temp_figures
 CLAUDE.md
 .lintr
 Rplots.pdf
 Untitled.R
+papers
 .env
+ingest/build
+.playwright-mcp/

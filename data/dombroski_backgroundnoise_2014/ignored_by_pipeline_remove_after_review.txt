@@ -1,0 +1,5 @@
+The pipeline and Peekbank releases skip this dataset while this file exists.
+
+Once someone other than the importer has reviewed the import (the import script
+against the paper, the validation summary and the plots), they delete this file
+and commit the deletion. The dataset is then part of the next release.

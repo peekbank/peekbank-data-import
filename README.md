@@ -29,15 +29,11 @@ renv::restore()
 
 ### Docker (optional)
 
-Docker is only needed for `./pbi import` and `./pbi pipeline`, which run the imports inside a container. Install [Docker](https://docs.docker.com/get-started/get-docker/) and build the image once (and rebuild whenever the code changes):
-
-```bash
-docker compose build
-```
+Docker is needed for `./pbi import`, `./pbi pipeline` and `./pbi ingest`, which run inside a container. Install [Docker](https://docs.docker.com/get-started/get-docker/). `./pbi` builds the image before every command, so the container always runs the code as it is in your folder. The first build installs all packages and takes a while.
 
 The container can't open the Redivis browser login, so it needs an API token. The same goes for any run where nobody can complete the login, e.g. on a server.
 
-1. On Redivis, go to Workspace → Settings → API tokens and create a token. Give it the `data.edit` scope if you want to upload.
+1. On Redivis, go to Workspace → Settings → API tokens and create a token. Give it the `data.edit` scope if you want to upload processed data or stage a release.
 2. Copy `.env.template` to `.env` in the root of the repository and paste the token after `REDIVIS_API_TOKEN=`.
 
 `.env` is gitignored. Local R sessions pick it up too and use it instead of the browser login.
@@ -95,7 +91,7 @@ This table should have one row per recorded gazepoint, with all of the associate
 Refer to the generated template for an overview of the columns that need to be present in this table. This [specification of the wide.table fields](https://docs.google.com/spreadsheets/d/1Z24n9vfrAmEk6_HpoTSh58LnkmSGmNJagguRpI1jwdo/edit?gid=516411759#gid=516411759) explains the contents of each column. Some columns are optional, so depending on your dataset, you might not have to specify all of them.
 
 This is the part where you have to wrangle the original data, which might not always be obvious. 
-Fill in the `README.md` in the datasets folder with any oddities/ambiguities that you encounter during import and document the decisions you make.
+Fill in the `README.md` in the dataset's folder with any oddities/ambiguities that you encounter during import and document the decisions you make.
 
 
 #### 3. Digest the wide.table
@@ -138,11 +134,15 @@ When joining data together, be mindful that the meanings of some fields have cha
 
 In `write_and_validate_list()`, set `cdi_expected` to indicate whether you are importing any cdi data.
 
-After you have finished all of the steps, run the entire import script. Some automated validation steps will be run, so check if the validator complains about any aspect of your data - adjust your import script accordingly. If some error messages are confusing, make sure to open a github issue so we can improve the feedback provided by the validator.
+After you have finished all of the steps, run the entire import script. Some automated validation steps will be run, so check if the validator complains about any aspect of your data - adjust your import script accordingly. If some error messages are confusing, make sure to open a GitHub issue so we can improve the feedback provided by the validator.
 
 After the validation, a summary along with multiple plots about the dataset will be printed. Use these to sanity-check the data and cross-reference it with the original paper.
 
-Once you are happy with the state of the data, upload the data by adding a `upload=TRUE` flag to the arguments of `write_and_validate_list()` and run it again.
+Once you are happy with the state of the data, upload the data by adding an `upload=TRUE` flag to the arguments of `write_and_validate_list()` and run it again.
+
+#### 6. Review
+
+`./pbi new` puts an `ignored_by_pipeline_remove_after_review.txt` into the dataset folder. While it is there, the pipeline and Peekbank releases skip the dataset. Ask someone on the team to review the import against the paper. Once they are happy with it, they delete the file and commit the deletion, which makes the dataset part of the next release.
 
 ## Managing dependencies
 
@@ -167,7 +167,7 @@ Then commit the updated `renv.lock`.
 
 ### Locally
 
-You can (re-)run singular import scripts inside their respective folders. It will automatically download the specific dataset from Redivis, run the import, run validation and (if the flag at the bottom is set) upload the processed data to Redivis.
+You can (re-)run single import scripts inside their respective folders. It will automatically download the specific dataset from Redivis, run the import, run validation and (if the flag at the bottom is set) upload the processed data to Redivis.
 
 To run the full pipeline, source `pipeline.R` and call `run_all()`. You can also uncomment the call at the bottom of `pipeline.R` and run the file directly.
 ```r
@@ -180,7 +180,7 @@ run_all(nocache = FALSE, clean = TRUE, upload = FALSE)
 
 ### With Docker (best when running the pipeline end to end)
 
-With the image built and the token set (see [Docker](#docker-optional)), use the `pbi` wrapper script:
+With the token set (see [Docker](#docker-optional)), use the `pbi` wrapper script:
 
 ```bash
 ./pbi pipeline                    # run all imports
@@ -192,9 +192,13 @@ With the image built and the token set (see [Docker](#docker-optional)), use the
 ./pbi import adams_marchman_2018 --down --up  # redownload + upload
 ```
 
+## Building a release
+
+`./pbi ingest <release-name>` builds a release of the Peekbank database from all reviewed datasets and stages it on Redivis. See the [ingestion README](ingest/README.md) for details.
+
 ## Import Guide (Legacy Method) 
 
-Here's [an old in-progress google doc guide](https://docs.google.com/document/d/1hQrbV33Zdl3SmbJAdTuzyfwCNF9nYpouQ7lQ8U0dQSw/edit) for importing.
+Here's [an old in-progress Google Doc guide](https://docs.google.com/document/d/1hQrbV33Zdl3SmbJAdTuzyfwCNF9nYpouQ7lQ8U0dQSw/edit) for importing.
 
 Further information about the database schema is also linked in [Peekbank - START HERE](https://docs.google.com/document/d/1PrIrLg_A9VTITIp--ucf_wMN-C0VPODtirz8jowUL1Y/edit).
 
@@ -203,23 +207,25 @@ Further information about the database schema is also linked in [Peekbank - STAR
 ```
 peekbank-data-import
 │   ...
-│   pbi - command line wrapper (./pbi new, ./pbi import, ./pbi pipeline)
+│   pbi - command line wrapper (./pbi new, ./pbi import, ./pbi pipeline, ./pbi ingest, ./pbi release, ./pbi rename-release)
 │   start_import.R - creates the import template, run through ./pbi new
-│   pipeline_registry.csv - auto-generated, tracks per-dataset validation settings (gitignored)
+└───ingest
+│       ingest.R - builds the release tables and stages them on Redivis, run through ./pbi ingest
+│       README.md - how to build a release
 └───data
 │   │   ...
 │   └───[DATASET_NAME] - one folder per dataset to import
 │       │   raw_data/ - stores raw data from Redivis
-│       │   processed_data/ - stores processed output of import
+│       │   processed_data/ - stores processed output of import, and validation.json with the settings to validate it
 │       │   import.R - script to turn raw data into processed_data
 │       │   README.md - info and import decisions for the dataset
+│       │   ignored_by_pipeline_remove_after_review.txt - the pipeline and releases skip the dataset while it exists
 │       │
 │       └───legacy
 │           └───import_legacy.R - used to regression test the idless import helper
 │   
 └───helper_functions
     │   pipeline.R - code to run all import scripts
-    │   pipeline_ignore.txt - list of dataset to skip in pipeline
     │   common.R - helpers to ensure repo structure
     │   idless_draft.R - functions to power idless importing
     │   redivis.R - download and upload helpers for Redivis

@@ -7,8 +7,9 @@ renv/.cache/
 .Rhistory
 .RData
 .Ruserdata
-pipeline_registry.csv
 Rplots.pdf
 *.zip
 *.curltmp
 .env
+ingest/build/
+.claude/

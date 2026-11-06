@@ -3419,7 +3419,7 @@
     },
     "peekbankr": {
       "Package": "peekbankr",
-      "Version": "0.7.0",
+      "Version": "0.11.0",
       "Source": "GitHub",
       "Type": "Package",
       "Title": "Accessing and Working with Peekbank Data",
@@ -3429,7 +3429,7 @@
         "R (>= 4.1.0)"
       ],
       "License": "GPL-3",
-      "URL": "https://github.com/peekbank/peekbankr",
+      "URL": "https://peekbank.github.io/peekbankr/, https://github.com/peekbank/peekbankr",
       "BugReports": "https://github.com/peekbank/peekbankr/issues",
       "Encoding": "UTF-8",
       "Imports": [
@@ -3464,7 +3464,7 @@
       "RemoteUsername": "peekbank",
       "RemoteRepo": "peekbankr",
       "RemoteRef": "master",
-      "RemoteSha": "ac40d4270fc76f2c24d13759b1b474f6f31b68ec"
+      "RemoteSha": "3ecd9bc797ec8c2410e6d05d8b0d34335588a269"
     },
     "pillar": {
       "Package": "pillar",

@@ -51,7 +51,6 @@ General
 - [ ] Are there any TODOs left in the code - resolve/double check
 - [ ] Review readme
     - [ ] Make sure any TO-DOs or other decision points in the comments of the code are documented in the ReadMe AND removed from the code to prevent ambiguity (code comments about technical oddities in data structure etc. are fine to leave in the code)
-- [ ] Is the dataset still listed in [`helper_functions/pipeline_ignore.txt`](https://github.com/langcog/peekbank-data-import/blob/master/helper_functions/pipeline_ignore.txt)? If the import is finished, remove it so the dataset actually runs in the pipeline
 - [ ] General data sanity-checking (summary output helps here)
     - [ ] are the general numbers (e.g. # of participants, # of stimuli, average trials per administration) in the summary consistent with the paper? aoi_timepoints are hard to gauge, but a super small number is probably bad
     - [ ] is the subject summary (age, sex distribution) approximately consistent with the paper? (note that it is not surprising if it is not identical; often we have a slightly different dataset and are not trying reproduce the exact numbers, but large deviations should be investigated).
@@ -70,4 +69,5 @@ General
         - [ ] Any odd subject-level patterns? 
         - [ ] (if the dataset has xy data) Does the XY gaze scatter plot show any odd patterns?
     - [ ] Any other, large (unexpected) discrepancies between data reported in paper vs. data in the imported dataset?
-- [ ] After checking everything and rerunning the script: set the write_and_validate upload flag to TRUE temporarily to automatically upload the output to the `peekbank_files` draft on [Redivis](https://stanford.redivis.com/datasets/frvk-5c922jwkx)
+- [ ] After checking everything and rerunning the script: set the write_and_validate upload flag to TRUE temporarily to automatically upload the output to the `peekbank_files` draft on [Redivis](https://stanford.redivis.com/datasets/frvk-5c922jwkx). Releases do not use it, but cached test builds (`./pbi ingest --cache`) do
+- [ ] Delete `ignored_by_pipeline_remove_after_review.txt` from the dataset folder and commit the deletion. The dataset is then part of the next release.

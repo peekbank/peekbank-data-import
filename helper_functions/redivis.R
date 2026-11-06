@@ -25,14 +25,19 @@ if (file.exists(here(".env"))) readRenviron(here(".env"))
 # Redivis only falls back to browser if not token is set, so we remove empty ones
 if (Sys.getenv("REDIVIS_API_TOKEN") == "") Sys.unsetenv("REDIVIS_API_TOKEN")
 
-# Interactive sessions use the package's browser login when there is no token,
-# and retry once with it when the .env token is rejected or lacks the data.edit
-# scope. Scripts and Docker can't complete a browser login, so they fail right
-# away instead of the package waiting up to 10 minutes for one.
-pb_retry_with_browser_login <- function(f) {
+# Scripts and Docker can't complete a browser login, so without a token they
+# fail right away instead of the package waiting up to 10 minutes for one
+pb_require_token <- function() {
   if (!interactive() && !redivis:::has_credentials()) {
     stop("Not logged in to Redivis: set REDIVIS_API_TOKEN in .env (see .env.template)")
   }
+}
+
+# Interactive sessions use the package's browser login when there is no token,
+# and retry once with it when the .env token is rejected or lacks the data.edit
+# scope.
+pb_retry_with_browser_login <- function(f) {
+  pb_require_token()
   tryCatch(f(), redivis_api_error = function(e) {
 
     token_rejected <- e$status_code %in% 401 ||
@@ -80,6 +85,13 @@ pb_visible_version <- function(storage_name) {
   if (is.null(released$properties$nextVersion)) "current" else "next"
 }
 
+# Redivis gives md5 hashes base64-encoded, md5sum() gives them as hex.
+# Decoding gives the raw bytes, and pasting raw bytes writes each as two hex digits.
+pb_md5_hex <- function(md5_hash) {
+  vapply(md5_hash, function(h) paste(jsonlite::base64_dec(h), collapse = ""),
+         character(1), USE.NAMES = FALSE)
+}
+
 pb_list_files <- function(folder, version, storage_name = PB_FILES_DATASET) {
   tb <- pb_storage_handle(storage_name, version)$table(folder)
   tb$get()
@@ -92,6 +104,12 @@ pb_list_files <- function(folder, version, storage_name = PB_FILES_DATASET) {
   }
 }
 
+# Whether a listing of a dataset's folder in peekbank_files is only the
+# placeholder that points to the private dataset
+pb_is_private <- function(files) {
+  identical(files$file_name, PB_PRIVATE_PLACEHOLDER)
+}
+
 # The raw data files of one Peekbank dataset, from the draft if the caller can
 # see one, otherwise from the latest release
 pb_list_raw_files <- function(lab_dataset_id) {
@@ -102,7 +120,7 @@ pb_list_raw_files <- function(lab_dataset_id) {
   }
 
   files <- list_from(PB_FILES_DATASET)
-  if (!identical(files$file_name, PB_PRIVATE_PLACEHOLDER)) {
+  if (!pb_is_private(files)) {
     return(files)
   }
   # only people the Peekbank team gave access can see the private dataset
@@ -137,30 +155,15 @@ download_raw_data_redivis <- function(lab_dataset_id) {
   }))
 }
 
-# Warns when the local raw_data differs from what a download would give (using ahshes).
-check_raw_data_redivis <- function(lab_dataset_id) {
-  remote_files <- tryCatch(
-    pb_silence_known_warnings(pb_retry_with_browser_login(function() {
-      pb_list_raw_files(lab_dataset_id)
-    })),
-    error = function(e) {
-      message(glue("Could not compare raw_data with Redivis: {conditionMessage(e)}"))
-      NULL
-    }
-  )
-  if (is.null(remote_files)) {
-    return(invisible(NULL))
-  }
-
+# What differs between the local raw_data and what a download would give, by md5:
+# one line per kind of difference with a few of the files, none if nothing differs
+raw_data_differences <- function(lab_dataset_id) {
+  remote_files <- pb_silence_known_warnings(pb_retry_with_browser_login(function() {
+    pb_list_raw_files(lab_dataset_id)
+  }))
   raw_path <- here("data", lab_dataset_id, "raw_data")
   local_files <- list.files(raw_path, recursive = TRUE)
-  # Redivis gives md5 hashes base64-encoded, md5sum() gives them as hex
-  remote_hashes <- setNames(
-    vapply(remote_files$md5_hash,
-           function(h) paste(jsonlite::base64_dec(h), collapse = ""),
-           character(1)),
-    remote_files$file_name
-  )
+  remote_hashes <- setNames(pb_md5_hex(remote_files$md5_hash), remote_files$file_name)
   shared <- intersect(local_files, names(remote_hashes))
   local_hashes <- unname(tools::md5sum(file.path(raw_path, shared)))
 
@@ -170,20 +173,32 @@ check_raw_data_redivis <- function(lab_dataset_id) {
     "only local" = setdiff(local_files, names(remote_hashes))
   )
   problems <- problems[lengths(problems) > 0]
-  if (length(problems) == 0) {
-    print(glue("raw_data for {lab_dataset_id} matches Redivis"))
-    return(invisible(NULL))
-  }
-
-  details <- vapply(names(problems), function(kind) {
+  vapply(names(problems), function(kind) {
     files <- problems[[kind]]
     shown <- paste(head(files, 3), collapse = ", ")
     if (length(files) > 3) shown <- paste0(shown, ", ...")
     glue("  {kind} ({length(files)}): {shown}")
   }, character(1))
+}
+
+# Warns when the local raw_data differs from what a download would give
+check_raw_data_redivis <- function(lab_dataset_id) {
+  problems <- tryCatch(raw_data_differences(lab_dataset_id), error = function(e) {
+    message(glue("Could not compare raw_data with Redivis: {conditionMessage(e)}"))
+    NULL
+  })
+  if (is.null(problems)) {
+    return(invisible(NULL))
+  }
+  if (length(problems) == 0) {
+    print(glue("raw_data for {lab_dataset_id} matches Redivis"))
+    return(invisible(NULL))
+  }
+
   header <- glue("raw_data for {lab_dataset_id} differs from Redivis. ",
                  "Delete raw_data/ (or use --down) to redownload.")
-  warning(paste(c(header, details), collapse = "\n"), call. = FALSE, immediate. = TRUE)
+  warning(paste(c(header, problems), collapse = "\n"),
+          call. = FALSE, immediate. = TRUE)
 }
 
 # Stages processed_data/ and README.md into the _processed_data folder of the
@@ -204,8 +219,20 @@ upload_redivis <- function(lab_dataset_id) {
                       list(list(name = glue("{lab_dataset_id}/README.md"), path = readme)))
   }
 
+  file_names <- vapply(files_to_add, function(f) f$name, character(1))
+
   pb_silence_known_warnings(pb_retry_with_browser_login(function() {
     tb <- pb_storage_handle()$create_next_version(if_not_exists = TRUE)$table(PB_PROCESSED_FOLDER)
+    # Uploading replaces files of the same name, but the API cannot delete the
+    # others, so a file the import no longer writes would stay and end up in
+    # the builds using the --cache argument
+    existing <- pb_list_files(PB_PROCESSED_FOLDER, version = "next")$file_name
+    leftover <- setdiff(existing[startsWith(existing, glue("{lab_dataset_id}/"))], file_names)
+    if (length(leftover) > 0) {
+      stop(glue("{lab_dataset_id} no longer produces these files. Delete them from ",
+                "{PB_PROCESSED_FOLDER} in the peekbank_files draft on Redivis, then upload ",
+                "again: {paste(leftover, collapse = ', ')}"))
+    }
     print(glue("Staging {length(files_to_add)} files for {lab_dataset_id} into ",
                "{PB_PROCESSED_FOLDER} in the peekbank_files draft"))
     # With more than one worker the redivis client forks R and fails
@@ -214,8 +241,7 @@ upload_redivis <- function(lab_dataset_id) {
 
     print("Verifying upload...")
     remote_files <- pb_list_files(PB_PROCESSED_FOLDER, version = "next")
-    missing <- setdiff(vapply(files_to_add, function(f) f$name, character(1)),
-                       remote_files$file_name)
+    missing <- setdiff(file_names, remote_files$file_name)
     if (length(missing) > 0) {
       stop(glue("Upload verification failed; missing: ",
                 "{paste(missing, collapse = ', ')}"))
