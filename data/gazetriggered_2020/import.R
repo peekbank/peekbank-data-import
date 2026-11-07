@@ -35,7 +35,7 @@ cdi_data <- questionnaire_data %>%
     values_to = "rawscore",
   ) %>%
   mutate(
-    instrument_type = "wg", # determined by the amount of different values in CDIwords.csv
+    instrument_type = "ws", # Analysis_Paper_Fixation.Rmd: "N-CDI, words and sentences, at 18 months"
     language = "Dutch"
   )
 

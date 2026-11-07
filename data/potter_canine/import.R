@@ -317,7 +317,7 @@ cdi_data <- cdi_raw1 %>%
     percentile = NA,
     rawscore = as.numeric(cdi),
     instrument_type = "ws",
-    measure = "comp",
+    measure = "prod",
     language = "English (American)",
     subject_id = lab_subject_id
   ) |>
