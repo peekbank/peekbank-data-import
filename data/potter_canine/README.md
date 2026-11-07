@@ -56,4 +56,5 @@ For information about the sentence frame manipulation, see the trial orders in t
 
 vanillaness decision Jan 2026: this is all vanilla, even if the carrier phrases are more complicated, it's still neutral. (ditto harder vocab targets)
 ## 5. Importing ambiguity
+- CDI scores are labelled as WS production. Neither the raw data nor the paper says whether the MCDI score counts words produced or understood, but there is some pointers: American English WS very rarely has comprehension(only 40 of 10,602 administrations in Wordbank), and if we score the things as production, the sample's median sits at the 50th percentile for its age (there were no WS norms available to compare against).
 - note the ambiguity with respect to the distractor_id choice.
