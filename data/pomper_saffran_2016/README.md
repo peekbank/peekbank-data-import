@@ -2,7 +2,7 @@
 
 ## 1. Reference
 
-Pomper, R., & Saffran, J. R. (2016). Roses are red, socks are blue: Switching dimensions disrupts young children’s language processing. PLoS ONE 11(6): e0158459. https://doi.org/10.1371/journal.pone.0158459
+Pomper, R., & Saffran, J. R. (2016). Roses are red, socks are blue: Switching dimensions disrupts young children’s language comprehension. PLoS ONE 11(6): e0158459. https://doi.org/10.1371/journal.pone.0158459
 
 ## 2. Abstract
 

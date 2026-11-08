@@ -156,7 +156,7 @@ wide.table <- data %>%
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
   lab_dataset_id = NA,
-  cite = "Weaver H, Saffran JR. Interrogating Early Word Knowledge: Factors That Influence the Alignment Between Caregiver-Report and Experimental Measures. Dev Sci. 2026 Jan;29(1):e70088. doi: 10.1111/desc.70088. PMID: 41217046.",
+  cite = "Weaver, H., & Saffran, J. R. (2026). Interrogating Early Word Knowledge: Factors That Influence the Alignment Between Caregiver-Report and Experimental Measures. Developmental Science, 29(1), e70088. https://doi.org/10.1111/desc.70088",
   shortcite = "Weaver & Saffran (2026)",
   wide.table = wide.table,
   rezero = TRUE,
