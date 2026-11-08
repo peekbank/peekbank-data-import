@@ -1,7 +1,7 @@
 # potter_canine
 
 ## 1. Reference
-Potter, C. E., & Lew-Williams, C. (2024). Frequent vs. infrequent words shape toddlers’ real-time sentence comprehension. Journal of Child Language. 2024;51(6):1478-1488.
+Potter, C. E., & Lew-Williams, C. (2024). Frequent vs. infrequent words shape toddlers’ real-time sentence comprehension. Journal of Child Language, 51(6), 1478–1488.
 
 Contributors: Christine Potter, Casey Lew-Williams
 

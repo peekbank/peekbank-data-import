@@ -374,7 +374,7 @@ datasets_table <- tibble(
   dataset_id = dataset_id,
   lab_dataset_id = dataset_name,
   dataset_name = dataset_name,
-  cite = "Newman, R., &  Morini, G. (2017). Effect of the relationship between target and masker sex on infants' recognition of speech. The Journal of the Acoustical Society of America 141, EL164 (2017); doi: 10.1121/1.4976498",
+  cite = "Newman, R. S., & Morini, G. (2017). Effect of the relationship between target and masker sex on infants' recognition of speech. The Journal of the Acoustical Society of America, 141(2), EL164-EL169.",
   shortcite = "Newman et al. (2017)",
   dataset_aux_data = NA
 )

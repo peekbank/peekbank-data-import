@@ -1,7 +1,7 @@
 # garrison_bergelson_2020
 
 ## 1. Reference
-Garrison, H., Baudet, G., Breitfeld, E., Aberman, A., & Bergelson, E. (2020). Familiarity plays a small role in noun comprehension at 12-18 months. Infancy, 25, 458-477.
+Garrison, H., Baudet, G., Breitfeld, E., Aberman, A., & Bergelson, E. (2020). Familiarity plays a small role in noun comprehension at 12–18 months. Infancy, 25(4), 458–477.
 
 
 ## 2. Abstract

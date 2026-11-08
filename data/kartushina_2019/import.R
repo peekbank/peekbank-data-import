@@ -1,4 +1,4 @@
-# Kartushina & Mayor (2019). Word knowledge in six-to nine-month-old Norwegian infants? Not without additional frequency cues
+# Kartushina & Mayor (2019). Word knowledge in six- to nine-month-old Norwegian infants? Not without additional frequency cues
 
 #### Load packages ####
 library(here)
@@ -38,7 +38,7 @@ df_dataset <- tibble(
   dataset_id = dataset_id,
   lab_dataset_id = dataset_name,
   dataset_name = dataset_name,
-  cite = "Kartushina, N., & Mayor, J. (2019). Word knowledge in six-to nine-month-old Norwegian infants? Not without additional frequency cues. Royal Society open science, 6(9), 180711.",
+  cite = "Kartushina, N., & Mayor, J. (2019). Word knowledge in six- to nine-month-old Norwegian infants? Not without additional frequency cues. Royal Society Open Science, 6(9), 180711.",
   shortcite = "Kartushina & Mayor (2019)",
   dataset_aux_data = NA
 )

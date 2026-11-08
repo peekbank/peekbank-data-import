@@ -400,7 +400,7 @@ dataset <- tibble(
   dataset_id = 0,
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name,
-  cite = "Potter, C. E., & Lew-Williams, C. (2024). Frequent vs. infrequent words shape toddlers’ real-time sentence comprehension. Journal of Child Language. 2024;51(6):1478-1488.",
+  cite = "Potter, C. E., & Lew-Williams, C. (2024). Frequent vs. infrequent words shape toddlers’ real-time sentence comprehension. Journal of Child Language, 51(6), 1478–1488.",
   shortcite = "Potter, C., & Lew-Williams, C. (2024)",
   dataset_aux_data = NA
 )

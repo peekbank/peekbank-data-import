@@ -45,7 +45,7 @@ dataset <- tibble(
   lab_dataset_id = "yoursmy",
   dataset_name = "garrison_bergelson_2020",
   shortcite = "Garrison et al. (2020)",
-  cite = "Garrison, H., Baudet, G., Breitfeld, E., Aberman, A., & Bergelson, E. (2020). Familiarity plays a small role in noun comprehension at 12-18 months. Infancy, 25, 458-477.",
+  cite = "Garrison, H., Baudet, G., Breitfeld, E., Aberman, A., & Bergelson, E. (2020). Familiarity plays a small role in noun comprehension at 12–18 months. Infancy, 25(4), 458–477.",
   dataset_aux_data = NA
 )
 

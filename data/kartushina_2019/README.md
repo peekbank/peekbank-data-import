@@ -2,7 +2,7 @@
 
 ## 1. Reference
 
-Kartushina N, Mayor J. (2019) Word knowledge in six- to nine-month-old Norwegian infants? Not without additional frequency cuesR. Soc. Open Sci.6180711. http://doi.org/10.1098/rsos.180711
+Kartushina, N., & Mayor, J. (2019). Word knowledge in six- to nine-month-old Norwegian infants? Not without additional frequency cues. Royal Society Open Science, 6(9), 180711. https://doi.org/10.1098/rsos.180711
 
 ## 2. Abstract
 
