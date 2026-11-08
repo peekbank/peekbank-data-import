@@ -226,7 +226,7 @@ wide.table <- data %>%
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
   lab_dataset_id = NA,
-  cite = "Novack, M. A., Dworak, E. M.,  Han, Y. C., Kaat, A. J., Ustsinovich, V., Saffran, J., Frank, M. C., Waxman, S., Gershon,  R. C. (2025). Development and validation of the NIH Baby Toolbox® language measures. Infant Behavior and Development, 80, 102121.",
+  cite = "Novack, M. A., Dworak, E. M., Han, Y. C., Kaat, A. J., Ustsinovich, V., Saffran, J., Frank, M. C., Waxman, S., & Gershon, R. C. (2025). Development and validation of the NIH Baby Toolbox® language measures. Infant Behavior and Development, 80, 102121.",
   shortcite = "Novack et al. (2025)",
   wide.table = wide.table,
   rezero = FALSE, # t is already zeroed on presentedLiveItem, indirectly causing resets of t inbetween trials (normalise will move to pod)

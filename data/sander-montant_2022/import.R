@@ -311,7 +311,7 @@ wide.table <- et_data_joined |>
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
   lab_dataset_id = NA,
-  cite = "Sander-Montant, A., Byers-Heinlein, K., & Perez, M. L. (2023). The more they hear the more they learn? Using data from bilinguals to test models of early lexical development. Cognition, 238, 105525.",
+  cite = "Sander-Montant, A., López Pérez, M., & Byers-Heinlein, K. (2023). The more they hear the more they learn? Using data from bilinguals to test models of early lexical development. Cognition, 238, 105525.",
   shortcite = "Sander-Montant et al. 2023",
   wide.table = wide.table
 )

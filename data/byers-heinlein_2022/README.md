@@ -1,7 +1,7 @@
 # byers-heinlein_2022
 
 ## 1. Reference
-Byers-Heinlein, K., Jardak, A., Fourakis, E., & Lew-Williams, C. (2022). Effects of language mixing on bilingual children's word learning. Bilingualism, 25(1): 55-69.
+Byers-Heinlein, K., Jardak, A., Fourakis, E., & Lew-Williams, C. (2022). Effects of language mixing on bilingual children's word learning. Bilingualism: Language and Cognition, 25(1), 55–69.
 
 ## 2. Abstract
 Language mixing is common in bilingual children’s learning environments. Here,

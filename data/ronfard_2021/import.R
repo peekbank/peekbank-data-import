@@ -258,8 +258,8 @@ dataset <- tibble(
   dataset_id = 0, # make zero 0 for all
   dataset_name = dataset_name,
   lab_dataset_id = dataset_name, # internal name from the lab (if known)
-  cite = "Ronfard, S., Wei, R., & Rowe, M. (2021). Uncovering the linguistic, social, and cognitive skills underlying processing efficiency as measured by the looking-while-listening paradigm. Journal of Child Language, 49(2), 302–325.",
-  shortcite = "Ronfard, Wei, & Rowe (2021)"
+  cite = "Ronfard, S., Wei, R., & Rowe, M. L. (2022). Exploring the linguistic, cognitive, and social skills underlying lexical processing efficiency as measured by the looking-while-listening paradigm. Journal of Child Language, 49(2), 302–325.",
+  shortcite = "Ronfard, Wei, & Rowe (2022)"
 ) %>% mutate(dataset_aux_data = NA)
 
 

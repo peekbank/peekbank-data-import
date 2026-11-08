@@ -170,7 +170,7 @@ language_measures <- wide.table %>%
 dataset_list <- digest.dataset(
   dataset_name = dataset_name,
   lab_dataset_id = NA,
-  cite = "Byers-Heinlein, K., Jardak, A., Fourakis, E., & Lew-Williams, C. (2022). Effects of language mixing on bilingual children's word learning. Bilingualism, 25(1): 55-69.",
+  cite = "Byers-Heinlein, K., Jardak, A., Fourakis, E., & Lew-Williams, C. (2022). Effects of language mixing on bilingual children's word learning. Bilingualism: Language and Cognition, 25(1), 55–69.",
   shortcite = "Byers-Heinlein et al. (2022)",
   wide.table = wide.table,
   rezero = FALSE,
